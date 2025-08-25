@@ -188,10 +188,15 @@ class Task extends Equatable {
 
   // Helper method to get the actual notification DateTime based on type
   DateTime? getScheduledNotificationTime() {
+    print('🕒 getScheduledNotificationTime called for ${title}');
+    print('🕒 notificationType: $notificationType');
+
     switch (notificationType) {
       case NotificationType.specificTime:
+        print('🕒 specificTime - notificationTime: $notificationTime');
         return notificationTime;
       case NotificationType.daily:
+        print('🕒 daily - dailyNotificationTime: $dailyNotificationTime');
         if (dailyNotificationTime != null) {
           final now = DateTime.now();
           var scheduled = DateTime(
@@ -205,23 +210,34 @@ class Task extends Equatable {
           if (scheduled.isBefore(now)) {
             scheduled = scheduled.add(const Duration(days: 1));
           }
+          print('🕒 daily scheduled time: $scheduled');
           return scheduled;
         }
         return null;
       case NotificationType.beforeEnd:
+        print('🕒 beforeEnd - beforeEndOption: $beforeEndOption');
+        print('🕒 beforeEnd - endDate: $endDate');
         if (beforeEndOption != null) {
+          DateTime result;
           switch (beforeEndOption!) {
             case BeforeEndOption.tenMinutes:
-              return endDate.subtract(const Duration(minutes: 10));
+              result = endDate.subtract(const Duration(minutes: 10));
+              break;
             case BeforeEndOption.thirtyMinutes:
-              return endDate.subtract(const Duration(minutes: 30));
+              result = endDate.subtract(const Duration(minutes: 30));
+              break;
             case BeforeEndOption.oneHour:
-              return endDate.subtract(const Duration(hours: 1));
+              result = endDate.subtract(const Duration(hours: 1));
+              break;
             case BeforeEndOption.twoHours:
-              return endDate.subtract(const Duration(hours: 2));
+              result = endDate.subtract(const Duration(hours: 2));
+              break;
             case BeforeEndOption.oneDay:
-              return endDate.subtract(const Duration(days: 1));
+              result = endDate.subtract(const Duration(days: 1));
+              break;
           }
+          print('🕒 beforeEnd scheduled time: $result');
+          return result;
         }
         return null;
     }

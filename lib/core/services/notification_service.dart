@@ -82,21 +82,49 @@ class NotificationService {
   }
 
   Future<void> scheduleTaskNotification(Task task) async {
+    print('🔔 scheduleTaskNotification called for task: ${task.title}');
+    print('🔔 isNotificationEnabled: ${task.isNotificationEnabled}');
+    print('🔔 notificationType: ${task.notificationType}');
+
     if (!task.isNotificationEnabled) {
+      print('🔔 Notifications not enabled, returning');
       return;
+    }
+
+    // Check if we can schedule exact alarms
+    final androidPlugin = _flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+
+    if (androidPlugin != null) {
+      final canScheduleExactAlarms = await androidPlugin
+          .canScheduleExactNotifications();
+      print('🔔 Can schedule exact alarms: $canScheduleExactAlarms');
+
+      if (canScheduleExactAlarms != true) {
+        print('🔔 ⚠️ Cannot schedule exact alarms - permission missing');
+        // Request permission
+        await androidPlugin.requestExactAlarmsPermission();
+      }
     }
 
     // Use the enhanced notification scheduling logic from Task entity
     final scheduledNotificationTime = task.getScheduledNotificationTime();
+    print('🔔 scheduledNotificationTime: $scheduledNotificationTime');
 
     if (scheduledNotificationTime != null) {
       final scheduledDate = tz.TZDateTime.from(
         scheduledNotificationTime,
         tz.local,
       );
+      final now = tz.TZDateTime.now(tz.local);
+      print('🔔 scheduledDate: $scheduledDate');
+      print('🔔 currentTime: $now');
+      print('🔔 isAfter check: ${scheduledDate.isAfter(now)}');
 
       // Only schedule if the notification time is in the future
-      if (scheduledDate.isAfter(tz.TZDateTime.now(tz.local))) {
+      if (scheduledDate.isAfter(now)) {
         String notificationTitle = 'Task Reminder: ${task.title}';
         String notificationBody = task.description.isNotEmpty
             ? task.description
@@ -134,13 +162,23 @@ class NotificationService {
               'task_reminders',
               'Task Reminders',
               channelDescription: 'Notifications for task reminders',
-              importance: Importance.high,
-              priority: Priority.high,
-              ongoing: task.isPinnedToNotification,
-              autoCancel: !task.isPinnedToNotification,
-              showProgress: true,
-              maxProgress: 100,
-              progress: (task.progressPercentage * 100).round(),
+              importance: Importance.max, // Changed from high to max
+              priority: Priority.max, // Changed from high to max
+              ongoing: false, // Don't make scheduled notifications ongoing
+              autoCancel: true, // Allow auto cancel for scheduled notifications
+              showProgress:
+                  false, // Don't show progress for scheduled notifications
+              enableLights: true, // Enable lights for better visibility
+              enableVibration: true, // Enable vibration
+              playSound: true, // Ensure sound plays
+              icon: '@mipmap/ic_launcher', // Ensure icon is set
+              largeIcon: const DrawableResourceAndroidBitmap(
+                '@mipmap/ic_launcher',
+              ),
+              // Make it show in lock screen
+              visibility: NotificationVisibility.public,
+              // Ensure it's not grouped with persistent notifications
+              tag: 'scheduled_reminder',
             ),
             iOS: const DarwinNotificationDetails(
               presentAlert: true,
@@ -152,7 +190,41 @@ class NotificationService {
               UILocalNotificationDateInterpretation.absoluteTime,
           matchDateTimeComponents: dateTimeComponents,
         );
+        print('🔔 Notification scheduled successfully with enhanced settings!');
+
+        // Also schedule a test notification 10 seconds from now to verify system works
+        if (task.title.toLowerCase().contains('test')) {
+          final testTime = tz.TZDateTime.now(
+            tz.local,
+          ).add(const Duration(seconds: 10));
+          await _flutterLocalNotificationsPlugin.zonedSchedule(
+            (task.id.hashCode + 999),
+            '🧪 Test Notification',
+            'This is a test to verify notifications work',
+            testTime,
+            const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'task_reminders',
+                'Task Reminders',
+                channelDescription: 'Test notification',
+                importance: Importance.max,
+                priority: Priority.max,
+                enableLights: true,
+                enableVibration: true,
+                playSound: true,
+                visibility: NotificationVisibility.public,
+              ),
+            ),
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime,
+          );
+          print('🧪 Test notification scheduled for 10 seconds from now');
+        }
+      } else {
+        print('🔔 Scheduled time is not in the future, not scheduling');
       }
+    } else {
+      print('🔔 scheduledNotificationTime is null');
     }
 
     // If task is pinned to notification, create a persistent notification
@@ -281,11 +353,36 @@ class NotificationService {
   }
 
   Future<void> requestPermissions() async {
-    await _flutterLocalNotificationsPlugin
+    final androidPlugin = _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.requestNotificationsPermission();
+        >();
+
+    if (androidPlugin != null) {
+      // Request basic notification permission
+      final notificationPermissionGranted = await androidPlugin
+          .requestNotificationsPermission();
+      print(
+        '🔔 Notification permission granted: $notificationPermissionGranted',
+      );
+
+      // Request exact alarm permission for scheduled notifications (Android 12+)
+      final exactAlarmPermissionGranted = await androidPlugin
+          .requestExactAlarmsPermission();
+      print('🔔 Exact alarm permission granted: $exactAlarmPermissionGranted');
+
+      // Check if we can schedule exact notifications
+      final canScheduleExact = await androidPlugin
+          .canScheduleExactNotifications();
+      print('🔔 Can schedule exact notifications: $canScheduleExact');
+
+      // Check if notifications are enabled
+      final areNotificationsEnabled = await androidPlugin
+          .areNotificationsEnabled();
+      print('🔔 Are notifications enabled: $areNotificationsEnabled');
+
+      print('🔔 All notification permissions requested and checked');
+    }
 
     await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
