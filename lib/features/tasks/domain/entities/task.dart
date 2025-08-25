@@ -1,4 +1,36 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+
+enum NotificationType {
+  specificTime, // At a specific date and time
+  daily, // Daily at a specific time
+  beforeEnd, // X minutes/hours before end time
+}
+
+enum BeforeEndOption {
+  tenMinutes, // 10 minutes before
+  thirtyMinutes, // 30 minutes before
+  oneHour, // 1 hour before
+  twoHours, // 2 hours before
+  oneDay, // 1 day before
+}
+
+extension BeforeEndOptionExtension on BeforeEndOption {
+  String get displayName {
+    switch (this) {
+      case BeforeEndOption.tenMinutes:
+        return '10 minutes';
+      case BeforeEndOption.thirtyMinutes:
+        return '30 minutes';
+      case BeforeEndOption.oneHour:
+        return '1 hour';
+      case BeforeEndOption.twoHours:
+        return '2 hours';
+      case BeforeEndOption.oneDay:
+        return '1 day';
+    }
+  }
+}
 
 class Task extends Equatable {
   final String id;
@@ -8,7 +40,10 @@ class Task extends Equatable {
   final DateTime endDate;
   final bool isCompleted;
   final bool isNotificationEnabled;
-  final DateTime? notificationTime;
+  final NotificationType notificationType;
+  final DateTime? notificationTime; // For specificTime type
+  final TimeOfDay? dailyNotificationTime; // For daily type
+  final BeforeEndOption? beforeEndOption; // For beforeEnd type
   final bool isPinnedToNotification;
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -21,7 +56,10 @@ class Task extends Equatable {
     required this.endDate,
     this.isCompleted = false,
     this.isNotificationEnabled = true,
+    this.notificationType = NotificationType.specificTime,
     this.notificationTime,
+    this.dailyNotificationTime,
+    this.beforeEndOption,
     this.isPinnedToNotification = false,
     required this.createdAt,
     this.updatedAt,
@@ -101,7 +139,10 @@ class Task extends Equatable {
     DateTime? endDate,
     bool? isCompleted,
     bool? isNotificationEnabled,
+    NotificationType? notificationType,
     DateTime? notificationTime,
+    TimeOfDay? dailyNotificationTime,
+    BeforeEndOption? beforeEndOption,
     bool? isPinnedToNotification,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -115,7 +156,11 @@ class Task extends Equatable {
       isCompleted: isCompleted ?? this.isCompleted,
       isNotificationEnabled:
           isNotificationEnabled ?? this.isNotificationEnabled,
+      notificationType: notificationType ?? this.notificationType,
       notificationTime: notificationTime ?? this.notificationTime,
+      dailyNotificationTime:
+          dailyNotificationTime ?? this.dailyNotificationTime,
+      beforeEndOption: beforeEndOption ?? this.beforeEndOption,
       isPinnedToNotification:
           isPinnedToNotification ?? this.isPinnedToNotification,
       createdAt: createdAt ?? this.createdAt,
@@ -132,9 +177,53 @@ class Task extends Equatable {
     endDate,
     isCompleted,
     isNotificationEnabled,
+    notificationType,
     notificationTime,
+    dailyNotificationTime,
+    beforeEndOption,
     isPinnedToNotification,
     createdAt,
     updatedAt,
   ];
+
+  // Helper method to get the actual notification DateTime based on type
+  DateTime? getScheduledNotificationTime() {
+    switch (notificationType) {
+      case NotificationType.specificTime:
+        return notificationTime;
+      case NotificationType.daily:
+        if (dailyNotificationTime != null) {
+          final now = DateTime.now();
+          var scheduled = DateTime(
+            now.year,
+            now.month,
+            now.day,
+            dailyNotificationTime!.hour,
+            dailyNotificationTime!.minute,
+          );
+          // If the time has already passed today, schedule for tomorrow
+          if (scheduled.isBefore(now)) {
+            scheduled = scheduled.add(const Duration(days: 1));
+          }
+          return scheduled;
+        }
+        return null;
+      case NotificationType.beforeEnd:
+        if (beforeEndOption != null) {
+          switch (beforeEndOption!) {
+            case BeforeEndOption.tenMinutes:
+              return endDate.subtract(const Duration(minutes: 10));
+            case BeforeEndOption.thirtyMinutes:
+              return endDate.subtract(const Duration(minutes: 30));
+            case BeforeEndOption.oneHour:
+              return endDate.subtract(const Duration(hours: 1));
+            case BeforeEndOption.twoHours:
+              return endDate.subtract(const Duration(hours: 2));
+            case BeforeEndOption.oneDay:
+              return endDate.subtract(const Duration(days: 1));
+          }
+        }
+        return null;
+    }
+  }
 }

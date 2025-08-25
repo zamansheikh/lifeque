@@ -82,45 +82,77 @@ class NotificationService {
   }
 
   Future<void> scheduleTaskNotification(Task task) async {
-    if (!task.isNotificationEnabled || task.notificationTime == null) {
+    if (!task.isNotificationEnabled) {
       return;
     }
 
-    final notificationTime = task.notificationTime!;
-    final scheduledDate = tz.TZDateTime.from(notificationTime, tz.local);
+    // Use the enhanced notification scheduling logic from Task entity
+    final scheduledNotificationTime = task.getScheduledNotificationTime();
 
-    // Only schedule if the notification time is in the future
-    if (scheduledDate.isAfter(tz.TZDateTime.now(tz.local))) {
-      await _flutterLocalNotificationsPlugin.zonedSchedule(
-        task.id.hashCode,
-        'Task Reminder: ${task.title}',
-        task.description.isNotEmpty
-            ? task.description
-            : 'You have a task to complete',
-        scheduledDate,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'task_reminders',
-            'Task Reminders',
-            channelDescription: 'Notifications for task reminders',
-            importance: Importance.high,
-            priority: Priority.high,
-            ongoing: task.isPinnedToNotification,
-            autoCancel: !task.isPinnedToNotification,
-            showProgress: true,
-            maxProgress: 100,
-            progress: (task.progressPercentage * 100).round(),
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time,
+    if (scheduledNotificationTime != null) {
+      final scheduledDate = tz.TZDateTime.from(
+        scheduledNotificationTime,
+        tz.local,
       );
+
+      // Only schedule if the notification time is in the future
+      if (scheduledDate.isAfter(tz.TZDateTime.now(tz.local))) {
+        String notificationTitle = 'Task Reminder: ${task.title}';
+        String notificationBody = task.description.isNotEmpty
+            ? task.description
+            : 'You have a task to complete';
+
+        // Customize notification content based on notification type
+        switch (task.notificationType) {
+          case NotificationType.daily:
+            notificationTitle = 'Daily Reminder: ${task.title}';
+            notificationBody = 'Your daily task reminder';
+            break;
+          case NotificationType.beforeEnd:
+            final timeBeforeEnd = task.beforeEndOption?.displayName ?? '';
+            notificationTitle = 'Task Due Soon: ${task.title}';
+            notificationBody = 'Task ends in $timeBeforeEnd';
+            break;
+          case NotificationType.specificTime:
+            // Use default title and body
+            break;
+        }
+
+        DateTimeComponents? dateTimeComponents;
+        // For daily notifications, repeat daily at the same time
+        if (task.notificationType == NotificationType.daily) {
+          dateTimeComponents = DateTimeComponents.time;
+        }
+
+        await _flutterLocalNotificationsPlugin.zonedSchedule(
+          task.id.hashCode,
+          notificationTitle,
+          notificationBody,
+          scheduledDate,
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              'task_reminders',
+              'Task Reminders',
+              channelDescription: 'Notifications for task reminders',
+              importance: Importance.high,
+              priority: Priority.high,
+              ongoing: task.isPinnedToNotification,
+              autoCancel: !task.isPinnedToNotification,
+              showProgress: true,
+              maxProgress: 100,
+              progress: (task.progressPercentage * 100).round(),
+            ),
+            iOS: const DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+            ),
+          ),
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: dateTimeComponents,
+        );
+      }
     }
 
     // If task is pinned to notification, create a persistent notification

@@ -4,7 +4,7 @@ import '../../../../core/error/exceptions.dart' as app_exceptions;
 
 class DatabaseHelper {
   static const String _databaseName = 'remind_me.db';
-  static const int _databaseVersion = 2;
+  static const int _databaseVersion = 3;
 
   static const String tableTask = 'tasks';
 
@@ -16,7 +16,11 @@ class DatabaseHelper {
   static const String columnEndDate = 'endDate';
   static const String columnIsCompleted = 'isCompleted';
   static const String columnIsNotificationEnabled = 'isNotificationEnabled';
+  static const String columnNotificationType = 'notificationType';
   static const String columnNotificationTime = 'notificationTime';
+  static const String columnDailyNotificationHour = 'dailyNotificationHour';
+  static const String columnDailyNotificationMinute = 'dailyNotificationMinute';
+  static const String columnBeforeEndOption = 'beforeEndOption';
   static const String columnIsPinnedToNotification = 'isPinnedToNotification';
   static const String columnCreatedAt = 'createdAt';
   static const String columnUpdatedAt = 'updatedAt';
@@ -55,7 +59,11 @@ class DatabaseHelper {
           $columnEndDate INTEGER NOT NULL,
           $columnIsCompleted INTEGER NOT NULL DEFAULT 0,
           $columnIsNotificationEnabled INTEGER NOT NULL DEFAULT 1,
+          $columnNotificationType INTEGER NOT NULL DEFAULT 0,
           $columnNotificationTime INTEGER,
+          $columnDailyNotificationHour INTEGER,
+          $columnDailyNotificationMinute INTEGER,
+          $columnBeforeEndOption INTEGER,
           $columnIsPinnedToNotification INTEGER NOT NULL DEFAULT 0,
           $columnCreatedAt INTEGER NOT NULL,
           $columnUpdatedAt INTEGER
@@ -75,6 +83,21 @@ class DatabaseHelper {
       ''');
       await db.execute('''
         ALTER TABLE $tableTask ADD COLUMN $columnIsPinnedToNotification INTEGER NOT NULL DEFAULT 0
+      ''');
+    }
+    if (oldVersion < 3) {
+      // Add new columns for enhanced notification features
+      await db.execute('''
+        ALTER TABLE $tableTask ADD COLUMN $columnNotificationType INTEGER NOT NULL DEFAULT 0
+      ''');
+      await db.execute('''
+        ALTER TABLE $tableTask ADD COLUMN $columnDailyNotificationHour INTEGER
+      ''');
+      await db.execute('''
+        ALTER TABLE $tableTask ADD COLUMN $columnDailyNotificationMinute INTEGER
+      ''');
+      await db.execute('''
+        ALTER TABLE $tableTask ADD COLUMN $columnBeforeEndOption INTEGER
       ''');
     }
   }
