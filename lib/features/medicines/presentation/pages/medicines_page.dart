@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../domain/entities/medicine_dose.dart';
 import '../bloc/medicine_cubit.dart';
 import '../bloc/medicine_state.dart';
 import '../../domain/entities/medicine.dart';
@@ -494,23 +498,68 @@ class _MedicinesPageState extends State<MedicinesPage> {
     }
   }
 
-  void _takeMedicineDose(Medicine medicine) {
-    // Get the current pending dose for this medicine
-    context.read<MedicineCubit>().getPendingDoses();
-    // Note: This is a simplified implementation. In a full implementation,
-    // you would get the actual pending dose ID and use that.
-    // For now, we'll create a temporary dose ID based on current time
-    final doseId = '${medicine.id}_${DateTime.now().millisecondsSinceEpoch}';
-    context.read<MedicineCubit>().markDoseAsTaken(doseId, medicine.id);
+  Future<MedicineDose?> _getMedicineDose(String medicineId) async {
+    final completer = Completer<MedicineDose?>();
+    final cubit = context.read<MedicineCubit>();
+
+    // Listen for the DoseLoaded state
+    final subscription = cubit.stream.listen((state) {
+      if (state is DoseLoaded) {
+        final now = DateTime.now();
+        final pendingDoses = state.doses
+            .where(
+              (dose) =>
+                  dose.medicineId == medicineId &&
+                  dose.status == DoseStatus.pending &&
+                  dose.scheduledTime.isAfter(now),
+            )
+            .toList();
+
+        if (pendingDoses.isNotEmpty) {
+          // Sort by scheduled time to find the soonest one
+          pendingDoses.sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
+          completer.complete(pendingDoses.first);
+        } else {
+          completer.complete(null);
+        }
+      }
+    });
+
+    // Trigger the dose loading
+    cubit.getDosesForMedicine(medicineId);
+
+    final dose = await completer.future;
+    subscription.cancel();
+    return dose;
   }
 
-  void _skipMedicineDose(Medicine medicine) {
-    // Get the current pending dose for this medicine
-    context.read<MedicineCubit>().getPendingDoses();
-    // Note: This is a simplified implementation. In a full implementation,
-    // you would get the actual pending dose ID and use that.
-    // For now, we'll create a temporary dose ID based on current time
-    final doseId = '${medicine.id}_${DateTime.now().millisecondsSinceEpoch}';
-    context.read<MedicineCubit>().markDoseAsSkipped(doseId, medicine.id);
+  void _takeMedicineDose(Medicine medicine) async {
+    final dose = await _getMedicineDose(medicine.id);
+    if (dose != null) {
+      context.read<MedicineCubit>().markDoseAsTaken(dose.id, medicine.id);
+    } else {
+      // Handle case where no pending dose is found
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No pending doses found for this medicine.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  void _skipMedicineDose(Medicine medicine) async {
+    final dose = await _getMedicineDose(medicine.id);
+    if (dose != null) {
+      context.read<MedicineCubit>().markDoseAsSkipped(dose.id, medicine.id);
+    } else {
+      // Handle case where no pending dose is found
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No pending doses found for this medicine.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
   }
 }
