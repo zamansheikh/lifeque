@@ -89,7 +89,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
                 ),
               );
               // Refresh data when returning from edit page
-              if (mounted) {
+              if (context.mounted) {
                 context.read<MedicineCubit>().loadAllMedicines();
                 context.read<MedicineCubit>().getDosesForMedicine(
                   widget.medicine.id,
@@ -182,7 +182,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
           children: [
             _buildOverviewTab(),
             _buildDosesTab(),
-            _buildProgressTab(),
+            _buildCalendarTab(),
           ],
         ),
       ),
@@ -224,7 +224,9 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color: Theme.of(
+                      context,
+                    ).primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -260,7 +262,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
                   decoration: BoxDecoration(
                     color: _getStatusColor(
                       widget.medicine.status,
-                    ).withOpacity(0.1),
+                    ).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -349,7 +351,9 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        color: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -528,8 +532,8 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isOverdue
-            ? Colors.red.withOpacity(0.1)
-            : Colors.blue.withOpacity(0.1),
+            ? Colors.red.withValues(alpha: 0.1)
+            : Colors.blue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isOverdue ? Colors.red : Colors.blue,
@@ -660,7 +664,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            ...doses.map((dose) => _buildDoseItem(dose)).toList(),
+            ...doses.map((dose) => _buildDoseItem(dose)),
           ],
         ),
       ),
@@ -727,79 +731,82 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
     );
   }
 
-  Widget _buildProgressTab() {
-    return Column(
-      children: [
-        TabBar(
-          controller: _progressTabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.calendar_month), text: 'Calendar'),
-            Tab(icon: Icon(Icons.show_chart), text: 'Charts'),
-            Tab(icon: Icon(Icons.analytics), text: 'Statistics'),
-          ],
-        ),
-        Expanded(
-          child: TabBarView(
-            controller: _progressTabController,
-            children: [
-              _buildCalendarTab(),
-              _buildChartsTab(),
-              _buildStatisticsTab(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildCalendarTab() {
-    return Column(
-      children: [
-        Card(
-          margin: const EdgeInsets.all(16),
-          child: TableCalendar<MedicineDose>(
-            firstDay: widget.medicine.startDate,
-            lastDay:
-                widget.medicine.endDate ??
-                DateTime.now().add(const Duration(days: 365)),
-            focusedDay: _focusedDay,
-            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            eventLoader: _getEventsForDay,
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            calendarStyle: CalendarStyle(
-              markersMaxCount: 10,
-              markerDecoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                shape: BoxShape.circle,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Card(
+            margin: const EdgeInsets.all(16),
+            child: TableCalendar<MedicineDose>(
+              firstDay: widget.medicine.startDate,
+              lastDay:
+                  widget.medicine.endDate ??
+                  DateTime.now().add(const Duration(days: 365)),
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              eventLoader: _getEventsForDay,
+              startingDayOfWeek: StartingDayOfWeek.monday,
+              calendarStyle: CalendarStyle(
+                markersMaxCount: 10,
+                markerDecoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  shape: BoxShape.circle,
+                ),
+                todayDecoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.6),
+                  shape: BoxShape.circle,
+                ),
+                selectedDecoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  shape: BoxShape.circle,
+                ),
+                weekendTextStyle: TextStyle(color: Colors.red[400]),
+                outsideDaysVisible: false,
               ),
-              todayDecoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.6),
-                shape: BoxShape.circle,
+              headerStyle: const HeaderStyle(
+                formatButtonVisible: false,
+                titleCentered: true,
               ),
-              selectedDecoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                shape: BoxShape.circle,
-              ),
-              weekendTextStyle: TextStyle(color: Colors.red[400]),
-              outsideDaysVisible: false,
-            ),
-            headerStyle: const HeaderStyle(
-              formatButtonVisible: false,
-              titleCentered: true,
-            ),
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              },
+              onPageChanged: (focusedDay) {
                 _focusedDay = focusedDay;
-              });
-            },
-            onPageChanged: (focusedDay) {
-              _focusedDay = focusedDay;
-            },
+              },
+            ),
           ),
-        ),
-        Expanded(child: _buildDayDetails()),
-      ],
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  const Text(
+                    'Overall Progress',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    height: 200,
+                    child: PieChart(
+                      PieChartData(
+                        sectionsSpace: 2,
+                        centerSpaceRadius: 60,
+                        sections: _buildProgressPieChartSections(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildProgressLegend(),
+                ],
+              ),
+            ),
+          ),
+          _buildDayDetails(),
+        ],
+      ),
     );
   }
 
@@ -849,7 +856,9 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: _getDoseStatusColor(dose.status).withOpacity(0.1),
+          backgroundColor: _getDoseStatusColor(
+            dose.status,
+          ).withValues(alpha: 0.1),
           child: Icon(
             _getDoseStatusIcon(dose.status),
             color: _getDoseStatusColor(dose.status),
@@ -890,261 +899,6 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
                 _getDoseStatusIcon(dose.status),
                 color: _getDoseStatusColor(dose.status),
               ),
-      ),
-    );
-  }
-
-  Widget _buildChartsTab() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Overall Progress Pie Chart
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  const Text(
-                    'Overall Progress',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    height: 200,
-                    child: PieChart(
-                      PieChartData(
-                        sectionsSpace: 2,
-                        centerSpaceRadius: 60,
-                        sections: _buildProgressPieChartSections(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildProgressLegend(),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Weekly Adherence Chart
-          Expanded(
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Weekly Adherence',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Expanded(
-                      child: BarChart(
-                        BarChartData(
-                          alignment: BarChartAlignment.spaceAround,
-                          maxY: 100,
-                          barTouchData: BarTouchData(enabled: true),
-                          titlesData: FlTitlesData(
-                            show: true,
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  const titles = [
-                                    'Mon',
-                                    'Tue',
-                                    'Wed',
-                                    'Thu',
-                                    'Fri',
-                                    'Sat',
-                                    'Sun',
-                                  ];
-                                  return Text(
-                                    titles[value.toInt() % 7],
-                                    style: const TextStyle(fontSize: 12),
-                                  );
-                                },
-                              ),
-                            ),
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  return Text('${value.toInt()}%');
-                                },
-                              ),
-                            ),
-                            topTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            rightTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                          ),
-                          borderData: FlBorderData(show: false),
-                          barGroups: _buildWeeklyAdherenceBarData(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatisticsTab() {
-    final adherenceStats = _calculateAdherenceStatistics();
-
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Quick Stats Cards
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  'Adherence Rate',
-                  '${adherenceStats['adherenceRate']?.toStringAsFixed(1)}%',
-                  Icons.trending_up,
-                  Colors.green,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildStatCard(
-                  'Streak',
-                  '${adherenceStats['currentStreak']} days',
-                  Icons.local_fire_department,
-                  Colors.orange,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  'Total Taken',
-                  '${adherenceStats['totalTaken']}',
-                  Icons.check_circle,
-                  Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildStatCard(
-                  'Total Missed',
-                  '${adherenceStats['totalMissed']}',
-                  Icons.cancel,
-                  Colors.red,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Detailed Statistics
-          Expanded(
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Detailed Statistics',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildDetailedStatItem(
-                      'Best Streak',
-                      '${adherenceStats['bestStreak']} days',
-                      Icons.star,
-                    ),
-                    _buildDetailedStatItem(
-                      'Average Daily Adherence',
-                      '${adherenceStats['dailyAdherence']?.toStringAsFixed(1)}%',
-                      Icons.bar_chart,
-                    ),
-                    _buildDetailedStatItem(
-                      'Days Completed',
-                      '${adherenceStats['daysCompleted']} / ${widget.medicine.durationInDays}',
-                      Icons.calendar_today,
-                    ),
-                    _buildDetailedStatItem(
-                      'Days Remaining',
-                      '${widget.medicine.remainingDays}',
-                      Icons.schedule,
-                    ),
-                    _buildDetailedStatItem(
-                      'Next Dose',
-                      widget.medicine.getNextDoseTime() != null
-                          ? _formatDateTime(widget.medicine.getNextDoseTime()!)
-                          : 'No upcoming doses',
-                      Icons.alarm,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              title,
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailedStatItem(String label, String value, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(label, style: TextStyle(color: Colors.grey[700])),
-          ),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
-        ],
       ),
     );
   }
@@ -1242,47 +996,6 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
         radius: 50,
       ),
     ];
-  }
-
-  List<BarChartGroupData> _buildWeeklyAdherenceBarData() {
-    // Calculate adherence for last 7 days
-    final now = DateTime.now();
-    final List<BarChartGroupData> barData = [];
-
-    for (int i = 6; i >= 0; i--) {
-      final day = now.subtract(Duration(days: i));
-      final dayDoses = _getEventsForDay(day);
-
-      double adherence = 0;
-      if (dayDoses.isNotEmpty) {
-        final takenDoses = dayDoses
-            .where((dose) => dose.status == DoseStatus.taken)
-            .length;
-        adherence = (takenDoses / dayDoses.length) * 100;
-      }
-
-      barData.add(
-        BarChartGroupData(
-          x: 6 - i,
-          barRods: [
-            BarChartRodData(
-              toY: adherence,
-              color: _getAdherenceColor(adherence),
-              width: 16,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return barData;
-  }
-
-  Color _getAdherenceColor(double percentage) {
-    if (percentage >= 80) return Colors.green;
-    if (percentage >= 60) return Colors.orange;
-    return Colors.red;
   }
 
   Map<String, dynamic> _calculateAdherenceStatistics() {
@@ -1479,9 +1192,5 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    return '${_formatDate(dateTime)} at ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }
