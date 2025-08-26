@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../../features/tasks/domain/entities/task.dart';
@@ -79,7 +80,7 @@ class NotificationService {
     if (platform != null) {
       await platform.createNotificationChannel(taskRemindersChannel);
       await platform.createNotificationChannel(persistentTasksChannel);
-      print('🔔 📺 Notification channels created with max importance');
+      debugPrint('🔔 📺 Notification channels created with max importance');
     }
   }
 
@@ -89,15 +90,15 @@ class NotificationService {
   }
 
   Future<void> scheduleTaskNotification(Task task) async {
-    print('🔔 scheduleTaskNotification called for task: ${task.title}');
-    print('🔔 isNotificationEnabled: ${task.isNotificationEnabled}');
-    print('🔔 notificationType: ${task.notificationType}');
+    debugPrint('🔔 scheduleTaskNotification called for task: ${task.title}');
+    debugPrint('🔔 isNotificationEnabled: ${task.isNotificationEnabled}');
+    debugPrint('🔔 notificationType: ${task.notificationType}');
 
     // Always cancel existing notifications first to ensure clean state
     await cancelTaskNotification(task);
 
     if (!task.isNotificationEnabled) {
-      print('🔔 Notifications not enabled, returning after cleanup');
+      debugPrint('🔔 Notifications not enabled, returning after cleanup');
       return;
     }
 
@@ -110,19 +111,19 @@ class NotificationService {
     if (androidPlugin != null) {
       final canScheduleExactAlarms = await androidPlugin
           .canScheduleExactNotifications();
-      print('🔔 Can schedule exact alarms: $canScheduleExactAlarms');
+      debugPrint('🔔 Can schedule exact alarms: $canScheduleExactAlarms');
 
       if (canScheduleExactAlarms != true) {
-        print('🔔 ⚠️ Cannot schedule exact alarms - permission missing');
+        debugPrint('🔔 ⚠️ Cannot schedule exact alarms - permission missing');
         // Request permission
         final permissionResult = await androidPlugin
             .requestExactAlarmsPermission();
-        print('🔔 Exact alarm permission request result: $permissionResult');
+        debugPrint('🔔 Exact alarm permission request result: $permissionResult');
 
         // Check again after requesting
         final canScheduleAfterRequest = await androidPlugin
             .canScheduleExactNotifications();
-        print(
+        debugPrint(
           '🔔 Can schedule exact alarms after request: $canScheduleAfterRequest',
         );
       }
@@ -130,7 +131,7 @@ class NotificationService {
 
     // Use the enhanced notification scheduling logic from Task entity
     final scheduledNotificationTime = task.getScheduledNotificationTime();
-    print('🔔 scheduledNotificationTime: $scheduledNotificationTime');
+    debugPrint('🔔 scheduledNotificationTime: $scheduledNotificationTime');
 
     if (scheduledNotificationTime != null) {
       final scheduledDate = tz.TZDateTime.from(
@@ -138,13 +139,13 @@ class NotificationService {
         tz.local,
       );
       final now = tz.TZDateTime.now(tz.local);
-      print('🔔 📅 Local timezone: ${tz.local}');
-      print('🔔 🕐 Current local time: $now');
-      print('🔔 ⏰ Scheduled date/time: $scheduledDate');
-      print(
+      debugPrint('🔔 📅 Local timezone: ${tz.local}');
+      debugPrint('🔔 🕐 Current local time: $now');
+      debugPrint('🔔 ⏰ Scheduled date/time: $scheduledDate');
+      debugPrint(
         '🔔 ✅ Is scheduled time after current: ${scheduledDate.isAfter(now)}',
       );
-      print(
+      debugPrint(
         '🔔 ⏳ Time difference: ${scheduledDate.difference(now).inSeconds} seconds',
       );
 
@@ -214,16 +215,16 @@ class NotificationService {
           androidScheduleMode: AndroidScheduleMode
               .exactAllowWhileIdle, // Critical for reliability
         );
-        print('🔔 Notification scheduled successfully with enhanced settings!');
+        debugPrint('🔔 Notification scheduled successfully with enhanced settings!');
 
         // Debug: List all pending scheduled notifications
         final pendingNotifications = await _flutterLocalNotificationsPlugin
             .pendingNotificationRequests();
-        print(
+        debugPrint(
           '🔔 📋 Total pending notifications: ${pendingNotifications.length}',
         );
         for (var notification in pendingNotifications) {
-          print(
+          debugPrint(
             '🔔 📋 Pending: ID=${notification.id}, Title=${notification.title}',
           );
         }
@@ -253,13 +254,13 @@ class NotificationService {
             ),
             androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           );
-          print('🧪 Test notification scheduled for 10 seconds from now');
+          debugPrint('🧪 Test notification scheduled for 10 seconds from now');
         }
       } else {
-        print('🔔 Scheduled time is not in the future, not scheduling');
+        debugPrint('🔔 Scheduled time is not in the future, not scheduling');
       }
     } else {
-      print('🔔 scheduledNotificationTime is null');
+      debugPrint('🔔 scheduledNotificationTime is null');
     }
 
     // If task is pinned to notification, create a persistent notification
@@ -397,26 +398,26 @@ class NotificationService {
       // Request basic notification permission
       final notificationPermissionGranted = await androidPlugin
           .requestNotificationsPermission();
-      print(
+      debugPrint(
         '🔔 Notification permission granted: $notificationPermissionGranted',
       );
 
       // Request exact alarm permission for scheduled notifications (Android 12+)
       final exactAlarmPermissionGranted = await androidPlugin
           .requestExactAlarmsPermission();
-      print('🔔 Exact alarm permission granted: $exactAlarmPermissionGranted');
+      debugPrint('🔔 Exact alarm permission granted: $exactAlarmPermissionGranted');
 
       // Check if we can schedule exact notifications
       final canScheduleExact = await androidPlugin
           .canScheduleExactNotifications();
-      print('🔔 Can schedule exact notifications: $canScheduleExact');
+      debugPrint('🔔 Can schedule exact notifications: $canScheduleExact');
 
       // Check if notifications are enabled
       final areNotificationsEnabled = await androidPlugin
           .areNotificationsEnabled();
-      print('🔔 Are notifications enabled: $areNotificationsEnabled');
+      debugPrint('🔔 Are notifications enabled: $areNotificationsEnabled');
 
-      print('🔔 All notification permissions requested and checked');
+      debugPrint('🔔 All notification permissions requested and checked');
     }
 
     await _flutterLocalNotificationsPlugin
@@ -433,7 +434,7 @@ class NotificationService {
 
   // Test method to verify notifications work at all
   Future<void> showTestNotification() async {
-    print('🧪 Showing immediate test notification');
+    debugPrint('🧪 Showing immediate test notification');
     await _flutterLocalNotificationsPlugin.show(
       999999,
       '🧪 Test Notification',
@@ -452,19 +453,19 @@ class NotificationService {
         ),
       ),
     );
-    print('🧪 Test notification sent');
+    debugPrint('🧪 Test notification sent');
   }
 
   // Test method to verify scheduled notifications work
   Future<void> scheduleTestNotification() async {
-    print('🧪 Scheduling test notification for 10 seconds from now');
+    debugPrint('🧪 Scheduling test notification for 10 seconds from now');
     final scheduledTime = tz.TZDateTime.now(
       tz.local,
     ).add(const Duration(seconds: 10));
 
-    print('🧪 📅 Local timezone: ${tz.local}');
-    print('🧪 🕐 Current local time: ${tz.TZDateTime.now(tz.local)}');
-    print('🧪 ⏰ Scheduled time: $scheduledTime');
+    debugPrint('🧪 📅 Local timezone: ${tz.local}');
+    debugPrint('🧪 🕐 Current local time: ${tz.TZDateTime.now(tz.local)}');
+    debugPrint('🧪 ⏰ Scheduled time: $scheduledTime');
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
       999998,
@@ -489,16 +490,16 @@ class NotificationService {
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
-    print('🧪 Test scheduled notification set for: $scheduledTime');
+    debugPrint('🧪 Test scheduled notification set for: $scheduledTime');
 
     // Check pending notifications
     final pendingNotifications = await _flutterLocalNotificationsPlugin
         .pendingNotificationRequests();
-    print(
+    debugPrint(
       '🧪 📋 Pending notifications after test schedule: ${pendingNotifications.length}',
     );
     for (var notification in pendingNotifications) {
-      print(
+      debugPrint(
         '🧪 📋 Pending: ID=${notification.id}, Title=${notification.title}',
       );
     }
@@ -506,7 +507,7 @@ class NotificationService {
 
   // Simple test method to verify scheduled notifications work
   Future<void> scheduleSimpleTestNotification() async {
-    print('🧪 Scheduling simple test notification for 10 seconds from now');
+    debugPrint('🧪 Scheduling simple test notification for 10 seconds from now');
     final scheduledTime = tz.TZDateTime.now(
       tz.local,
     ).add(const Duration(seconds: 10));
@@ -529,15 +530,15 @@ class NotificationService {
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
 
-      print('🧪 Simple test notification scheduled successfully');
-      print('🧪 Scheduled for: $scheduledTime');
+      debugPrint('🧪 Simple test notification scheduled successfully');
+      debugPrint('🧪 Scheduled for: $scheduledTime');
 
       // List pending notifications
       final pending = await _flutterLocalNotificationsPlugin
           .pendingNotificationRequests();
-      print('🧪 Total pending after simple test: ${pending.length}');
+      debugPrint('🧪 Total pending after simple test: ${pending.length}');
     } catch (e) {
-      print('🧪 ❌ Error scheduling simple test notification: $e');
+      debugPrint('🧪 ❌ Error scheduling simple test notification: $e');
     }
   }
 }
