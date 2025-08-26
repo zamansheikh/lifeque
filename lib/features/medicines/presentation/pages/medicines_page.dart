@@ -62,7 +62,9 @@ class _MedicinesPageState extends State<MedicinesPage> {
             return _buildMedicinesList(state.medicines);
           } else if (state is MedicineError) {
             return _buildErrorView(state.message);
-          } else if (state is DoseLoaded || state is DoseLoading || state is DoseError) {
+          } else if (state is DoseLoaded ||
+              state is DoseLoading ||
+              state is DoseError) {
             // If we're in a dose-related state, reload medicines
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
