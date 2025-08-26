@@ -3,6 +3,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../../features/tasks/domain/entities/task.dart';
+import '../../features/tasks/presentation/bloc/task_bloc.dart';
+import '../../injection_container.dart' as di;
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -19,14 +21,43 @@ class NotificationService {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const DarwinInitializationSettings initializationSettingsIOS =
+    final DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
           requestAlertPermission: true,
           requestBadgePermission: true,
           requestSoundPermission: true,
+          notificationCategories: [
+            DarwinNotificationCategory(
+              'task_category',
+              actions: [
+                DarwinNotificationAction.plain('mark_done', '✅ Mark Done'),
+                DarwinNotificationAction.plain('snooze_15', '⏰ Snooze 15m'),
+                DarwinNotificationAction.plain(
+                  'view_details',
+                  '👁️ View Details',
+                ),
+              ],
+            ),
+            DarwinNotificationCategory(
+              'reminder_category',
+              actions: [
+                DarwinNotificationAction.plain('mark_done', '✅ Done'),
+                DarwinNotificationAction.plain('snooze_5', '⏰ 5min'),
+                DarwinNotificationAction.plain('snooze_60', '⏰ 1hr'),
+              ],
+            ),
+            DarwinNotificationCategory(
+              'birthday_category',
+              actions: [
+                DarwinNotificationAction.plain('call_contact', '📞 Call'),
+                DarwinNotificationAction.plain('send_message', '💬 Message'),
+                DarwinNotificationAction.plain('mark_done', '✅ Wished'),
+              ],
+            ),
+          ],
         );
 
-    const InitializationSettings initializationSettings =
+    final InitializationSettings initializationSettings =
         InitializationSettings(
           android: initializationSettingsAndroid,
           iOS: initializationSettingsIOS,
@@ -85,8 +116,343 @@ class NotificationService {
   }
 
   void _onNotificationTapped(NotificationResponse notificationResponse) {
-    // Handle notification tap
-    // You can navigate to specific task detail here
+    final String? payload = notificationResponse.payload;
+    final String? actionId = notificationResponse.actionId;
+
+    debugPrint(
+      '🔔 Notification tapped - Payload: $payload, ActionId: $actionId',
+    );
+
+    // Handle notification actions
+    if (actionId != null && payload != null) {
+      _handleNotificationAction(actionId, payload);
+    } else {
+      // Handle regular notification tap - navigate to task detail
+      // You can implement navigation logic here
+      debugPrint('🔔 Regular notification tap - navigating to task detail');
+    }
+  }
+
+  Future<void> _handleNotificationAction(String actionId, String taskId) async {
+    debugPrint('🔔 Handling action: $actionId for task: $taskId');
+
+    try {
+      final taskBloc = di.sl<TaskBloc>();
+
+      // Get the current task from the active tasks list
+      Task? task;
+      try {
+        task = _activeTasks.firstWhere((task) => task.id == taskId);
+      } catch (e) {
+        debugPrint('🔔 ⚠️ Task $taskId not found in active tasks');
+        await _showActionFeedbackNotification(
+          '❌ Task Not Found',
+          'Task could not be found',
+          const Color(0xFFF44336), // Red
+        );
+        return;
+      }
+
+      switch (actionId) {
+        case 'mark_done':
+          // Mark task as completed
+          debugPrint('🔔 Marking task $taskId as completed');
+          taskBloc.add(ToggleTaskCompletion(taskId));
+
+          // Cancel the notification immediately
+          await cancelTaskNotification(task);
+          await cancelPersistentNotification(task);
+
+          // Remove the task from active tasks list
+          _activeTasks.removeWhere((t) => t.id == taskId);
+
+          // Show a completion feedback notification
+          await _showActionFeedbackNotification(
+            '✅ Task Completed',
+            'Task "${task.title}" has been marked as done!',
+            const Color(0xFF4CAF50), // Green
+          );
+          break;
+        case 'snooze_5':
+          // Snooze for 5 minutes
+          await _snoozeNotification(taskId, 5);
+          await _showActionFeedbackNotification(
+            '⏰ Snoozed',
+            'Task snoozed for 5 minutes',
+            const Color(0xFFFF9800), // Orange
+          );
+          break;
+
+        case 'snooze_15':
+          // Snooze for 15 minutes
+          await _snoozeNotification(taskId, 15);
+          await _showActionFeedbackNotification(
+            '⏰ Snoozed',
+            'Task snoozed for 15 minutes',
+            const Color(0xFFFF9800), // Orange
+          );
+          break;
+
+        case 'snooze_60':
+          // Snooze for 1 hour
+          await _snoozeNotification(taskId, 60);
+          await _showActionFeedbackNotification(
+            '⏰ Snoozed',
+            'Task snoozed for 1 hour',
+            const Color(0xFFFF9800), // Orange
+          );
+          break;
+
+        case 'view_details':
+          // Open task details - This would need navigation context
+          debugPrint('🔔 Opening task details for $taskId');
+          await _showActionFeedbackNotification(
+            '👁️ Details',
+            'Opening task details...',
+            const Color(0xFF2196F3), // Blue
+          );
+          // TODO: Implement navigation to task details
+          break;
+
+        case 'call_contact':
+          // For birthday reminders - call the person
+          debugPrint('🔔 Opening phone app to call birthday person');
+          await _showActionFeedbackNotification(
+            '📞 Calling',
+            'Opening phone app...',
+            const Color(0xFFE91E63), // Pink
+          );
+          // TODO: Implement phone dialing
+          break;
+
+        case 'send_message':
+          // For birthday reminders - send message
+          debugPrint('🔔 Opening messaging app for birthday wishes');
+          await _showActionFeedbackNotification(
+            '💬 Messaging',
+            'Opening messaging app...',
+            const Color(0xFFE91E63), // Pink
+          );
+          // TODO: Implement messaging
+          break;
+
+        default:
+          debugPrint('🔔 Unknown action: $actionId');
+      }
+    } catch (e) {
+      debugPrint('🔔 Error handling notification action: $e');
+      await _showActionFeedbackNotification(
+        '❌ Error',
+        'Failed to perform action: $e',
+        const Color(0xFFF44336), // Red
+      );
+    }
+  }
+
+  Future<void> _snoozeNotification(String taskId, int minutes) async {
+    debugPrint('🔔 Snoozing notification for $taskId by $minutes minutes');
+
+    // Cancel current notification
+    await _flutterLocalNotificationsPlugin.cancel(taskId.hashCode);
+
+    // Reschedule for later
+    final snoozeTime = tz.TZDateTime.now(
+      tz.local,
+    ).add(Duration(minutes: minutes));
+
+    await _flutterLocalNotificationsPlugin.zonedSchedule(
+      taskId.hashCode,
+      '⏰ Snoozed Reminder',
+      'This reminder was snoozed for $minutes minutes',
+      snoozeTime,
+      _getNotificationDetails(
+        TaskType.reminder,
+        taskId,
+      ), // Default to reminder style
+      payload: taskId, // Add task ID as payload
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+
+    debugPrint('🔔 Notification snoozed until: $snoozeTime');
+  }
+
+  Future<void> _showActionFeedbackNotification(
+    String title,
+    String message,
+    Color color,
+  ) async {
+    debugPrint('🔔 Showing action feedback: $title - $message');
+
+    await _flutterLocalNotificationsPlugin.show(
+      DateTime.now().millisecondsSinceEpoch % 100000, // Unique ID
+      title,
+      message,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'task_reminders',
+          'Task Reminders',
+          channelDescription: 'Action feedback notifications',
+          importance: Importance.high,
+          priority: Priority.high,
+          autoCancel: true,
+          ongoing: false,
+          enableLights: true,
+          enableVibration: false,
+          playSound: false,
+          color: color,
+          icon: '@mipmap/ic_launcher',
+          visibility: NotificationVisibility.public,
+          timeoutAfter: 3000, // Auto-dismiss after 3 seconds
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: false,
+          presentSound: false,
+        ),
+      ),
+    );
+  }
+
+  NotificationDetails _getNotificationDetails(
+    TaskType taskType,
+    String taskId,
+  ) {
+    switch (taskType) {
+      case TaskType.task:
+        return NotificationDetails(
+          android: AndroidNotificationDetails(
+            'task_reminders',
+            'Task Reminders',
+            channelDescription: 'Task reminder notifications with actions',
+            importance: Importance.max,
+            priority: Priority.max,
+            ongoing: false,
+            autoCancel: true,
+            enableLights: true,
+            enableVibration: true,
+            playSound: true,
+            icon: '@mipmap/ic_launcher',
+            color: const Color(0xFF2196F3), // Blue for tasks
+            visibility: NotificationVisibility.public,
+            category: AndroidNotificationCategory.reminder,
+            actions: [
+              const AndroidNotificationAction(
+                'mark_done',
+                '✅ Mark Done',
+                showsUserInterface: false,
+              ),
+              const AndroidNotificationAction(
+                'snooze_15',
+                '⏰ Snooze 15m',
+                showsUserInterface: false,
+              ),
+              const AndroidNotificationAction(
+                'view_details',
+                '👁️ View Details',
+                showsUserInterface: true,
+              ),
+            ],
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            categoryIdentifier: 'task_category',
+          ),
+        );
+
+      case TaskType.reminder:
+        return NotificationDetails(
+          android: AndroidNotificationDetails(
+            'task_reminders',
+            'Task Reminders',
+            channelDescription: 'Reminder notifications with quick actions',
+            importance: Importance.max,
+            priority: Priority.max,
+            ongoing: false,
+            autoCancel: true,
+            enableLights: true,
+            enableVibration: true,
+            playSound: true,
+            icon: '@mipmap/ic_launcher',
+            color: const Color(0xFFFF9800), // Orange for reminders
+            visibility: NotificationVisibility.public,
+            category: AndroidNotificationCategory.reminder,
+            actions: [
+              const AndroidNotificationAction(
+                'mark_done',
+                '✅ Done',
+                showsUserInterface: false,
+              ),
+              const AndroidNotificationAction(
+                'snooze_5',
+                '⏰ 5min',
+                showsUserInterface: false,
+              ),
+              const AndroidNotificationAction(
+                'snooze_60',
+                '⏰ 1hr',
+                showsUserInterface: false,
+              ),
+            ],
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            categoryIdentifier: 'reminder_category',
+          ),
+        );
+
+      case TaskType.birthday:
+        return NotificationDetails(
+          android: AndroidNotificationDetails(
+            'task_reminders',
+            'Task Reminders',
+            channelDescription: 'Birthday reminder notifications',
+            importance: Importance.max,
+            priority: Priority.max,
+            ongoing: false,
+            autoCancel: true,
+            enableLights: true,
+            enableVibration: true,
+            playSound: true,
+            icon: '@mipmap/ic_launcher',
+            color: const Color(0xFFE91E63), // Pink for birthdays
+            visibility: NotificationVisibility.public,
+            category: AndroidNotificationCategory.reminder,
+            styleInformation: const BigTextStyleInformation(
+              '🎉 Don\'t forget to wish them a happy birthday!',
+              htmlFormatBigText: false,
+              contentTitle: '🎂 Birthday Today!',
+              htmlFormatContentTitle: false,
+            ),
+            actions: [
+              const AndroidNotificationAction(
+                'call_contact',
+                '📞 Call',
+                showsUserInterface: true,
+              ),
+              const AndroidNotificationAction(
+                'send_message',
+                '💬 Message',
+                showsUserInterface: true,
+              ),
+              const AndroidNotificationAction(
+                'mark_done',
+                '✅ Wished',
+                showsUserInterface: false,
+              ),
+            ],
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            categoryIdentifier: 'birthday_category',
+          ),
+        );
+    }
   }
 
   Future<void> scheduleTaskNotification(Task task) async {
@@ -118,7 +484,9 @@ class NotificationService {
         // Request permission
         final permissionResult = await androidPlugin
             .requestExactAlarmsPermission();
-        debugPrint('🔔 Exact alarm permission request result: $permissionResult');
+        debugPrint(
+          '🔔 Exact alarm permission request result: $permissionResult',
+        );
 
         // Check again after requesting
         final canScheduleAfterRequest = await androidPlugin
@@ -183,39 +551,15 @@ class NotificationService {
           notificationTitle,
           notificationBody,
           scheduledDate,
-          NotificationDetails(
-            android: AndroidNotificationDetails(
-              'task_reminders',
-              'Task Reminders',
-              channelDescription:
-                  'Important notifications for task reminders and deadlines',
-              importance: Importance.max,
-              priority: Priority.max,
-              ongoing: false,
-              autoCancel: true,
-              showProgress: false,
-              enableLights: true,
-              enableVibration: true,
-              playSound: true,
-              icon: '@mipmap/ic_launcher',
-              visibility: NotificationVisibility.public,
-              tag: 'scheduled_reminder',
-              // Simplified settings for scheduled notifications
-              category: AndroidNotificationCategory.reminder,
-              when: scheduledDate.millisecondsSinceEpoch,
-              channelAction: AndroidNotificationChannelAction.createIfNotExists,
-            ),
-            iOS: const DarwinNotificationDetails(
-              presentAlert: true,
-              presentBadge: true,
-              presentSound: true,
-            ),
-          ),
+          _getNotificationDetails(task.taskType, task.id),
+          payload: task.id, // Add task ID as payload
           matchDateTimeComponents: dateTimeComponents,
           androidScheduleMode: AndroidScheduleMode
               .exactAllowWhileIdle, // Critical for reliability
         );
-        debugPrint('🔔 Notification scheduled successfully with enhanced settings!');
+        debugPrint(
+          '🔔 Notification scheduled successfully with enhanced settings!',
+        );
 
         // Debug: List all pending scheduled notifications
         final pendingNotifications = await _flutterLocalNotificationsPlugin
@@ -270,10 +614,94 @@ class NotificationService {
   }
 
   Future<void> _showPersistentNotification(Task task) async {
+    String title;
+    String content;
+    Color notificationColor;
+    String summaryText;
+    String detailedContent;
+
+    // Customize content based on task type
+    switch (task.taskType) {
+      case TaskType.task:
+        title = '📌 ${task.title}';
+        content =
+            '⏱️ ${task.timeLeftFormatted} • ${(task.progressPercentage * 100).toStringAsFixed(0)}% complete';
+        notificationColor = const Color(0xFF2196F3); // Blue
+        summaryText = 'Ongoing Task';
+        detailedContent =
+            '⏱️ Time left: ${task.timeLeftFormatted}\n📊 Progress: ${(task.progressPercentage * 100).toStringAsFixed(1)}%\n📅 Due: ${task.endDate.day}/${task.endDate.month}/${task.endDate.year}';
+        break;
+
+      case TaskType.reminder:
+        final now = DateTime.now();
+        final timeUntil = task.endDate.difference(now);
+        final isPast = now.isAfter(task.endDate);
+
+        title = '🔔 ${task.title}';
+        if (isPast) {
+          content = '⏰ Reminder time has passed!';
+          detailedContent =
+              '⚠️ This reminder was scheduled for:\n📅 ${task.endDate.day}/${task.endDate.month}/${task.endDate.year} at ${task.endDate.hour}:${task.endDate.minute.toString().padLeft(2, '0')}';
+        } else {
+          final days = timeUntil.inDays;
+          final hours = timeUntil.inHours % 24;
+          final minutes = timeUntil.inMinutes % 60;
+
+          if (days > 0) {
+            content = '⏰ In ${days}d ${hours}h ${minutes}m';
+          } else if (hours > 0) {
+            content = '⏰ In ${hours}h ${minutes}m';
+          } else {
+            content = '⏰ In ${minutes}m';
+          }
+          detailedContent =
+              '🕐 Reminder set for:\n📅 ${task.endDate.day}/${task.endDate.month}/${task.endDate.year} at ${task.endDate.hour}:${task.endDate.minute.toString().padLeft(2, '0')}\n⏰ Time remaining: $content';
+        }
+        notificationColor = const Color(0xFFFF9800); // Orange
+        summaryText = 'Active Reminder';
+        break;
+
+      case TaskType.birthday:
+        final now = DateTime.now();
+        final birthdayThisYear = DateTime(
+          now.year,
+          task.endDate.month,
+          task.endDate.day,
+        );
+        final birthdayNextYear = DateTime(
+          now.year + 1,
+          task.endDate.month,
+          task.endDate.day,
+        );
+        final nextBirthday = now.isAfter(birthdayThisYear)
+            ? birthdayNextYear
+            : birthdayThisYear;
+        final daysUntil = nextBirthday.difference(now).inDays;
+        final currentAge = now.year - task.endDate.year;
+
+        title = '🎂 ${task.title}';
+        if (daysUntil == 0) {
+          content = '🎉 Birthday is TODAY! 🎉';
+          detailedContent =
+              '🎂 Today is ${task.title}\'s birthday!\n🎈 They are turning ${currentAge + 1} years old\n🎉 Don\'t forget to celebrate!';
+        } else if (daysUntil == 1) {
+          content = '🎈 Birthday is TOMORROW!';
+          detailedContent =
+              '🎂 ${task.title}\'s birthday is tomorrow!\n🎈 They will turn ${currentAge + (now.isAfter(birthdayThisYear) ? 1 : 0)} years old\n⏰ Time to prepare!';
+        } else {
+          content = '🎈 $daysUntil days until birthday';
+          detailedContent =
+              '🎂 ${task.title}\'s birthday:\n📅 ${nextBirthday.day}/${nextBirthday.month}/${nextBirthday.year}\n🎈 Will turn ${currentAge + (now.isAfter(birthdayThisYear) ? 1 : 0)} years old\n⏰ $daysUntil days remaining';
+        }
+        notificationColor = const Color(0xFFE91E63); // Pink
+        summaryText = 'Birthday Reminder';
+        break;
+    }
+
     await _flutterLocalNotificationsPlugin.show(
       task.id.hashCode + 10000, // Different ID for persistent notification
-      '📌 ${task.title}',
-      '⏱️ ${task.timeLeftFormatted} • ${(task.progressPercentage * 100).toStringAsFixed(0)}% complete',
+      title,
+      content,
       NotificationDetails(
         android: AndroidNotificationDetails(
           'persistent_tasks',
@@ -286,21 +714,28 @@ class NotificationService {
           enableLights: false,
           enableVibration: false,
           playSound: false,
-          showProgress: true,
-          maxProgress: 100,
-          progress: (task.progressPercentage * 100).round(),
+          showProgress:
+              task.taskType == TaskType.task, // Only show progress for tasks
+          maxProgress: task.taskType == TaskType.task ? 100 : 0,
+          progress: task.taskType == TaskType.task
+              ? (task.progressPercentage * 100).round()
+              : 0,
           category: AndroidNotificationCategory.progress,
           visibility: NotificationVisibility.public,
           timeoutAfter: null,
+          color: notificationColor,
+          icon: '@mipmap/ic_launcher',
           // Use a custom style to make it more prominent
           styleInformation: BigTextStyleInformation(
-            '⏱️ Time left: ${task.timeLeftFormatted}\n📊 Progress: ${(task.progressPercentage * 100).toStringAsFixed(1)}%\n📅 Due: ${task.endDate.day}/${task.endDate.month}/${task.endDate.year}',
+            detailedContent,
             htmlFormatBigText: false,
-            contentTitle: '📌 ${task.title}',
+            contentTitle: title,
             htmlFormatContentTitle: false,
-            summaryText: 'Ongoing Task',
+            summaryText: summaryText,
             htmlFormatSummaryText: false,
           ),
+          // Add action buttons for persistent notifications
+          actions: _getPersistentNotificationActions(task.taskType),
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: false,
@@ -308,7 +743,56 @@ class NotificationService {
           presentSound: false,
         ),
       ),
+      payload: task.id, // Add task ID as payload
     );
+  }
+
+  List<AndroidNotificationAction> _getPersistentNotificationActions(
+    TaskType taskType,
+  ) {
+    switch (taskType) {
+      case TaskType.task:
+        return [
+          const AndroidNotificationAction(
+            'mark_done',
+            '✅ Complete',
+            showsUserInterface: false,
+          ),
+          const AndroidNotificationAction(
+            'view_details',
+            '�️ Details',
+            showsUserInterface: true,
+          ),
+        ];
+
+      case TaskType.reminder:
+        return [
+          const AndroidNotificationAction(
+            'mark_done',
+            '✅ Done',
+            showsUserInterface: false,
+          ),
+          const AndroidNotificationAction(
+            'snooze_15',
+            '⏰ Snooze',
+            showsUserInterface: false,
+          ),
+        ];
+
+      case TaskType.birthday:
+        return [
+          const AndroidNotificationAction(
+            'call_contact',
+            '📞 Call',
+            showsUserInterface: true,
+          ),
+          const AndroidNotificationAction(
+            'mark_done',
+            '✅ Wished',
+            showsUserInterface: false,
+          ),
+        ];
+    }
   }
 
   Future<void> updatePersistentNotification(Task task) async {
@@ -355,6 +839,17 @@ class NotificationService {
 
   void updateActiveTasks(List<Task> tasks) {
     _activeTasks = tasks;
+    // Also update any existing persistent notifications to reflect current state
+    _refreshPersistentNotifications();
+  }
+
+  // Refresh all persistent notifications based on current active tasks
+  Future<void> _refreshPersistentNotifications() async {
+    for (final task in _activeTasks) {
+      if (task.isPinnedToNotification && task.isActive && !task.isCompleted) {
+        await _showPersistentNotification(task);
+      }
+    }
   }
 
   Future<void> forceUpdateNotifications() async {
@@ -405,7 +900,9 @@ class NotificationService {
       // Request exact alarm permission for scheduled notifications (Android 12+)
       final exactAlarmPermissionGranted = await androidPlugin
           .requestExactAlarmsPermission();
-      debugPrint('🔔 Exact alarm permission granted: $exactAlarmPermissionGranted');
+      debugPrint(
+        '🔔 Exact alarm permission granted: $exactAlarmPermissionGranted',
+      );
 
       // Check if we can schedule exact notifications
       final canScheduleExact = await androidPlugin
@@ -454,6 +951,48 @@ class NotificationService {
       ),
     );
     debugPrint('🧪 Test notification sent');
+  }
+
+  // Test method to show notification with action buttons
+  Future<void> showTestNotificationWithActions() async {
+    debugPrint('🧪 Showing test notification with action buttons');
+    await _flutterLocalNotificationsPlugin.show(
+      999998,
+      '🧪 Test Actions',
+      'Tap the action buttons to test notification actions',
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'task_reminders',
+          'Task Reminders',
+          channelDescription: 'Test notification with actions',
+          importance: Importance.max,
+          priority: Priority.max,
+          enableLights: true,
+          enableVibration: true,
+          playSound: true,
+          visibility: NotificationVisibility.public,
+          actions: [
+            const AndroidNotificationAction(
+              'mark_done',
+              '✅ Test Done',
+              showsUserInterface: false,
+            ),
+            const AndroidNotificationAction(
+              'snooze_5',
+              '⏰ Test Snooze',
+              showsUserInterface: false,
+            ),
+            const AndroidNotificationAction(
+              'view_details',
+              '👁️ Test View',
+              showsUserInterface: true,
+            ),
+          ],
+        ),
+      ),
+      payload: 'test-task-id', // Test payload
+    );
+    debugPrint('🧪 Test notification with actions sent');
   }
 
   // Test method to verify scheduled notifications work
@@ -507,7 +1046,9 @@ class NotificationService {
 
   // Simple test method to verify scheduled notifications work
   Future<void> scheduleSimpleTestNotification() async {
-    debugPrint('🧪 Scheduling simple test notification for 10 seconds from now');
+    debugPrint(
+      '🧪 Scheduling simple test notification for 10 seconds from now',
+    );
     final scheduledTime = tz.TZDateTime.now(
       tz.local,
     ).add(const Duration(seconds: 10));

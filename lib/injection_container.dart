@@ -18,8 +18,8 @@ final sl = GetIt.instance;
 
 Future<void> init() async {
   //! Features - Tasks
-  // Bloc
-  sl.registerFactory(
+  // Bloc - Changed to singleton to maintain state for notification actions
+  sl.registerLazySingleton(
     () => TaskBloc(
       getAllTasks: sl(),
       getActiveTasks: sl(),
