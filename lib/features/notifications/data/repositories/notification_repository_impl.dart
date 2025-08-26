@@ -85,8 +85,6 @@ class NotificationRepositoryImpl implements NotificationRepository {
         tz.TZDateTime.from(scheduledTime, tz.local),
         platformChannelSpecifics,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
         payload: taskId,
       );
     } catch (e) {

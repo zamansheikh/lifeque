@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.programmernexus.remindme"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36 // Updated to resolve sqflite_android requirement
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -29,6 +29,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true // Required for desugaring
     }
 
     buildTypes {
@@ -45,5 +46,5 @@ flutter {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

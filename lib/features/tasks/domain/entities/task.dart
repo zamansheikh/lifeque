@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 enum NotificationType {
   specificTime, // At a specific date and time
@@ -66,34 +67,39 @@ class Task extends Equatable {
   });
 
   int get daysLeft {
-    final now = DateTime.now();
-    if (now.isAfter(endDate)) return 0;
-    return endDate.difference(now).inDays;
+    final now = tz.TZDateTime.now(tz.local);
+    final endDateTz = tz.TZDateTime.from(endDate, tz.local);
+    if (now.isAfter(endDateTz)) return 0;
+    return endDateTz.difference(now).inDays;
   }
 
   int get hoursLeft {
-    final now = DateTime.now();
-    if (now.isAfter(endDate)) return 0;
-    return endDate.difference(now).inHours;
+    final now = tz.TZDateTime.now(tz.local);
+    final endDateTz = tz.TZDateTime.from(endDate, tz.local);
+    if (now.isAfter(endDateTz)) return 0;
+    return endDateTz.difference(now).inHours;
   }
 
   int get minutesLeft {
-    final now = DateTime.now();
-    if (now.isAfter(endDate)) return 0;
-    return endDate.difference(now).inMinutes;
+    final now = tz.TZDateTime.now(tz.local);
+    final endDateTz = tz.TZDateTime.from(endDate, tz.local);
+    if (now.isAfter(endDateTz)) return 0;
+    return endDateTz.difference(now).inMinutes;
   }
 
   int get secondsLeft {
-    final now = DateTime.now();
-    if (now.isAfter(endDate)) return 0;
-    return endDate.difference(now).inSeconds;
+    final now = tz.TZDateTime.now(tz.local);
+    final endDateTz = tz.TZDateTime.from(endDate, tz.local);
+    if (now.isAfter(endDateTz)) return 0;
+    return endDateTz.difference(now).inSeconds;
   }
 
   String get timeLeftFormatted {
-    final now = DateTime.now();
-    if (now.isAfter(endDate)) return "Overdue";
+    final now = tz.TZDateTime.now(tz.local);
+    final endDateTz = tz.TZDateTime.from(endDate, tz.local);
+    if (now.isAfter(endDateTz)) return "Overdue";
 
-    final difference = endDate.difference(now);
+    final difference = endDateTz.difference(now);
     final days = difference.inDays;
     final hours = difference.inHours % 24;
     final minutes = difference.inMinutes % 60;
@@ -111,9 +117,12 @@ class Task extends Equatable {
   }
 
   double get progressPercentage {
-    final now = DateTime.now();
-    final totalDuration = endDate.difference(startDate).inMilliseconds;
-    final elapsedDuration = now.difference(startDate).inMilliseconds;
+    final now = tz.TZDateTime.now(tz.local);
+    final startDateTz = tz.TZDateTime.from(startDate, tz.local);
+    final endDateTz = tz.TZDateTime.from(endDate, tz.local);
+
+    final totalDuration = endDateTz.difference(startDateTz).inMilliseconds;
+    final elapsedDuration = now.difference(startDateTz).inMilliseconds;
 
     if (totalDuration <= 0) return 1.0;
     if (elapsedDuration <= 0) return 0.0;
@@ -123,12 +132,16 @@ class Task extends Equatable {
   }
 
   bool get isOverdue {
-    return DateTime.now().isAfter(endDate) && !isCompleted;
+    final now = tz.TZDateTime.now(tz.local);
+    final endDateTz = tz.TZDateTime.from(endDate, tz.local);
+    return now.isAfter(endDateTz) && !isCompleted;
   }
 
   bool get isActive {
-    final now = DateTime.now();
-    return now.isAfter(startDate) && now.isBefore(endDate) && !isCompleted;
+    final now = tz.TZDateTime.now(tz.local);
+    final startDateTz = tz.TZDateTime.from(startDate, tz.local);
+    final endDateTz = tz.TZDateTime.from(endDate, tz.local);
+    return now.isAfter(startDateTz) && now.isBefore(endDateTz) && !isCompleted;
   }
 
   Task copyWith({
@@ -198,8 +211,10 @@ class Task extends Equatable {
       case NotificationType.daily:
         print('🕒 daily - dailyNotificationTime: $dailyNotificationTime');
         if (dailyNotificationTime != null) {
-          final now = DateTime.now();
-          var scheduled = DateTime(
+          // Use timezone-aware current time for proper calculation
+          final now = tz.TZDateTime.now(tz.local);
+          var scheduled = tz.TZDateTime(
+            tz.local,
             now.year,
             now.month,
             now.day,
@@ -210,7 +225,7 @@ class Task extends Equatable {
           if (scheduled.isBefore(now)) {
             scheduled = scheduled.add(const Duration(days: 1));
           }
-          print('🕒 daily scheduled time: $scheduled');
+          print('🕒 daily scheduled time (timezone-aware): $scheduled');
           return scheduled;
         }
         return null;
@@ -218,25 +233,27 @@ class Task extends Equatable {
         print('🕒 beforeEnd - beforeEndOption: $beforeEndOption');
         print('🕒 beforeEnd - endDate: $endDate');
         if (beforeEndOption != null) {
-          DateTime result;
+          // Convert endDate to timezone-aware DateTime for proper calculation
+          final endDateTz = tz.TZDateTime.from(endDate, tz.local);
+          tz.TZDateTime result;
           switch (beforeEndOption!) {
             case BeforeEndOption.tenMinutes:
-              result = endDate.subtract(const Duration(minutes: 10));
+              result = endDateTz.subtract(const Duration(minutes: 10));
               break;
             case BeforeEndOption.thirtyMinutes:
-              result = endDate.subtract(const Duration(minutes: 30));
+              result = endDateTz.subtract(const Duration(minutes: 30));
               break;
             case BeforeEndOption.oneHour:
-              result = endDate.subtract(const Duration(hours: 1));
+              result = endDateTz.subtract(const Duration(hours: 1));
               break;
             case BeforeEndOption.twoHours:
-              result = endDate.subtract(const Duration(hours: 2));
+              result = endDateTz.subtract(const Duration(hours: 2));
               break;
             case BeforeEndOption.oneDay:
-              result = endDate.subtract(const Duration(days: 1));
+              result = endDateTz.subtract(const Duration(days: 1));
               break;
           }
-          print('🕒 beforeEnd scheduled time: $result');
+          print('🕒 beforeEnd scheduled time (timezone-aware): $result');
           return result;
         }
         return null;

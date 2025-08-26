@@ -41,13 +41,19 @@ class NotificationService {
   }
 
   Future<void> _createNotificationChannels() async {
-    // Channel for task reminders
+    // Channel for task reminders with maximum priority settings
     const AndroidNotificationChannel taskRemindersChannel =
         AndroidNotificationChannel(
           'task_reminders',
           'Task Reminders',
-          description: 'Notifications for task reminders',
-          importance: Importance.high,
+          description:
+              'Important notifications for task reminders and deadlines',
+          importance: Importance.max, // Highest importance
+          enableLights: true,
+          enableVibration: true,
+          playSound: true,
+          showBadge: true,
+          // Use default notification sound
         );
 
     // Channel for persistent tasks - non-dismissable with special settings
@@ -73,6 +79,7 @@ class NotificationService {
     if (platform != null) {
       await platform.createNotificationChannel(taskRemindersChannel);
       await platform.createNotificationChannel(persistentTasksChannel);
+      print('🔔 📺 Notification channels created with max importance');
     }
   }
 
@@ -105,7 +112,16 @@ class NotificationService {
       if (canScheduleExactAlarms != true) {
         print('🔔 ⚠️ Cannot schedule exact alarms - permission missing');
         // Request permission
-        await androidPlugin.requestExactAlarmsPermission();
+        final permissionResult = await androidPlugin
+            .requestExactAlarmsPermission();
+        print('🔔 Exact alarm permission request result: $permissionResult');
+
+        // Check again after requesting
+        final canScheduleAfterRequest = await androidPlugin
+            .canScheduleExactNotifications();
+        print(
+          '🔔 Can schedule exact alarms after request: $canScheduleAfterRequest',
+        );
       }
     }
 
@@ -119,9 +135,15 @@ class NotificationService {
         tz.local,
       );
       final now = tz.TZDateTime.now(tz.local);
-      print('🔔 scheduledDate: $scheduledDate');
-      print('🔔 currentTime: $now');
-      print('🔔 isAfter check: ${scheduledDate.isAfter(now)}');
+      print('🔔 📅 Local timezone: ${tz.local}');
+      print('🔔 🕐 Current local time: $now');
+      print('🔔 ⏰ Scheduled date/time: $scheduledDate');
+      print(
+        '🔔 ✅ Is scheduled time after current: ${scheduledDate.isAfter(now)}',
+      );
+      print(
+        '🔔 ⏳ Time difference: ${scheduledDate.difference(now).inSeconds} seconds',
+      );
 
       // Only schedule if the notification time is in the future
       if (scheduledDate.isAfter(now)) {
@@ -161,24 +183,23 @@ class NotificationService {
             android: AndroidNotificationDetails(
               'task_reminders',
               'Task Reminders',
-              channelDescription: 'Notifications for task reminders',
-              importance: Importance.max, // Changed from high to max
-              priority: Priority.max, // Changed from high to max
-              ongoing: false, // Don't make scheduled notifications ongoing
-              autoCancel: true, // Allow auto cancel for scheduled notifications
-              showProgress:
-                  false, // Don't show progress for scheduled notifications
-              enableLights: true, // Enable lights for better visibility
-              enableVibration: true, // Enable vibration
-              playSound: true, // Ensure sound plays
-              icon: '@mipmap/ic_launcher', // Ensure icon is set
-              largeIcon: const DrawableResourceAndroidBitmap(
-                '@mipmap/ic_launcher',
-              ),
-              // Make it show in lock screen
+              channelDescription:
+                  'Important notifications for task reminders and deadlines',
+              importance: Importance.max,
+              priority: Priority.max,
+              ongoing: false,
+              autoCancel: true,
+              showProgress: false,
+              enableLights: true,
+              enableVibration: true,
+              playSound: true,
+              icon: '@mipmap/ic_launcher',
               visibility: NotificationVisibility.public,
-              // Ensure it's not grouped with persistent notifications
               tag: 'scheduled_reminder',
+              // Simplified settings for scheduled notifications
+              category: AndroidNotificationCategory.reminder,
+              when: scheduledDate.millisecondsSinceEpoch,
+              channelAction: AndroidNotificationChannelAction.createIfNotExists,
             ),
             iOS: const DarwinNotificationDetails(
               presentAlert: true,
@@ -186,11 +207,23 @@ class NotificationService {
               presentSound: true,
             ),
           ),
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.absoluteTime,
           matchDateTimeComponents: dateTimeComponents,
+          androidScheduleMode: AndroidScheduleMode
+              .exactAllowWhileIdle, // Critical for reliability
         );
         print('🔔 Notification scheduled successfully with enhanced settings!');
+
+        // Debug: List all pending scheduled notifications
+        final pendingNotifications = await _flutterLocalNotificationsPlugin
+            .pendingNotificationRequests();
+        print(
+          '🔔 📋 Total pending notifications: ${pendingNotifications.length}',
+        );
+        for (var notification in pendingNotifications) {
+          print(
+            '🔔 📋 Pending: ID=${notification.id}, Title=${notification.title}',
+          );
+        }
 
         // Also schedule a test notification 10 seconds from now to verify system works
         if (task.title.toLowerCase().contains('test')) {
@@ -215,8 +248,7 @@ class NotificationService {
                 visibility: NotificationVisibility.public,
               ),
             ),
-            uiLocalNotificationDateInterpretation:
-                UILocalNotificationDateInterpretation.absoluteTime,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           );
           print('🧪 Test notification scheduled for 10 seconds from now');
         }
@@ -391,7 +423,118 @@ class NotificationService {
         ?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
-  void dispose() {
+  Future<void> dispose() {
     _progressUpdateTimer?.cancel();
+    return Future.value();
+  }
+
+  // Test method to verify notifications work at all
+  Future<void> showTestNotification() async {
+    print('🧪 Showing immediate test notification');
+    await _flutterLocalNotificationsPlugin.show(
+      999999,
+      '🧪 Test Notification',
+      'This is an immediate test notification to verify the system works',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'task_reminders',
+          'Task Reminders',
+          channelDescription: 'Test notification',
+          importance: Importance.max,
+          priority: Priority.max,
+          enableLights: true,
+          enableVibration: true,
+          playSound: true,
+          visibility: NotificationVisibility.public,
+        ),
+      ),
+    );
+    print('🧪 Test notification sent');
+  }
+
+  // Test method to verify scheduled notifications work
+  Future<void> scheduleTestNotification() async {
+    print('🧪 Scheduling test notification for 10 seconds from now');
+    final scheduledTime = tz.TZDateTime.now(
+      tz.local,
+    ).add(const Duration(seconds: 10));
+
+    print('🧪 📅 Local timezone: ${tz.local}');
+    print('🧪 🕐 Current local time: ${tz.TZDateTime.now(tz.local)}');
+    print('🧪 ⏰ Scheduled time: $scheduledTime');
+
+    await _flutterLocalNotificationsPlugin.zonedSchedule(
+      999998,
+      '🧪 Scheduled Test Notification',
+      'This test notification was scheduled 10 seconds ago - if you see this, scheduled notifications work!',
+      scheduledTime,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'task_reminders',
+          'Task Reminders',
+          channelDescription: 'Scheduled test notification',
+          importance: Importance.max,
+          priority: Priority.max,
+          enableLights: true,
+          enableVibration: true,
+          playSound: true,
+          visibility: NotificationVisibility.public,
+          category: AndroidNotificationCategory.reminder,
+          when: null, // Let system determine
+          channelAction: AndroidNotificationChannelAction.createIfNotExists,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+    print('🧪 Test scheduled notification set for: $scheduledTime');
+
+    // Check pending notifications
+    final pendingNotifications = await _flutterLocalNotificationsPlugin
+        .pendingNotificationRequests();
+    print(
+      '🧪 📋 Pending notifications after test schedule: ${pendingNotifications.length}',
+    );
+    for (var notification in pendingNotifications) {
+      print(
+        '🧪 📋 Pending: ID=${notification.id}, Title=${notification.title}',
+      );
+    }
+  }
+
+  // Simple test method to verify scheduled notifications work
+  Future<void> scheduleSimpleTestNotification() async {
+    print('🧪 Scheduling simple test notification for 10 seconds from now');
+    final scheduledTime = tz.TZDateTime.now(
+      tz.local,
+    ).add(const Duration(seconds: 10));
+
+    try {
+      await _flutterLocalNotificationsPlugin.zonedSchedule(
+        123456, // Simple test ID
+        '🧪 Simple Test',
+        'This is a simple test notification scheduled for 10 seconds',
+        scheduledTime,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'task_reminders',
+            'Task Reminders',
+            channelDescription: 'Simple test notification',
+            importance: Importance.max,
+            priority: Priority.max,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+
+      print('🧪 Simple test notification scheduled successfully');
+      print('🧪 Scheduled for: $scheduledTime');
+
+      // List pending notifications
+      final pending = await _flutterLocalNotificationsPlugin
+          .pendingNotificationRequests();
+      print('🧪 Total pending after simple test: ${pending.length}');
+    } catch (e) {
+      print('🧪 ❌ Error scheduling simple test notification: $e');
+    }
   }
 }
