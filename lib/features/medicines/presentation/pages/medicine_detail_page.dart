@@ -153,12 +153,12 @@ class _CourseProgressCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3B82F6).withOpacity(0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: const Color(0xFF3B82F6).withOpacity(0.3),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -171,30 +171,48 @@ class _CourseProgressCard extends StatelessWidget {
               const Text(
                 'Overall Progress',
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
                   color: Colors.white,
                 ),
               ),
-              Text(
-                'Adherence $adherencePct%',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  fontSize: 16,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Adherence $adherencePct%',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Row(
             children: [
-              _radialPercent(
-                label: 'Progress',
-                value: state.adherencePercent,
-                color: const Color(0xFF10B981),
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: _radialPercent(
+                  label: 'Progress',
+                  value: state.adherencePercent,
+                  color: const Color(0xFF10B981),
+                ),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 24),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,16 +220,16 @@ class _CourseProgressCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: _compactStatLine(
+                          child: _enhancedStatCard(
                             Icons.check_circle_rounded,
                             'Taken',
                             state.taken,
                             const Color(0xFF10B981),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
                         Expanded(
-                          child: _compactStatLine(
+                          child: _enhancedStatCard(
                             Icons.schedule_rounded,
                             'Pending',
                             state.pending,
@@ -220,20 +238,20 @@ class _CourseProgressCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
-                          child: _compactStatLine(
+                          child: _enhancedStatCard(
                             Icons.skip_next_rounded,
                             'Skipped',
                             state.skipped,
                             const Color(0xFFF59E0B),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
                         Expanded(
-                          child: _compactStatLine(
+                          child: _enhancedStatCard(
                             Icons.cancel_rounded,
                             'Missed',
                             state.missed,
@@ -247,29 +265,52 @@ class _CourseProgressCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Days ${state.daysElapsed}/${state.daysTotal} ($daysPct%)',
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 24),
           Container(
-            height: 6,
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(3),
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: LinearProgressIndicator(
-                value: state.daysElapsed / state.daysTotal,
-                backgroundColor: Colors.transparent,
-                valueColor: const AlwaysStoppedAnimation(Color(0xFF10B981)),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Course Progress',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Days ${state.daysElapsed}/${state.daysTotal} ($daysPct%)',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: state.daysElapsed / state.daysTotal,
+                      backgroundColor: Colors.transparent,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -277,32 +318,37 @@ class _CourseProgressCard extends StatelessWidget {
     );
   }
 
-  Widget _compactStatLine(IconData icon, String label, int value, Color color) {
+  Widget _enhancedStatCard(
+    IconData icon,
+    String label,
+    int value,
+    Color color,
+  ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white.withOpacity(0.2)),
       ),
       child: Column(
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(height: 2),
+          Icon(icon, size: 20, color: color),
+          const SizedBox(height: 6),
           Text(
             '$value',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: color,
-              fontSize: 14,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              fontSize: 16,
             ),
           ),
           Text(
             label,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
-              fontSize: 10,
+            style: const TextStyle(
               fontWeight: FontWeight.w500,
+              color: Colors.white70,
+              fontSize: 11,
             ),
           ),
         ],
@@ -316,8 +362,8 @@ class _CourseProgressCard extends StatelessWidget {
     required Color color,
   }) {
     return SizedBox(
-      width: 70,
-      height: 70,
+      width: 90,
+      height: 90,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -405,44 +451,85 @@ class _InfoSection extends StatelessWidget {
             },
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Notification Times',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-              fontSize: 14,
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: medicine.notificationTimes
-                .map(
-                  (t) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.schedule,
+                      color: Color(0xFF3B82F6),
+                      size: 20,
                     ),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      t,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Notification Times',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1E293B),
+                        fontSize: 16,
                       ),
                     ),
-                  ),
-                )
-                .toList(),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: medicine.notificationTimes
+                      .map(
+                        (t) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF3B82F6).withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.access_time,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                t,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -493,26 +580,26 @@ class _DoseHistorySection extends StatelessWidget {
   Color _statusColor(DoseStatus status) {
     switch (status) {
       case DoseStatus.taken:
-        return Colors.green;
+        return const Color(0xFF10B981);
       case DoseStatus.pending:
-        return Colors.blue;
+        return const Color(0xFF3B82F6);
       case DoseStatus.skipped:
-        return Colors.orange;
+        return const Color(0xFFF59E0B);
       case DoseStatus.missed:
-        return Colors.red;
+        return const Color(0xFFEF4444);
     }
   }
 
   IconData _statusIcon(DoseStatus status) {
     switch (status) {
       case DoseStatus.taken:
-        return Icons.check_circle;
+        return Icons.check_circle_rounded;
       case DoseStatus.pending:
-        return Icons.hourglass_empty;
+        return Icons.schedule_rounded;
       case DoseStatus.skipped:
-        return Icons.cancel;
+        return Icons.skip_next_rounded;
       case DoseStatus.missed:
-        return Icons.error;
+        return Icons.cancel_rounded;
     }
   }
 
@@ -535,13 +622,19 @@ class _DoseHistorySection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Dose History',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-            ),
+          Row(
+            children: [
+              const Icon(Icons.history, color: Color(0xFF3B82F6), size: 24),
+              const SizedBox(width: 8),
+              const Text(
+                'Dose History',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           ...map.entries.map((e) {
@@ -552,58 +645,108 @@ class _DoseHistorySection extends StatelessWidget {
                 .where((d) => d.status == DoseStatus.taken)
                 .length;
             final total = list.length;
+            final completionRate = total > 0 ? (taken / total) : 0.0;
             return Container(
-              margin: const EdgeInsets.symmetric(vertical: 4),
+              margin: const EdgeInsets.symmetric(vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                gradient: LinearGradient(
+                  colors: [const Color(0xFFF8FAFC), const Color(0xFFF1F5F9)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF64748B).withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: ExpansionTile(
                 tilePadding: const EdgeInsets.symmetric(
                   horizontal: 20,
-                  vertical: 8,
+                  vertical: 12,
                 ),
                 childrenPadding: const EdgeInsets.only(bottom: 16),
-                title: Text(
-                  '${date.day}/${date.month}/${date.year}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                subtitle: Text(
-                  'Taken $taken/$total',
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontWeight: FontWeight.w500,
-                  ),
+                title: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3B82F6).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${date.day}/${date.month}/${date.year}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF3B82F6),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: completionRate == 1.0
+                            ? const Color(0xFF10B981).withOpacity(0.1)
+                            : const Color(0xFFF59E0B).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '$taken/$total',
+                        style: TextStyle(
+                          color: completionRate == 1.0
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFFF59E0B),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 children: list.map((d) {
                   final color = _statusColor(d.status);
                   return Container(
                     margin: const EdgeInsets.symmetric(
                       horizontal: 20,
-                      vertical: 2,
+                      vertical: 4,
                     ),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: color.withOpacity(0.2)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: color.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
                             _statusIcon(d.status),
                             color: color,
-                            size: 16,
+                            size: 20,
                           ),
                         ),
                         const SizedBox(width: 16),
