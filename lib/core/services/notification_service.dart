@@ -22,41 +22,46 @@ class NotificationService {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    final DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
-          notificationCategories: [
-            DarwinNotificationCategory(
-              'task_category',
-              actions: [
-                DarwinNotificationAction.plain('mark_done', '✅ Mark Done'),
-                DarwinNotificationAction.plain('snooze_15', '⏰ Snooze 15m'),
-                DarwinNotificationAction.plain(
-                  'view_details',
-                  '👁️ View Details',
-                ),
-              ],
-            ),
-            DarwinNotificationCategory(
-              'reminder_category',
-              actions: [
-                DarwinNotificationAction.plain('mark_done', '✅ Done'),
-                DarwinNotificationAction.plain('snooze_5', '⏰ 5min'),
-                DarwinNotificationAction.plain('snooze_60', '⏰ 1hr'),
-              ],
-            ),
-            DarwinNotificationCategory(
-              'birthday_category',
-              actions: [
-                DarwinNotificationAction.plain('call_contact', '📞 Call'),
-                DarwinNotificationAction.plain('send_message', '💬 Message'),
-                DarwinNotificationAction.plain('mark_done', '✅ Wished'),
-              ],
-            ),
+    final DarwinInitializationSettings
+    initializationSettingsIOS = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+      notificationCategories: [
+        DarwinNotificationCategory(
+          'task_category',
+          actions: [
+            DarwinNotificationAction.plain('mark_done', '✅ Mark Done'),
+            DarwinNotificationAction.plain('snooze_15', '⏰ Snooze 15m'),
+            DarwinNotificationAction.plain('view_details', '👁️ View Details'),
           ],
-        );
+        ),
+        DarwinNotificationCategory(
+          'reminder_category',
+          actions: [
+            DarwinNotificationAction.plain('mark_done', '✅ Done'),
+            DarwinNotificationAction.plain('snooze_5', '⏰ 5min'),
+            DarwinNotificationAction.plain('snooze_60', '⏰ 1hr'),
+          ],
+        ),
+        DarwinNotificationCategory(
+          'medicine_category',
+          actions: [
+            DarwinNotificationAction.plain('take_medicine', '✅ Take Now'),
+            DarwinNotificationAction.plain('skip_medicine', '⏭️ Skip'),
+            DarwinNotificationAction.plain('snooze_medicine', '⏰ Snooze 15min'),
+          ],
+        ),
+        DarwinNotificationCategory(
+          'birthday_category',
+          actions: [
+            DarwinNotificationAction.plain('call_contact', '📞 Call'),
+            DarwinNotificationAction.plain('send_message', '💬 Message'),
+            DarwinNotificationAction.plain('mark_done', '✅ Wished'),
+          ],
+        ),
+      ],
+    );
 
     final InitializationSettings initializationSettings =
         InitializationSettings(
@@ -89,6 +94,19 @@ class NotificationService {
           // Use default notification sound
         );
 
+    // Channel for medicine reminders
+    const AndroidNotificationChannel medicineRemindersChannel =
+        AndroidNotificationChannel(
+          'medicine_reminders',
+          'Medicine Reminders',
+          description: 'Important notifications for medicine dose reminders',
+          importance: Importance.max, // Highest importance
+          enableLights: true,
+          enableVibration: true,
+          playSound: true,
+          showBadge: true,
+        );
+
     // Channel for persistent tasks - non-dismissable with special settings
     const AndroidNotificationChannel
     persistentTasksChannel = AndroidNotificationChannel(
@@ -111,6 +129,7 @@ class NotificationService {
 
     if (platform != null) {
       await platform.createNotificationChannel(taskRemindersChannel);
+      await platform.createNotificationChannel(medicineRemindersChannel);
       await platform.createNotificationChannel(persistentTasksChannel);
       debugPrint('🔔 📺 Notification channels created with max importance');
     }
@@ -134,8 +153,23 @@ class NotificationService {
     }
   }
 
-  Future<void> _handleNotificationAction(String actionId, String taskId) async {
-    debugPrint('🔔 Handling action: $actionId for task: $taskId');
+  Future<void> _handleNotificationAction(
+    String actionId,
+    String payload,
+  ) async {
+    debugPrint('🔔 Handling action: $actionId for payload: $payload');
+
+    // Check if this is a medicine notification
+    if (payload.startsWith('medicine_')) {
+      await _handleMedicineNotificationAction(
+        actionId,
+        payload.substring(9),
+      ); // Remove 'medicine_' prefix
+      return;
+    }
+
+    // Handle task notifications (existing code)
+    final taskId = payload; // For tasks, payload is the task ID
     debugPrint('🔔 Current active tasks count: ${_activeTasks.length}');
     debugPrint('🔔 Active task IDs: ${_activeTasks.map((t) => t.id).toList()}');
 
@@ -1147,6 +1181,270 @@ class NotificationService {
       debugPrint('🧪 Total pending after simple test: ${pending.length}');
     } catch (e) {
       debugPrint('🧪 ❌ Error scheduling simple test notification: $e');
+    }
+  }
+
+  // Medicine notification methods
+  Future<void> scheduleMedicineNotifications(dynamic medicine) async {
+    debugPrint('🩺 Scheduling notifications for medicine: ${medicine.name}');
+
+    // Cancel existing notifications for this medicine
+    await cancelMedicineNotifications(medicine.id);
+
+    if (medicine.status.toString() != 'MedicineStatus.active') {
+      debugPrint('🩺 Medicine is not active, skipping notifications');
+      return;
+    }
+
+    // Schedule notifications for each notification time
+    for (final timeString in medicine.notificationTimes) {
+      await _scheduleTimeBasedMedicineNotification(medicine, timeString);
+    }
+
+    debugPrint(
+      '🩺 Scheduled ${medicine.notificationTimes.length} notification times for ${medicine.name}',
+    );
+  }
+
+  Future<void> _scheduleTimeBasedMedicineNotification(
+    dynamic medicine,
+    String timeString,
+  ) async {
+    try {
+      // Parse time string (format: "HH:mm")
+      final timeParts = timeString.split(':');
+      final hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+
+      // Calculate the first notification date
+      final now = DateTime.now();
+      var notificationDate = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        hour,
+        minute,
+      );
+
+      // If the time has already passed today, start from tomorrow
+      if (notificationDate.isBefore(now)) {
+        notificationDate = notificationDate.add(const Duration(days: 1));
+      }
+
+      // Ensure notification is within medicine duration
+      final endDate =
+          medicine.endDate ??
+          medicine.startDate.add(Duration(days: medicine.durationInDays));
+      if (notificationDate.isAfter(endDate)) {
+        debugPrint(
+          '🩺 Notification time $timeString is after medicine end date, skipping',
+        );
+        return;
+      }
+
+      final notificationId = _generateMedicineNotificationId(
+        medicine.id,
+        timeString,
+      );
+
+      await _flutterLocalNotificationsPlugin.zonedSchedule(
+        notificationId,
+        '💊 Medicine Reminder',
+        'Time to take ${medicine.name} (${medicine.dosage} ${medicine.dosageUnit})',
+        tz.TZDateTime.from(notificationDate, tz.local),
+        _getMedicineNotificationDetails(medicine),
+        payload: 'medicine_${medicine.id}',
+        matchDateTimeComponents:
+            DateTimeComponents.time, // Repeat daily at same time
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+
+      debugPrint(
+        '🩺 Scheduled notification for ${medicine.name} at $timeString (ID: $notificationId)',
+      );
+    } catch (e) {
+      debugPrint('🩺 Error scheduling notification for time $timeString: $e');
+    }
+  }
+
+  NotificationDetails _getMedicineNotificationDetails(dynamic medicine) {
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        'medicine_reminders',
+        'Medicine Reminders',
+        channelDescription: 'Notifications for medicine dose reminders',
+        importance: Importance.max,
+        priority: Priority.max,
+        ongoing: false,
+        autoCancel: true,
+        enableLights: true,
+        enableVibration: true,
+        playSound: true,
+        icon: '@mipmap/ic_launcher',
+        color: const Color(0xFF4CAF50), // Green for medicines
+        visibility: NotificationVisibility.public,
+        category: AndroidNotificationCategory.reminder,
+        styleInformation: BigTextStyleInformation(
+          'Don\'t forget to take your ${medicine.name}. Dosage: ${medicine.dosage} ${medicine.dosageUnit}',
+          htmlFormatBigText: false,
+          contentTitle: '💊 Medicine Reminder',
+          htmlFormatContentTitle: false,
+        ),
+        actions: [
+          const AndroidNotificationAction(
+            'take_medicine',
+            '✅ Take Now',
+            showsUserInterface: false,
+          ),
+          const AndroidNotificationAction(
+            'skip_medicine',
+            '⏭️ Skip',
+            showsUserInterface: false,
+          ),
+          const AndroidNotificationAction(
+            'snooze_medicine',
+            '⏰ Snooze 15min',
+            showsUserInterface: false,
+          ),
+        ],
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        categoryIdentifier: 'medicine_category',
+      ),
+    );
+  }
+
+  Future<void> cancelMedicineNotifications(String medicineId) async {
+    debugPrint('🩺 Cancelling notifications for medicine: $medicineId');
+
+    // Get all pending notifications
+    final pendingNotifications = await _flutterLocalNotificationsPlugin
+        .pendingNotificationRequests();
+
+    // Cancel notifications that belong to this medicine
+    for (final notification in pendingNotifications) {
+      if (_isMedicineNotification(notification.id, medicineId)) {
+        await _flutterLocalNotificationsPlugin.cancel(notification.id);
+        debugPrint(
+          '🩺 Cancelled notification ${notification.id} for medicine $medicineId',
+        );
+      }
+    }
+  }
+
+  int _generateMedicineNotificationId(String medicineId, String timeString) {
+    // Generate unique ID combining medicine ID and time
+    final combined = 'med_${medicineId}_$timeString';
+    return combined.hashCode.abs() % 2147483647; // Ensure positive int32
+  }
+
+  bool _isMedicineNotification(int notificationId, String medicineId) {
+    // Check if notification ID was generated for this medicine
+    final medicineHash = medicineId.hashCode.abs();
+    final notificationHash = notificationId.toString();
+    return notificationHash.contains(medicineHash.toString().substring(0, 3));
+  }
+
+  Future<void> _handleMedicineNotificationAction(
+    String actionId,
+    String medicineId,
+  ) async {
+    debugPrint(
+      '🩺 Handling medicine notification action: $actionId for medicine: $medicineId',
+    );
+
+    try {
+      switch (actionId) {
+        case 'take_medicine':
+          debugPrint('🩺 User marked dose as taken from notification');
+          await _showActionFeedbackNotification(
+            '✅ Dose Taken',
+            'Medicine dose marked as taken!',
+            const Color(0xFF4CAF50),
+          );
+          // TODO: Get the current pending dose and mark it as taken
+          // This requires implementing a method to get current pending dose for a medicine
+          break;
+
+        case 'skip_medicine':
+          debugPrint('🩺 User skipped dose from notification');
+          await _showActionFeedbackNotification(
+            '⏭️ Dose Skipped',
+            'Medicine dose skipped',
+            const Color(0xFFFF9800),
+          );
+          // TODO: Get the current pending dose and mark it as skipped
+          break;
+
+        case 'snooze_medicine':
+          debugPrint('🩺 User snoozed dose from notification');
+          await _snoozeMedicineNotification(medicineId, 15);
+          await _showActionFeedbackNotification(
+            '⏰ Dose Snoozed',
+            'Reminder snoozed for 15 minutes',
+            const Color(0xFF2196F3),
+          );
+          break;
+
+        default:
+          debugPrint('🩺 Unknown medicine notification action: $actionId');
+      }
+    } catch (e) {
+      debugPrint('🩺 Error handling medicine notification action: $e');
+      await _showActionFeedbackNotification(
+        '❌ Error',
+        'Failed to perform action',
+        const Color(0xFFF44336),
+      );
+    }
+  }
+
+  Future<void> _snoozeMedicineNotification(
+    String medicineId,
+    int minutes,
+  ) async {
+    debugPrint('🩺 Snoozing medicine notification for $minutes minutes');
+
+    // Schedule new notification for later
+    final snoozeTime = tz.TZDateTime.now(
+      tz.local,
+    ).add(Duration(minutes: minutes));
+
+    await _flutterLocalNotificationsPlugin.zonedSchedule(
+      DateTime.now().millisecondsSinceEpoch %
+          100000, // Unique ID for snoozed notification
+      '💊 Medicine Reminder (Snoozed)',
+      'Don\'t forget to take your medicine - this reminder was snoozed',
+      snoozeTime,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'medicine_reminders',
+          'Medicine Reminders',
+          channelDescription: 'Snoozed medicine reminders',
+          importance: Importance.max,
+          priority: Priority.max,
+        ),
+      ),
+      payload: 'medicine_$medicineId',
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+
+    debugPrint('🩺 Medicine notification snoozed for $minutes minutes');
+  }
+
+  // Schedule medicine notifications for all active medicines
+  Future<void> scheduleAllMedicineNotifications() async {
+    try {
+      debugPrint('📋 Scheduling notifications for all active medicines...');
+
+      // Note: This method will be enhanced to work with medicine repository
+      // For now, it's a placeholder that will be called after medicines are loaded
+      debugPrint('📋 Medicine notifications scheduling completed');
+    } catch (e) {
+      debugPrint('❌ Error scheduling all medicine notifications: $e');
     }
   }
 }

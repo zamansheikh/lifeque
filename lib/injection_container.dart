@@ -68,6 +68,7 @@ Future<void> init() async {
       getPendingDosesUseCase: sl(),
       markDoseAsTakenUseCase: sl(),
       markDoseAsSkippedUseCase: sl(),
+      notificationService: sl(),
     ),
   );
 

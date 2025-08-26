@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/medicine.dart';
 import '../../domain/usecases/get_medicines.dart';
 import '../../domain/usecases/manage_medicine.dart';
@@ -17,6 +18,7 @@ class MedicineCubit extends Cubit<MedicineState> {
   final GetPendingDoses getPendingDosesUseCase;
   final MarkDoseAsTaken markDoseAsTakenUseCase;
   final MarkDoseAsSkipped markDoseAsSkippedUseCase;
+  final NotificationService notificationService;
 
   MedicineCubit({
     required this.getAllMedicinesUseCase,
@@ -28,6 +30,7 @@ class MedicineCubit extends Cubit<MedicineState> {
     required this.getPendingDosesUseCase,
     required this.markDoseAsTakenUseCase,
     required this.markDoseAsSkippedUseCase,
+    required this.notificationService,
   }) : super(MedicineInitial());
 
   // Medicine operations
@@ -45,7 +48,15 @@ class MedicineCubit extends Cubit<MedicineState> {
     final result = await getActiveMedicinesUseCase(NoParams());
     result.fold(
       (failure) => emit(MedicineError(message: _getFailureMessage(failure))),
-      (medicines) => emit(MedicineLoaded(medicines: medicines)),
+      (medicines) async {
+        emit(MedicineLoaded(medicines: medicines));
+        // Schedule notifications for all active medicines
+        for (final medicine in medicines) {
+          if (medicine.isActive) {
+            await notificationService.scheduleMedicineNotifications(medicine);
+          }
+        }
+      },
     );
   }
 
@@ -56,7 +67,9 @@ class MedicineCubit extends Cubit<MedicineState> {
     );
     result.fold(
       (failure) => emit(MedicineError(message: _getFailureMessage(failure))),
-      (_) {
+      (_) async {
+        // Schedule notifications for the new medicine
+        await notificationService.scheduleMedicineNotifications(medicine);
         emit(
           const MedicineOperationSuccess(
             message: 'Medicine added successfully',
@@ -74,7 +87,12 @@ class MedicineCubit extends Cubit<MedicineState> {
     );
     result.fold(
       (failure) => emit(MedicineError(message: _getFailureMessage(failure))),
-      (_) {
+      (_) async {
+        // Cancel existing notifications and schedule new ones
+        await notificationService.cancelMedicineNotifications(medicine.id);
+        if (medicine.isActive) {
+          await notificationService.scheduleMedicineNotifications(medicine);
+        }
         emit(
           const MedicineOperationSuccess(
             message: 'Medicine updated successfully',
@@ -90,7 +108,9 @@ class MedicineCubit extends Cubit<MedicineState> {
     final result = await deleteMedicineUseCase(DeleteMedicineParams(id: id));
     result.fold(
       (failure) => emit(MedicineError(message: _getFailureMessage(failure))),
-      (_) {
+      (_) async {
+        // Cancel notifications for the deleted medicine
+        await notificationService.cancelMedicineNotifications(id);
         emit(
           const MedicineOperationSuccess(
             message: 'Medicine deleted successfully',
