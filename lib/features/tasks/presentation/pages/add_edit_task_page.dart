@@ -99,7 +99,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
             child: ElevatedButton(
               onPressed: _saveTask,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Theme.of(context).primaryColor,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(
