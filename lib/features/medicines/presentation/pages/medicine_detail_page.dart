@@ -33,6 +33,37 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
     super.dispose();
   }
 
+  void _showDeleteConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Medicine'),
+          content: Text(
+            'Are you sure you want to delete "${widget.medicine.name}"? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.read<MedicineCubit>().deleteMedicine(
+                  widget.medicine.id,
+                );
+                Navigator.of(context).pop(); // Go back to medicines list
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,6 +95,29 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
               );
             },
           ),
+          PopupMenuButton(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value == 'delete') {
+                _showDeleteConfirmationDialog();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text(
+                      'Delete Medicine',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -77,9 +131,54 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [_buildOverviewTab(), _buildDosesTab(), _buildProgressTab()],
+      body: BlocListener<MedicineCubit, MedicineState>(
+        listener: (context, state) {
+          if (state is MedicineOperationSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.green,
+              ),
+            );
+            // Refresh doses after successful operation
+            context.read<MedicineCubit>().getDosesForMedicine(
+              widget.medicine.id,
+            );
+          } else if (state is DoseOperationSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.green,
+              ),
+            );
+            // Refresh doses after successful dose operation
+            context.read<MedicineCubit>().getDosesForMedicine(
+              widget.medicine.id,
+            );
+          } else if (state is MedicineError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          } else if (state is DoseError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildOverviewTab(),
+            _buildDosesTab(),
+            _buildProgressTab(),
+          ],
+        ),
       ),
     );
   }

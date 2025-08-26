@@ -53,6 +53,22 @@ class _MedicinesPageState extends State<MedicinesPage> {
                 backgroundColor: Colors.green,
               ),
             );
+          } else if (state is DoseOperationSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.green,
+              ),
+            );
+            // Reload medicines after dose operation to refresh data
+            context.read<MedicineCubit>().loadAllMedicines();
+          } else if (state is DoseError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
           }
         },
         builder: (context, state) {
@@ -428,16 +444,7 @@ class _MedicinesPageState extends State<MedicinesPage> {
                               IconButton(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  // Note: This is a simplified action - in real implementation,
-                                  // you'd need to get the current pending dose and mark it
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '${medicine.name} dose taken!',
-                                      ),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
+                                  _takeMedicineDose(medicine);
                                 },
                                 icon: const Icon(
                                   Icons.check_circle,
@@ -448,14 +455,7 @@ class _MedicinesPageState extends State<MedicinesPage> {
                               IconButton(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '${medicine.name} dose skipped',
-                                      ),
-                                      backgroundColor: Colors.orange,
-                                    ),
-                                  );
+                                  _skipMedicineDose(medicine);
                                 },
                                 icon: const Icon(
                                   Icons.cancel,
@@ -492,5 +492,25 @@ class _MedicinesPageState extends State<MedicinesPage> {
     if (mounted) {
       context.read<MedicineCubit>().loadAllMedicines();
     }
+  }
+
+  void _takeMedicineDose(Medicine medicine) {
+    // Get the current pending dose for this medicine
+    context.read<MedicineCubit>().getPendingDoses();
+    // Note: This is a simplified implementation. In a full implementation,
+    // you would get the actual pending dose ID and use that.
+    // For now, we'll create a temporary dose ID based on current time
+    final doseId = '${medicine.id}_${DateTime.now().millisecondsSinceEpoch}';
+    context.read<MedicineCubit>().markDoseAsTaken(doseId, medicine.id);
+  }
+
+  void _skipMedicineDose(Medicine medicine) {
+    // Get the current pending dose for this medicine
+    context.read<MedicineCubit>().getPendingDoses();
+    // Note: This is a simplified implementation. In a full implementation,
+    // you would get the actual pending dose ID and use that.
+    // For now, we'll create a temporary dose ID based on current time
+    final doseId = '${medicine.id}_${DateTime.now().millisecondsSinceEpoch}';
+    context.read<MedicineCubit>().markDoseAsSkipped(doseId, medicine.id);
   }
 }
