@@ -175,7 +175,7 @@ class _EmptyState extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF64748B).withOpacity(0.1),
+            color: const Color(0xFF64748B).withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -231,7 +231,7 @@ class _EmptyState extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF3B82F6).withOpacity(0.3),
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -282,7 +282,7 @@ class _DayHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF64748B).withOpacity(0.08),
+            color: const Color(0xFF64748B).withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -356,7 +356,7 @@ class _SummaryBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3B82F6).withOpacity(0.25),
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -403,7 +403,7 @@ class _SummaryBar extends StatelessWidget {
           Container(
             height: 8,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(4),
             ),
             child: ClipRRect(
@@ -444,9 +444,9 @@ class _CountChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -463,7 +463,7 @@ class _CountChip extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -521,7 +521,7 @@ class _MedicineProgressCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF64748B).withOpacity(0.1),
+                color: const Color(0xFF64748B).withValues(alpha: 0.1),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
@@ -690,9 +690,9 @@ class _MedicineProgressCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -718,7 +718,7 @@ class _MedicineProgressCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -919,7 +919,7 @@ class _MedicineProgressCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF64748B).withOpacity(0.1),
+                        color: const Color(0xFF64748B).withValues(alpha: 0.1),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -974,7 +974,7 @@ class _MedicineProgressCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF64748B).withOpacity(0.1),
+                        color: const Color(0xFF64748B).withValues(alpha: 0.1),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -1066,12 +1066,14 @@ class _TodayStatusPill extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFF10B981).withOpacity(0.1),
-            const Color(0xFF059669).withOpacity(0.1),
+            const Color(0xFF10B981).withValues(alpha: 0.1),
+            const Color(0xFF059669).withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.2)),
+        border: Border.all(
+          color: const Color(0xFF10B981).withValues(alpha: 0.2),
+        ),
       ),
       child: Text(
         '$pct%',
@@ -1105,12 +1107,12 @@ class _ActionButtons extends StatelessWidget {
           decoration: BoxDecoration(
             color: target == null
                 ? const Color(0xFFF1F5F9)
-                : const Color(0xFF10B981).withOpacity(0.1),
+                : const Color(0xFF10B981).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: target == null
                   ? const Color(0xFFE2E8F0)
-                  : const Color(0xFF10B981).withOpacity(0.3),
+                  : const Color(0xFF10B981).withValues(alpha: 0.3),
             ),
           ),
           child: IconButton(
@@ -1132,12 +1134,12 @@ class _ActionButtons extends StatelessWidget {
           decoration: BoxDecoration(
             color: target == null
                 ? const Color(0xFFF1F5F9)
-                : const Color(0xFFF59E0B).withOpacity(0.1),
+                : const Color(0xFFF59E0B).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: target == null
                   ? const Color(0xFFE2E8F0)
-                  : const Color(0xFFF59E0B).withOpacity(0.3),
+                  : const Color(0xFFF59E0B).withValues(alpha: 0.3),
             ),
           ),
           child: IconButton(
@@ -1159,12 +1161,12 @@ class _ActionButtons extends StatelessWidget {
           decoration: BoxDecoration(
             color: target == null
                 ? const Color(0xFFF1F5F9)
-                : const Color(0xFFEF4444).withOpacity(0.1),
+                : const Color(0xFFEF4444).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: target == null
                   ? const Color(0xFFE2E8F0)
-                  : const Color(0xFFEF4444).withOpacity(0.3),
+                  : const Color(0xFFEF4444).withValues(alpha: 0.3),
             ),
           ),
           child: IconButton(

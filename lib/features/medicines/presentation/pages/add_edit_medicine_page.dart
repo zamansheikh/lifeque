@@ -116,7 +116,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF3B82F6).withOpacity(0.3),
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -202,7 +202,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF64748B).withOpacity(0.1),
+            color: const Color(0xFF64748B).withValues(alpha: 0.1),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -299,7 +299,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF64748B).withOpacity(0.1),
+            color: const Color(0xFF64748B).withValues(alpha: 0.1),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -434,7 +434,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF64748B).withOpacity(0.1),
+            color: const Color(0xFF64748B).withValues(alpha: 0.1),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -551,7 +551,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF64748B).withOpacity(0.1),
+            color: const Color(0xFF64748B).withValues(alpha: 0.1),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -730,7 +730,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF64748B).withOpacity(0.1),
+            color: const Color(0xFF64748B).withValues(alpha: 0.1),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -854,7 +854,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF64748B).withOpacity(0.1),
+            color: const Color(0xFF64748B).withValues(alpha: 0.1),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
