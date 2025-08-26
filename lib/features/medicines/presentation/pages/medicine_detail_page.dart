@@ -197,71 +197,46 @@ class _CourseProgressCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          Row(
+          Column(
             children: [
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: _radialPercent(
-                  label: 'Progress',
-                  value: state.adherencePercent,
-                  color: const Color(0xFF10B981),
-                ),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _enhancedStatCard(
-                            Icons.check_circle_rounded,
-                            'Taken',
-                            state.taken,
-                            const Color(0xFF10B981),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _enhancedStatCard(
-                            Icons.schedule_rounded,
-                            'Pending',
-                            state.pending,
-                            const Color(0xFF06B6D4),
-                          ),
-                        ),
-                      ],
+              Row(
+                children: [
+                  Expanded(
+                    child: _enhancedStatCard(
+                      Icons.check_circle_rounded,
+                      'Taken',
+                      state.taken,
+                      const Color(0xFF10B981),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _enhancedStatCard(
-                            Icons.skip_next_rounded,
-                            'Skipped',
-                            state.skipped,
-                            const Color(0xFFF59E0B),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _enhancedStatCard(
-                            Icons.cancel_rounded,
-                            'Missed',
-                            state.missed,
-                            const Color(0xFFEF4444),
-                          ),
-                        ),
-                      ],
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _enhancedStatCard(
+                      Icons.schedule_rounded,
+                      'Pending',
+                      state.pending,
+                      const Color(0xFF06B6D4),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _enhancedStatCard(
+                      Icons.skip_next_rounded,
+                      'Skipped',
+                      state.skipped,
+                      const Color(0xFFF59E0B),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _enhancedStatCard(
+                      Icons.cancel_rounded,
+                      'Missed',
+                      state.missed,
+                      const Color(0xFFEF4444),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -349,36 +324,6 @@ class _CourseProgressCard extends StatelessWidget {
               fontWeight: FontWeight.w500,
               color: Colors.white70,
               fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _radialPercent({
-    required String label,
-    required double value,
-    required Color color,
-  }) {
-    return SizedBox(
-      width: 90,
-      height: 90,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CircularProgressIndicator(
-            value: value,
-            strokeWidth: 6,
-            backgroundColor: color.withOpacity(0.2),
-            valueColor: AlwaysStoppedAnimation(color),
-          ),
-          Text(
-            '${(value * 100).toStringAsFixed(0)}%',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: color,
-              fontSize: 12,
             ),
           ),
         ],
