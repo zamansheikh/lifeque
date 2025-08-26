@@ -109,7 +109,10 @@ class _TaskListPageState extends State<TaskListPage>
               child: TabBar(
                 controller: _tabController,
                 indicator: UnderlineTabIndicator(
-                  borderSide: BorderSide(width: 3.0, color: colorScheme.primary),
+                  borderSide: BorderSide(
+                    width: 3.0,
+                    color: colorScheme.primary,
+                  ),
                   insets: const EdgeInsets.symmetric(horizontal: 4.0),
                 ),
                 labelColor: colorScheme.primary,
@@ -130,7 +133,7 @@ class _TaskListPageState extends State<TaskListPage>
                 dividerHeight: 0,
               ),
             ),
-        
+
             // Tab Content
             Expanded(
               child: TabBarView(
@@ -452,7 +455,7 @@ class _TaskListPageState extends State<TaskListPage>
 
   Widget _buildDrawer(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Drawer(
       backgroundColor: Colors.white,
       child: SafeArea(
@@ -521,7 +524,7 @@ class _TaskListPageState extends State<TaskListPage>
                 ],
               ),
             ),
-            
+
             // Menu Items
             Expanded(
               child: ListView(
@@ -569,7 +572,7 @@ class _TaskListPageState extends State<TaskListPage>
     bool isSelected = false,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
@@ -591,9 +594,7 @@ class _TaskListPageState extends State<TaskListPage>
           ),
         ),
         onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -629,10 +630,7 @@ class _TaskListPageState extends State<TaskListPage>
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    'assets/icon/icon.png',
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.asset('assets/icon/icon.png', fit: BoxFit.cover),
                 ),
               ),
               const SizedBox(width: 16),
@@ -665,10 +663,7 @@ class _TaskListPageState extends State<TaskListPage>
             children: [
               const Text(
                 'A beautiful and intuitive app to manage your daily tasks and medicine reminders.',
-                style: TextStyle(
-                  fontSize: 16,
-                  height: 1.5,
-                ),
+                style: TextStyle(fontSize: 16, height: 1.5),
               ),
               const SizedBox(height: 24),
               // Developer Info
@@ -730,7 +725,10 @@ class _TaskListPageState extends State<TaskListPage>
                 Navigator.of(context).pop();
               },
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -791,9 +789,7 @@ class _TaskListPageState extends State<TaskListPage>
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: color.withValues(alpha: 0.2),
-            ),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
