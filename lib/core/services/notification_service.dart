@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../../features/tasks/domain/entities/task.dart';
 import '../../features/tasks/presentation/bloc/task_bloc.dart';
+import 'navigation_service.dart';
 import '../../injection_container.dart' as di;
 
 class NotificationService {
@@ -135,6 +136,11 @@ class NotificationService {
 
   Future<void> _handleNotificationAction(String actionId, String taskId) async {
     debugPrint('🔔 Handling action: $actionId for task: $taskId');
+    debugPrint('🔔 Current active tasks count: ${_activeTasks.length}');
+    debugPrint('🔔 Active task IDs: ${_activeTasks.map((t) => t.id).toList()}');
+
+    // Force reload tasks to ensure we have the latest data
+    await forceReloadTasks();
 
     try {
       final taskBloc = di.sl<TaskBloc>();
@@ -143,21 +149,44 @@ class NotificationService {
       Task? task;
       try {
         task = _activeTasks.firstWhere((task) => task.id == taskId);
+        debugPrint('🔔 Found task: ${task.title} (${task.taskType})');
       } catch (e) {
-        debugPrint('🔔 ⚠️ Task $taskId not found in active tasks');
-        await _showActionFeedbackNotification(
-          '❌ Task Not Found',
-          'Task could not be found',
-          const Color(0xFFF44336), // Red
+        debugPrint(
+          '🔔 ⚠️ Task $taskId not found in active tasks, trying to get from bloc state',
         );
-        return;
+
+        // Try to get task from bloc state as fallback
+        final currentState = taskBloc.state;
+        if (currentState is TaskLoaded) {
+          try {
+            task = currentState.tasks.firstWhere((t) => t.id == taskId);
+            debugPrint('🔔 Found task in bloc state: ${task.title}');
+          } catch (e2) {
+            debugPrint('🔔 ❌ Task $taskId not found anywhere');
+            await _showActionFeedbackNotification(
+              '❌ Task Not Found',
+              'Task could not be found',
+              const Color(0xFFF44336), // Red
+            );
+            return;
+          }
+        } else {
+          debugPrint('🔔 ❌ TaskBloc not in loaded state: $currentState');
+          await _showActionFeedbackNotification(
+            '❌ Task Error',
+            'Tasks not loaded',
+            const Color(0xFFF44336), // Red
+          );
+          return;
+        }
       }
+
+      debugPrint('🔔 Processing action $actionId for task ${task.title}');
 
       switch (actionId) {
         case 'mark_done':
           // Mark task as completed
           debugPrint('🔔 Marking task $taskId as completed');
-          taskBloc.add(ToggleTaskCompletion(taskId));
 
           // Cancel the notification immediately
           await cancelTaskNotification(task);
@@ -165,6 +194,11 @@ class NotificationService {
 
           // Remove the task from active tasks list
           _activeTasks.removeWhere((t) => t.id == taskId);
+          debugPrint('🔔 Removed task from active list');
+
+          // Update the task in bloc
+          taskBloc.add(ToggleTaskCompletion(taskId));
+          debugPrint('🔔 Sent ToggleTaskCompletion event to bloc');
 
           // Show a completion feedback notification
           await _showActionFeedbackNotification(
@@ -173,8 +207,10 @@ class NotificationService {
             const Color(0xFF4CAF50), // Green
           );
           break;
+
         case 'snooze_5':
           // Snooze for 5 minutes
+          debugPrint('🔔 Snoozing for 5 minutes');
           await _snoozeNotification(taskId, 5);
           await _showActionFeedbackNotification(
             '⏰ Snoozed',
@@ -185,6 +221,7 @@ class NotificationService {
 
         case 'snooze_15':
           // Snooze for 15 minutes
+          debugPrint('🔔 Snoozing for 15 minutes');
           await _snoozeNotification(taskId, 15);
           await _showActionFeedbackNotification(
             '⏰ Snoozed',
@@ -195,6 +232,7 @@ class NotificationService {
 
         case 'snooze_60':
           // Snooze for 1 hour
+          debugPrint('🔔 Snoozing for 1 hour');
           await _snoozeNotification(taskId, 60);
           await _showActionFeedbackNotification(
             '⏰ Snoozed',
@@ -204,14 +242,26 @@ class NotificationService {
           break;
 
         case 'view_details':
-          // Open task details - This would need navigation context
+          // Open task details - Navigate to task detail page
           debugPrint('🔔 Opening task details for $taskId');
-          await _showActionFeedbackNotification(
-            '👁️ Details',
-            'Opening task details...',
-            const Color(0xFF2196F3), // Blue
-          );
-          // TODO: Implement navigation to task details
+
+          try {
+            final navigationService = di.sl<NavigationService>();
+            navigationService.navigateToTaskDetail(taskId);
+
+            await _showActionFeedbackNotification(
+              '👁️ Details',
+              'Opening task details...',
+              const Color(0xFF2196F3), // Blue
+            );
+          } catch (e) {
+            debugPrint('🔔 Error navigating to task details: $e');
+            await _showActionFeedbackNotification(
+              '❌ Navigation Error',
+              'Could not open task details',
+              const Color(0xFFF44336), // Red
+            );
+          }
           break;
 
         case 'call_contact':
@@ -238,6 +288,11 @@ class NotificationService {
 
         default:
           debugPrint('🔔 Unknown action: $actionId');
+          await _showActionFeedbackNotification(
+            '❌ Unknown Action',
+            'Unknown action: $actionId',
+            const Color(0xFFF44336), // Red
+          );
       }
     } catch (e) {
       debugPrint('🔔 Error handling notification action: $e');
@@ -837,7 +892,33 @@ class NotificationService {
     _progressUpdateTimer?.cancel();
   }
 
+  // Force reload tasks from the bloc for debugging
+  Future<void> forceReloadTasks() async {
+    debugPrint('🔔 🔄 Force reloading tasks from bloc');
+    try {
+      final taskBloc = di.sl<TaskBloc>();
+      final currentState = taskBloc.state;
+      debugPrint('🔔 Current bloc state: $currentState');
+
+      if (currentState is TaskLoaded) {
+        debugPrint('🔔 Found ${currentState.tasks.length} tasks in bloc state');
+        updateActiveTasks(currentState.tasks);
+      } else {
+        debugPrint('🔔 Bloc not in loaded state, triggering LoadTasks');
+        taskBloc.add(LoadTasks());
+      }
+    } catch (e) {
+      debugPrint('🔔 Error force reloading tasks: $e');
+    }
+  }
+
   void updateActiveTasks(List<Task> tasks) {
+    debugPrint('🔔 📝 updateActiveTasks called with ${tasks.length} tasks');
+    for (final task in tasks) {
+      debugPrint(
+        '🔔 📝 Task: ${task.id} - ${task.title} (${task.taskType}) - Active: ${task.isActive}, Completed: ${task.isCompleted}, Pinned: ${task.isPinnedToNotification}',
+      );
+    }
     _activeTasks = tasks;
     // Also update any existing persistent notifications to reflect current state
     _refreshPersistentNotifications();
@@ -953,46 +1034,32 @@ class NotificationService {
     debugPrint('🧪 Test notification sent');
   }
 
-  // Test method to show notification with action buttons
-  Future<void> showTestNotificationWithActions() async {
-    debugPrint('🧪 Showing test notification with action buttons');
+  // Get first active task for testing
+  Task? getFirstActiveTask() {
+    final activeTasks = _activeTasks
+        .where((task) => task.isActive && !task.isCompleted)
+        .toList();
+    if (activeTasks.isNotEmpty) {
+      debugPrint(
+        '🧪 Found ${activeTasks.length} active tasks, returning first: ${activeTasks.first.title}',
+      );
+      return activeTasks.first;
+    }
+    debugPrint('🧪 No active tasks found');
+    return null;
+  }
+
+  // Test method to show notification with action buttons for a real task
+  Future<void> showTestNotificationForTask(Task task) async {
+    debugPrint('🧪 Showing test notification for real task: ${task.title}');
     await _flutterLocalNotificationsPlugin.show(
-      999998,
-      '🧪 Test Actions',
-      'Tap the action buttons to test notification actions',
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          'task_reminders',
-          'Task Reminders',
-          channelDescription: 'Test notification with actions',
-          importance: Importance.max,
-          priority: Priority.max,
-          enableLights: true,
-          enableVibration: true,
-          playSound: true,
-          visibility: NotificationVisibility.public,
-          actions: [
-            const AndroidNotificationAction(
-              'mark_done',
-              '✅ Test Done',
-              showsUserInterface: false,
-            ),
-            const AndroidNotificationAction(
-              'snooze_5',
-              '⏰ Test Snooze',
-              showsUserInterface: false,
-            ),
-            const AndroidNotificationAction(
-              'view_details',
-              '👁️ Test View',
-              showsUserInterface: true,
-            ),
-          ],
-        ),
-      ),
-      payload: 'test-task-id', // Test payload
+      task.id.hashCode + 50000, // Unique test ID
+      '🧪 Test: ${task.title}',
+      'Test notification for real task - try the action buttons!',
+      _getNotificationDetails(task.taskType, task.id),
+      payload: task.id,
     );
-    debugPrint('🧪 Test notification with actions sent');
+    debugPrint('🧪 Test notification for real task sent');
   }
 
   // Test method to verify scheduled notifications work

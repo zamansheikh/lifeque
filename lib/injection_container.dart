@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'core/utils/database_helper.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/navigation_service.dart';
 import 'features/tasks/data/datasources/task_local_data_source.dart';
 import 'features/tasks/data/repositories/task_repository_impl.dart';
 import 'features/tasks/domain/repositories/task_repository.dart';
@@ -56,4 +57,5 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DatabaseHelper());
   sl.registerLazySingleton(() => FlutterLocalNotificationsPlugin());
   sl.registerLazySingleton(() => NotificationService());
+  sl.registerLazySingleton(() => NavigationService());
 }

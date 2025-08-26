@@ -6,10 +6,12 @@ import '../features/tasks/presentation/pages/task_list_page.dart';
 import '../features/tasks/presentation/pages/add_edit_task_page.dart';
 import '../features/tasks/presentation/pages/task_detail_page.dart';
 import '../features/permissions/presentation/pages/permission_screen.dart';
+import 'services/navigation_service.dart';
 import '../injection_container.dart' as di;
 
 class AppRouter {
   static final GoRouter router = GoRouter(
+    navigatorKey: NavigationService.navigatorKey,
     initialLocation: '/permissions',
     routes: [
       GoRoute(
