@@ -4,7 +4,7 @@ import '../../../../core/error/exceptions.dart' as app_exceptions;
 
 class DatabaseHelper {
   static const String _databaseName = 'remind_me.db';
-  static const int _databaseVersion = 3;
+  static const int _databaseVersion = 4;
 
   static const String tableTask = 'tasks';
 
@@ -12,6 +12,7 @@ class DatabaseHelper {
   static const String columnId = 'id';
   static const String columnTitle = 'title';
   static const String columnDescription = 'description';
+  static const String columnTaskType = 'taskType';
   static const String columnStartDate = 'startDate';
   static const String columnEndDate = 'endDate';
   static const String columnIsCompleted = 'isCompleted';
@@ -55,6 +56,7 @@ class DatabaseHelper {
           $columnId TEXT PRIMARY KEY,
           $columnTitle TEXT NOT NULL,
           $columnDescription TEXT NOT NULL,
+          $columnTaskType INTEGER NOT NULL DEFAULT 0,
           $columnStartDate INTEGER NOT NULL,
           $columnEndDate INTEGER NOT NULL,
           $columnIsCompleted INTEGER NOT NULL DEFAULT 0,
@@ -98,6 +100,12 @@ class DatabaseHelper {
       ''');
       await db.execute('''
         ALTER TABLE $tableTask ADD COLUMN $columnBeforeEndOption INTEGER
+      ''');
+    }
+    if (oldVersion < 4) {
+      // Add taskType column for reminder feature
+      await db.execute('''
+        ALTER TABLE $tableTask ADD COLUMN $columnTaskType INTEGER NOT NULL DEFAULT 0
       ''');
     }
   }

@@ -345,7 +345,48 @@ class _TaskCardState extends State<TaskCard> {
                 // Bottom info row
                 Row(
                   children: [
-                    // Date range
+                    // Task type indicator
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: widget.task.taskType == TaskType.reminder
+                            ? Colors.orange.withValues(alpha: 0.1)
+                            : Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            widget.task.taskType == TaskType.reminder
+                                ? Icons.notifications_active_rounded
+                                : Icons.assignment_rounded,
+                            size: 10,
+                            color: widget.task.taskType == TaskType.reminder
+                                ? Colors.orange
+                                : Colors.blue,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            widget.task.taskType == TaskType.reminder
+                                ? 'REMINDER'
+                                : 'TASK',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: widget.task.taskType == TaskType.reminder
+                                  ? Colors.orange
+                                  : Colors.blue,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Date info
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -359,13 +400,19 @@ class _TaskCardState extends State<TaskCard> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.calendar_today_rounded,
+                            widget.task.taskType == TaskType.reminder
+                                ? Icons.access_time_rounded
+                                : Icons.calendar_today_rounded,
                             size: 12,
                             color: Colors.grey.shade600,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${DateFormat('MMM d').format(widget.task.startDate)} - ${DateFormat('MMM d').format(widget.task.endDate)}',
+                            widget.task.taskType == TaskType.reminder
+                                ? DateFormat(
+                                    'MMM d, h:mm a',
+                                  ).format(widget.task.startDate)
+                                : '${DateFormat('MMM d').format(widget.task.startDate)} - ${DateFormat('MMM d').format(widget.task.endDate)}',
                             style: TextStyle(
                               fontSize: 11,
                               color: Colors.grey.shade600,

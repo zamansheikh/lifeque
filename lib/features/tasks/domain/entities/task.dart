@@ -2,6 +2,12 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+enum TaskType {
+  task, // Traditional task with start and end dates
+  reminder, // Simple reminder with just notification time
+  birthday, // Birthday reminder with yearly repetition
+}
+
 enum NotificationType {
   specificTime, // At a specific date and time
   daily, // Daily at a specific time
@@ -37,6 +43,7 @@ class Task extends Equatable {
   final String id;
   final String title;
   final String description;
+  final TaskType taskType;
   final DateTime startDate;
   final DateTime endDate;
   final bool isCompleted;
@@ -53,6 +60,7 @@ class Task extends Equatable {
     required this.id,
     required this.title,
     required this.description,
+    this.taskType = TaskType.task,
     required this.startDate,
     required this.endDate,
     this.isCompleted = false,
@@ -139,6 +147,15 @@ class Task extends Equatable {
 
   bool get isActive {
     final now = tz.TZDateTime.now(tz.local);
+
+    // For reminders and birthdays, they are active when not completed
+    // and the notification time hasn't passed yet
+    if (taskType == TaskType.reminder || taskType == TaskType.birthday) {
+      final endDateTz = tz.TZDateTime.from(endDate, tz.local);
+      return !isCompleted && now.isBefore(endDateTz);
+    }
+
+    // For traditional tasks, check if we're between start and end dates
     final startDateTz = tz.TZDateTime.from(startDate, tz.local);
     final endDateTz = tz.TZDateTime.from(endDate, tz.local);
     return now.isAfter(startDateTz) && now.isBefore(endDateTz) && !isCompleted;
@@ -148,6 +165,7 @@ class Task extends Equatable {
     String? id,
     String? title,
     String? description,
+    TaskType? taskType,
     DateTime? startDate,
     DateTime? endDate,
     bool? isCompleted,
@@ -164,6 +182,7 @@ class Task extends Equatable {
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
+      taskType: taskType ?? this.taskType,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       isCompleted: isCompleted ?? this.isCompleted,
@@ -186,6 +205,7 @@ class Task extends Equatable {
     id,
     title,
     description,
+    taskType,
     startDate,
     endDate,
     isCompleted,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../bloc/task_bloc.dart';
-import '../widgets/task_card.dart';
+import '../widgets/task_card_factory.dart';
 
 class TaskListPage extends StatefulWidget {
   const TaskListPage({super.key});
@@ -80,10 +80,7 @@ class _TaskListPageState extends State<TaskListPage>
             child: TabBar(
               controller: _tabController,
               indicator: UnderlineTabIndicator(
-                borderSide: BorderSide(
-                  width: 3.0,
-                  color: colorScheme.primary,
-                ),
+                borderSide: BorderSide(width: 3.0, color: colorScheme.primary),
                 insets: const EdgeInsets.symmetric(horizontal: 4.0),
               ),
               labelColor: colorScheme.primary,
@@ -101,7 +98,7 @@ class _TaskListPageState extends State<TaskListPage>
                 Tab(text: 'Active'),
                 Tab(text: 'Completed'),
               ],
-              dividerHeight:  0,
+              dividerHeight: 0,
             ),
           ),
 
@@ -201,7 +198,7 @@ class _TaskListPageState extends State<TaskListPage>
             itemCount: sortedTasks.length,
             itemBuilder: (context, index) {
               final task = sortedTasks[index];
-              return TaskCard(
+              return TaskCardFactory.createCard(
                 task: task,
                 onTap: () {
                   context.push('/task-detail/${task.id}');
@@ -296,7 +293,7 @@ class _TaskListPageState extends State<TaskListPage>
             itemCount: activeTasks.length,
             itemBuilder: (context, index) {
               final task = activeTasks[index];
-              return TaskCard(
+              return TaskCardFactory.createCard(
                 task: task,
                 onTap: () {
                   context.push('/task-detail/${task.id}');
@@ -369,7 +366,7 @@ class _TaskListPageState extends State<TaskListPage>
             itemCount: completedTasks.length,
             itemBuilder: (context, index) {
               final task = completedTasks[index];
-              return TaskCard(
+              return TaskCardFactory.createCard(
                 task: task,
                 onTap: () {
                   context.push('/task-detail/${task.id}');
