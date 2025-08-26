@@ -44,6 +44,12 @@ class _TaskListPageState extends State<TaskListPage>
             letterSpacing: -0.5,
           ),
         ),
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () {
+            // Handle menu button press
+          },
+        ),
         actions: [
           IconButton(
             icon: Container(
@@ -78,59 +84,61 @@ class _TaskListPageState extends State<TaskListPage>
           const SizedBox(width: 16),
         ],
       ),
-      body: Column(
-        children: [
-          // Modern Tab Bar
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Modern Tab Bar
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TabBar(
+                controller: _tabController,
+                indicator: UnderlineTabIndicator(
+                  borderSide: BorderSide(width: 3.0, color: colorScheme.primary),
+                  insets: const EdgeInsets.symmetric(horizontal: 4.0),
                 ),
-              ],
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: UnderlineTabIndicator(
-                borderSide: BorderSide(width: 3.0, color: colorScheme.primary),
-                insets: const EdgeInsets.symmetric(horizontal: 4.0),
+                labelColor: colorScheme.primary,
+                unselectedLabelColor: Colors.grey.shade600,
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                ),
+                tabs: const [
+                  Tab(text: 'All Tasks'),
+                  Tab(text: 'Active'),
+                  Tab(text: 'Completed'),
+                ],
+                dividerHeight: 0,
               ),
-              labelColor: colorScheme.primary,
-              unselectedLabelColor: Colors.grey.shade600,
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
-              tabs: const [
-                Tab(text: 'All Tasks'),
-                Tab(text: 'Active'),
-                Tab(text: 'Completed'),
-              ],
-              dividerHeight: 0,
             ),
-          ),
-
-          // Tab Content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildTaskList(),
-                _buildActiveTaskList(),
-                _buildCompletedTaskList(),
-              ],
+        
+            // Tab Content
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildTaskList(),
+                  _buildActiveTaskList(),
+                  _buildCompletedTaskList(),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(

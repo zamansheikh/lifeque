@@ -169,6 +169,7 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+      width: double.infinity ,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: Colors.white,
