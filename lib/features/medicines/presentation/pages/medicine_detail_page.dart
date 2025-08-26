@@ -15,6 +15,7 @@ class MedicineDetailPage extends StatefulWidget {
 }
 
 class _MedicineDetailPageState extends State<MedicineDetailPage> {
+  MedicineDetailLoaded? _cachedDetail; // retain last detail snapshot
   @override
   void initState() {
     super.initState();
@@ -36,10 +37,11 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                       AddEditMedicinePage(medicine: widget.medicine),
                 ),
               );
-              if (mounted)
+              if (mounted) {
                 context.read<MedicineCubit>().loadMedicineDetail(
                   widget.medicine.id,
                 );
+              }
             },
           ),
           IconButton(
@@ -50,7 +52,13 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
           ),
         ],
       ),
-      body: BlocBuilder<MedicineCubit, MedicineState>(
+      body: BlocConsumer<MedicineCubit, MedicineState>(
+        listener: (context, state) {
+          if (state is MedicineDetailLoaded &&
+              state.medicine.id == widget.medicine.id) {
+            setState(() => _cachedDetail = state);
+          }
+        },
         builder: (context, state) {
           if (state is MedicineError || state is DoseError) {
             final msg = state is MedicineError
@@ -58,9 +66,8 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                 : (state as DoseError).message;
             return Center(child: Text(msg));
           }
-          if (state is MedicineDetailLoaded &&
-              state.medicine.id == widget.medicine.id) {
-            return _buildDetail(context, state);
+          if (_cachedDetail != null) {
+            return _buildDetail(context, _cachedDetail!);
           }
           return const Center(child: CircularProgressIndicator());
         },

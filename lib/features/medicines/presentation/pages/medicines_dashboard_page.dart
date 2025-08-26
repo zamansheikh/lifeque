@@ -15,6 +15,7 @@ class MedicinesDashboardPage extends StatefulWidget {
 
 class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
   DateTime _selectedDate = DateTime.now();
+  bool _requestedReload = false; // prevent multiple queued refreshes
   @override
   void initState() {
     super.initState();
@@ -106,7 +107,18 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
               ),
             );
           }
-          return const Center(child: Text('Loading dashboard...'));
+          // Any other state (e.g., MedicineDetailLoaded, MedicineLoaded, Dose states)
+          // means we're coming back from another screen or an operation; trigger a refresh once.
+          if (!_requestedReload) {
+            _requestedReload = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _refresh();
+                _requestedReload = false;
+              }
+            });
+          }
+          return const Center(child: CircularProgressIndicator());
         },
       ),
     );
@@ -299,11 +311,18 @@ class _MedicineProgressCard extends StatelessWidget {
     final next = upcoming.isNotEmpty ? upcoming.first : null;
 
     return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => MedicineDetailPage(medicine: medicine),
-        ),
-      ),
+      onTap: () async {
+        // Navigate to detail; when returning ensure dashboard state is reloaded.
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => MedicineDetailPage(medicine: medicine),
+          ),
+        );
+        if (context.mounted) {
+          // Reload dashboard for the current (today) date so we exit any detail state.
+          context.read<MedicineCubit>().loadDashboard();
+        }
+      },
       child: Card(
         margin: const EdgeInsets.only(bottom: 14),
         child: Padding(
