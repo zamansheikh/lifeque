@@ -101,6 +101,7 @@ class _TaskListPageState extends State<TaskListPage>
                 Tab(text: 'Active'),
                 Tab(text: 'Completed'),
               ],
+              dividerHeight:  0,
             ),
           ),
 
