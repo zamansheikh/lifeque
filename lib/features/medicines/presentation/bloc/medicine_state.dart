@@ -70,6 +70,47 @@ class DoseOperationSuccess extends MedicineState {
   List<Object> get props => [message];
 }
 
+// Combined state for dashboard/summary views
+class MedicineDashboardLoaded extends MedicineState {
+  final List<Medicine> medicines; // all/active depending on context
+  final List<MedicineDose> todayDoses; // all doses scheduled for today
+  final DateTime date;
+
+  const MedicineDashboardLoaded({
+    required this.medicines,
+    required this.todayDoses,
+    required this.date,
+  });
+
+  List<MedicineDose> dosesForMedicine(String id) =>
+      todayDoses.where((d) => d.medicineId == id).toList();
+
+  @override
+  List<Object?> get props => [medicines, todayDoses, date];
+}
+
+class DailyProgressLoaded extends MedicineState {
+  final String medicineId;
+  final DateTime date;
+  final List<MedicineDose> doses;
+
+  const DailyProgressLoaded({
+    required this.medicineId,
+    required this.date,
+    required this.doses,
+  });
+
+  int get taken => doses.where((d) => d.status == DoseStatus.taken).length;
+  int get skipped => doses.where((d) => d.status == DoseStatus.skipped).length;
+  int get missed => doses.where((d) => d.status == DoseStatus.missed).length;
+  int get pending => doses.where((d) => d.status == DoseStatus.pending).length;
+  int get total => doses.length;
+  double get percent => total == 0 ? 0 : taken / total;
+
+  @override
+  List<Object?> get props => [medicineId, date, doses];
+}
+
 // Statistics states
 class StatisticsLoading extends MedicineState {}
 

@@ -3,6 +3,7 @@ import '../../../../core/usecases/usecase.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/medicine.dart';
+import '../../domain/entities/medicine_dose.dart';
 import '../../domain/usecases/get_medicines.dart';
 import '../../domain/usecases/manage_medicine.dart';
 import '../../domain/usecases/manage_doses.dart';
@@ -18,7 +19,9 @@ class MedicineCubit extends Cubit<MedicineState> {
   final GetPendingDoses getPendingDosesUseCase;
   final MarkDoseAsTaken markDoseAsTakenUseCase;
   final MarkDoseAsSkipped markDoseAsSkippedUseCase;
+  final MarkDoseAsMissed markDoseAsMissedUseCase;
   final GenerateDosesForMedicine generateDosesForMedicineUseCase;
+  final GetDosesForDate getDosesForDateUseCase;
   final NotificationService notificationService;
 
   MedicineCubit({
@@ -31,7 +34,9 @@ class MedicineCubit extends Cubit<MedicineState> {
     required this.getPendingDosesUseCase,
     required this.markDoseAsTakenUseCase,
     required this.markDoseAsSkippedUseCase,
+    required this.markDoseAsMissedUseCase,
     required this.generateDosesForMedicineUseCase,
+    required this.getDosesForDateUseCase,
     required this.notificationService,
   }) : super(MedicineInitial());
 
@@ -166,10 +171,8 @@ class MedicineCubit extends Cubit<MedicineState> {
       (failure) => emit(DoseError(message: _getFailureMessage(failure))),
       (_) async {
         emit(const DoseOperationSuccess(message: 'Dose marked as taken'));
-        // Refresh detailed doses (detail page) and pending doses (dashboard) & medicines list (for next dose calc)
-        await getDosesForMedicine(medicineId);
-        await getPendingDoses();
-        await loadActiveMedicines();
+        // Silent refresh of dashboard (don't emit loading) by calling loadDashboard logic inline
+        _silentDashboardRefresh();
       },
     );
   }
@@ -182,9 +185,107 @@ class MedicineCubit extends Cubit<MedicineState> {
       (failure) => emit(DoseError(message: _getFailureMessage(failure))),
       (_) async {
         emit(const DoseOperationSuccess(message: 'Dose marked as skipped'));
-        await getDosesForMedicine(medicineId);
-        await getPendingDoses();
-        await loadActiveMedicines();
+        _silentDashboardRefresh();
+      },
+    );
+  }
+
+  Future<void> markDoseAsMissed(String doseId, String medicineId) async {
+    final result = await markDoseAsMissedUseCase(
+      MarkDoseParams(doseId: doseId),
+    );
+    result.fold(
+      (failure) => emit(DoseError(message: _getFailureMessage(failure))),
+      (_) async {
+        emit(const DoseOperationSuccess(message: 'Dose marked as missed'));
+        _silentDashboardRefresh();
+      },
+    );
+  }
+
+  Future<void> loadDashboard({DateTime? date}) async {
+    final target = date ?? DateTime.now();
+    emit(MedicineLoading());
+    final medsResult = await getActiveMedicinesUseCase(NoParams());
+    await medsResult.fold(
+      (failure) async =>
+          emit(MedicineError(message: _getFailureMessage(failure))),
+      (medicines) async {
+        final dosesResult = await getDosesForDateUseCase(DateParams(target));
+        dosesResult.fold(
+          (failure) =>
+              emit(MedicineError(message: _getFailureMessage(failure))),
+          (doses) async {
+            final now = DateTime.now();
+            final updated = <MedicineDose>[];
+            for (final d in doses) {
+              if (d.status == DoseStatus.pending &&
+                  d.scheduledTime.isBefore(
+                    now.subtract(const Duration(minutes: 60)),
+                  )) {
+                // Mark as missed in storage
+                await markDoseAsMissedUseCase(MarkDoseParams(doseId: d.id));
+                updated.add(d.copyWith(status: DoseStatus.missed));
+              } else {
+                updated.add(d);
+              }
+            }
+            emit(
+              MedicineDashboardLoaded(
+                medicines: medicines,
+                todayDoses: updated,
+                date: DateTime(target.year, target.month, target.day),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _silentDashboardRefresh() async {
+    final target = DateTime.now();
+    final medsResult = await getActiveMedicinesUseCase(NoParams());
+    medsResult.fold((failure) {}, (medicines) async {
+      final dosesResult = await getDosesForDateUseCase(DateParams(target));
+      dosesResult.fold((failure) {}, (doses) {
+        final now = DateTime.now();
+        final updated = doses.map((d) {
+          if (d.status == DoseStatus.pending &&
+              d.scheduledTime.isBefore(
+                now.subtract(const Duration(minutes: 60)),
+              )) {
+            return d.copyWith(status: DoseStatus.missed);
+          }
+          return d;
+        }).toList();
+        emit(
+          MedicineDashboardLoaded(
+            medicines: medicines,
+            todayDoses: updated,
+            date: DateTime(target.year, target.month, target.day),
+          ),
+        );
+      });
+    });
+  }
+
+  Future<void> loadDailyProgress(String medicineId, {DateTime? date}) async {
+    final target = date ?? DateTime.now();
+    final dosesResult = await getDosesForDateUseCase(DateParams(target));
+    dosesResult.fold(
+      (failure) => emit(DoseError(message: _getFailureMessage(failure))),
+      (doses) {
+        final medDoses = doses
+            .where((d) => d.medicineId == medicineId)
+            .toList();
+        emit(
+          DailyProgressLoaded(
+            medicineId: medicineId,
+            date: DateTime(target.year, target.month, target.day),
+            doses: medDoses,
+          ),
+        );
       },
     );
   }

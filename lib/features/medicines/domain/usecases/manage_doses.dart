@@ -62,6 +62,17 @@ class MarkDoseAsSkipped implements UseCase<void, MarkDoseParams> {
   }
 }
 
+class MarkDoseAsMissed implements UseCase<void, MarkDoseParams> {
+  final MedicineRepository repository;
+
+  MarkDoseAsMissed(this.repository);
+
+  @override
+  Future<Either<Failure, void>> call(MarkDoseParams params) async {
+    return await repository.markDoseAsMissed(params.doseId);
+  }
+}
+
 class MarkDoseParams extends Equatable {
   final String doseId;
 
@@ -80,6 +91,25 @@ class GenerateDosesForMedicine implements UseCase<void, GenerateDosesParams> {
   Future<Either<Failure, void>> call(GenerateDosesParams params) async {
     return await repository.generateDosesForMedicine(params.medicine);
   }
+}
+
+// Get doses for a specific date
+class GetDosesForDate implements UseCase<List<MedicineDose>, DateParams> {
+  final MedicineRepository repository;
+
+  GetDosesForDate(this.repository);
+
+  @override
+  Future<Either<Failure, List<MedicineDose>>> call(DateParams params) async {
+    return await repository.getDosesForDate(params.date);
+  }
+}
+
+class DateParams extends Equatable {
+  final DateTime date;
+  const DateParams(this.date);
+  @override
+  List<Object?> get props => [date];
 }
 
 class GenerateDosesParams extends Equatable {

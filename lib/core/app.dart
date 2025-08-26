@@ -6,7 +6,7 @@ import '../features/tasks/presentation/pages/task_list_page.dart';
 import '../features/tasks/presentation/pages/add_edit_task_page.dart';
 import '../features/tasks/presentation/pages/task_detail_page.dart';
 import '../features/medicines/presentation/bloc/medicine_cubit.dart';
-import '../features/medicines/presentation/pages/medicines_page.dart';
+import '../features/medicines/presentation/pages/medicines_dashboard_page.dart';
 import '../features/medicines/presentation/pages/add_edit_medicine_page.dart';
 import '../features/permissions/presentation/pages/permission_screen.dart';
 import 'services/navigation_service.dart';
@@ -34,7 +34,7 @@ class AppRouter {
       GoRoute(
         path: '/medicines',
         name: 'medicines',
-        builder: (context, state) => const MedicinesPage(),
+        builder: (context, state) => const MedicinesDashboardPage(),
       ),
       GoRoute(
         path: '/add-medicine',
