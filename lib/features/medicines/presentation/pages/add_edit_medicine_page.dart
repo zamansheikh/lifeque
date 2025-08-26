@@ -332,18 +332,28 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF3B82F6),
+                  width: 2,
+                ),
               ),
               filled: true,
               fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
             items: MedicineType.values.map((type) {
               return DropdownMenuItem(
                 value: type,
                 child: Row(
                   children: [
-                    Icon(_getMedicineTypeIcon(type), size: 20, color: const Color(0xFF3B82F6)),
+                    Icon(
+                      _getMedicineTypeIcon(type),
+                      size: 20,
+                      color: const Color(0xFF3B82F6),
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       _getMedicineTypeDisplayName(type),
@@ -367,7 +377,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
             value: _selectedMealTiming,
             decoration: InputDecoration(
               labelText: 'Meal Timing',
-              prefixIcon: const Icon(Icons.restaurant, color: Color(0xFF3B82F6)),
+              prefixIcon: const Icon(
+                Icons.restaurant,
+                color: Color(0xFF3B82F6),
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -378,11 +391,17 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF3B82F6),
+                  width: 2,
+                ),
               ),
               filled: true,
               fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
             items: MealTiming.values.map((timing) {
               return DropdownMenuItem(
@@ -442,7 +461,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   decoration: InputDecoration(
                     labelText: 'Dosage',
                     hintText: '500',
-                    prefixIcon: const Icon(Icons.medication_liquid, color: Color(0xFF3B82F6)),
+                    prefixIcon: const Icon(
+                      Icons.medication_liquid,
+                      color: Color(0xFF3B82F6),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -453,11 +475,17 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF3B82F6),
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
@@ -488,11 +516,17 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF3B82F6),
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -630,7 +664,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
@@ -721,7 +758,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   decoration: InputDecoration(
                     labelText: 'Duration (days)',
                     hintText: '14',
-                    prefixIcon: const Icon(Icons.calendar_today, color: Color(0xFF3B82F6)),
+                    prefixIcon: const Icon(
+                      Icons.calendar_today,
+                      color: Color(0xFF3B82F6),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -732,11 +772,17 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF3B82F6),
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
@@ -846,11 +892,17 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF3B82F6),
+                  width: 2,
+                ),
               ),
               filled: true,
               fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -870,11 +922,17 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF3B82F6),
+                  width: 2,
+                ),
               ),
               filled: true,
               fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
             maxLines: 3,
           ),

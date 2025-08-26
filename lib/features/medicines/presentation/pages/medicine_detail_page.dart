@@ -351,8 +351,14 @@ class _InfoSection extends StatelessWidget {
       ('Dosage', medicine.dosageDisplay),
       ('Frequency', '${medicine.timesPerDay}x/day'),
       ('Timing', medicine.mealTimingDisplayName),
-      ('Start', '${medicine.startDate.day}/${medicine.startDate.month}/${medicine.startDate.year}'),
-      ('End', '${medicine.calculatedEndDate.day}/${medicine.calculatedEndDate.month}/${medicine.calculatedEndDate.year}'),
+      (
+        'Start',
+        '${medicine.startDate.day}/${medicine.startDate.month}/${medicine.startDate.year}',
+      ),
+      (
+        'End',
+        '${medicine.calculatedEndDate.day}/${medicine.calculatedEndDate.month}/${medicine.calculatedEndDate.year}',
+      ),
       if (medicine.doctorName != null) ('Doctor', medicine.doctorName!),
       if (medicine.notes != null) ('Notes', medicine.notes!),
     ];

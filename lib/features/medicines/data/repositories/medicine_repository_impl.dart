@@ -310,21 +310,26 @@ class MedicineRepositoryImpl implements MedicineRepository {
   }
 
   @override
-  Future<Either<Failure, void>> generateDosesForMedicine(Medicine medicine) async {
+  Future<Either<Failure, void>> generateDosesForMedicine(
+    Medicine medicine,
+  ) async {
     try {
       final doses = <MedicineDose>[];
       final startDate = medicine.startDate;
-      final endDate = medicine.endDate ?? medicine.startDate.add(Duration(days: medicine.durationInDays));
-      
+      final endDate =
+          medicine.endDate ??
+          medicine.startDate.add(Duration(days: medicine.durationInDays));
+
       // Generate doses for each day from start to end date
       DateTime currentDate = startDate;
-      while (currentDate.isBefore(endDate) || currentDate.isAtSameMomentAs(endDate)) {
-        // Generate doses for each notification time 
+      while (currentDate.isBefore(endDate) ||
+          currentDate.isAtSameMomentAs(endDate)) {
+        // Generate doses for each notification time
         for (final timeString in medicine.notificationTimes) {
           final timeParts = timeString.split(':');
           final hour = int.parse(timeParts[0]);
           final minute = int.parse(timeParts[1]);
-          
+
           final doseTime = DateTime(
             currentDate.year,
             currentDate.month,
@@ -332,7 +337,7 @@ class MedicineRepositoryImpl implements MedicineRepository {
             hour,
             minute,
           );
-          
+
           final now = DateTime.now();
           final dose = MedicineDose(
             id: '${medicine.id}_${doseTime.millisecondsSinceEpoch}',
@@ -342,19 +347,19 @@ class MedicineRepositoryImpl implements MedicineRepository {
             createdAt: now,
             updatedAt: now,
           );
-          
+
           doses.add(dose);
         }
-        
+
         currentDate = currentDate.add(const Duration(days: 1));
       }
-      
+
       // Insert all generated doses
       for (final dose in doses) {
         final doseModel = MedicineDoseModel.fromEntity(dose);
         await localDataSource.insertDose(doseModel);
       }
-      
+
       return const Right(null);
     } on DatabaseException {
       return Left(DatabaseFailure('Failed to generate doses for medicine'));

@@ -846,7 +846,10 @@ class _MedicineProgressCard extends StatelessWidget {
                       ),
                       child: IconButton(
                         tooltip: 'Delete',
-                        icon: const Icon(Icons.delete, color: Color(0xFFDC2626)),
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Color(0xFFDC2626),
+                        ),
                         onPressed: () async {
                           final confirm = await showDialog<bool>(
                             context: context,
@@ -863,13 +866,12 @@ class _MedicineProgressCard extends StatelessWidget {
                               ),
                               content: const Text(
                                 'Are you sure you want to delete this medicine and its doses?',
-                                style: TextStyle(
-                                  color: Color(0xFF64748B),
-                                ),
+                                style: TextStyle(color: Color(0xFF64748B)),
                               ),
                               actions: [
                                 TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
                                   child: const Text(
                                     'Cancel',
                                     style: TextStyle(
@@ -884,7 +886,8 @@ class _MedicineProgressCard extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: TextButton(
-                                    onPressed: () => Navigator.pop(context, true),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
                                     child: const Text(
                                       'Delete',
                                       style: TextStyle(
@@ -992,10 +995,26 @@ class _MedicineProgressCard extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _modernStatusCount('Taken', taken, const Color(0xFF10B981)),
-                          _modernStatusCount('Pending', pending, const Color(0xFF3B82F6)),
-                          _modernStatusCount('Skipped', skipped, const Color(0xFFF59E0B)),
-                          _modernStatusCount('Missed', missed, const Color(0xFFEF4444)),
+                          _modernStatusCount(
+                            'Taken',
+                            taken,
+                            const Color(0xFF10B981),
+                          ),
+                          _modernStatusCount(
+                            'Pending',
+                            pending,
+                            const Color(0xFF3B82F6),
+                          ),
+                          _modernStatusCount(
+                            'Skipped',
+                            skipped,
+                            const Color(0xFFF59E0B),
+                          ),
+                          _modernStatusCount(
+                            'Missed',
+                            missed,
+                            const Color(0xFFEF4444),
+                          ),
                         ],
                       ),
                     ],
@@ -1033,7 +1052,6 @@ class _MedicineProgressCard extends StatelessWidget {
       },
     );
   }
-
 }
 
 class _TodayStatusPill extends StatelessWidget {
