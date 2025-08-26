@@ -664,24 +664,24 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
+                height: 56,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  'Time ${i + 1}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                child: Center(
+                  child: Text(
+                    'Time ${i + 1}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -690,10 +690,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                 child: InkWell(
                   onTap: () => _selectTime(i),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
+                    height: 56,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF8FAFC),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
@@ -801,10 +799,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                 child: InkWell(
                   onTap: _selectStartDate,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
+                    height: 56,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF8FAFC),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
@@ -817,6 +813,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Text(
                                 'Start Date',
@@ -826,7 +823,6 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                                   color: Color(0xFF64748B),
                                 ),
                               ),
-                              const SizedBox(height: 2),
                               Text(
                                 '${_startDate.day}/${_startDate.month}/${_startDate.year}',
                                 style: const TextStyle(
