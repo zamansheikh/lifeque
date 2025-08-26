@@ -32,6 +32,12 @@ dependencies:
   permission_handler: ^12.0.1
   device_info_plus: ^11.5.0
   
+  # App Info
+  package_info_plus: ^8.3.1
+
+  # URL Launcher
+  url_launcher: ^6.3.2
+  
   # Date & Time
   intl: ^0.20.2
   timezone: ^0.10.1
