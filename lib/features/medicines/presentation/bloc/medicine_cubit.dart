@@ -74,9 +74,14 @@ class MedicineCubit extends Cubit<MedicineState> {
         final generateResult = await generateDosesForMedicineUseCase(
           GenerateDosesParams(medicine: medicine),
         );
-        
+
         generateResult.fold(
-          (failure) => emit(MedicineError(message: 'Medicine added but failed to generate doses: ${_getFailureMessage(failure)}')),
+          (failure) => emit(
+            MedicineError(
+              message:
+                  'Medicine added but failed to generate doses: ${_getFailureMessage(failure)}',
+            ),
+          ),
           (_) async {
             // Schedule notifications for the new medicine
             await notificationService.scheduleMedicineNotifications(medicine);
@@ -155,27 +160,31 @@ class MedicineCubit extends Cubit<MedicineState> {
   }
 
   Future<void> markDoseAsTaken(String doseId, String medicineId) async {
-    emit(DoseLoading());
+    // Avoid showing a full-screen loading state that hides medicine list; perform inline update
     final result = await markDoseAsTakenUseCase(MarkDoseParams(doseId: doseId));
     result.fold(
       (failure) => emit(DoseError(message: _getFailureMessage(failure))),
-      (_) {
+      (_) async {
         emit(const DoseOperationSuccess(message: 'Dose marked as taken'));
-        getDosesForMedicine(medicineId); // Refresh doses for this medicine
+        // Refresh detailed doses (detail page) and pending doses (dashboard) & medicines list (for next dose calc)
+        await getDosesForMedicine(medicineId);
+        await getPendingDoses();
+        await loadActiveMedicines();
       },
     );
   }
 
   Future<void> markDoseAsSkipped(String doseId, String medicineId) async {
-    emit(DoseLoading());
     final result = await markDoseAsSkippedUseCase(
       MarkDoseParams(doseId: doseId),
     );
     result.fold(
       (failure) => emit(DoseError(message: _getFailureMessage(failure))),
-      (_) {
+      (_) async {
         emit(const DoseOperationSuccess(message: 'Dose marked as skipped'));
-        getDosesForMedicine(medicineId); // Refresh doses for this medicine
+        await getDosesForMedicine(medicineId);
+        await getPendingDoses();
+        await loadActiveMedicines();
       },
     );
   }
@@ -185,11 +194,13 @@ class MedicineCubit extends Cubit<MedicineState> {
     final generateResult = await generateDosesForMedicineUseCase(
       GenerateDosesParams(medicine: medicine),
     );
-    
+
     generateResult.fold(
       (failure) => emit(DoseError(message: _getFailureMessage(failure))),
       (_) {
-        emit(const DoseOperationSuccess(message: 'Doses generated successfully'));
+        emit(
+          const DoseOperationSuccess(message: 'Doses generated successfully'),
+        );
         getDosesForMedicine(medicine.id); // Refresh doses for this medicine
       },
     );

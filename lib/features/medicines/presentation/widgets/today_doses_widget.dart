@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/medicine.dart';
+import '../../domain/entities/medicine_dose.dart';
 import '../bloc/medicine_cubit.dart';
 import '../bloc/medicine_state.dart';
 import '../pages/medicine_detail_page.dart';
@@ -13,101 +14,87 @@ class TodayDosesWidget extends StatefulWidget {
 }
 
 class _TodayDosesWidgetState extends State<TodayDosesWidget> {
+  List<Medicine> _activeMedicines = [];
+  // Pending doses list to determine next dose times (only pending considered)
+  List<String> _pendingDoseIds = [];
+  Map<String, List<DateTime>> _pendingDoseTimesByMedicine = {};
+
   @override
   void initState() {
     super.initState();
-    // Load active medicines and their doses
-    context.read<MedicineCubit>().loadActiveMedicines();
+    final cubit = context.read<MedicineCubit>();
+    cubit.loadActiveMedicines().then((_) {
+      cubit.getPendingDoses();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MedicineCubit, MedicineState>(
-      builder: (context, state) {
+    return BlocListener<MedicineCubit, MedicineState>(
+      listener: (context, state) {
         if (state is MedicineLoaded) {
-          final activeMedicines = state.medicines
-              .where((medicine) => medicine.status == MedicineStatus.active)
+          _activeMedicines = state.medicines
+              .where((m) => m.status == MedicineStatus.active)
               .toList();
-
-          if (activeMedicines.isEmpty) {
-            return const SizedBox.shrink();
+        } else if (state is DoseLoaded) {
+          // Capture pending doses only for next dose computation
+          _pendingDoseTimesByMedicine.clear();
+          _pendingDoseIds.clear();
+          for (final dose in state.doses.where(
+            (d) => d.status == DoseStatus.pending,
+          )) {
+            _pendingDoseIds.add(dose.id);
+            _pendingDoseTimesByMedicine
+                .putIfAbsent(dose.medicineId, () => [])
+                .add(dose.scheduledTime);
           }
-
-          return Card(
-            margin: const EdgeInsets.all(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.medication,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Today\'s Medicines',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${activeMedicines.length} active',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  ...activeMedicines.map(
-                    (medicine) => _buildMedicineItem(medicine),
-                  ),
-                  const SizedBox(height: 8),
-                  Center(
-                    child: TextButton(
-                      onPressed: () {
-                        // Navigate to medicines page
-                        Navigator.pushNamed(context, '/medicines');
-                      },
-                      child: const Text('View All Medicines'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
         }
-
-        if (state is MedicineLoading) {
-          return Card(
-            margin: const EdgeInsets.all(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(Icons.medication, color: Theme.of(context).primaryColor),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Loading medicines...',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const Spacer(),
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return const SizedBox.shrink();
+        // Trigger rebuild
+        setState(() {});
       },
+      child: _buildContent(),
+    );
+  }
+
+  Widget _buildContent() {
+    if (_activeMedicines.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.medication, color: Theme.of(context).primaryColor),
+                const SizedBox(width: 8),
+                const Text(
+                  'Today\'s Medicines',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                Text(
+                  '${_activeMedicines.length} active',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ..._activeMedicines.map(_buildMedicineItem),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton(
+                onPressed: () => Navigator.pushNamed(context, '/medicines'),
+                child: const Text('View All Medicines'),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -172,10 +159,9 @@ class _TodayDosesWidgetState extends State<TodayDosesWidget> {
   }
 
   Widget _buildNextDoseInfo(Medicine medicine) {
-    final nextDoseTime = medicine.getNextDoseTime();
     final now = DateTime.now();
-
-    if (nextDoseTime == null) {
+    final pendingTimes = _pendingDoseTimesByMedicine[medicine.id];
+    if (pendingTimes == null || pendingTimes.isEmpty) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
@@ -188,21 +174,36 @@ class _TodayDosesWidgetState extends State<TodayDosesWidget> {
         ),
       );
     }
-
-    final difference = nextDoseTime.difference(now);
+    // Filter out past doses older than an hour (treated as missed / handled elsewhere)
+    final upcoming =
+        pendingTimes
+            .where((t) => t.isAfter(now.subtract(const Duration(hours: 1))))
+            .toList()
+          ..sort();
+    if (upcoming.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          'Complete',
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+        ),
+      );
+    }
+    final next = upcoming.first;
+    final difference = next.difference(now);
     final isOverdue = difference.isNegative;
-
     String timeText;
     Color backgroundColor;
     Color textColor;
-
     if (isOverdue) {
-      final overdueDuration = now.difference(nextDoseTime);
-      if (overdueDuration.inHours > 0) {
-        timeText = '${overdueDuration.inHours}h overdue';
-      } else {
-        timeText = '${overdueDuration.inMinutes}m overdue';
-      }
+      final overdueDuration = now.difference(next);
+      timeText = overdueDuration.inHours > 0
+          ? '${overdueDuration.inHours}h overdue'
+          : '${overdueDuration.inMinutes}m overdue';
       backgroundColor = Colors.red[100]!;
       textColor = Colors.red[700]!;
     } else {
@@ -211,7 +212,6 @@ class _TodayDosesWidgetState extends State<TodayDosesWidget> {
       } else {
         timeText = '${difference.inMinutes}m';
       }
-
       if (difference.inMinutes <= 30) {
         backgroundColor = Colors.orange[100]!;
         textColor = Colors.orange[700]!;
@@ -220,7 +220,6 @@ class _TodayDosesWidgetState extends State<TodayDosesWidget> {
         textColor = Colors.green[700]!;
       }
     }
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
