@@ -146,93 +146,125 @@ class _CourseProgressCard extends StatelessWidget {
         .clamp(0, 100)
         .toStringAsFixed(0);
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF3B82F6).withOpacity(0.25),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Overall Progress',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Overall Progress',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                'Adherence $adherencePct%',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Row(
             children: [
               _radialPercent(
-                label: 'Adherence',
+                label: 'Progress',
                 value: state.adherencePercent,
                 color: const Color(0xFF10B981),
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _statLine(
-                      Icons.check_circle_rounded,
-                      'Taken',
-                      state.taken,
-                      const Color(0xFF10B981),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _compactStatLine(
+                            Icons.check_circle_rounded,
+                            'Taken',
+                            state.taken,
+                            const Color(0xFF10B981),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _compactStatLine(
+                            Icons.schedule_rounded,
+                            'Pending',
+                            state.pending,
+                            const Color(0xFF06B6D4),
+                          ),
+                        ),
+                      ],
                     ),
-                    _statLine(
-                      Icons.schedule_rounded,
-                      'Pending',
-                      state.pending,
-                      const Color(0xFF06B6D4),
-                    ),
-                    _statLine(
-                      Icons.skip_next_rounded,
-                      'Skipped',
-                      state.skipped,
-                      const Color(0xFFF59E0B),
-                    ),
-                    _statLine(
-                      Icons.cancel_rounded,
-                      'Missed',
-                      state.missed,
-                      const Color(0xFFEF4444),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _compactStatLine(
+                            Icons.skip_next_rounded,
+                            'Skipped',
+                            state.skipped,
+                            const Color(0xFFF59E0B),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _compactStatLine(
+                            Icons.cancel_rounded,
+                            'Missed',
+                            state.missed,
+                            const Color(0xFFEF4444),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Text(
             'Days ${state.daysElapsed}/${state.daysTotal} ($daysPct%)',
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               color: Colors.white,
-              fontSize: 16,
+              fontSize: 14,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Container(
-            height: 8,
+            height: 6,
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(3),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(3),
               child: LinearProgressIndicator(
                 value: state.daysElapsed / state.daysTotal,
                 backgroundColor: Colors.transparent,
@@ -240,47 +272,37 @@ class _CourseProgressCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Adherence $adherencePct%',
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              fontSize: 18,
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _statLine(IconData icon, String label, int value, Color color) {
+  Widget _compactStatLine(IconData icon, String label, int value, Color color) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.white.withOpacity(0.2)),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const Spacer(),
+          Icon(icon, size: 14, color: color),
+          const SizedBox(height: 2),
           Text(
             '$value',
             style: TextStyle(
               fontWeight: FontWeight.w700,
               color: color,
-              fontSize: 16,
+              fontSize: 14,
+            ),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -294,20 +316,24 @@ class _CourseProgressCard extends StatelessWidget {
     required Color color,
   }) {
     return SizedBox(
-      width: 90,
-      height: 90,
+      width: 70,
+      height: 70,
       child: Stack(
         alignment: Alignment.center,
         children: [
           CircularProgressIndicator(
             value: value,
-            strokeWidth: 8,
+            strokeWidth: 6,
             backgroundColor: color.withOpacity(0.2),
             valueColor: AlwaysStoppedAnimation(color),
           ),
           Text(
             '${(value * 100).toStringAsFixed(0)}%',
-            style: TextStyle(fontWeight: FontWeight.bold, color: color),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: color,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
@@ -320,8 +346,19 @@ class _InfoSection extends StatelessWidget {
   const _InfoSection({required this.medicine});
   @override
   Widget build(BuildContext context) {
+    final infoItems = [
+      ('Type', medicine.typeDisplayName),
+      ('Dosage', medicine.dosageDisplay),
+      ('Frequency', '${medicine.timesPerDay}x/day'),
+      ('Timing', medicine.mealTimingDisplayName),
+      ('Start', '${medicine.startDate.day}/${medicine.startDate.month}/${medicine.startDate.year}'),
+      ('End', '${medicine.calculatedEndDate.day}/${medicine.calculatedEndDate.month}/${medicine.calculatedEndDate.year}'),
+      if (medicine.doctorName != null) ('Doctor', medicine.doctorName!),
+      if (medicine.notes != null) ('Notes', medicine.notes!),
+    ];
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -339,27 +376,28 @@ class _InfoSection extends StatelessWidget {
           const Text(
             'Medicine Information',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
               color: Color(0xFF1E293B),
             ),
           ),
-          const SizedBox(height: 20),
-          _infoRow('Type', medicine.typeDisplayName),
-          _infoRow('Dosage', medicine.dosageDisplay),
-          _infoRow('Frequency', '${medicine.timesPerDay} times/day'),
-          _infoRow('Timing', medicine.mealTimingDisplayName),
-          _infoRow(
-            'Start',
-            '${medicine.startDate.day}/${medicine.startDate.month}/${medicine.startDate.year}',
+          const SizedBox(height: 16),
+          // 2-column grid for basic info
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 2.5,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 8,
+            ),
+            itemCount: infoItems.length,
+            itemBuilder: (context, index) {
+              final item = infoItems[index];
+              return _compactInfoItem(item.$1, item.$2);
+            },
           ),
-          _infoRow(
-            'End',
-            '${medicine.calculatedEndDate.day}/${medicine.calculatedEndDate.month}/${medicine.calculatedEndDate.year}',
-          ),
-          if (medicine.doctorName != null)
-            _infoRow('Doctor', medicine.doctorName!),
-          if (medicine.notes != null) _infoRow('Notes', medicine.notes!),
           const SizedBox(height: 16),
           const Text(
             'Notification Times',
@@ -369,16 +407,16 @@ class _InfoSection extends StatelessWidget {
               fontSize: 14,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: medicine.notificationTimes
                 .map(
                   (t) => Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: 10,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
@@ -386,14 +424,14 @@ class _InfoSection extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       t,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
-                        fontSize: 13,
+                        fontSize: 12,
                       ),
                     ),
                   ),
@@ -405,35 +443,36 @@ class _InfoSection extends StatelessWidget {
     );
   }
 
-  Widget _infoRow(String label, String value) {
+  Widget _compactInfoItem(String label, String value) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             label,
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               color: Color(0xFF64748B),
-              fontSize: 14,
+              fontSize: 11,
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: Color(0xFF1E293B),
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFF1E293B),
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

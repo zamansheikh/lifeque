@@ -292,201 +292,328 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   }
 
   Widget _buildMedicineDetailsSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Medicine Details',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF64748B).withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Medicine Details',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1E293B),
             ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<MedicineType>(
-              value: _selectedType,
-              decoration: const InputDecoration(
-                labelText: 'Medicine Type',
-                prefixIcon: Icon(Icons.category),
-                border: OutlineInputBorder(),
+          ),
+          const SizedBox(height: 20),
+          DropdownButtonFormField<MedicineType>(
+            value: _selectedType,
+            decoration: InputDecoration(
+              labelText: 'Medicine Type',
+              prefixIcon: const Icon(Icons.category, color: Color(0xFF3B82F6)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
-              items: MedicineType.values.map((type) {
-                return DropdownMenuItem(
-                  value: type,
-                  child: Row(
-                    children: [
-                      Icon(_getMedicineTypeIcon(type), size: 20),
-                      const SizedBox(width: 8),
-                      Text(_getMedicineTypeDisplayName(type)),
-                    ],
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+              ),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            ),
+            items: MedicineType.values.map((type) {
+              return DropdownMenuItem(
+                value: type,
+                child: Row(
+                  children: [
+                    Icon(_getMedicineTypeIcon(type), size: 20, color: const Color(0xFF3B82F6)),
+                    const SizedBox(width: 8),
+                    Text(
+                      _getMedicineTypeDisplayName(type),
+                      style: const TextStyle(
+                        color: Color(0xFF1E293B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedType = value!;
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<MealTiming>(
+            value: _selectedMealTiming,
+            decoration: InputDecoration(
+              labelText: 'Meal Timing',
+              prefixIcon: const Icon(Icons.restaurant, color: Color(0xFF3B82F6)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+              ),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            ),
+            items: MealTiming.values.map((timing) {
+              return DropdownMenuItem(
+                value: timing,
+                child: Text(
+                  _getMealTimingDisplayName(timing),
+                  style: const TextStyle(
+                    color: Color(0xFF1E293B),
+                    fontWeight: FontWeight.w500,
                   ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedType = value!;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<MealTiming>(
-              value: _selectedMealTiming,
-              decoration: const InputDecoration(
-                labelText: 'Meal Timing',
-                prefixIcon: Icon(Icons.restaurant),
-                border: OutlineInputBorder(),
-              ),
-              items: MealTiming.values.map((timing) {
-                return DropdownMenuItem(
-                  value: timing,
-                  child: Text(_getMealTimingDisplayName(timing)),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedMealTiming = value!;
-                });
-              },
-            ),
-          ],
-        ),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedMealTiming = value!;
+              });
+            },
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildDosageSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Dosage Information',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF64748B).withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Dosage Information',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1E293B),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextFormField(
-                    controller: _dosageController,
-                    decoration: const InputDecoration(
-                      labelText: 'Dosage',
-                      hintText: '500',
-                      prefixIcon: Icon(Icons.medication_liquid),
-                      border: OutlineInputBorder(),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: TextFormField(
+                  controller: _dosageController,
+                  decoration: InputDecoration(
+                    labelText: 'Dosage',
+                    hintText: '500',
+                    prefixIcon: const Icon(Icons.medication_liquid, color: Color(0xFF3B82F6)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter dosage';
-                      }
-                      if (double.tryParse(value) == null) {
-                        return 'Please enter a valid number';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _dosageUnitController,
-                    decoration: const InputDecoration(
-                      labelText: 'Unit',
-                      hintText: 'mg',
-                      border: OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter unit';
-                      }
-                      return null;
-                    },
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter dosage';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Please enter a valid number';
+                    }
+                    return null;
+                  },
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: TextFormField(
+                  controller: _dosageUnitController,
+                  decoration: InputDecoration(
+                    labelText: 'Unit',
+                    hintText: 'mg',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter unit';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildTimingSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Timing & Frequency',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF64748B).withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Timing & Frequency',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1E293B),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Text('Times per day:', style: TextStyle(fontSize: 16)),
-                const SizedBox(width: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        onPressed: _timesPerDay > 1
-                            ? () {
-                                setState(() {
-                                  _timesPerDay--;
-                                  if (_notificationTimes.length >
-                                      _timesPerDay) {
-                                    _notificationTimes = _notificationTimes
-                                        .take(_timesPerDay)
-                                        .toList();
-                                  }
-                                });
-                              }
-                            : null,
-                        icon: const Icon(Icons.remove),
-                      ),
-                      Text(
-                        '$_timesPerDay',
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                      IconButton(
-                        onPressed: _timesPerDay < 6
-                            ? () {
-                                setState(() {
-                                  _timesPerDay++;
-                                  if (_notificationTimes.length <
-                                      _timesPerDay) {
-                                    _notificationTimes.add(TimeOfDay.now());
-                                  }
-                                });
-                              }
-                            : null,
-                        icon: const Icon(Icons.add),
-                      ),
-                    ],
-                  ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              const Text(
+                'Times per day:',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
                 ),
-              ],
+              ),
+              const SizedBox(width: 16),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: _timesPerDay > 1
+                          ? () {
+                              setState(() {
+                                _timesPerDay--;
+                                if (_notificationTimes.length > _timesPerDay) {
+                                  _notificationTimes = _notificationTimes
+                                      .take(_timesPerDay)
+                                      .toList();
+                                }
+                              });
+                            }
+                          : null,
+                      icon: const Icon(Icons.remove, color: Colors.white),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        '$_timesPerDay',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _timesPerDay < 6
+                          ? () {
+                              setState(() {
+                                _timesPerDay++;
+                                if (_notificationTimes.length < _timesPerDay) {
+                                  _notificationTimes.add(TimeOfDay.now());
+                                }
+                              });
+                            }
+                          : null,
+                      icon: const Icon(Icons.add, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Notification Times:',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF64748B),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Notification Times:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            ..._buildNotificationTimesList(),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          ..._buildNotificationTimesList(),
+        ],
       ),
     );
   }
@@ -499,30 +626,53 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
       }
       widgets.add(
         Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: 12),
           child: Row(
             children: [
-              Text('Time ${i + 1}:', style: const TextStyle(fontSize: 14)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Time ${i + 1}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: InkWell(
                   onTap: () => _selectTime(i),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
+                      horizontal: 16,
                       vertical: 16,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8),
+                      color: const Color(0xFFF8FAFC),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.schedule),
-                        const SizedBox(width: 8),
+                        const Icon(Icons.schedule, color: Color(0xFF3B82F6)),
+                        const SizedBox(width: 12),
                         Text(
                           _notificationTimes[i].format(context),
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF1E293B),
+                          ),
                         ),
                       ],
                     ),
@@ -538,123 +688,197 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   }
 
   Widget _buildDurationSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Duration',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF64748B).withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Duration',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1E293B),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _durationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Duration (days)',
-                      hintText: '14',
-                      prefixIcon: Icon(Icons.calendar_today),
-                      border: OutlineInputBorder(),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _durationController,
+                  decoration: InputDecoration(
+                    labelText: 'Duration (days)',
+                    hintText: '14',
+                    prefixIcon: const Icon(Icons.calendar_today, color: Color(0xFF3B82F6)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter duration';
-                      }
-                      if (int.tryParse(value) == null ||
-                          int.parse(value) <= 0) {
-                        return 'Please enter a valid number of days';
-                      }
-                      return null;
-                    },
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter duration';
+                    }
+                    if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                      return 'Please enter a valid number of days';
+                    }
+                    return null;
+                  },
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: InkWell(
-                    onTap: _selectStartDate,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 16,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.event),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Start Date',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: InkWell(
+                  onTap: _selectStartDate,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.event, color: Color(0xFF3B82F6)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Start Date',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF64748B),
                                 ),
-                                Text(
-                                  '${_startDate.day}/${_startDate.month}/${_startDate.year}',
-                                  style: const TextStyle(fontSize: 16),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${_startDate.day}/${_startDate.month}/${_startDate.year}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF1E293B),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildAdditionalInfoSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Additional Information',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF64748B).withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Additional Information',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1E293B),
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _doctorController,
-              decoration: const InputDecoration(
-                labelText: 'Doctor Name (Optional)',
-                hintText: 'Dr. Smith',
-                prefixIcon: Icon(Icons.person),
-                border: OutlineInputBorder(),
+          ),
+          const SizedBox(height: 20),
+          TextFormField(
+            controller: _doctorController,
+            decoration: InputDecoration(
+              labelText: 'Doctor Name (Optional)',
+              hintText: 'Dr. Smith',
+              prefixIcon: const Icon(Icons.person, color: Color(0xFF3B82F6)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (Optional)',
-                hintText: 'Take with food to avoid stomach upset',
-                prefixIcon: Icon(Icons.note),
-                border: OutlineInputBorder(),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
-              maxLines: 3,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+              ),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _notesController,
+            decoration: InputDecoration(
+              labelText: 'Notes (Optional)',
+              hintText: 'Take with food to avoid stomach upset',
+              prefixIcon: const Icon(Icons.note, color: Color(0xFF3B82F6)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+              ),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            ),
+            maxLines: 3,
+          ),
+        ],
       ),
     );
   }

@@ -629,24 +629,24 @@ class _MedicineProgressCard extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 6,
                 children: [
-                  _miniChip(
+                  _modernChip(
                     Icons.check_circle_rounded,
                     'Taken $taken',
                     const Color(0xFF10B981),
                   ),
-                  _miniChip(
+                  _modernChip(
                     Icons.schedule_rounded,
                     'Pending $pending',
                     const Color(0xFF06B6D4),
                   ),
                   if (skipped > 0)
-                    _miniChip(
+                    _modernChip(
                       Icons.skip_next_rounded,
                       'Skipped $skipped',
                       const Color(0xFFF59E0B),
                     ),
                   if (missed > 0)
-                    _miniChip(
+                    _modernChip(
                       Icons.error_rounded,
                       'Missed $missed',
                       const Color(0xFFEF4444),
@@ -686,13 +686,13 @@ class _MedicineProgressCard extends StatelessWidget {
   String _fmt(DateTime dt) =>
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
-  Widget _miniChip(IconData icon, String label, Color color) {
+  Widget _modernChip(IconData icon, String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.2)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -712,14 +712,43 @@ class _MedicineProgressCard extends StatelessWidget {
     );
   }
 
+  Widget _modernStatusCount(String label, int value, Color color) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '$value',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: color,
+              fontSize: 16,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: color,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showDetails(BuildContext context) {
     final totalCourseDoses = medicine.totalDoses;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
         final taken = doses.where((d) => d.status == DoseStatus.taken).length;
         final skipped = doses
@@ -729,152 +758,282 @@ class _MedicineProgressCard extends StatelessWidget {
         final pending = doses
             .where((d) => d.status == DoseStatus.pending)
             .length;
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-            top: 16,
-            left: 16,
-            right: 16,
+        return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    medicine.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+              top: 20,
+              left: 20,
+              right: 20,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  const Spacer(),
-                  IconButton(
-                    tooltip: 'Edit',
-                    icon: const Icon(Icons.edit),
-                    onPressed: () async {
-                      Navigator.pop(ctx);
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              AddEditMedicinePage(medicineId: medicine.id),
-                        ),
-                      );
-                      if (context.mounted)
-                        context.read<MedicineCubit>().loadDashboard();
-                    },
-                  ),
-                  IconButton(
-                    tooltip: 'Delete',
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text('Delete Medicine'),
-                          content: const Text(
-                            'Are you sure you want to delete this medicine and its doses?',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancel'),
-                            ),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                              ),
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text('Delete'),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (confirm == true) {
-                        Navigator.pop(ctx);
-                        context.read<MedicineCubit>().deleteMedicine(
-                          medicine.id,
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  _miniChip(
-                    Icons.calendar_today,
-                    'Start ${medicine.startDate.day}/${medicine.startDate.month}',
-                    Colors.blueGrey,
-                  ),
-                  _miniChip(
-                    Icons.event,
-                    'End ${medicine.calculatedEndDate.day}/${medicine.calculatedEndDate.month}',
-                    Colors.blueGrey,
-                  ),
-                  _miniChip(
-                    Icons.timelapse,
-                    '${medicine.durationInDays} days',
-                    Colors.indigo,
-                  ),
-                  _miniChip(
-                    Icons.list_alt,
-                    '$totalCourseDoses doses total',
-                    Colors.indigo,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Today',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w600,
                 ),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _count('Taken', taken, Colors.green),
-                  _count('Pending', pending, Colors.blue),
-                  _count('Skipped', skipped, Colors.orange),
-                  _count('Missed', missed, Colors.red),
-                ],
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                onPressed: () => Navigator.pop(ctx),
-                icon: const Icon(Icons.close),
-                label: const Text('Close'),
-              ),
-              const SizedBox(height: 16),
-            ],
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            medicine.name,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${medicine.dosage} ${medicine.dosageUnit} • ${medicine.typeDisplayName}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        tooltip: 'Edit',
+                        icon: const Icon(Icons.edit, color: Colors.white),
+                        onPressed: () async {
+                          Navigator.pop(ctx);
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  AddEditMedicinePage(medicineId: medicine.id),
+                            ),
+                          );
+                          if (context.mounted)
+                            context.read<MedicineCubit>().loadDashboard();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFECACA)),
+                      ),
+                      child: IconButton(
+                        tooltip: 'Delete',
+                        icon: const Icon(Icons.delete, color: Color(0xFFDC2626)),
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              title: const Text(
+                                'Delete Medicine',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              content: const Text(
+                                'Are you sure you want to delete this medicine and its doses?',
+                                style: TextStyle(
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text(
+                                    'Cancel',
+                                    style: TextStyle(
+                                      color: Color(0xFF64748B),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFDC2626),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: TextButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    child: const Text(
+                                      'Delete',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            Navigator.pop(ctx);
+                            context.read<MedicineCubit>().deleteMedicine(
+                              medicine.id,
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF64748B).withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Course Details',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _modernChip(
+                            Icons.calendar_today,
+                            'Start ${medicine.startDate.day}/${medicine.startDate.month}',
+                            const Color(0xFF3B82F6),
+                          ),
+                          _modernChip(
+                            Icons.event,
+                            'End ${medicine.calculatedEndDate.day}/${medicine.calculatedEndDate.month}',
+                            const Color(0xFF3B82F6),
+                          ),
+                          _modernChip(
+                            Icons.timelapse,
+                            '${medicine.durationInDays} days',
+                            const Color(0xFF8B5CF6),
+                          ),
+                          _modernChip(
+                            Icons.list_alt,
+                            '$totalCourseDoses doses total',
+                            const Color(0xFF8B5CF6),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF64748B).withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Today\'s Progress',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _modernStatusCount('Taken', taken, const Color(0xFF10B981)),
+                          _modernStatusCount('Pending', pending, const Color(0xFF3B82F6)),
+                          _modernStatusCount('Skipped', skipped, const Color(0xFFF59E0B)),
+                          _modernStatusCount('Missed', missed, const Color(0xFFEF4444)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: TextButton.icon(
+                      onPressed: () => Navigator.pop(ctx),
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      label: const Text(
+                        'Close',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _count(String label, int value, Color color) {
-    return Column(
-      children: [
-        Text(
-          '$value',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: color,
-            fontSize: 16,
-          ),
-        ),
-        Text(label, style: TextStyle(fontSize: 12, color: color)),
-      ],
-    );
-  }
 }
 
 class _TodayStatusPill extends StatelessWidget {
