@@ -7,30 +7,32 @@ import 'injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  print('🚀 App starting...');
+  debugPrint('🚀 App starting...');
 
   // Initialize timezone
   tz.initializeTimeZones();
 
   // Set the local timezone to Bangladesh (Asia/Dhaka)
   timezone.setLocalLocation(timezone.getLocation('Asia/Dhaka'));
-  print('🌍 Timezone initialized and set to Asia/Dhaka (Bangladesh)');
-  print('🕐 Current local time: ${timezone.TZDateTime.now(timezone.local)}');
+  debugPrint('🌍 Timezone initialized and set to Asia/Dhaka (Bangladesh)');
+  debugPrint(
+    '🕐 Current local time: ${timezone.TZDateTime.now(timezone.local)}',
+  );
 
   // Initialize dependency injection
   await di.init();
-  print('💉 Dependency injection initialized');
+  debugPrint('💉 Dependency injection initialized');
 
   // Initialize notifications
   final notificationService = di.sl<NotificationService>();
-  print('🔔 NotificationService instance obtained');
+  debugPrint('🔔 NotificationService instance obtained');
 
   await notificationService.initialize();
-  print('🔔 NotificationService initialized');
+  debugPrint('🔔 NotificationService initialized');
 
   await notificationService.requestPermissions();
-  print('🔔 NotificationService permissions requested');
+  debugPrint('🔔 NotificationService permissions requested');
 
-  print('🎯 Running app...');
+  debugPrint('🎯 Running app...');
   runApp(const MyApp());
 }

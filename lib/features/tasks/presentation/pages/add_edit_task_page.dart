@@ -204,7 +204,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                           ),
                           const SizedBox(height: 12),
                           DropdownButtonFormField<NotificationType>(
-                            value: _notificationType,
+                            initialValue: _notificationType,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               contentPadding: EdgeInsets.symmetric(
@@ -298,7 +298,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                             ),
                             const SizedBox(height: 12),
                             DropdownButtonFormField<BeforeEndOption>(
-                              value: _beforeEndOption,
+                              initialValue: _beforeEndOption,
                               decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 contentPadding: EdgeInsets.symmetric(
@@ -384,25 +384,27 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
 
     if (pickedDate != null) {
       // Then pick the time
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(_startDate),
-      );
+      if (context.mounted) {
+        final TimeOfDay? pickedTime = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.fromDateTime(_startDate),
+        );
 
-      if (pickedTime != null) {
-        setState(() {
-          _startDate = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-          // Ensure end date is after start date
-          if (_endDate.isBefore(_startDate)) {
-            _endDate = _startDate.add(const Duration(hours: 1));
-          }
-        });
+        if (pickedTime != null) {
+          setState(() {
+            _startDate = DateTime(
+              pickedDate.year,
+              pickedDate.month,
+              pickedDate.day,
+              pickedTime.hour,
+              pickedTime.minute,
+            );
+            // Ensure end date is after start date
+            if (_endDate.isBefore(_startDate)) {
+              _endDate = _startDate.add(const Duration(hours: 1));
+            }
+          });
+        }
       }
     }
   }
@@ -418,21 +420,23 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
 
     if (pickedDate != null) {
       // Then pick the time
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(_endDate),
-      );
+      if (context.mounted) {
+        final TimeOfDay? pickedTime = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.fromDateTime(_endDate),
+        );
 
-      if (pickedTime != null) {
-        setState(() {
-          _endDate = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-        });
+        if (pickedTime != null) {
+          setState(() {
+            _endDate = DateTime(
+              pickedDate.year,
+              pickedDate.month,
+              pickedDate.day,
+              pickedTime.hour,
+              pickedTime.minute,
+            );
+          });
+        }
       }
     }
   }
@@ -448,23 +452,25 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
 
     if (pickedDate != null) {
       // Then pick the time
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: _notificationTime != null
-            ? TimeOfDay.fromDateTime(_notificationTime!)
-            : TimeOfDay.now(),
-      );
+      if (context.mounted) {
+        final TimeOfDay? pickedTime = await showTimePicker(
+          context: context,
+          initialTime: _notificationTime != null
+              ? TimeOfDay.fromDateTime(_notificationTime!)
+              : TimeOfDay.now(),
+        );
 
-      if (pickedTime != null) {
-        setState(() {
-          _notificationTime = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-        });
+        if (pickedTime != null) {
+          setState(() {
+            _notificationTime = DateTime(
+              pickedDate.year,
+              pickedDate.month,
+              pickedDate.day,
+              pickedTime.hour,
+              pickedTime.minute,
+            );
+          });
+        }
       }
     }
   }

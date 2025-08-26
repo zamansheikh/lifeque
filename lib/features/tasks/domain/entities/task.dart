@@ -201,15 +201,15 @@ class Task extends Equatable {
 
   // Helper method to get the actual notification DateTime based on type
   DateTime? getScheduledNotificationTime() {
-    print('🕒 getScheduledNotificationTime called for ${title}');
-    print('🕒 notificationType: $notificationType');
+    debugPrint('🕒 getScheduledNotificationTime called for $title');
+    debugPrint('🕒 notificationType: $notificationType');
 
     switch (notificationType) {
       case NotificationType.specificTime:
-        print('🕒 specificTime - notificationTime: $notificationTime');
+        debugPrint('🕒 specificTime - notificationTime: $notificationTime');
         return notificationTime;
       case NotificationType.daily:
-        print('🕒 daily - dailyNotificationTime: $dailyNotificationTime');
+        debugPrint('🕒 daily - dailyNotificationTime: $dailyNotificationTime');
         if (dailyNotificationTime != null) {
           // Use timezone-aware current time for proper calculation
           final now = tz.TZDateTime.now(tz.local);
@@ -225,13 +225,13 @@ class Task extends Equatable {
           if (scheduled.isBefore(now)) {
             scheduled = scheduled.add(const Duration(days: 1));
           }
-          print('🕒 daily scheduled time (timezone-aware): $scheduled');
+          debugPrint('🕒 daily scheduled time (timezone-aware): $scheduled');
           return scheduled;
         }
         return null;
       case NotificationType.beforeEnd:
-        print('🕒 beforeEnd - beforeEndOption: $beforeEndOption');
-        print('🕒 beforeEnd - endDate: $endDate');
+        debugPrint('🕒 beforeEnd - beforeEndOption: $beforeEndOption');
+        debugPrint('🕒 beforeEnd - endDate: $endDate');
         if (beforeEndOption != null) {
           // Convert endDate to timezone-aware DateTime for proper calculation
           final endDateTz = tz.TZDateTime.from(endDate, tz.local);
@@ -253,7 +253,7 @@ class Task extends Equatable {
               result = endDateTz.subtract(const Duration(days: 1));
               break;
           }
-          print('🕒 beforeEnd scheduled time (timezone-aware): $result');
+          debugPrint('🕒 beforeEnd scheduled time (timezone-aware): $result');
           return result;
         }
         return null;
