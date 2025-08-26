@@ -778,6 +778,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
               },
             ),
           ),
+          _buildDayDetails(),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -804,7 +805,6 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
               ),
             ),
           ),
-          _buildDayDetails(),
         ],
       ),
     );
