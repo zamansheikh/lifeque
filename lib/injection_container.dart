@@ -14,6 +14,13 @@ import 'features/tasks/domain/usecases/delete_task.dart';
 import 'features/tasks/presentation/bloc/task_bloc.dart';
 import 'features/notifications/domain/repositories/notification_repository.dart';
 import 'features/notifications/data/repositories/notification_repository_impl.dart';
+import 'features/medicines/data/datasources/medicine_local_data_source.dart';
+import 'features/medicines/data/repositories/medicine_repository_impl.dart';
+import 'features/medicines/domain/repositories/medicine_repository.dart';
+import 'features/medicines/domain/usecases/get_medicines.dart';
+import 'features/medicines/domain/usecases/manage_medicine.dart';
+import 'features/medicines/domain/usecases/manage_doses.dart';
+import 'features/medicines/presentation/bloc/medicine_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -46,6 +53,43 @@ Future<void> init() async {
   // Data sources
   sl.registerLazySingleton<TaskLocalDataSource>(
     () => TaskLocalDataSourceImpl(databaseHelper: sl()),
+  );
+
+  //! Features - Medicines
+  // Cubit
+  sl.registerLazySingleton(
+    () => MedicineCubit(
+      getAllMedicinesUseCase: sl(),
+      getActiveMedicinesUseCase: sl(),
+      addMedicineUseCase: sl(),
+      updateMedicineUseCase: sl(),
+      deleteMedicineUseCase: sl(),
+      getDosesForMedicineUseCase: sl(),
+      getPendingDosesUseCase: sl(),
+      markDoseAsTakenUseCase: sl(),
+      markDoseAsSkippedUseCase: sl(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetAllMedicines(sl()));
+  sl.registerLazySingleton(() => GetActiveMedicines(sl()));
+  sl.registerLazySingleton(() => AddMedicine(sl()));
+  sl.registerLazySingleton(() => UpdateMedicine(sl()));
+  sl.registerLazySingleton(() => DeleteMedicine(sl()));
+  sl.registerLazySingleton(() => GetDosesForMedicine(sl()));
+  sl.registerLazySingleton(() => GetPendingDoses(sl()));
+  sl.registerLazySingleton(() => MarkDoseAsTaken(sl()));
+  sl.registerLazySingleton(() => MarkDoseAsSkipped(sl()));
+
+  // Repository
+  sl.registerLazySingleton<MedicineRepository>(
+    () => MedicineRepositoryImpl(localDataSource: sl()),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<MedicineLocalDataSource>(
+    () => MedicineLocalDataSourceImpl(databaseHelper: sl()),
   );
 
   //! Features - Notifications

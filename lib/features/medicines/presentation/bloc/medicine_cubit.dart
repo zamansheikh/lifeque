@@ -1,0 +1,162 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/usecases/usecase.dart';
+import '../../../../core/error/failures.dart';
+import '../../domain/entities/medicine.dart';
+import '../../domain/usecases/get_medicines.dart';
+import '../../domain/usecases/manage_medicine.dart';
+import '../../domain/usecases/manage_doses.dart';
+import 'medicine_state.dart';
+
+class MedicineCubit extends Cubit<MedicineState> {
+  final GetAllMedicines getAllMedicinesUseCase;
+  final GetActiveMedicines getActiveMedicinesUseCase;
+  final AddMedicine addMedicineUseCase;
+  final UpdateMedicine updateMedicineUseCase;
+  final DeleteMedicine deleteMedicineUseCase;
+  final GetDosesForMedicine getDosesForMedicineUseCase;
+  final GetPendingDoses getPendingDosesUseCase;
+  final MarkDoseAsTaken markDoseAsTakenUseCase;
+  final MarkDoseAsSkipped markDoseAsSkippedUseCase;
+
+  MedicineCubit({
+    required this.getAllMedicinesUseCase,
+    required this.getActiveMedicinesUseCase,
+    required this.addMedicineUseCase,
+    required this.updateMedicineUseCase,
+    required this.deleteMedicineUseCase,
+    required this.getDosesForMedicineUseCase,
+    required this.getPendingDosesUseCase,
+    required this.markDoseAsTakenUseCase,
+    required this.markDoseAsSkippedUseCase,
+  }) : super(MedicineInitial());
+
+  // Medicine operations
+  Future<void> loadAllMedicines() async {
+    emit(MedicineLoading());
+    final result = await getAllMedicinesUseCase(NoParams());
+    result.fold(
+      (failure) => emit(MedicineError(message: _getFailureMessage(failure))),
+      (medicines) => emit(MedicineLoaded(medicines: medicines)),
+    );
+  }
+
+  Future<void> loadActiveMedicines() async {
+    emit(MedicineLoading());
+    final result = await getActiveMedicinesUseCase(NoParams());
+    result.fold(
+      (failure) => emit(MedicineError(message: _getFailureMessage(failure))),
+      (medicines) => emit(MedicineLoaded(medicines: medicines)),
+    );
+  }
+
+  Future<void> addMedicine(Medicine medicine) async {
+    emit(MedicineLoading());
+    final result = await addMedicineUseCase(
+      AddMedicineParams(medicine: medicine),
+    );
+    result.fold(
+      (failure) => emit(MedicineError(message: _getFailureMessage(failure))),
+      (_) {
+        emit(
+          const MedicineOperationSuccess(
+            message: 'Medicine added successfully',
+          ),
+        );
+        loadAllMedicines(); // Refresh the list
+      },
+    );
+  }
+
+  Future<void> updateMedicine(Medicine medicine) async {
+    emit(MedicineLoading());
+    final result = await updateMedicineUseCase(
+      UpdateMedicineParams(medicine: medicine),
+    );
+    result.fold(
+      (failure) => emit(MedicineError(message: _getFailureMessage(failure))),
+      (_) {
+        emit(
+          const MedicineOperationSuccess(
+            message: 'Medicine updated successfully',
+          ),
+        );
+        loadAllMedicines(); // Refresh the list
+      },
+    );
+  }
+
+  Future<void> deleteMedicine(String id) async {
+    emit(MedicineLoading());
+    final result = await deleteMedicineUseCase(DeleteMedicineParams(id: id));
+    result.fold(
+      (failure) => emit(MedicineError(message: _getFailureMessage(failure))),
+      (_) {
+        emit(
+          const MedicineOperationSuccess(
+            message: 'Medicine deleted successfully',
+          ),
+        );
+        loadAllMedicines(); // Refresh the list
+      },
+    );
+  }
+
+  // Dose operations
+  Future<void> getDosesForMedicine(String medicineId) async {
+    emit(DoseLoading());
+    final result = await getDosesForMedicineUseCase(
+      GetDosesForMedicineParams(medicineId: medicineId),
+    );
+    result.fold(
+      (failure) => emit(DoseError(message: _getFailureMessage(failure))),
+      (doses) => emit(DoseLoaded(doses: doses)),
+    );
+  }
+
+  Future<void> getPendingDoses() async {
+    emit(DoseLoading());
+    final result = await getPendingDosesUseCase(NoParams());
+    result.fold(
+      (failure) => emit(DoseError(message: _getFailureMessage(failure))),
+      (doses) => emit(DoseLoaded(doses: doses)),
+    );
+  }
+
+  Future<void> markDoseAsTaken(String doseId, String medicineId) async {
+    emit(DoseLoading());
+    final result = await markDoseAsTakenUseCase(MarkDoseParams(doseId: doseId));
+    result.fold(
+      (failure) => emit(DoseError(message: _getFailureMessage(failure))),
+      (_) {
+        emit(const DoseOperationSuccess(message: 'Dose marked as taken'));
+        getDosesForMedicine(medicineId); // Refresh doses for this medicine
+      },
+    );
+  }
+
+  Future<void> markDoseAsSkipped(String doseId, String medicineId) async {
+    emit(DoseLoading());
+    final result = await markDoseAsSkippedUseCase(
+      MarkDoseParams(doseId: doseId),
+    );
+    result.fold(
+      (failure) => emit(DoseError(message: _getFailureMessage(failure))),
+      (_) {
+        emit(const DoseOperationSuccess(message: 'Dose marked as skipped'));
+        getDosesForMedicine(medicineId); // Refresh doses for this medicine
+      },
+    );
+  }
+
+  String _getFailureMessage(Failure failure) {
+    if (failure is DatabaseFailure) {
+      return failure.message;
+    } else if (failure is PermissionFailure) {
+      return failure.message;
+    } else if (failure is NotificationFailure) {
+      return failure.message;
+    } else {
+      return 'An unexpected error occurred';
+    }
+  }
+}

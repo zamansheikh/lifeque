@@ -49,6 +49,23 @@ class _TaskListPageState extends State<TaskListPage>
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.medication,
+                size: 20,
+                color: colorScheme.primary,
+              ),
+            ),
+            onPressed: () {
+              context.push('/medicines');
+            },
+          ),
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
                 color: colorScheme.onSurface.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),

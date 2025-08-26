@@ -4,9 +4,11 @@ import '../../../../core/error/exceptions.dart' as app_exceptions;
 
 class DatabaseHelper {
   static const String _databaseName = 'remind_me.db';
-  static const int _databaseVersion = 4;
+  static const int _databaseVersion = 5; // Increased for medicine tables
 
   static const String tableTask = 'tasks';
+  static const String tableMedicine = 'medicines';
+  static const String tableMedicineDose = 'medicine_doses';
 
   // Task table columns
   static const String columnId = 'id';
@@ -25,6 +27,28 @@ class DatabaseHelper {
   static const String columnIsPinnedToNotification = 'isPinnedToNotification';
   static const String columnCreatedAt = 'createdAt';
   static const String columnUpdatedAt = 'updatedAt';
+
+  // Medicine table columns
+  static const String columnMedicineName = 'name';
+  static const String columnMedicineDescription = 'description';
+  static const String columnMedicineType = 'type';
+  static const String columnMealTiming = 'mealTiming';
+  static const String columnDosage = 'dosage';
+  static const String columnDosageUnit = 'dosageUnit';
+  static const String columnTimesPerDay = 'timesPerDay';
+  static const String columnNotificationTimes = 'notificationTimes';
+  static const String columnDurationInDays = 'durationInDays';
+  static const String columnMedicineStartDate = 'startDate';
+  static const String columnMedicineEndDate = 'endDate';
+  static const String columnStatus = 'status';
+  static const String columnDoctorName = 'doctorName';
+  static const String columnNotes = 'notes';
+
+  // Medicine dose table columns
+  static const String columnMedicineId = 'medicineId';
+  static const String columnScheduledTime = 'scheduledTime';
+  static const String columnDoseStatus = 'status';
+  static const String columnTakenAt = 'takenAt';
 
   static Database? _database;
 
@@ -51,6 +75,7 @@ class DatabaseHelper {
 
   Future<void> _onCreate(Database db, int version) async {
     try {
+      // Create tasks table
       await db.execute('''
         CREATE TABLE $tableTask (
           $columnId TEXT PRIMARY KEY,
@@ -69,6 +94,44 @@ class DatabaseHelper {
           $columnIsPinnedToNotification INTEGER NOT NULL DEFAULT 0,
           $columnCreatedAt INTEGER NOT NULL,
           $columnUpdatedAt INTEGER
+        )
+      ''');
+
+      // Create medicines table
+      await db.execute('''
+        CREATE TABLE $tableMedicine (
+          $columnId TEXT PRIMARY KEY,
+          $columnMedicineName TEXT NOT NULL,
+          $columnMedicineDescription TEXT,
+          $columnMedicineType TEXT NOT NULL,
+          $columnMealTiming TEXT NOT NULL,
+          $columnDosage REAL NOT NULL,
+          $columnDosageUnit TEXT NOT NULL,
+          $columnTimesPerDay INTEGER NOT NULL,
+          $columnNotificationTimes TEXT NOT NULL,
+          $columnDurationInDays INTEGER NOT NULL,
+          $columnMedicineStartDate INTEGER NOT NULL,
+          $columnMedicineEndDate INTEGER,
+          $columnStatus TEXT NOT NULL DEFAULT 'active',
+          $columnDoctorName TEXT,
+          $columnNotes TEXT,
+          $columnCreatedAt INTEGER NOT NULL,
+          $columnUpdatedAt INTEGER NOT NULL
+        )
+      ''');
+
+      // Create medicine doses table
+      await db.execute('''
+        CREATE TABLE $tableMedicineDose (
+          $columnId TEXT PRIMARY KEY,
+          $columnMedicineId TEXT NOT NULL,
+          $columnScheduledTime INTEGER NOT NULL,
+          $columnDoseStatus TEXT NOT NULL DEFAULT 'pending',
+          $columnTakenAt INTEGER,
+          $columnNotes TEXT,
+          $columnCreatedAt INTEGER NOT NULL,
+          $columnUpdatedAt INTEGER NOT NULL,
+          FOREIGN KEY ($columnMedicineId) REFERENCES $tableMedicine ($columnId) ON DELETE CASCADE
         )
       ''');
     } catch (e) {
@@ -106,6 +169,44 @@ class DatabaseHelper {
       // Add taskType column for reminder feature
       await db.execute('''
         ALTER TABLE $tableTask ADD COLUMN $columnTaskType INTEGER NOT NULL DEFAULT 0
+      ''');
+    }
+    if (oldVersion < 5) {
+      // Create medicine tables
+      await db.execute('''
+        CREATE TABLE $tableMedicine (
+          $columnId TEXT PRIMARY KEY,
+          $columnMedicineName TEXT NOT NULL,
+          $columnMedicineDescription TEXT,
+          $columnMedicineType TEXT NOT NULL,
+          $columnMealTiming TEXT NOT NULL,
+          $columnDosage REAL NOT NULL,
+          $columnDosageUnit TEXT NOT NULL,
+          $columnTimesPerDay INTEGER NOT NULL,
+          $columnNotificationTimes TEXT NOT NULL,
+          $columnDurationInDays INTEGER NOT NULL,
+          $columnMedicineStartDate INTEGER NOT NULL,
+          $columnMedicineEndDate INTEGER,
+          $columnStatus TEXT NOT NULL DEFAULT 'active',
+          $columnDoctorName TEXT,
+          $columnNotes TEXT,
+          $columnCreatedAt INTEGER NOT NULL,
+          $columnUpdatedAt INTEGER NOT NULL
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE $tableMedicineDose (
+          $columnId TEXT PRIMARY KEY,
+          $columnMedicineId TEXT NOT NULL,
+          $columnScheduledTime INTEGER NOT NULL,
+          $columnDoseStatus TEXT NOT NULL DEFAULT 'pending',
+          $columnTakenAt INTEGER,
+          $columnNotes TEXT,
+          $columnCreatedAt INTEGER NOT NULL,
+          $columnUpdatedAt INTEGER NOT NULL,
+          FOREIGN KEY ($columnMedicineId) REFERENCES $tableMedicine ($columnId) ON DELETE CASCADE
+        )
       ''');
     }
   }

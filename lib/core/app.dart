@@ -5,6 +5,8 @@ import '../features/tasks/presentation/bloc/task_bloc.dart';
 import '../features/tasks/presentation/pages/task_list_page.dart';
 import '../features/tasks/presentation/pages/add_edit_task_page.dart';
 import '../features/tasks/presentation/pages/task_detail_page.dart';
+import '../features/medicines/presentation/bloc/medicine_cubit.dart';
+import '../features/medicines/presentation/pages/medicines_page.dart';
 import '../features/permissions/presentation/pages/permission_screen.dart';
 import 'services/navigation_service.dart';
 import '../injection_container.dart' as di;
@@ -27,6 +29,11 @@ class AppRouter {
         path: '/',
         name: 'home',
         builder: (context, state) => const TaskListPage(),
+      ),
+      GoRoute(
+        path: '/medicines',
+        name: 'medicines',
+        builder: (context, state) => const MedicinesPage(),
       ),
       GoRoute(
         path: '/add-task',
@@ -61,6 +68,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => di.sl<TaskBloc>()..add(LoadTasks())),
+        BlocProvider(create: (_) => di.sl<MedicineCubit>()),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
