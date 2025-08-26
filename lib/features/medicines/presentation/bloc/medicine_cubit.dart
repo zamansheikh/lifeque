@@ -290,6 +290,31 @@ class MedicineCubit extends Cubit<MedicineState> {
     );
   }
 
+  Future<void> loadMedicineDetail(String medicineId) async {
+    // Get medicine and its full dose list
+    final medsResult = await getActiveMedicinesUseCase(NoParams());
+    await medsResult.fold(
+      (failure) {
+        emit(MedicineError(message: _getFailureMessage(failure)));
+      },
+      (medicines) async {
+        final med = medicines.firstWhere(
+          (m) => m.id == medicineId,
+          orElse: () => medicines.isNotEmpty
+              ? medicines.first
+              : throw Exception('Medicine not found'),
+        );
+        final dosesResult = await getDosesForMedicineUseCase(
+          GetDosesForMedicineParams(medicineId: medicineId),
+        );
+        dosesResult.fold(
+          (failure) => emit(DoseError(message: _getFailureMessage(failure))),
+          (doses) => emit(MedicineDetailLoaded(medicine: med, doses: doses)),
+        );
+      },
+    );
+  }
+
   Future<void> generateDosesForMedicine(Medicine medicine) async {
     emit(DoseLoading());
     final generateResult = await generateDosesForMedicineUseCase(

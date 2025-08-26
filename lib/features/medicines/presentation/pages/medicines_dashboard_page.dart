@@ -5,27 +5,24 @@ import '../../domain/entities/medicine_dose.dart';
 import '../bloc/medicine_cubit.dart';
 import '../bloc/medicine_state.dart';
 import 'add_edit_medicine_page.dart';
+import 'medicine_detail_page.dart';
 
 class MedicinesDashboardPage extends StatefulWidget {
   const MedicinesDashboardPage({super.key});
-
   @override
   State<MedicinesDashboardPage> createState() => _MedicinesDashboardPageState();
 }
 
 class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
   DateTime _selectedDate = DateTime.now();
-
   @override
   void initState() {
     super.initState();
     context.read<MedicineCubit>().loadDashboard(date: _selectedDate);
   }
 
-  void _refresh() {
-    context.read<MedicineCubit>().loadDashboard(date: _selectedDate);
-  }
-
+  void _refresh() =>
+      context.read<MedicineCubit>().loadDashboard(date: _selectedDate);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,21 +31,20 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
         actions: [
           IconButton(onPressed: _refresh, icon: const Icon(Icons.refresh)),
           IconButton(
+            icon: const Icon(Icons.add),
             onPressed: () async {
               await Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const AddEditMedicinePage()),
               );
               if (mounted) _refresh();
             },
-            icon: const Icon(Icons.add),
-            tooltip: 'Add Medicine',
           ),
         ],
       ),
       body: BlocConsumer<MedicineCubit, MedicineState>(
         listener: (context, state) {
           if (state is MedicineError || state is DoseError) {
-            final msg = (state is MedicineError)
+            final msg = state is MedicineError
                 ? state.message
                 : (state as DoseError).message;
             ScaffoldMessenger.of(context).showSnackBar(
@@ -56,7 +52,7 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
             );
           } else if (state is DoseOperationSuccess ||
               state is MedicineOperationSuccess) {
-            final msg = (state is DoseOperationSuccess)
+            final msg = state is DoseOperationSuccess
                 ? state.message
                 : (state as MedicineOperationSuccess).message;
             ScaffoldMessenger.of(context).showSnackBar(
@@ -302,104 +298,121 @@ class _MedicineProgressCard extends StatelessWidget {
           ..sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
     final next = upcoming.isNotEmpty ? upcoming.first : null;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 14),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).primaryColor.withOpacity(0.12),
-                  child: Icon(
-                    Icons.medication,
-                    color: Theme.of(context).primaryColor,
+    return InkWell(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => MedicineDetailPage(medicine: medicine),
+        ),
+      ),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 14),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Theme.of(
+                      context,
+                    ).primaryColor.withOpacity(0.12),
+                    child: Icon(
+                      Icons.medication,
+                      color: Theme.of(context).primaryColor,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        medicine.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          medicine.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${medicine.dosage} ${medicine.dosageUnit} • ${medicine.timesPerDay}x daily',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                      Text(
-                        medicine.mealTimingDisplayName,
-                        style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${medicine.dosage} ${medicine.dosageUnit} • ${medicine.timesPerDay}x daily',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                        Text(
+                          medicine.mealTimingDisplayName,
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      _TodayStatusPill(taken: taken, total: totalToday),
+                      IconButton(
+                        tooltip: 'Details',
+                        icon: const Icon(Icons.more_vert, size: 20),
+                        onPressed: () => _showDetails(context),
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  children: [
-                    _TodayStatusPill(taken: taken, total: totalToday),
-                    IconButton(
-                      tooltip: 'Details',
-                      icon: const Icon(Icons.more_vert, size: 20),
-                      onPressed: () => _showDetails(context),
+                ],
+              ),
+              LinearProgressIndicator(
+                value: pct,
+                backgroundColor: Colors.grey[300],
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  _miniChip(Icons.check, 'Taken $taken', Colors.green),
+                  _miniChip(
+                    Icons.hourglass_empty,
+                    'Pending $pending',
+                    Colors.blue,
+                  ),
+                  if (skipped > 0)
+                    _miniChip(
+                      Icons.skip_next,
+                      'Skipped $skipped',
+                      Colors.orange,
                     ),
-                  ],
-                ),
-              ],
-            ),
-            LinearProgressIndicator(
-              value: pct,
-              backgroundColor: Colors.grey[300],
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
-            ),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                _miniChip(Icons.check, 'Taken $taken', Colors.green),
-                _miniChip(
-                  Icons.hourglass_empty,
-                  'Pending $pending',
-                  Colors.blue,
-                ),
-                if (skipped > 0)
-                  _miniChip(Icons.skip_next, 'Skipped $skipped', Colors.orange),
-                if (missed > 0)
-                  _miniChip(Icons.error, 'Missed $missed', Colors.red),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: next == null
-                      ? Text(
-                          'Today completed',
-                          style: TextStyle(
-                            color: Colors.green[700],
-                            fontWeight: FontWeight.w500,
+                  if (missed > 0)
+                    _miniChip(Icons.error, 'Missed $missed', Colors.red),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: next == null
+                        ? Text(
+                            'Today completed',
+                            style: TextStyle(
+                              color: Colors.green[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          )
+                        : Text(
+                            'Next: ${_fmt(next.scheduledTime)}',
+                            style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
-                        )
-                      : Text(
-                          'Next: ${_fmt(next.scheduledTime)}',
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                ),
-                _ActionButtons(medicine: medicine, doses: doses),
-              ],
-            ),
-          ],
+                  ),
+                  _ActionButtons(medicine: medicine, doses: doses),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

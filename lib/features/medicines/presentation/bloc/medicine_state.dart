@@ -111,6 +111,45 @@ class DailyProgressLoaded extends MedicineState {
   List<Object?> get props => [medicineId, date, doses];
 }
 
+// Detailed view state for a single medicine with full dose history
+class MedicineDetailLoaded extends MedicineState {
+  final Medicine medicine;
+  final List<MedicineDose> doses; // full course doses
+
+  const MedicineDetailLoaded({required this.medicine, required this.doses});
+
+  int get taken => doses.where((d) => d.status == DoseStatus.taken).length;
+  int get skipped => doses.where((d) => d.status == DoseStatus.skipped).length;
+  int get missed => doses.where((d) => d.status == DoseStatus.missed).length;
+  int get pending => doses.where((d) => d.status == DoseStatus.pending).length;
+  int get total => doses.length;
+  double get adherencePercent => total == 0 ? 0 : taken / total;
+  int get daysElapsed {
+    final today = DateTime.now();
+    final diff = today.difference(medicine.startDate).inDays + 1;
+    return diff.clamp(0, medicine.durationInDays);
+  }
+
+  int get daysTotal => medicine.durationInDays;
+
+  Map<DateTime, List<MedicineDose>> get dosesByDate {
+    final map = <DateTime, List<MedicineDose>>{};
+    for (final d in doses) {
+      final dt = DateTime(
+        d.scheduledTime.year,
+        d.scheduledTime.month,
+        d.scheduledTime.day,
+      );
+      map.putIfAbsent(dt, () => []).add(d);
+    }
+    final sortedKeys = map.keys.toList()..sort((a, b) => a.compareTo(b));
+    return {for (final k in sortedKeys) k: map[k]!};
+  }
+
+  @override
+  List<Object?> get props => [medicine, doses];
+}
+
 // Statistics states
 class StatisticsLoading extends MedicineState {}
 
