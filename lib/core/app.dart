@@ -7,6 +7,7 @@ import '../features/tasks/presentation/pages/add_edit_task_page.dart';
 import '../features/tasks/presentation/pages/task_detail_page.dart';
 import '../features/medicines/presentation/bloc/medicine_cubit.dart';
 import '../features/medicines/presentation/pages/medicines_page.dart';
+import '../features/medicines/presentation/pages/add_edit_medicine_page.dart';
 import '../features/permissions/presentation/pages/permission_screen.dart';
 import 'services/navigation_service.dart';
 import '../injection_container.dart' as di;
@@ -34,6 +35,19 @@ class AppRouter {
         path: '/medicines',
         name: 'medicines',
         builder: (context, state) => const MedicinesPage(),
+      ),
+      GoRoute(
+        path: '/add-medicine',
+        name: 'add-medicine',
+        builder: (context, state) => const AddEditMedicinePage(),
+      ),
+      GoRoute(
+        path: '/edit-medicine/:id',
+        name: 'edit-medicine',
+        builder: (context, state) {
+          final medicineId = state.pathParameters['id']!;
+          return AddEditMedicinePage(medicineId: medicineId);
+        },
       ),
       GoRoute(
         path: '/add-task',

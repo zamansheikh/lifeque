@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/medicine_cubit.dart';
 import '../bloc/medicine_state.dart';
 import '../../domain/entities/medicine.dart';
+import 'add_edit_medicine_page.dart';
+import 'medicine_detail_page.dart';
 
 class MedicinesPage extends StatefulWidget {
   const MedicinesPage({super.key});
@@ -102,119 +104,123 @@ class _MedicinesPageState extends State<MedicinesPage> {
   Widget _buildMedicineCard(Medicine medicine) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: () => _editMedicine(medicine),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      _getMedicineIcon(medicine.type),
+                      color: Theme.of(context).primaryColor,
+                    ),
                   ),
-                  child: Icon(
-                    _getMedicineIcon(medicine.type),
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        medicine.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (medicine.description != null) ...[
-                        const SizedBox(height: 4),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          medicine.description!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+                          medicine.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
+                        if (medicine.description != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            medicine.description!,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: medicine.status == MedicineStatus.active
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    medicine.statusDisplayName,
-                    style: TextStyle(
-                      fontSize: 12,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
                       color: medicine.status == MedicineStatus.active
-                          ? Colors.green[700]
-                          : Colors.grey[700],
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.grey.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      medicine.statusDisplayName,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: medicine.status == MedicineStatus.active
+                            ? Colors.green[700]
+                            : Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _buildInfoChip(
+                    Icons.schedule,
+                    '${medicine.timesPerDay}x daily',
+                  ),
+                  const SizedBox(width: 8),
+                  _buildInfoChip(
+                    Icons.restaurant,
+                    medicine.mealTimingDisplayName,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildInfoChip(
+                    Icons.calendar_today,
+                    '${medicine.durationInDays} days',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Text(
+                    'Dosage: ${medicine.dosage} ${medicine.dosageUnit}',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Progress: ${medicine.progressPercentage.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).primaryColor,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _buildInfoChip(
-                  Icons.schedule,
-                  '${medicine.timesPerDay}x daily',
-                ),
-                const SizedBox(width: 8),
-                _buildInfoChip(
-                  Icons.restaurant,
-                  medicine.mealTimingDisplayName,
-                ),
-                const SizedBox(width: 8),
-                _buildInfoChip(
-                  Icons.calendar_today,
-                  '${medicine.durationInDays} days',
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Text(
-                  'Dosage: ${medicine.dosage} ${medicine.dosageUnit}',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-                const Spacer(),
-                Text(
-                  'Progress: ${medicine.progressPercentage.toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: medicine.progressPercentage / 100,
-              backgroundColor: Colors.grey[300],
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Theme.of(context).primaryColor,
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              LinearProgressIndicator(
+                value: medicine.progressPercentage / 100,
+                backgroundColor: Colors.grey[300],
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).primaryColor,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -293,21 +299,15 @@ class _MedicinesPageState extends State<MedicinesPage> {
   }
 
   void _showAddMedicineDialog(BuildContext context) {
-    // For now, show a simple dialog
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Medicine'),
-        content: const Text(
-          'Medicine form will be implemented in the next step. '
-          'This shows the medicine list UI is working.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const AddEditMedicinePage()),
+    );
+  }
+
+  void _editMedicine(Medicine medicine) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MedicineDetailPage(medicine: medicine),
       ),
     );
   }
