@@ -27,18 +27,55 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('Medication Dashboard'),
+        title: const Text(
+          'Medications',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 24,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: Colors.black12,
+        surfaceTintColor: Colors.transparent,
         actions: [
-          IconButton(onPressed: _refresh, icon: const Icon(Icons.refresh)),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AddEditMedicinePage()),
-              );
-              if (mounted) _refresh();
-            },
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              onPressed: _refresh,
+              icon: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B)),
+              tooltip: 'Refresh',
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.add_rounded, color: Colors.white),
+              onPressed: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AddEditMedicinePage(),
+                  ),
+                );
+                if (mounted) _refresh();
+              },
+              tooltip: 'Add Medicine',
+            ),
           ),
         ],
       ),
@@ -84,7 +121,8 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
             return RefreshIndicator(
               onRefresh: () async => _refresh(),
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 32),
                 children: [
                   _DayHeader(
                     date: state.date,
@@ -93,16 +131,15 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
                       _refresh();
                     },
                   ),
-                  const SizedBox(height: 12),
-                  _SummaryBar(doses: state.todayDoses),
                   const SizedBox(height: 16),
+                  _SummaryBar(doses: state.todayDoses),
+                  const SizedBox(height: 24),
                   ...active.map(
                     (m) => _MedicineProgressCard(
                       medicine: m,
                       doses: state.dosesForMedicine(m.id),
                     ),
                   ),
-                  const SizedBox(height: 48),
                 ],
               ),
             );
@@ -130,31 +167,101 @@ class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.onAdd});
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.medication, size: 72, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              'No medicines yet',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF64748B).withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Add medicines to start tracking your doses.',
-              textAlign: TextAlign.center,
+            child: const Icon(
+              Icons.medical_services_rounded,
+              size: 40,
+              color: Colors.white,
             ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'No medications yet',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Add your first medication to start\ntracking your daily doses',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 32),
+          Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF3B82F6).withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton.icon(
               onPressed: onAdd,
-              icon: const Icon(Icons.add),
-              label: const Text('Add Medicine'),
+              icon: const Icon(Icons.add_rounded, color: Colors.white),
+              label: const Text(
+                'Add Medicine',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -167,25 +274,62 @@ class _DayHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatted = '${date.day}/${date.month}/${date.year}';
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.chevron_left),
-          onPressed: () => onChange(date.subtract(const Duration(days: 1))),
-        ),
-        Expanded(
-          child: Center(
-            child: Text(
-              formatted,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF64748B).withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(
+                Icons.chevron_left_rounded,
+                color: Color(0xFF64748B),
+              ),
+              onPressed: () => onChange(date.subtract(const Duration(days: 1))),
             ),
           ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.chevron_right),
-          onPressed: () => onChange(date.add(const Duration(days: 1))),
-        ),
-      ],
+          Expanded(
+            child: Center(
+              child: Text(
+                formatted,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(
+                Icons.chevron_right_rounded,
+                color: Color(0xFF64748B),
+              ),
+              onPressed: () => onChange(date.add(const Duration(days: 1))),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -200,46 +344,87 @@ class _SummaryBar extends StatelessWidget {
     final missed = doses.where((d) => d.status == DoseStatus.missed).length;
     final pending = doses.where((d) => d.status == DoseStatus.pending).length;
     final total = doses.length;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Today Overview',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _CountChip(label: 'Taken', value: taken, color: Colors.green),
-                _CountChip(
-                  label: 'Pending',
-                  value: pending,
-                  color: Colors.blue,
-                ),
-                _CountChip(
-                  label: 'Skipped',
-                  value: skipped,
-                  color: Colors.orange,
-                ),
-                _CountChip(label: 'Missed', value: missed, color: Colors.red),
-              ],
-            ),
-            const SizedBox(height: 12),
-            LinearProgressIndicator(
-              value: total == 0 ? 0 : taken / total,
-              backgroundColor: Colors.grey[300],
-              valueColor: const AlwaysStoppedAnimation(Colors.green),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Progress: ${total == 0 ? 0 : ((taken / total) * 100).round()}%',
-            ),
-          ],
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3B82F6).withOpacity(0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Today\'s Overview',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _CountChip(
+                label: 'Taken',
+                value: taken,
+                color: const Color(0xFF10B981),
+              ),
+              _CountChip(
+                label: 'Pending',
+                value: pending,
+                color: const Color(0xFF06B6D4),
+              ),
+              _CountChip(
+                label: 'Skipped',
+                value: skipped,
+                color: const Color(0xFFF59E0B),
+              ),
+              _CountChip(
+                label: 'Missed',
+                value: missed,
+                color: const Color(0xFFEF4444),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            height: 8,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: total == 0 ? 0 : taken / total,
+                backgroundColor: Colors.transparent,
+                valueColor: const AlwaysStoppedAnimation(Color(0xFF10B981)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Progress: ${total == 0 ? 0 : ((taken / total) * 100).round()}%',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -256,32 +441,35 @@ class _CountChip extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CircleAvatar(
-          backgroundColor: color.withOpacity(0.15),
-          child: Text(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Text(
             '$value',
-            style: TextStyle(color: color, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              fontSize: 20,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 12, color: _bestShade(color))),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withOpacity(0.9),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
-  }
-
-  Color _bestShade(Color base) {
-    // If it's a MaterialColor, try shade700; else darken manually
-    if (base is MaterialColor) {
-      return base.shade700;
-    }
-    // Manual darken
-    final h = base.computeLuminance();
-    if (h > 0.5) {
-      return Colors.black87;
-    }
-    return base.withOpacity(0.9);
   }
 }
 
@@ -310,39 +498,59 @@ class _MedicineProgressCard extends StatelessWidget {
           ..sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
     final next = upcoming.isNotEmpty ? upcoming.first : null;
 
-    return InkWell(
-      onTap: () async {
-        // Navigate to detail; when returning ensure dashboard state is reloaded.
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => MedicineDetailPage(medicine: medicine),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: InkWell(
+        onTap: () async {
+          // Navigate to detail; when returning ensure dashboard state is reloaded.
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => MedicineDetailPage(medicine: medicine),
+            ),
+          );
+          if (context.mounted) {
+            // Reload dashboard for the current (today) date so we exit any detail state.
+            context.read<MedicineCubit>().loadDashboard();
+          }
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF64748B).withOpacity(0.1),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        );
-        if (context.mounted) {
-          // Reload dashboard for the current (today) date so we exit any detail state.
-          context.read<MedicineCubit>().loadDashboard();
-        }
-      },
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 14),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).primaryColor.withOpacity(0.12),
-                    child: Icon(
-                      Icons.medication,
-                      color: Theme.of(context).primaryColor,
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.medication_rounded,
+                      color: Colors.white,
+                      size: 28,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,23 +558,26 @@ class _MedicineProgressCard extends StatelessWidget {
                         Text(
                           medicine.name,
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '${medicine.dosage} ${medicine.dosageUnit} • ${medicine.timesPerDay}x daily',
+                          style: const TextStyle(
+                            color: Color(0xFF64748B),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${medicine.dosage} ${medicine.dosageUnit} • ${medicine.timesPerDay}x daily',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                        Text(
                           medicine.mealTimingDisplayName,
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 12,
+                          style: const TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 13,
                           ),
                         ),
                       ],
@@ -375,56 +586,91 @@ class _MedicineProgressCard extends StatelessWidget {
                   Column(
                     children: [
                       _TodayStatusPill(taken: taken, total: totalToday),
-                      IconButton(
-                        tooltip: 'Details',
-                        icon: const Icon(Icons.more_vert, size: 20),
-                        onPressed: () => _showDetails(context),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: IconButton(
+                          tooltip: 'Details',
+                          icon: const Icon(
+                            Icons.more_vert_rounded,
+                            size: 20,
+                            color: Color(0xFF64748B),
+                          ),
+                          onPressed: () => _showDetails(context),
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
-              LinearProgressIndicator(
-                value: pct,
-                backgroundColor: Colors.grey[300],
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+              const SizedBox(height: 20),
+              Container(
+                height: 6,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: pct,
+                    backgroundColor: Colors.transparent,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Color(0xFF10B981),
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 16),
               Wrap(
                 spacing: 8,
-                runSpacing: 4,
+                runSpacing: 6,
                 children: [
-                  _miniChip(Icons.check, 'Taken $taken', Colors.green),
                   _miniChip(
-                    Icons.hourglass_empty,
+                    Icons.check_circle_rounded,
+                    'Taken $taken',
+                    const Color(0xFF10B981),
+                  ),
+                  _miniChip(
+                    Icons.schedule_rounded,
                     'Pending $pending',
-                    Colors.blue,
+                    const Color(0xFF06B6D4),
                   ),
                   if (skipped > 0)
                     _miniChip(
-                      Icons.skip_next,
+                      Icons.skip_next_rounded,
                       'Skipped $skipped',
-                      Colors.orange,
+                      const Color(0xFFF59E0B),
                     ),
                   if (missed > 0)
-                    _miniChip(Icons.error, 'Missed $missed', Colors.red),
+                    _miniChip(
+                      Icons.error_rounded,
+                      'Missed $missed',
+                      const Color(0xFFEF4444),
+                    ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: next == null
-                        ? Text(
+                        ? const Text(
                             'Today completed',
                             style: TextStyle(
-                              color: Colors.green[700],
-                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF10B981),
+                              fontWeight: FontWeight.w600,
                             ),
                           )
                         : Text(
                             'Next: ${_fmt(next.scheduledTime)}',
-                            style: const TextStyle(fontWeight: FontWeight.w500),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E293B),
+                            ),
                           ),
                   ),
                   _ActionButtons(medicine: medicine, doses: doses),
@@ -442,17 +688,25 @@ class _MedicineProgressCard extends StatelessWidget {
 
   Widget _miniChip(IconData icon, String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
-          Text(label, style: TextStyle(fontSize: 11, color: color)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -631,14 +885,24 @@ class _TodayStatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = total == 0 ? 0 : (taken / total * 100).round();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(30),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF10B981).withOpacity(0.1),
+            const Color(0xFF059669).withOpacity(0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.2)),
       ),
       child: Text(
         '$pct%',
-        style: TextStyle(color: Colors.green[700], fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          color: Color(0xFF059669),
+          fontWeight: FontWeight.w700,
+          fontSize: 14,
+        ),
       ),
     );
   }
@@ -660,26 +924,85 @@ class _ActionButtons extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          tooltip: 'Taken',
-          onPressed: target == null
-              ? null
-              : () => cubit.markDoseAsTaken(target.id, medicine.id),
-          icon: const Icon(Icons.check_circle, color: Colors.green),
+        Container(
+          decoration: BoxDecoration(
+            color: target == null
+                ? const Color(0xFFF1F5F9)
+                : const Color(0xFF10B981).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: target == null
+                  ? const Color(0xFFE2E8F0)
+                  : const Color(0xFF10B981).withOpacity(0.3),
+            ),
+          ),
+          child: IconButton(
+            tooltip: 'Taken',
+            onPressed: target == null
+                ? null
+                : () => cubit.markDoseAsTaken(target.id, medicine.id),
+            icon: Icon(
+              Icons.check_circle_rounded,
+              color: target == null
+                  ? const Color(0xFF94A3B8)
+                  : const Color(0xFF10B981),
+              size: 20,
+            ),
+          ),
         ),
-        IconButton(
-          tooltip: 'Skip',
-          onPressed: target == null
-              ? null
-              : () => cubit.markDoseAsSkipped(target.id, medicine.id),
-          icon: const Icon(Icons.cancel, color: Colors.orange),
+        const SizedBox(width: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: target == null
+                ? const Color(0xFFF1F5F9)
+                : const Color(0xFFF59E0B).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: target == null
+                  ? const Color(0xFFE2E8F0)
+                  : const Color(0xFFF59E0B).withOpacity(0.3),
+            ),
+          ),
+          child: IconButton(
+            tooltip: 'Skip',
+            onPressed: target == null
+                ? null
+                : () => cubit.markDoseAsSkipped(target.id, medicine.id),
+            icon: Icon(
+              Icons.skip_next_rounded,
+              color: target == null
+                  ? const Color(0xFF94A3B8)
+                  : const Color(0xFFF59E0B),
+              size: 20,
+            ),
+          ),
         ),
-        IconButton(
-          tooltip: 'Miss',
-          onPressed: target == null
-              ? null
-              : () => cubit.markDoseAsMissed(target.id, medicine.id),
-          icon: const Icon(Icons.error, color: Colors.red),
+        const SizedBox(width: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: target == null
+                ? const Color(0xFFF1F5F9)
+                : const Color(0xFFEF4444).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: target == null
+                  ? const Color(0xFFE2E8F0)
+                  : const Color(0xFFEF4444).withOpacity(0.3),
+            ),
+          ),
+          child: IconButton(
+            tooltip: 'Miss',
+            onPressed: target == null
+                ? null
+                : () => cubit.markDoseAsMissed(target.id, medicine.id),
+            icon: Icon(
+              Icons.cancel_rounded,
+              color: target == null
+                  ? const Color(0xFF94A3B8)
+                  : const Color(0xFFEF4444),
+              size: 20,
+            ),
+          ),
         ),
       ],
     );

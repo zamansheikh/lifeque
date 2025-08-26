@@ -76,15 +76,77 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Medicine' : 'Add Medicine'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
+        title: Text(
+          _isEditing ? 'Edit Medicine' : 'Add Medicine',
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 24,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: Colors.black12,
+        surfaceTintColor: Colors.transparent,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: Color(0xFF64748B),
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
         actions: [
-          TextButton.icon(
-            onPressed: _saveMedicine,
-            icon: const Icon(Icons.save, color: Colors.white),
-            label: const Text('Save', style: TextStyle(color: Colors.white)),
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF3B82F6).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TextButton.icon(
+              onPressed: _saveMedicine,
+              icon: const Icon(
+                Icons.save_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              label: const Text(
+                'Save',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -110,7 +172,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
         child: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(20),
             children: [
               _buildBasicInfoSection(),
               const SizedBox(height: 24),
@@ -123,7 +186,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               _buildDurationSection(),
               const SizedBox(height: 24),
               _buildAdditionalInfoSection(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -132,45 +195,98 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   }
 
   Widget _buildBasicInfoSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Basic Information',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF64748B).withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Basic Information',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1E293B),
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Medicine Name',
-                hintText: 'e.g., Paracetamol',
-                prefixIcon: Icon(Icons.medication),
-                border: OutlineInputBorder(),
+          ),
+          const SizedBox(height: 20),
+          TextFormField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: 'Medicine Name',
+              hintText: 'e.g., Paracetamol',
+              prefixIcon: const Icon(
+                Icons.medication_rounded,
+                color: Color(0xFF3B82F6),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter medicine name';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description (Optional)',
-                hintText: 'e.g., For fever and pain relief',
-                prefixIcon: Icon(Icons.description),
-                border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
-              maxLines: 2,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: Color(0xFF3B82F6),
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              labelStyle: const TextStyle(color: Color(0xFF64748B)),
             ),
-          ],
-        ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter medicine name';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _descriptionController,
+            decoration: InputDecoration(
+              labelText: 'Description (Optional)',
+              hintText: 'e.g., For fever and pain relief',
+              prefixIcon: const Icon(
+                Icons.description_rounded,
+                color: Color(0xFF3B82F6),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: Color(0xFF3B82F6),
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              labelStyle: const TextStyle(color: Color(0xFF64748B)),
+            ),
+            maxLines: 2,
+          ),
+        ],
       ),
     );
   }
