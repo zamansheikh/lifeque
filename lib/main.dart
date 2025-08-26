@@ -31,10 +31,6 @@ void main() async {
   await notificationService.requestPermissions();
   print('🔔 NotificationService permissions requested');
 
-  // Test simple scheduled notification
-  await notificationService.scheduleSimpleTestNotification();
-  print('🔔 Simple test notification scheduled');
-
   print('🎯 Running app...');
   runApp(const MyApp());
 }

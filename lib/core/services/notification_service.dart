@@ -93,8 +93,11 @@ class NotificationService {
     print('🔔 isNotificationEnabled: ${task.isNotificationEnabled}');
     print('🔔 notificationType: ${task.notificationType}');
 
+    // Always cancel existing notifications first to ensure clean state
+    await cancelTaskNotification(task);
+
     if (!task.isNotificationEnabled) {
-      print('🔔 Notifications not enabled, returning');
+      print('🔔 Notifications not enabled, returning after cleanup');
       return;
     }
 
