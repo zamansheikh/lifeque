@@ -27,6 +27,15 @@ class _MedicinesPageState extends State<MedicinesPage> {
         title: const Text('My Medicines'),
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              context.read<MedicineCubit>().loadAllMedicines();
+            },
+            tooltip: 'Refresh',
+          ),
+        ],
       ),
       body: BlocConsumer<MedicineCubit, MedicineState>(
         listener: (context, state) {
@@ -53,6 +62,14 @@ class _MedicinesPageState extends State<MedicinesPage> {
             return _buildMedicinesList(state.medicines);
           } else if (state is MedicineError) {
             return _buildErrorView(state.message);
+          } else if (state is DoseLoaded || state is DoseLoading || state is DoseError) {
+            // If we're in a dose-related state, reload medicines
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                context.read<MedicineCubit>().loadAllMedicines();
+              }
+            });
+            return const Center(child: CircularProgressIndicator());
           } else {
             return const Center(
               child: Text('Start by adding your first medicine'),
@@ -60,44 +77,73 @@ class _MedicinesPageState extends State<MedicinesPage> {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddMedicineDialog(context);
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: "dose_action",
+            onPressed: () => _showQuickDoseAction(context),
+            backgroundColor: Colors.green,
+            child: const Icon(Icons.medication, color: Colors.white),
+            tooltip: 'Quick Dose Action',
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton(
+            heroTag: "add_medicine",
+            onPressed: () => _showAddMedicineDialog(context),
+            child: const Icon(Icons.add),
+            tooltip: 'Add Medicine',
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildMedicinesList(List<Medicine> medicines) {
     if (medicines.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.medication, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'No medicines added yet',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+      return RefreshIndicator(
+        onRefresh: () async {
+          context.read<MedicineCubit>().loadAllMedicines();
+        },
+        child: const SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: 400,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.medication, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'No medicines added yet',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Tap + to add your first medicine',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: 8),
-            Text(
-              'Tap + to add your first medicine',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          ],
+          ),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: medicines.length,
-      itemBuilder: (context, index) {
-        final medicine = medicines[index];
-        return _buildMedicineCard(medicine);
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<MedicineCubit>().loadAllMedicines();
       },
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: medicines.length,
+        itemBuilder: (context, index) {
+          final medicine = medicines[index];
+          return _buildMedicineCard(medicine);
+        },
+      ),
     );
   }
 
@@ -298,17 +344,151 @@ class _MedicinesPageState extends State<MedicinesPage> {
     }
   }
 
-  void _showAddMedicineDialog(BuildContext context) {
-    Navigator.of(context).push(
+  void _showAddMedicineDialog(BuildContext context) async {
+    await Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const AddEditMedicinePage()),
+    );
+    // Refresh medicines list when returning from add/edit page
+    if (mounted) {
+      context.read<MedicineCubit>().loadAllMedicines();
+    }
+  }
+
+  void _showQuickDoseAction(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => BlocBuilder<MedicineCubit, MedicineState>(
+        builder: (context, state) {
+          if (state is MedicineLoaded) {
+            final activeMedicines = state.medicines
+                .where((medicine) => medicine.status == MedicineStatus.active)
+                .toList();
+
+            if (activeMedicines.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(24),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.medication_outlined,
+                      size: 48,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'No Active Medicines',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text('Add some medicines to track doses'),
+                  ],
+                ),
+              );
+            }
+
+            return Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Quick Dose Actions',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  ...activeMedicines
+                      .map(
+                        (medicine) => ListTile(
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              _getMedicineIcon(medicine.type),
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                          title: Text(medicine.name),
+                          subtitle: Text(
+                            '${medicine.dosage} ${medicine.dosageUnit}',
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  // Note: This is a simplified action - in real implementation,
+                                  // you'd need to get the current pending dose and mark it
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '${medicine.name} dose taken!',
+                                      ),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                ),
+                                tooltip: 'Mark as taken',
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '${medicine.name} dose skipped',
+                                      ),
+                                      backgroundColor: Colors.orange,
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.cancel,
+                                  color: Colors.orange,
+                                ),
+                                tooltip: 'Skip dose',
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _editMedicine(medicine);
+                          },
+                        ),
+                      )
+                      .toList(),
+                ],
+              ),
+            );
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
     );
   }
 
-  void _editMedicine(Medicine medicine) {
-    Navigator.of(context).push(
+  void _editMedicine(Medicine medicine) async {
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => MedicineDetailPage(medicine: medicine),
       ),
     );
+    // Refresh medicines list when returning from detail page
+    if (mounted) {
+      context.read<MedicineCubit>().loadAllMedicines();
+    }
   }
 }

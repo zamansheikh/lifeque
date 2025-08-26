@@ -5,6 +5,7 @@ import '../../domain/entities/medicine_dose.dart';
 import '../bloc/medicine_cubit.dart';
 import '../bloc/medicine_state.dart';
 import 'add_edit_medicine_page.dart';
+import 'medicine_progress_page.dart';
 
 class MedicineDetailPage extends StatefulWidget {
   final Medicine medicine;
@@ -40,6 +41,18 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.analytics),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) =>
+                      MedicineProgressPage(medicine: widget.medicine),
+                ),
+              );
+            },
+            tooltip: 'View Progress Analytics',
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
@@ -355,7 +368,12 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
         if (state is DoseLoading) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is DoseLoaded) {
-          return _buildDosesList(state.doses);
+          return Column(
+            children: [
+              _buildQuickDoseActions(state.doses),
+              Expanded(child: _buildDosesList(state.doses)),
+            ],
+          );
         } else if (state is DoseError) {
           return Center(
             child: Column(
@@ -376,6 +394,115 @@ class _MedicineDetailPageState extends State<MedicineDetailPage>
         }
         return const Center(child: Text('No doses available'));
       },
+    );
+  }
+
+  Widget _buildQuickDoseActions(List<MedicineDose> doses) {
+    final now = DateTime.now();
+    final pendingDoses =
+        doses
+            .where(
+              (dose) =>
+                  dose.status == DoseStatus.pending &&
+                  dose.scheduledTime.isBefore(
+                    now.add(const Duration(hours: 2)),
+                  ),
+            )
+            .toList()
+          ..sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
+
+    if (pendingDoses.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final nextDose = pendingDoses.first;
+    final isOverdue = now.isAfter(nextDose.scheduledTime);
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isOverdue
+            ? Colors.red.withOpacity(0.1)
+            : Colors.blue.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isOverdue ? Colors.red : Colors.blue,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(
+                isOverdue ? Icons.warning : Icons.schedule,
+                color: isOverdue ? Colors.red : Colors.blue,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isOverdue ? 'Overdue Dose' : 'Next Dose',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isOverdue ? Colors.red : Colors.blue,
+                      ),
+                    ),
+                    Text(
+                      '${nextDose.scheduledTime.hour.toString().padLeft(2, '0')}:${nextDose.scheduledTime.minute.toString().padLeft(2, '0')}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    context.read<MedicineCubit>().markDoseAsTaken(
+                      nextDose.id,
+                      nextDose.medicineId,
+                    );
+                  },
+                  icon: const Icon(Icons.check),
+                  label: const Text('Take Now'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    context.read<MedicineCubit>().markDoseAsSkipped(
+                      nextDose.id,
+                      nextDose.medicineId,
+                    );
+                  },
+                  icon: const Icon(Icons.close),
+                  label: const Text('Skip'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.orange,
+                    side: const BorderSide(color: Colors.orange),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
