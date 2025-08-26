@@ -24,6 +24,7 @@ abstract class MedicineRepository {
   Future<Either<Failure, void>> markDoseAsTaken(String doseId);
   Future<Either<Failure, void>> markDoseAsSkipped(String doseId);
   Future<Either<Failure, void>> markDoseAsMissed(String doseId);
+  Future<Either<Failure, void>> generateDosesForMedicine(Medicine medicine);
 
   // Analytics
   Future<Either<Failure, Map<String, dynamic>>> getMedicineStatistics(

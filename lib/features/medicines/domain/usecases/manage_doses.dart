@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
+import '../entities/medicine.dart';
 import '../entities/medicine_dose.dart';
 import '../repositories/medicine_repository.dart';
 
@@ -68,4 +69,24 @@ class MarkDoseParams extends Equatable {
 
   @override
   List<Object> get props => [doseId];
+}
+
+class GenerateDosesForMedicine implements UseCase<void, GenerateDosesParams> {
+  final MedicineRepository repository;
+
+  GenerateDosesForMedicine(this.repository);
+
+  @override
+  Future<Either<Failure, void>> call(GenerateDosesParams params) async {
+    return await repository.generateDosesForMedicine(params.medicine);
+  }
+}
+
+class GenerateDosesParams extends Equatable {
+  final Medicine medicine;
+
+  const GenerateDosesParams({required this.medicine});
+
+  @override
+  List<Object> get props => [medicine];
 }

@@ -308,4 +308,58 @@ class MedicineRepositoryImpl implements MedicineRepository {
       return Left(DatabaseFailure('Unexpected error occurred: $e'));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> generateDosesForMedicine(Medicine medicine) async {
+    try {
+      final doses = <MedicineDose>[];
+      final startDate = medicine.startDate;
+      final endDate = medicine.endDate ?? medicine.startDate.add(Duration(days: medicine.durationInDays));
+      
+      // Generate doses for each day from start to end date
+      DateTime currentDate = startDate;
+      while (currentDate.isBefore(endDate) || currentDate.isAtSameMomentAs(endDate)) {
+        // Generate doses for each notification time
+        for (final timeString in medicine.notificationTimes) {
+          final timeParts = timeString.split(':');
+          final hour = int.parse(timeParts[0]);
+          final minute = int.parse(timeParts[1]);
+          
+          final doseTime = DateTime(
+            currentDate.year,
+            currentDate.month,
+            currentDate.day,
+            hour,
+            minute,
+          );
+          
+          final now = DateTime.now();
+          final dose = MedicineDose(
+            id: '${medicine.id}_${doseTime.millisecondsSinceEpoch}',
+            medicineId: medicine.id,
+            scheduledTime: doseTime,
+            status: DoseStatus.pending,
+            createdAt: now,
+            updatedAt: now,
+          );
+          
+          doses.add(dose);
+        }
+        
+        currentDate = currentDate.add(const Duration(days: 1));
+      }
+      
+      // Insert all generated doses
+      for (final dose in doses) {
+        final doseModel = MedicineDoseModel.fromEntity(dose);
+        await localDataSource.insertDose(doseModel);
+      }
+      
+      return const Right(null);
+    } on DatabaseException {
+      return Left(DatabaseFailure('Failed to generate doses for medicine'));
+    } catch (e) {
+      return Left(DatabaseFailure('Unexpected error occurred: $e'));
+    }
+  }
 }

@@ -68,6 +68,7 @@ Future<void> init() async {
       getPendingDosesUseCase: sl(),
       markDoseAsTakenUseCase: sl(),
       markDoseAsSkippedUseCase: sl(),
+      generateDosesForMedicineUseCase: sl(),
       notificationService: sl(),
     ),
   );
@@ -82,6 +83,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetPendingDoses(sl()));
   sl.registerLazySingleton(() => MarkDoseAsTaken(sl()));
   sl.registerLazySingleton(() => MarkDoseAsSkipped(sl()));
+  sl.registerLazySingleton(() => GenerateDosesForMedicine(sl()));
 
   // Repository
   sl.registerLazySingleton<MedicineRepository>(
