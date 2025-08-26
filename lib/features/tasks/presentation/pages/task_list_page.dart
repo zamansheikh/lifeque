@@ -79,12 +79,14 @@ class _TaskListPageState extends State<TaskListPage>
             ),
             child: TabBar(
               controller: _tabController,
-              indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: colorScheme.primary,
+              indicator: UnderlineTabIndicator(
+                borderSide: BorderSide(
+                  width: 3.0,
+                  color: colorScheme.primary,
+                ),
+                insets: const EdgeInsets.symmetric(horizontal: 4.0),
               ),
-              indicatorPadding: const EdgeInsets.all(4),
-              labelColor: Colors.white,
+              labelColor: colorScheme.primary,
               unselectedLabelColor: Colors.grey.shade600,
               labelStyle: const TextStyle(
                 fontWeight: FontWeight.w600,
