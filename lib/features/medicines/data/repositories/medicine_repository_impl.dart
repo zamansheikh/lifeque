@@ -319,7 +319,7 @@ class MedicineRepositoryImpl implements MedicineRepository {
       // Generate doses for each day from start to end date
       DateTime currentDate = startDate;
       while (currentDate.isBefore(endDate) || currentDate.isAtSameMomentAs(endDate)) {
-        // Generate doses for each notification time
+        // Generate doses for each notification time 
         for (final timeString in medicine.notificationTimes) {
           final timeParts = timeString.split(':');
           final hour = int.parse(timeParts[0]);
