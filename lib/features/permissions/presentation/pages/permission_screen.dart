@@ -38,9 +38,10 @@ class _PermissionScreenState extends State<PermissionScreen> {
 
         // For Android 6.0 and above, check battery optimization
         if (androidInfo.version.sdkInt >= 23) {
-          // This is a simplified check - in a real app you might want to
-          // use a platform channel to check actual battery optimization status
-          _batteryOptimization = true; // Assume enabled by default
+          // Battery optimization is typically enabled by default
+          // User needs to manually disable it in settings
+          _batteryOptimization =
+              false; // Start as false, user needs to configure
         } else {
           _batteryOptimization = true; // Not applicable for older versions
         }
@@ -60,6 +61,14 @@ class _PermissionScreenState extends State<PermissionScreen> {
   }
 
   Future<void> _requestNotificationPermission() async {
+    final currentStatus = await Permission.notification.status;
+
+    if (currentStatus.isPermanentlyDenied) {
+      // Show dialog to open app settings
+      _showSettingsDialog();
+      return;
+    }
+
     final status = await Permission.notification.request();
     setState(() {
       _notificationPermission = status.isGranted;
@@ -70,12 +79,50 @@ class _PermissionScreenState extends State<PermissionScreen> {
     }
   }
 
-  Future<void> _requestBatteryOptimization() async {
-    // This is a placeholder. In a real app, you would:
-    // 1. Check if battery optimization is disabled
-    // 2. Show a dialog explaining why it's needed
-    // 3. Open system settings for the user to disable it
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.settings, color: Colors.blue, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Text('Open Settings'),
+          ],
+        ),
+        content: const Text(
+          'Notification permission was denied. Please enable notifications in your device settings to receive task reminders.',
+          style: TextStyle(height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await openAppSettings();
+              // Re-check permissions when user comes back
+              await Future.delayed(const Duration(seconds: 1));
+              _checkPermissions();
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Future<void> _requestBatteryOptimization() async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -99,23 +146,75 @@ class _PermissionScreenState extends State<PermissionScreen> {
           ],
         ),
         content: const Text(
-          'To ensure reliable notifications, please disable battery optimization for this app in your device settings.\n\n'
-          'This allows the app to run in the background and deliver timely task reminders.',
+          'To ensure reliable notifications, please:\n\n'
+          '1. Open device settings\n'
+          '2. Find "Battery Optimization" or "App Battery Usage"\n'
+          '3. Find "RemindMe" in the list\n'
+          '4. Select "Don\'t optimize" or "Allow"\n\n'
+          'This allows the app to run in the background and deliver timely reminders.',
           style: TextStyle(height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+
+              // Try to open battery optimization settings
+              try {
+                await openAppSettings();
+              } catch (e) {
+                debugPrint('Could not open app settings: $e');
+              }
+
+              // Show confirmation dialog after delay
+              await Future.delayed(const Duration(seconds: 2));
+              if (mounted) {
+                _showBatteryOptimizationConfirmation();
+              }
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBatteryOptimizationConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Did you disable battery optimization?'),
+        content: const Text(
+          'Have you disabled battery optimization for RemindMe in your device settings?',
+          style: TextStyle(height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Don't change the state, keep showing as not optimized
+            },
+            child: const Text('Not Yet'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
               setState(() {
-                _batteryOptimization = true; // Assume user will do it
+                _batteryOptimization = true;
               });
 
               if (_notificationPermission && _batteryOptimization) {
                 widget.onPermissionsGranted();
               }
             },
-            child: const Text('Got it'),
+            child: const Text('Yes, Done'),
           ),
         ],
       ),
@@ -225,10 +324,6 @@ class _PermissionScreenState extends State<PermissionScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                const Expanded(
-                  child: SingleChildScrollView(child: Column(children: [])),
-                ),
-
                 // Permission cards
                 _buildPermissionCard(
                   title: 'Notifications',
@@ -252,8 +347,129 @@ class _PermissionScreenState extends State<PermissionScreen> {
                     onTap: _requestBatteryOptimization,
                     color: Colors.orange,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                 ],
+
+                // App Features Showcase (now in a container with fixed height)
+                Container(
+                  height: 200,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.purple.shade400,
+                                    Colors.pink.shade400,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.star_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'What RemindMe Can Do',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            bottom: 16,
+                          ),
+                          child: Column(
+                            children: [
+                              _buildFeatureCard(
+                                icon: Icons.task_alt_rounded,
+                                title: 'Smart Task Management',
+                                description:
+                                    'Create, organize, and track your daily tasks with intelligent reminders',
+                                color: Colors.blue,
+                              ),
+                              const SizedBox(height: 8),
+
+                              _buildFeatureCard(
+                                icon: Icons.medical_services_rounded,
+                                title: 'Medicine Reminders',
+                                description:
+                                    'Never miss a dose with customizable medication schedules and tracking',
+                                color: Colors.green,
+                              ),
+                              const SizedBox(height: 8),
+
+                              _buildFeatureCard(
+                                icon: Icons.cake_rounded,
+                                title: 'Birthday Reminders',
+                                description:
+                                    'Remember important dates and celebrate with your loved ones',
+                                color: Colors.pink,
+                              ),
+                              const SizedBox(height: 8),
+
+                              _buildFeatureCard(
+                                icon: Icons.access_time_rounded,
+                                title: 'One-time Reminders',
+                                description:
+                                    'Set quick reminders for appointments, calls, or any important events',
+                                color: Colors.orange,
+                              ),
+                              const SizedBox(height: 8),
+
+                              _buildFeatureCard(
+                                icon: Icons.notifications_active_rounded,
+                                title: 'Smart Notifications',
+                                description:
+                                    'Interactive notifications with actions - complete, snooze, or view details',
+                                color: Colors.purple,
+                              ),
+                              const SizedBox(height: 8),
+
+                              _buildFeatureCard(
+                                icon: Icons.push_pin_rounded,
+                                title: 'Pinned Reminders',
+                                description:
+                                    'Keep important tasks always visible in your notification panel',
+                                color: Colors.indigo,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
                 const Spacer(),
 
@@ -460,6 +676,65 @@ class _PermissionScreenState extends State<PermissionScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureCard({
+    required IconData icon,
+    required String title,
+    required String description,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
