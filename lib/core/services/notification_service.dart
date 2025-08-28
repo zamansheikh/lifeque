@@ -4,6 +4,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../../features/tasks/domain/entities/task.dart';
 import '../../features/tasks/presentation/bloc/task_bloc.dart';
+import '../../features/medicines/presentation/bloc/medicine_cubit.dart';
+import '../../features/medicines/domain/usecases/manage_doses.dart';
+import '../../core/usecases/usecase.dart';
 import 'navigation_service.dart';
 import '../../injection_container.dart' as di;
 
@@ -428,12 +431,12 @@ class NotificationService {
               const AndroidNotificationAction(
                 'mark_done',
                 '✅ Mark Done',
-                showsUserInterface: false,
+                showsUserInterface: true,
               ),
               const AndroidNotificationAction(
                 'snooze_15',
                 '⏰ Snooze 15m',
-                showsUserInterface: false,
+                showsUserInterface: true,
               ),
               const AndroidNotificationAction(
                 'view_details',
@@ -471,17 +474,17 @@ class NotificationService {
               const AndroidNotificationAction(
                 'mark_done',
                 '✅ Done',
-                showsUserInterface: false,
+                showsUserInterface: true,
               ),
               const AndroidNotificationAction(
                 'snooze_5',
                 '⏰ 5min',
-                showsUserInterface: false,
+                showsUserInterface: true,
               ),
               const AndroidNotificationAction(
                 'snooze_60',
                 '⏰ 1hr',
-                showsUserInterface: false,
+                showsUserInterface: true,
               ),
             ],
           ),
@@ -530,7 +533,7 @@ class NotificationService {
               const AndroidNotificationAction(
                 'mark_done',
                 '✅ Wished',
-                showsUserInterface: false,
+                showsUserInterface: true,
               ),
             ],
           ),
@@ -845,7 +848,7 @@ class NotificationService {
           const AndroidNotificationAction(
             'mark_done',
             '✅ Complete',
-            showsUserInterface: false,
+            showsUserInterface: true,
           ),
           const AndroidNotificationAction(
             'view_details',
@@ -859,12 +862,12 @@ class NotificationService {
           const AndroidNotificationAction(
             'mark_done',
             '✅ Done',
-            showsUserInterface: false,
+            showsUserInterface: true,
           ),
           const AndroidNotificationAction(
             'snooze_15',
             '⏰ Snooze',
-            showsUserInterface: false,
+            showsUserInterface: true,
           ),
         ];
 
@@ -878,7 +881,7 @@ class NotificationService {
           const AndroidNotificationAction(
             'mark_done',
             '✅ Wished',
-            showsUserInterface: false,
+            showsUserInterface: true,
           ),
         ];
     }
@@ -1294,17 +1297,17 @@ class NotificationService {
           const AndroidNotificationAction(
             'take_medicine',
             '✅ Take Now',
-            showsUserInterface: false,
+            showsUserInterface: true,
           ),
           const AndroidNotificationAction(
             'skip_medicine',
             '⏭️ Skip',
-            showsUserInterface: false,
+            showsUserInterface: true,
           ),
           const AndroidNotificationAction(
             'snooze_medicine',
             '⏰ Snooze 15min',
-            showsUserInterface: false,
+            showsUserInterface: true,
           ),
         ],
       ),
@@ -1357,26 +1360,34 @@ class NotificationService {
     );
 
     try {
+      // Get the medicine cubit to handle dose updates
+      final medicineCubit = di.sl<MedicineCubit>();
+      
       switch (actionId) {
         case 'take_medicine':
           debugPrint('🩺 User marked dose as taken from notification');
+          
+          // Get the current pending dose for this medicine
+          await _markCurrentPendingDoseAsTaken(medicineId, medicineCubit);
+          
           await _showActionFeedbackNotification(
             '✅ Dose Taken',
             'Medicine dose marked as taken!',
             const Color(0xFF4CAF50),
           );
-          // TODO: Get the current pending dose and mark it as taken
-          // This requires implementing a method to get current pending dose for a medicine
           break;
 
         case 'skip_medicine':
           debugPrint('🩺 User skipped dose from notification');
+          
+          // Get the current pending dose for this medicine
+          await _markCurrentPendingDoseAsSkipped(medicineId, medicineCubit);
+          
           await _showActionFeedbackNotification(
             '⏭️ Dose Skipped',
             'Medicine dose skipped',
             const Color(0xFFFF9800),
           );
-          // TODO: Get the current pending dose and mark it as skipped
           break;
 
         case 'snooze_medicine':
@@ -1399,6 +1410,112 @@ class NotificationService {
         'Failed to perform action',
         const Color(0xFFF44336),
       );
+    }
+  }
+
+  Future<void> _markCurrentPendingDoseAsTaken(
+    String medicineId,
+    dynamic medicineCubit,
+  ) async {
+    try {
+      debugPrint('🩺 Finding current pending dose for medicine: $medicineId');
+      
+      // Get today's doses for this medicine
+      final today = DateTime.now();
+      final todayStart = DateTime(today.year, today.month, today.day);
+      final todayEnd = todayStart.add(const Duration(days: 1));
+      
+      // Get all pending doses for this medicine today
+      final pendingDosesResult = await di.sl<GetPendingDoses>()(NoParams());
+      
+      await pendingDosesResult.fold(
+        (failure) {
+          debugPrint('🩺 ❌ Failed to get pending doses: $failure');
+        },
+        (pendingDoses) async {
+          debugPrint('🩺 Found ${pendingDoses.length} total pending doses');
+          
+          // Filter for this medicine and today
+          final medicinePendingDoses = pendingDoses.where((dose) =>
+            dose.medicineId == medicineId &&
+            dose.scheduledTime.isAfter(todayStart.subtract(const Duration(hours: 2))) &&
+            dose.scheduledTime.isBefore(todayEnd.add(const Duration(hours: 2)))
+          ).toList();
+          
+          debugPrint('🩺 Found ${medicinePendingDoses.length} pending doses for medicine $medicineId today');
+          
+          if (medicinePendingDoses.isNotEmpty) {
+            // Sort by scheduled time and get the earliest one (most likely current dose)
+            medicinePendingDoses.sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
+            final currentDose = medicinePendingDoses.first;
+            
+            debugPrint('🩺 Marking dose ${currentDose.id} as taken (scheduled: ${currentDose.scheduledTime})');
+            
+            // Mark the dose as taken using the medicine cubit
+            await medicineCubit.markDoseAsTaken(currentDose.id, medicineId);
+            
+            debugPrint('🩺 ✅ Successfully marked dose as taken');
+          } else {
+            debugPrint('🩺 ⚠️ No pending doses found for medicine $medicineId today');
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint('🩺 ❌ Error marking current dose as taken: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _markCurrentPendingDoseAsSkipped(
+    String medicineId,
+    dynamic medicineCubit,
+  ) async {
+    try {
+      debugPrint('🩺 Finding current pending dose to skip for medicine: $medicineId');
+      
+      // Get today's doses for this medicine
+      final today = DateTime.now();
+      final todayStart = DateTime(today.year, today.month, today.day);
+      final todayEnd = todayStart.add(const Duration(days: 1));
+      
+      // Get all pending doses for this medicine today
+      final pendingDosesResult = await di.sl<GetPendingDoses>()(NoParams());
+      
+      await pendingDosesResult.fold(
+        (failure) {
+          debugPrint('🩺 ❌ Failed to get pending doses: $failure');
+        },
+        (pendingDoses) async {
+          debugPrint('🩺 Found ${pendingDoses.length} total pending doses');
+          
+          // Filter for this medicine and today
+          final medicinePendingDoses = pendingDoses.where((dose) =>
+            dose.medicineId == medicineId &&
+            dose.scheduledTime.isAfter(todayStart.subtract(const Duration(hours: 2))) &&
+            dose.scheduledTime.isBefore(todayEnd.add(const Duration(hours: 2)))
+          ).toList();
+          
+          debugPrint('🩺 Found ${medicinePendingDoses.length} pending doses for medicine $medicineId today');
+          
+          if (medicinePendingDoses.isNotEmpty) {
+            // Sort by scheduled time and get the earliest one (most likely current dose)
+            medicinePendingDoses.sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
+            final currentDose = medicinePendingDoses.first;
+            
+            debugPrint('🩺 Marking dose ${currentDose.id} as skipped (scheduled: ${currentDose.scheduledTime})');
+            
+            // Mark the dose as skipped using the medicine cubit
+            await medicineCubit.markDoseAsSkipped(currentDose.id, medicineId);
+            
+            debugPrint('🩺 ✅ Successfully marked dose as skipped');
+          } else {
+            debugPrint('🩺 ⚠️ No pending doses found for medicine $medicineId today');
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint('🩺 ❌ Error marking current dose as skipped: $e');
+      rethrow;
     }
   }
 
