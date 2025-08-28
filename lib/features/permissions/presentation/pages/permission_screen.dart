@@ -139,19 +139,19 @@ class _PermissionScreenState extends State<PermissionScreen> {
       try {
         // Try to request battery optimization permission first
         final status = await Permission.ignoreBatteryOptimizations.request();
-        
+
         if (status.isGranted) {
           setState(() {
             _batteryOptimization = true;
             _batteryStatus = 'Disabled (Good!)';
           });
-          
+
           if (_notificationPermission && _batteryOptimization) {
             widget.onPermissionsGranted();
           }
           return;
         }
-        
+
         // If not granted, show guidance dialog
         _showBatteryOptimizationDialog();
       } catch (e) {
@@ -292,20 +292,20 @@ class _PermissionScreenState extends State<PermissionScreen> {
                     children: [
                       // App Logo
                       Container(
-                        width: 48,
-                        height: 48,
+                        width: 56,
+                        height: 56,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           child: Image.asset(
                             'assets/icon/icon.png',
                             fit: BoxFit.cover,
@@ -321,12 +321,12 @@ class _PermissionScreenState extends State<PermissionScreen> {
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: const Icon(
                                   Icons.notifications_active_rounded,
                                   color: Colors.white,
-                                  size: 24,
+                                  size: 28,
                                 ),
                               );
                             },
@@ -341,17 +341,19 @@ class _PermissionScreenState extends State<PermissionScreen> {
                             Text(
                               'RemindMe',
                               style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 32,
+                                fontWeight: FontWeight.w900,
                                 color: Colors.grey.shade800,
+                                letterSpacing: -0.5,
                               ),
                             ),
                             Text(
                               'Smart Task & Reminder Manager',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 15,
                                 color: Colors.grey.shade600,
                                 fontWeight: FontWeight.w500,
+                                letterSpacing: 0.2,
                               ),
                             ),
                           ],
