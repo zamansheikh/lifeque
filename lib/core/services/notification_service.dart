@@ -233,9 +233,20 @@ class NotificationService {
           _activeTasks.removeWhere((t) => t.id == taskId);
           debugPrint('🔔 Removed task from active list');
 
-          // Update the task in bloc
-          taskBloc.add(ToggleTaskCompletion(taskId));
-          debugPrint('🔔 Sent ToggleTaskCompletion event to bloc');
+          // Create an updated task with completed status
+          final updatedTask = task.copyWith(
+            isCompleted: true,
+            updatedAt: DateTime.now(),
+          );
+
+          // Update the task directly via bloc
+          taskBloc.add(UpdateTaskEvent(updatedTask));
+          debugPrint('🔔 Sent UpdateTaskEvent with completed status to bloc');
+
+          // Force reload tasks to refresh UI
+          await Future.delayed(const Duration(milliseconds: 500));
+          taskBloc.add(LoadTasks());
+          debugPrint('🔔 Triggered task reload for UI refresh');
 
           // Show a completion feedback notification
           await _showActionFeedbackNotification(

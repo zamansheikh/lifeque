@@ -30,12 +30,12 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   int _timesPerDay = 1;
   DateTime _startDate = DateTime.now();
   List<TimeOfDay> _notificationTimes = [TimeOfDay.now()];
-  
+
   // Store loaded medicine data when editing
   Medicine? _loadedMedicine;
 
   bool get _isEditing => widget.medicine != null || widget.medicineId != null;
-  
+
   // Get the medicine object for editing (either from widget or loaded state)
   Medicine? get _editingMedicine => widget.medicine ?? _loadedMedicine;
 
@@ -176,7 +176,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                 backgroundColor: Colors.red,
               ),
             );
-          } else if (state is MedicineDetailLoaded && widget.medicineId != null) {
+          } else if (state is MedicineDetailLoaded &&
+              widget.medicineId != null) {
             // Store the loaded medicine and populate fields when medicine is loaded via medicineId
             _loadedMedicine = state.medicine;
             _populateFields(state.medicine);
