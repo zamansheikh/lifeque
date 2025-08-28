@@ -498,12 +498,10 @@ class BirthdayTaskDetail extends StatelessWidget {
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
         const Spacer(),
-        Flexible(
-          child: Text(
-            value,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            textAlign: TextAlign.end,
-          ),
+        Text(
+          value,
+          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+          textAlign: TextAlign.end,
         ),
       ],
     );
