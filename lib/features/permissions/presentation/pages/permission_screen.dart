@@ -16,6 +16,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
   bool _notificationPermission = false;
   bool _batteryOptimization = false;
   bool _isLoading = false;
+  String _batteryStatus = 'Unknown';
 
   @override
   void initState() {
@@ -38,18 +39,29 @@ class _PermissionScreenState extends State<PermissionScreen> {
 
         // For Android 6.0 and above, check battery optimization
         if (androidInfo.version.sdkInt >= 23) {
-          // Battery optimization is typically enabled by default
-          // User needs to manually disable it in settings
-          _batteryOptimization =
-              false; // Start as false, user needs to configure
+          // Try to check if battery optimization is actually disabled
+          // This is a best-effort approach as direct detection is limited
+          final status = await Permission.ignoreBatteryOptimizations.status;
+          if (status.isGranted) {
+            _batteryOptimization = true;
+            _batteryStatus = 'Disabled (Good!)';
+          } else {
+            _batteryOptimization = false;
+            _batteryStatus = 'Enabled (Needs Action)';
+          }
         } else {
           _batteryOptimization = true; // Not applicable for older versions
+          _batteryStatus = 'Not Required';
         }
       } else {
         _batteryOptimization = true; // Not applicable for iOS
+        _batteryStatus = 'Not Required';
       }
     } catch (e) {
       debugPrint('Error checking permissions: $e');
+      if (Platform.isAndroid) {
+        _batteryStatus = 'Check Manually';
+      }
     }
 
     setState(() => _isLoading = false);
@@ -123,6 +135,33 @@ class _PermissionScreenState extends State<PermissionScreen> {
   }
 
   Future<void> _requestBatteryOptimization() async {
+    if (Platform.isAndroid) {
+      try {
+        // Try to request battery optimization permission first
+        final status = await Permission.ignoreBatteryOptimizations.request();
+        
+        if (status.isGranted) {
+          setState(() {
+            _batteryOptimization = true;
+            _batteryStatus = 'Disabled (Good!)';
+          });
+          
+          if (_notificationPermission && _batteryOptimization) {
+            widget.onPermissionsGranted();
+          }
+          return;
+        }
+        
+        // If not granted, show guidance dialog
+        _showBatteryOptimizationDialog();
+      } catch (e) {
+        debugPrint('Error with battery optimization: $e');
+        _showBatteryOptimizationDialog();
+      }
+    }
+  }
+
+  void _showBatteryOptimizationDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -146,12 +185,11 @@ class _PermissionScreenState extends State<PermissionScreen> {
           ],
         ),
         content: const Text(
-          'To ensure reliable notifications, please:\n\n'
-          '1. Open device settings\n'
-          '2. Find "Battery Optimization" or "App Battery Usage"\n'
-          '3. Find "RemindMe" in the list\n'
-          '4. Select "Don\'t optimize" or "Allow"\n\n'
-          'This allows the app to run in the background and deliver timely reminders.',
+          'For reliable notifications, RemindMe needs to run in the background:\n\n'
+          '1. Find "RemindMe" in the app list\n'
+          '2. Select "Don\'t optimize" or "Allow"\n'
+          '3. Confirm your choice\n\n'
+          'This ensures you never miss important reminders!',
           style: TextStyle(height: 1.4),
         ),
         actions: [
@@ -206,13 +244,8 @@ class _PermissionScreenState extends State<PermissionScreen> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              setState(() {
-                _batteryOptimization = true;
-              });
-
-              if (_notificationPermission && _batteryOptimization) {
-                widget.onPermissionsGranted();
-              }
+              // Recheck permissions to get updated status
+              _checkPermissions();
             },
             child: const Text('Yes, Done'),
           ),
@@ -254,10 +287,77 @@ class _PermissionScreenState extends State<PermissionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
-                  const Text(
-                    'Permissions',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  // Header with App Name and Logo
+                  Row(
+                    children: [
+                      // App Logo
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.asset(
+                            'assets/icon/icon.png',
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              // Fallback icon if image fails to load
+                              return Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.blue.shade400,
+                                      Colors.purple.shade400,
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.notifications_active_rounded,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'RemindMe',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                            Text(
+                              'Smart Task & Reminder Manager',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 32),
 
@@ -304,7 +404,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                               child: Text(
                                 'Setup Required',
                                 style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -315,7 +415,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                         Text(
                           'RemindMe needs a few permissions to deliver reliable notifications and reminders. This ensures you never miss important tasks!',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             color: Colors.grey.shade700,
                             height: 1.4,
                           ),
@@ -342,7 +442,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                     _buildPermissionCard(
                       title: 'Battery Optimization',
                       description:
-                          'Disable battery optimization for reliable background notifications',
+                          'Status: $_batteryStatus\nDisable battery optimization for reliable background notifications',
                       icon: Icons.battery_saver_rounded,
                       isGranted: _batteryOptimization,
                       onTap: _requestBatteryOptimization,
