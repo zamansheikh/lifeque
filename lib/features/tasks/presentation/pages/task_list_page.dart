@@ -709,7 +709,7 @@ class _TaskListPageState extends State<TaskListPage>
                         _buildSocialButton(
                           icon: Icons.facebook,
                           label: 'Facebook',
-                          url: 'https://fb.com/zamansheikh_404',
+                          url: 'https://www.facebook.com/zamansheikh_404',
                           color: const Color(0xFF1877F2),
                         ),
                       ],
