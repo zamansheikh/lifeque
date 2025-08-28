@@ -1362,14 +1362,14 @@ class NotificationService {
     try {
       // Get the medicine cubit to handle dose updates
       final medicineCubit = di.sl<MedicineCubit>();
-      
+
       switch (actionId) {
         case 'take_medicine':
           debugPrint('🩺 User marked dose as taken from notification');
-          
+
           // Get the current pending dose for this medicine
           await _markCurrentPendingDoseAsTaken(medicineId, medicineCubit);
-          
+
           await _showActionFeedbackNotification(
             '✅ Dose Taken',
             'Medicine dose marked as taken!',
@@ -1379,10 +1379,10 @@ class NotificationService {
 
         case 'skip_medicine':
           debugPrint('🩺 User skipped dose from notification');
-          
+
           // Get the current pending dose for this medicine
           await _markCurrentPendingDoseAsSkipped(medicineId, medicineCubit);
-          
+
           await _showActionFeedbackNotification(
             '⏭️ Dose Skipped',
             'Medicine dose skipped',
@@ -1419,44 +1419,59 @@ class NotificationService {
   ) async {
     try {
       debugPrint('🩺 Finding current pending dose for medicine: $medicineId');
-      
+
       // Get today's doses for this medicine
       final today = DateTime.now();
       final todayStart = DateTime(today.year, today.month, today.day);
       final todayEnd = todayStart.add(const Duration(days: 1));
-      
+
       // Get all pending doses for this medicine today
       final pendingDosesResult = await di.sl<GetPendingDoses>()(NoParams());
-      
+
       await pendingDosesResult.fold(
         (failure) {
           debugPrint('🩺 ❌ Failed to get pending doses: $failure');
         },
         (pendingDoses) async {
           debugPrint('🩺 Found ${pendingDoses.length} total pending doses');
-          
+
           // Filter for this medicine and today
-          final medicinePendingDoses = pendingDoses.where((dose) =>
-            dose.medicineId == medicineId &&
-            dose.scheduledTime.isAfter(todayStart.subtract(const Duration(hours: 2))) &&
-            dose.scheduledTime.isBefore(todayEnd.add(const Duration(hours: 2)))
-          ).toList();
-          
-          debugPrint('🩺 Found ${medicinePendingDoses.length} pending doses for medicine $medicineId today');
-          
+          final medicinePendingDoses = pendingDoses
+              .where(
+                (dose) =>
+                    dose.medicineId == medicineId &&
+                    dose.scheduledTime.isAfter(
+                      todayStart.subtract(const Duration(hours: 2)),
+                    ) &&
+                    dose.scheduledTime.isBefore(
+                      todayEnd.add(const Duration(hours: 2)),
+                    ),
+              )
+              .toList();
+
+          debugPrint(
+            '🩺 Found ${medicinePendingDoses.length} pending doses for medicine $medicineId today',
+          );
+
           if (medicinePendingDoses.isNotEmpty) {
             // Sort by scheduled time and get the earliest one (most likely current dose)
-            medicinePendingDoses.sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
+            medicinePendingDoses.sort(
+              (a, b) => a.scheduledTime.compareTo(b.scheduledTime),
+            );
             final currentDose = medicinePendingDoses.first;
-            
-            debugPrint('🩺 Marking dose ${currentDose.id} as taken (scheduled: ${currentDose.scheduledTime})');
-            
+
+            debugPrint(
+              '🩺 Marking dose ${currentDose.id} as taken (scheduled: ${currentDose.scheduledTime})',
+            );
+
             // Mark the dose as taken using the medicine cubit
             await medicineCubit.markDoseAsTaken(currentDose.id, medicineId);
-            
+
             debugPrint('🩺 ✅ Successfully marked dose as taken');
           } else {
-            debugPrint('🩺 ⚠️ No pending doses found for medicine $medicineId today');
+            debugPrint(
+              '🩺 ⚠️ No pending doses found for medicine $medicineId today',
+            );
           }
         },
       );
@@ -1471,45 +1486,62 @@ class NotificationService {
     dynamic medicineCubit,
   ) async {
     try {
-      debugPrint('🩺 Finding current pending dose to skip for medicine: $medicineId');
-      
+      debugPrint(
+        '🩺 Finding current pending dose to skip for medicine: $medicineId',
+      );
+
       // Get today's doses for this medicine
       final today = DateTime.now();
       final todayStart = DateTime(today.year, today.month, today.day);
       final todayEnd = todayStart.add(const Duration(days: 1));
-      
+
       // Get all pending doses for this medicine today
       final pendingDosesResult = await di.sl<GetPendingDoses>()(NoParams());
-      
+
       await pendingDosesResult.fold(
         (failure) {
           debugPrint('🩺 ❌ Failed to get pending doses: $failure');
         },
         (pendingDoses) async {
           debugPrint('🩺 Found ${pendingDoses.length} total pending doses');
-          
+
           // Filter for this medicine and today
-          final medicinePendingDoses = pendingDoses.where((dose) =>
-            dose.medicineId == medicineId &&
-            dose.scheduledTime.isAfter(todayStart.subtract(const Duration(hours: 2))) &&
-            dose.scheduledTime.isBefore(todayEnd.add(const Duration(hours: 2)))
-          ).toList();
-          
-          debugPrint('🩺 Found ${medicinePendingDoses.length} pending doses for medicine $medicineId today');
-          
+          final medicinePendingDoses = pendingDoses
+              .where(
+                (dose) =>
+                    dose.medicineId == medicineId &&
+                    dose.scheduledTime.isAfter(
+                      todayStart.subtract(const Duration(hours: 2)),
+                    ) &&
+                    dose.scheduledTime.isBefore(
+                      todayEnd.add(const Duration(hours: 2)),
+                    ),
+              )
+              .toList();
+
+          debugPrint(
+            '🩺 Found ${medicinePendingDoses.length} pending doses for medicine $medicineId today',
+          );
+
           if (medicinePendingDoses.isNotEmpty) {
             // Sort by scheduled time and get the earliest one (most likely current dose)
-            medicinePendingDoses.sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
+            medicinePendingDoses.sort(
+              (a, b) => a.scheduledTime.compareTo(b.scheduledTime),
+            );
             final currentDose = medicinePendingDoses.first;
-            
-            debugPrint('🩺 Marking dose ${currentDose.id} as skipped (scheduled: ${currentDose.scheduledTime})');
-            
+
+            debugPrint(
+              '🩺 Marking dose ${currentDose.id} as skipped (scheduled: ${currentDose.scheduledTime})',
+            );
+
             // Mark the dose as skipped using the medicine cubit
             await medicineCubit.markDoseAsSkipped(currentDose.id, medicineId);
-            
+
             debugPrint('🩺 ✅ Successfully marked dose as skipped');
           } else {
-            debugPrint('🩺 ⚠️ No pending doses found for medicine $medicineId today');
+            debugPrint(
+              '🩺 ⚠️ No pending doses found for medicine $medicineId today',
+            );
           }
         },
       );

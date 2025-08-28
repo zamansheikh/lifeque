@@ -30,14 +30,23 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   int _timesPerDay = 1;
   DateTime _startDate = DateTime.now();
   List<TimeOfDay> _notificationTimes = [TimeOfDay.now()];
+  
+  // Store loaded medicine data when editing
+  Medicine? _loadedMedicine;
 
-  bool get _isEditing => widget.medicine != null;
+  bool get _isEditing => widget.medicine != null || widget.medicineId != null;
+  
+  // Get the medicine object for editing (either from widget or loaded state)
+  Medicine? get _editingMedicine => widget.medicine ?? _loadedMedicine;
 
   @override
   void initState() {
     super.initState();
-    if (_isEditing && widget.medicine != null) {
+    if (widget.medicine != null) {
       _populateFields(widget.medicine!);
+    } else if (widget.medicineId != null) {
+      // Load medicine data from medicineId
+      context.read<MedicineCubit>().loadMedicineDetail(widget.medicineId!);
     }
   }
 
@@ -167,6 +176,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                 backgroundColor: Colors.red,
               ),
             );
+          } else if (state is MedicineDetailLoaded && widget.medicineId != null) {
+            // Store the loaded medicine and populate fields when medicine is loaded via medicineId
+            _loadedMedicine = state.medicine;
+            _populateFields(state.medicine);
           }
         },
         child: Form(
@@ -965,9 +978,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
 
   void _saveMedicine() {
     if (_formKey.currentState!.validate()) {
+      final editingMedicine = _editingMedicine;
       final medicine = Medicine(
         id: _isEditing
-            ? widget.medicine!.id
+            ? editingMedicine!.id
             : DateTime.now().millisecondsSinceEpoch.toString(),
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim().isEmpty
@@ -996,7 +1010,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
-        createdAt: _isEditing ? widget.medicine!.createdAt : DateTime.now(),
+        createdAt: _isEditing ? editingMedicine!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
