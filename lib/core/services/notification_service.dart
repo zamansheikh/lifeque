@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:url_launcher/url_launcher.dart';
 import '../../features/tasks/domain/entities/task.dart';
 import '../../features/tasks/presentation/bloc/task_bloc.dart';
 import '../../features/medicines/presentation/bloc/medicine_cubit.dart';
@@ -315,23 +316,54 @@ class NotificationService {
         case 'call_contact':
           // For birthday reminders - call the person
           debugPrint('🔔 Opening phone app to call birthday person');
-          await _showActionFeedbackNotification(
-            '📞 Calling',
-            'Opening phone app...',
-            const Color(0xFFE91E63), // Pink
-          );
-          // TODO: Implement phone dialing
+          try {
+            // Extract phone number from task description or use a generic dialer
+            // For now, just open the phone dialer
+            final phoneUri = Uri.parse('tel:');
+            if (await canLaunchUrl(phoneUri)) {
+              await launchUrl(phoneUri);
+              await _showActionFeedbackNotification(
+                '📞 Phone App Opened',
+                'Phone app opened successfully',
+                const Color(0xFF4CAF50), // Green
+              );
+            } else {
+              throw Exception('Cannot open phone app');
+            }
+          } catch (e) {
+            debugPrint('🔔 Error opening phone app: $e');
+            await _showActionFeedbackNotification(
+              '❌ Phone Error',
+              'Could not open phone app',
+              const Color(0xFFF44336), // Red
+            );
+          }
           break;
 
         case 'send_message':
           // For birthday reminders - send message
           debugPrint('🔔 Opening messaging app for birthday wishes');
-          await _showActionFeedbackNotification(
-            '💬 Messaging',
-            'Opening messaging app...',
-            const Color(0xFFE91E63), // Pink
-          );
-          // TODO: Implement messaging
+          try {
+            // Open SMS app with pre-filled birthday message
+            final smsUri = Uri.parse('sms:?body=Happy Birthday! 🎉🎂');
+            if (await canLaunchUrl(smsUri)) {
+              await launchUrl(smsUri);
+              await _showActionFeedbackNotification(
+                '💬 Messaging App Opened',
+                'Messaging app opened with birthday wishes',
+                const Color(0xFF4CAF50), // Green
+              );
+            } else {
+              throw Exception('Cannot open messaging app');
+            }
+          } catch (e) {
+            debugPrint('🔔 Error opening messaging app: $e');
+            await _showActionFeedbackNotification(
+              '❌ Messaging Error',
+              'Could not open messaging app',
+              const Color(0xFFF44336), // Red
+            );
+          }
           break;
 
         default:
@@ -355,28 +387,49 @@ class NotificationService {
   Future<void> _snoozeNotification(String taskId, int minutes) async {
     debugPrint('🔔 Snoozing notification for $taskId by $minutes minutes');
 
+    // Find the task to get its details
+    final task = _activeTasks.firstWhere(
+      (t) => t.id == taskId,
+      orElse: () => throw Exception('Task not found for snoozing'),
+    );
+
     // Cancel current notification
     await _flutterLocalNotificationsPlugin.cancel(taskId.hashCode);
 
-    // Reschedule for later
+    // Reschedule for later with original task details
     final snoozeTime = tz.TZDateTime.now(
       tz.local,
     ).add(Duration(minutes: minutes));
 
+    String title;
+    String body;
+
+    switch (task.taskType) {
+      case TaskType.task:
+        title = '📋 Task Reminder: ${task.title}';
+        body = 'Snoozed for $minutes minutes - ${task.description}';
+        break;
+      case TaskType.reminder:
+        title = '⏰ Reminder: ${task.title}';
+        body = 'Snoozed for $minutes minutes - ${task.description}';
+        break;
+      case TaskType.birthday:
+        title = '🎂 Birthday Reminder: ${task.title}';
+        body = 'Snoozed for $minutes minutes - Don\'t forget to wish them!';
+        break;
+    }
+
     await _flutterLocalNotificationsPlugin.zonedSchedule(
       taskId.hashCode,
-      '⏰ Snoozed Reminder',
-      'This reminder was snoozed for $minutes minutes',
+      title,
+      body,
       snoozeTime,
-      _getNotificationDetails(
-        TaskType.reminder,
-        taskId,
-      ), // Default to reminder style
+      _getNotificationDetails(task.taskType, taskId),
       payload: taskId, // Add task ID as payload
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
 
-    debugPrint('🔔 Notification snoozed until: $snoozeTime');
+    debugPrint('🔔 Task "${task.title}" snoozed until: $snoozeTime');
   }
 
   Future<void> _showActionFeedbackNotification(
