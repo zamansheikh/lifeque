@@ -483,7 +483,7 @@ class _TaskListPageState extends State<TaskListPage>
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
