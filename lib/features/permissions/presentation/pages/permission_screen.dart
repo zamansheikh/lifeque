@@ -248,162 +248,161 @@ class _PermissionScreenState extends State<PermissionScreen> {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                const Text(
-                  'Permissions',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 32),
-
-                // Welcome message
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  const Text(
+                    'Permissions',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.blue.shade400,
-                                  Colors.purple.shade400,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.security_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          const Expanded(
-                            child: Text(
-                              'Setup Required',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'RemindMe needs a few permissions to deliver reliable notifications and reminders. This ensures you never miss important tasks!',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade700,
-                          height: 1.4,
+                  const SizedBox(height: 32),
+
+                  // Welcome message
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Permission cards
-                _buildPermissionCard(
-                  title: 'Notifications',
-                  description:
-                      'Allow RemindMe to send you task reminders and alerts',
-                  icon: Icons.notifications_rounded,
-                  isGranted: _notificationPermission,
-                  onTap: _requestNotificationPermission,
-                  color: Colors.blue,
-                ),
-                const SizedBox(height: 16),
-
-                // Battery Optimization (Android only)
-                if (Platform.isAndroid) ...[
-                  _buildPermissionCard(
-                    title: 'Battery Optimization',
-                    description:
-                        'Disable battery optimization for reliable background notifications',
-                    icon: Icons.battery_saver_rounded,
-                    isGranted: _batteryOptimization,
-                    onTap: _requestBatteryOptimization,
-                    color: Colors.orange,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // App Features Showcase (now in a container with fixed height)
-                Container(
-                  height: 200,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
+                                    Colors.blue.shade400,
                                     Colors.purple.shade400,
-                                    Colors.pink.shade400,
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
-                                Icons.star_rounded,
+                                Icons.security_rounded,
                                 color: Colors.white,
-                                size: 20,
+                                size: 24,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            const Text(
-                              'What RemindMe Can Do',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            const SizedBox(width: 16),
+                            const Expanded(
+                              child: Text(
+                                'Setup Required',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      Expanded(
-                        child: SingleChildScrollView(
+                        const SizedBox(height: 16),
+                        Text(
+                          'RemindMe needs a few permissions to deliver reliable notifications and reminders. This ensures you never miss important tasks!',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey.shade700,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Permission cards
+                  _buildPermissionCard(
+                    title: 'Notifications',
+                    description:
+                        'Allow RemindMe to send you task reminders and alerts',
+                    icon: Icons.notifications_rounded,
+                    isGranted: _notificationPermission,
+                    onTap: _requestNotificationPermission,
+                    color: Colors.blue,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Battery Optimization (Android only)
+                  if (Platform.isAndroid) ...[
+                    _buildPermissionCard(
+                      title: 'Battery Optimization',
+                      description:
+                          'Disable battery optimization for reliable background notifications',
+                      icon: Icons.battery_saver_rounded,
+                      isGranted: _batteryOptimization,
+                      onTap: _requestBatteryOptimization,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // App Features Showcase
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.purple.shade400,
+                                      Colors.pink.shade400,
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.star_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                'What RemindMe Can Do',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
                           padding: const EdgeInsets.only(
                             left: 16,
                             right: 16,
@@ -466,124 +465,125 @@ class _PermissionScreenState extends State<PermissionScreen> {
                             ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const Spacer(),
-
-                // Success message and continue button
-                if (_notificationPermission && _batteryOptimization) ...[
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.green.shade50, Colors.green.shade100],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.green.shade200),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.green.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade100,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.check_circle_rounded,
-                            color: Colors.green,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'All Set!',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
-                                ),
-                              ),
-                              Text(
-                                'You\'re ready to use RemindMe with full functionality.',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.green,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: widget.onPermissionsGranted,
-                      style:
-                          ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ).copyWith(
-                            backgroundColor: WidgetStateProperty.all(
-                              Colors.transparent,
-                            ),
-                          ),
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.blue.shade400,
-                              Colors.purple.shade400,
-                            ],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
+
+                  const SizedBox(height: 32),
+
+                  // Success message and continue button
+                  if (_notificationPermission && _batteryOptimization) ...[
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.green.shade50, Colors.green.shade100],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.green.shade200),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.green.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.green,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'All Set!',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                                Text(
+                                  'You\'re ready to use RemindMe with full functionality.',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: widget.onPermissionsGranted,
+                        style:
+                            ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ).copyWith(
+                              backgroundColor: WidgetStateProperty.all(
+                                Colors.transparent,
+                              ),
+                            ),
+                        child: Ink(
                           decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.blue.shade400,
+                                Colors.purple.shade400,
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Text(
-                            'Continue',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Text(
+                              'Continue',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
+                  const SizedBox(height: 32), // Bottom padding
                 ],
-              ],
+              ),
             ),
           ),
         ),
