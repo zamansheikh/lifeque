@@ -39,6 +39,31 @@ jobs:
           tag_name: v1.0.7+${{ github.run_number }}
           name: RemindMe v1.0.7+${{ github.run_number }}
           files: build/app/outputs/flutter-apk/app-release.apk
-          generate_release_notes: true
+          generate_release_notes: true  # 🚀 Auto-generate release notes from commits
+          body: |
+            ## 🚀 RemindMe v1.0.7+${{ github.run_number }}
+            
+            ### 📱 What's New
+            This release includes the latest improvements and bug fixes for RemindMe!
+            
+            ### 📋 Features
+            - ✅ Task management with start/end dates
+            - 📋 Progress tracking with visual indicators
+            - 🔔 Smart notifications and reminders
+            - 💊 Medicine reminder system
+            - 🕌 Islamic Prayer Times with GPS location
+            - 🎯 Clean Material Design 3 UI
+            
+            ### 🛠️ Recent Changes
+            Check the commits below for detailed changes since the last release.
+            
+            ### 📥 Installation
+            1. Download the APK file below
+            2. Enable "Install from unknown sources" in Android settings
+            3. Install the APK file
+            4. Enjoy the latest features!
+            
+            ### 🐛 Found a Bug?
+            Report issues at: https://github.com/zamansheikh/remindme/issues
         # env:
         #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
