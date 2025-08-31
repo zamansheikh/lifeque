@@ -564,13 +564,24 @@ class _TaskListPageState extends State<TaskListPage>
                       context.push('/medicines');
                     },
                   ),
+                  _buildDrawerItem(
+                    icon: Icons.schedule,
+                    title: 'Prayer Times',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/prayer-times');
+                    },
+                  ),
                   const Divider(height: 32),
                   _buildDrawerItem(
                     icon: Icons.info_outline_rounded,
                     title: 'About',
                     onTap: () {
                       Navigator.pop(context);
-                      _showAboutDialog(context, _updateInfo?.isUpdateAvailable == true);
+                      _showAboutDialog(
+                        context,
+                        _updateInfo?.isUpdateAvailable == true,
+                      );
                     },
                     showUpdateBadge: _updateInfo?.isUpdateAvailable == true,
                   ),
@@ -657,7 +668,10 @@ class _TaskListPageState extends State<TaskListPage>
     );
   }
 
-  Future<void> _showAboutDialog(BuildContext context, bool isUpdateAvailable) async {
+  Future<void> _showAboutDialog(
+    BuildContext context,
+    bool isUpdateAvailable,
+  ) async {
     final packageInfo = await PackageInfo.fromPlatform();
     final colorScheme = Theme.of(context).colorScheme;
 

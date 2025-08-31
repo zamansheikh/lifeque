@@ -9,6 +9,7 @@ import '../features/tasks/presentation/pages/task_detail_page.dart';
 import '../features/medicines/presentation/bloc/medicine_cubit.dart';
 import '../features/medicines/presentation/pages/medicines_dashboard_page.dart';
 import '../features/medicines/presentation/pages/add_edit_medicine_page.dart';
+import '../features/prayer_times/presentation/pages/prayer_times_page.dart';
 import '../features/permissions/presentation/pages/permission_screen.dart';
 import 'services/navigation_service.dart';
 import '../injection_container.dart' as di;
@@ -36,6 +37,11 @@ class AppRouter {
         path: '/medicines',
         name: 'medicines',
         builder: (context, state) => const MedicinesDashboardPage(),
+      ),
+      GoRoute(
+        path: '/prayer-times',
+        name: 'prayer-times',
+        builder: (context, state) => const PrayerTimesPage(),
       ),
       GoRoute(
         path: '/add-medicine',
