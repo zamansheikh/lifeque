@@ -229,11 +229,14 @@ class _QiblaCardState extends State<QiblaCard>
                       // Qibla arrow
                       Transform.rotate(
                         angle: _hasCompass && _compassDirection != null
-                            ? ((qiblaDirection - _compassDirection!) * (math.pi / 180))
+                            ? ((qiblaDirection - _compassDirection!) *
+                                  (math.pi / 180))
                             : (qiblaDirection * (math.pi / 180)),
                         child: Icon(
                           Icons.navigation,
-                          color: _hasCompass ? Colors.green : colorScheme.primary,
+                          color: _hasCompass
+                              ? Colors.green
+                              : colorScheme.primary,
                           size: 40,
                         ),
                       ),
@@ -243,7 +246,9 @@ class _QiblaCardState extends State<QiblaCard>
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: _hasCompass ? Colors.green : colorScheme.primary,
+                          color: _hasCompass
+                              ? Colors.green
+                              : colorScheme.primary,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -279,7 +284,10 @@ class _QiblaCardState extends State<QiblaCard>
                     ),
                     Text(
                       'from North',
-                      style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                     if (_hasCompass && _compassDirection != null) ...[
                       const SizedBox(height: 8),
@@ -306,14 +314,18 @@ class _QiblaCardState extends State<QiblaCard>
               color: _hasCompass ? Colors.green.shade50 : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: _hasCompass ? Colors.green.shade200 : Colors.grey.shade200,
+                color: _hasCompass
+                    ? Colors.green.shade200
+                    : Colors.grey.shade200,
               ),
             ),
             child: Row(
               children: [
                 Icon(
                   _hasCompass ? Icons.compass_calibration : Icons.info_outline,
-                  color: _hasCompass ? Colors.green.shade600 : Colors.grey.shade600,
+                  color: _hasCompass
+                      ? Colors.green.shade600
+                      : Colors.grey.shade600,
                   size: 16,
                 ),
                 const SizedBox(width: 8),
@@ -324,7 +336,9 @@ class _QiblaCardState extends State<QiblaCard>
                         : 'Point your device towards ${qiblaDirection.toStringAsFixed(1)}° from North to face Qibla',
                     style: TextStyle(
                       fontSize: 12,
-                      color: _hasCompass ? Colors.green.shade700 : Colors.grey.shade600,
+                      color: _hasCompass
+                          ? Colors.green.shade700
+                          : Colors.grey.shade600,
                     ),
                   ),
                 ),

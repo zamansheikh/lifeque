@@ -92,7 +92,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         if (!_isLocationFromGps) {
           // GPS failed and no saved location, use default
           setState(() {
-            _error = 'No location found. Using default location (Dhaka, Bangladesh). Tap refresh to get your location.';
+            _error =
+                'No location found. Using default location (Dhaka, Bangladesh). Tap refresh to get your location.';
             _isLoading = false;
           });
         }
@@ -142,9 +143,15 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         );
 
         // Check if location has changed significantly (>100m)
-        double distance = Geolocator.distanceBetween(_latitude, _longitude, position.latitude, position.longitude);
-        
-        if (distance > 100) { // Only update if moved more than 100 meters
+        double distance = Geolocator.distanceBetween(
+          _latitude,
+          _longitude,
+          position.latitude,
+          position.longitude,
+        );
+
+        if (distance > 100) {
+          // Only update if moved more than 100 meters
           // Save new GPS location
           await _settingsService.saveLocation(
             latitude: position.latitude,
@@ -162,8 +169,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           });
 
           _updatePrayerTimes();
-          debugPrint('✅ Background: Location updated from GPS (moved ${distance.toInt()}m)');
-          
+          debugPrint(
+            '✅ Background: Location updated from GPS (moved ${distance.toInt()}m)',
+          );
+
           // Show subtle notification
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -175,7 +184,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             );
           }
         } else {
-          debugPrint('ℹ️ Background: Location unchanged (${distance.toInt()}m), keeping current');
+          debugPrint(
+            'ℹ️ Background: Location unchanged (${distance.toInt()}m), keeping current',
+          );
         }
       } catch (e) {
         debugPrint('❌ Background: Could not get current location: $e');
@@ -492,7 +503,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                         Icons.refresh,
                         color: Theme.of(context).colorScheme.primary,
                       ),
-                tooltip: _isLocationUpdating ? 'Updating...' : 'Refresh Location',
+                tooltip: _isLocationUpdating
+                    ? 'Updating...'
+                    : 'Refresh Location',
               ),
             ],
           ),
@@ -523,7 +536,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
   Future<void> _refreshLocation() async {
     setState(() => _isLocationUpdating = true);
-    
+
     // Show immediate feedback
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -533,9 +546,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     );
 
     await _requestLocationPermission();
-    
+
     setState(() => _isLocationUpdating = false);
-    
+
     if (_isLocationFromGps) {
       _updatePrayerTimes();
       ScaffoldMessenger.of(context).showSnackBar(
