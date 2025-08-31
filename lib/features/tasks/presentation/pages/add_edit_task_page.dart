@@ -1077,11 +1077,19 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
 
   Future<void> _selectSpecificNotificationTime(BuildContext context) async {
     // First pick the date
+    final DateTime now = DateTime.now();
+    final DateTime maxDate = _endDate.isAfter(now)
+        ? _endDate
+        : now.add(const Duration(days: 365)); // Default to 1 year from now
+
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _notificationTime ?? DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: _endDate,
+      initialDate:
+          (_notificationTime != null && _notificationTime!.isAfter(now))
+          ? _notificationTime!
+          : now,
+      firstDate: now,
+      lastDate: maxDate,
     );
 
     if (pickedDate != null) {
