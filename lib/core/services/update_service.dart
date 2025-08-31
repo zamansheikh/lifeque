@@ -42,20 +42,41 @@ class UpdateService {
 
         debugPrint('🆕 Latest GitHub version: $latestTag');
 
-        // Parse version from tag (e.g., "v1.0.123" -> "1.0.123")
+        // Parse version from tag
+        // Handles both: "v1.0.4" (old) and "v1.0.0+5" (new workflow)
         final versionMatch = RegExp(
-          r'v?(\d+\.\d+)\.(\d+)',
+          r'v?(\d+\.\d+\.\d+)(?:\+(\d+))?',
         ).firstMatch(latestTag);
         if (versionMatch != null) {
-          final latestVersion = versionMatch.group(1) ?? '1.0';
+          final latestVersion = versionMatch.group(1) ?? '1.0.0';
           final latestBuildNumber =
               int.tryParse(versionMatch.group(2) ?? '1') ?? 1;
 
           debugPrint('🔍 Parsed latest: $latestVersion+$latestBuildNumber');
           debugPrint('🔍 Current: $currentVersion+$currentBuildNumber');
 
-          // Check if update is available (compare build numbers)
-          if (latestBuildNumber > currentBuildNumber) {
+          // Compare only version numbers (ignore build numbers)
+          final latestVersionParts = latestVersion
+              .split('.')
+              .map(int.parse)
+              .toList();
+          final currentVersionParts = currentVersion
+              .split('.')
+              .map(int.parse)
+              .toList();
+
+          bool isUpdateAvailable = false;
+          for (int i = 0; i < 3; i++) {
+            if (latestVersionParts[i] > currentVersionParts[i]) {
+              isUpdateAvailable = true;
+              break;
+            } else if (latestVersionParts[i] < currentVersionParts[i]) {
+              break;
+            }
+          }
+
+          // Check if update is available (compare version numbers only)
+          if (isUpdateAvailable) {
             debugPrint('✅ Update available!');
 
             // Find APK download URL
@@ -81,7 +102,9 @@ class UpdateService {
               isUpdateAvailable: true,
             );
           } else {
-            debugPrint('✅ App is up to date');
+            debugPrint(
+              '✅ App is up to date. Both versions: $currentVersion vs $latestVersion',
+            );
             return UpdateInfo(
               currentVersion: '$currentVersion+$currentBuildNumber',
               latestVersion: '$latestVersion+$latestBuildNumber',

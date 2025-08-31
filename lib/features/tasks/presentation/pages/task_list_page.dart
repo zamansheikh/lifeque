@@ -781,8 +781,16 @@ class _TaskListPageState extends State<TaskListPage>
             // Check for Updates Button
             TextButton.icon(
               onPressed: () async {
+                // Close the About dialog first
                 Navigator.of(context).pop();
-                await _checkForUpdates(context);
+
+                // Wait a bit for the dialog to close
+                await Future.delayed(const Duration(milliseconds: 100));
+
+                // Use the scaffold context for update check
+                if (mounted) {
+                  await _checkForUpdatesWithRootContext();
+                }
               },
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
@@ -898,58 +906,81 @@ class _TaskListPageState extends State<TaskListPage>
     );
   }
 
-  /// Check for app updates
-  Future<void> _checkForUpdates(BuildContext context) async {
-    // Show loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(
-              'Checking for updates...',
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
-            ),
-          ],
-        ),
-      ),
-    );
-
+  /// Check for app updates using the widget's context
+  Future<void> _checkForUpdatesWithRootContext() async {
     try {
-      // Check for updates
-      final updateInfo = await UpdateService.checkForUpdate();
+      debugPrint('🔍 Manual update check initiated with root context');
 
-      if (!context.mounted) return;
+      // Show loading indicator using the widget's context
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Checking for updates...',
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      debugPrint('🔍 Loading dialog shown, starting update check...');
+
+      // Check for updates with a reasonable timeout
+      final updateInfo = await UpdateService.checkForUpdate().timeout(
+        const Duration(seconds: 15),
+      );
+
+      debugPrint('🔍 Update check completed: $updateInfo');
+
+      if (!context.mounted) {
+        debugPrint('🔍 Widget context not mounted, returning');
+        return;
+      }
 
       // Close loading dialog
       Navigator.of(context).pop();
 
       if (updateInfo == null) {
+        debugPrint('🔍 No update info received, showing error');
         // Error occurred
         _showUpdateErrorDialog(context);
       } else if (updateInfo.isUpdateAvailable) {
+        debugPrint('🔍 Update available, showing update dialog');
         // Update available
         await UpdateService.showUpdateDialog(context, updateInfo);
       } else {
+        debugPrint('🔍 App is up to date, showing success dialog');
         // Up to date
         _showUpToDateDialog(context, updateInfo);
       }
     } catch (e) {
-      if (!context.mounted) return;
+      debugPrint('❌ Update check failed: $e');
 
-      // Close loading dialog
+      if (!context.mounted) {
+        debugPrint('🔍 Widget context not mounted in catch block');
+        return;
+      }
+
+      // Close loading dialog if still open
       Navigator.of(context).pop();
 
       // Show error
+      debugPrint('🔍 Showing error dialog');
       _showUpdateErrorDialog(context);
     }
   }
 
+  /// Check for app updates
   /// Show up-to-date dialog
   void _showUpToDateDialog(BuildContext context, UpdateInfo updateInfo) {
     showDialog(
