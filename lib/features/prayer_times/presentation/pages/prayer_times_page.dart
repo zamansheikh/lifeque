@@ -4,6 +4,7 @@ import 'package:adhan/adhan.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../../core/utils/salah_time_calculator.dart';
+import '../../data/services/prayer_settings_service.dart';
 import '../widgets/prayer_time_card.dart';
 import '../widgets/next_prayer_card.dart';
 import '../widgets/qibla_card.dart';
@@ -28,12 +29,14 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   double _latitude = 23.8103;
   double _longitude = 90.4125;
   String _locationName = 'Dhaka, Bangladesh';
+  bool _isLocationFromGps = false;
+
+  final PrayerSettingsService _settingsService = PrayerSettingsService.instance;
 
   @override
   void initState() {
     super.initState();
-    _requestLocationPermission();
-    _updatePrayerTimes();
+    _loadSavedSettings();
     _startTimer();
   }
 
@@ -53,15 +56,50 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     });
   }
 
+  Future<void> _loadSavedSettings() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Load saved prayer settings
+      _selectedMethod = await _settingsService.getCalculationMethod();
+      _selectedMadhab = await _settingsService.getMadhab();
+
+      // Try to get current location first
+      await _requestLocationPermission();
+
+      // If GPS location failed, try to load saved location
+      if (!_isLocationFromGps) {
+        final savedLocation = await _settingsService.getSavedLocation();
+        if (savedLocation != null) {
+          setState(() {
+            _latitude = savedLocation.latitude;
+            _longitude = savedLocation.longitude;
+            _locationName = savedLocation.locationName;
+            _error = null;
+          });
+        } else {
+          // No saved location and GPS failed, show message but use default
+          setState(() {
+            _error =
+                'No saved location found. Using default location (Dhaka, Bangladesh). Tap refresh to get your location.';
+          });
+        }
+      }
+
+      _updatePrayerTimes();
+    } catch (e) {
+      setState(() {
+        _error = 'Error loading prayer settings: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
   Future<void> _requestLocationPermission() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        setState(() {
-          _error =
-              'Location services are disabled. Using default location (Dhaka, Bangladesh).';
-          _isLoading = false;
-        });
+        debugPrint('Location services are disabled');
         return;
       }
 
@@ -69,21 +107,13 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          setState(() {
-            _error =
-                'Location permission denied. Using default location (Dhaka, Bangladesh).';
-            _isLoading = false;
-          });
+          debugPrint('Location permission denied');
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        setState(() {
-          _error =
-              'Location permissions are permanently denied. Using default location (Dhaka, Bangladesh).';
-          _isLoading = false;
-        });
+        debugPrint('Location permissions are permanently denied');
         return;
       }
 
@@ -94,25 +124,28 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           timeLimit: const Duration(seconds: 10),
         );
 
+        // Save GPS location
+        await _settingsService.saveLocation(
+          latitude: position.latitude,
+          longitude: position.longitude,
+          locationName: 'Current Location',
+          isFromGps: true,
+        );
+
         setState(() {
           _latitude = position.latitude;
           _longitude = position.longitude;
           _locationName = 'Current Location';
+          _isLocationFromGps = true;
+          _error = null;
         });
 
-        _updatePrayerTimes();
+        debugPrint('GPS location obtained: $_latitude, $_longitude');
       } catch (e) {
-        setState(() {
-          _error =
-              'Could not get current location. Using default location (Dhaka, Bangladesh).';
-          _isLoading = false;
-        });
+        debugPrint('Could not get current location: $e');
       }
     } catch (e) {
-      setState(() {
-        _error = 'Error requesting location permission: $e';
-        _isLoading = false;
-      });
+      debugPrint('Error requesting location permission: $e');
     }
   }
 
@@ -220,6 +253,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                   ),
                   const SizedBox(height: 12),
                   _buildLocationCard(),
+                  const SizedBox(height: 12),
+                  _buildManualLocationButton(),
                 ],
               ),
             ),
@@ -240,11 +275,12 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<CalculationMethod>(
           value: _selectedMethod,
-          onChanged: (value) {
+          onChanged: (value) async {
             if (value != null) {
               setState(() {
                 _selectedMethod = value;
               });
+              await _settingsService.saveCalculationMethod(value);
               _updatePrayerTimes();
             }
           },
@@ -282,11 +318,12 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<Madhab>(
           value: _selectedMadhab,
-          onChanged: (value) {
+          onChanged: (value) async {
             if (value != null) {
               setState(() {
                 _selectedMadhab = value;
               });
+              await _settingsService.saveMadhab(value);
               _updatePrayerTimes();
             }
           },
@@ -319,16 +356,42 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.location_on, color: Colors.grey.shade600),
+              Icon(
+                _isLocationFromGps ? Icons.my_location : Icons.location_on,
+                color: _isLocationFromGps ? Colors.green : Colors.grey.shade600,
+              ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  _locationName,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _locationName,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      _isLocationFromGps ? 'GPS Location' : 'Saved Location',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _isLocationFromGps
+                            ? Colors.green
+                            : Colors.orange,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+              IconButton(
+                onPressed: _refreshLocation,
+                icon: Icon(
+                  Icons.refresh,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                tooltip: 'Refresh Location',
               ),
             ],
           ),
@@ -341,9 +404,156 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             'Longitude: ${_longitude.toStringAsFixed(4)}°',
             style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
           ),
+          if (!_isLocationFromGps) ...[
+            const SizedBox(height: 8),
+            Text(
+              '💡 Tap refresh to get current GPS location',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey.shade500,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Future<void> _refreshLocation() async {
+    setState(() => _isLoading = true);
+    await _requestLocationPermission();
+    if (!_isLocationFromGps) {
+      // If GPS failed, keep using saved location
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not get GPS location. Using saved location.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } else {
+      _updatePrayerTimes();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Location updated from GPS'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Widget _buildManualLocationButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: _showManualLocationDialog,
+        icon: const Icon(Icons.edit_location),
+        label: const Text('Set Location Manually'),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showManualLocationDialog() async {
+    final latController = TextEditingController(text: _latitude.toString());
+    final lngController = TextEditingController(text: _longitude.toString());
+    final nameController = TextEditingController(text: _locationName);
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Set Location'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Location Name',
+                hintText: 'e.g., Home, Office',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: latController,
+              decoration: const InputDecoration(
+                labelText: 'Latitude',
+                hintText: '23.8103',
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: lngController,
+              decoration: const InputDecoration(
+                labelText: 'Longitude',
+                hintText: '90.4125',
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final lat = double.tryParse(latController.text);
+              final lng = double.tryParse(lngController.text);
+              final name = nameController.text.trim();
+
+              if (lat != null && lng != null && name.isNotEmpty) {
+                Navigator.pop(context, {
+                  'latitude': lat,
+                  'longitude': lng,
+                  'name': name,
+                });
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null) {
+      // Save manual location
+      await _settingsService.saveLocation(
+        latitude: result['latitude'],
+        longitude: result['longitude'],
+        locationName: result['name'],
+        isFromGps: false,
+      );
+
+      setState(() {
+        _latitude = result['latitude'];
+        _longitude = result['longitude'];
+        _locationName = result['name'];
+        _isLocationFromGps = false;
+        _error = null;
+      });
+
+      _updatePrayerTimes();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location updated manually'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   @override
