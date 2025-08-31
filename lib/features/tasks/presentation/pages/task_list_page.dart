@@ -570,7 +570,7 @@ class _TaskListPageState extends State<TaskListPage>
                     title: 'About',
                     onTap: () {
                       Navigator.pop(context);
-                      _showAboutDialog(context);
+                      _showAboutDialog(context, _updateInfo?.isUpdateAvailable == true);
                     },
                     showUpdateBadge: _updateInfo?.isUpdateAvailable == true,
                   ),
@@ -657,7 +657,7 @@ class _TaskListPageState extends State<TaskListPage>
     );
   }
 
-  Future<void> _showAboutDialog(BuildContext context) async {
+  Future<void> _showAboutDialog(BuildContext context, bool isUpdateAvailable) async {
     final packageInfo = await PackageInfo.fromPlatform();
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -807,7 +807,7 @@ class _TaskListPageState extends State<TaskListPage>
                 color: colorScheme.primary,
               ),
               label: Text(
-                'Check Updates',
+                isUpdateAvailable ? 'Update Available' : 'Check Updates',
                 style: TextStyle(
                   color: colorScheme.primary,
                   fontWeight: FontWeight.w600,
