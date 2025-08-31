@@ -3,6 +3,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as timezone;
 import 'core/app.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/update_service.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -33,6 +34,27 @@ void main() async {
   await notificationService.requestPermissions();
   debugPrint('🔔 NotificationService permissions requested');
 
+  // Check for app updates in background
+  _checkForUpdatesInBackground();
+
   debugPrint('🎯 Running app...');
   runApp(const MyApp());
+}
+
+/// Check for updates in the background without blocking app startup
+void _checkForUpdatesInBackground() {
+  Future.delayed(const Duration(seconds: 3), () async {
+    try {
+      debugPrint('🔄 Background update check started...');
+      final updateInfo = await UpdateService.checkForUpdateSilently();
+      if (updateInfo?.isUpdateAvailable == true) {
+        debugPrint('✅ Update available: ${updateInfo!.latestVersion}');
+        // Update info is available - can be shown when user opens settings
+      } else {
+        debugPrint('✅ App is up to date');
+      }
+    } catch (e) {
+      debugPrint('❌ Background update check failed: $e');
+    }
+  });
 }

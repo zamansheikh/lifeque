@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/services/update_service.dart';
 import '../bloc/task_bloc.dart';
 import '../widgets/task_card_factory.dart';
 
@@ -16,11 +17,27 @@ class TaskListPage extends StatefulWidget {
 class _TaskListPageState extends State<TaskListPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  UpdateInfo? _updateInfo;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _checkForUpdatesInBackground();
+  }
+
+  /// Check for updates in background without showing UI
+  void _checkForUpdatesInBackground() async {
+    try {
+      final updateInfo = await UpdateService.checkForUpdateSilently();
+      if (mounted && updateInfo?.isUpdateAvailable == true) {
+        setState(() {
+          _updateInfo = updateInfo;
+        });
+      }
+    } catch (e) {
+      debugPrint('Background update check failed: $e');
+    }
   }
 
   @override
@@ -555,6 +572,7 @@ class _TaskListPageState extends State<TaskListPage>
                       Navigator.pop(context);
                       _showAboutDialog(context);
                     },
+                    showUpdateBadge: _updateInfo?.isUpdateAvailable == true,
                   ),
                 ],
               ),
@@ -570,6 +588,7 @@ class _TaskListPageState extends State<TaskListPage>
     required String title,
     required VoidCallback onTap,
     bool isSelected = false,
+    bool showUpdateBadge = false,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -580,18 +599,57 @@ class _TaskListPageState extends State<TaskListPage>
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
-        leading: Icon(
-          icon,
-          color: isSelected ? colorScheme.primary : Colors.grey.shade600,
-          size: 24,
+        leading: Stack(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? colorScheme.primary : Colors.grey.shade600,
+              size: 24,
+            ),
+            if (showUpdateBadge)
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+          ],
         ),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: isSelected ? colorScheme.primary : Colors.grey.shade800,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            fontSize: 16,
-          ),
+        title: Row(
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected ? colorScheme.primary : Colors.grey.shade800,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontSize: 16,
+              ),
+            ),
+            if (showUpdateBadge) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'NEW',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         onTap: onTap,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -720,6 +778,35 @@ class _TaskListPageState extends State<TaskListPage>
             ],
           ),
           actions: [
+            // Check for Updates Button
+            TextButton.icon(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _checkForUpdates(context);
+              },
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: Icon(
+                Icons.system_update_rounded,
+                size: 18,
+                color: colorScheme.primary,
+              ),
+              label: Text(
+                'Check Updates',
+                style: TextStyle(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            // Close Button
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -807,6 +894,177 @@ class _TaskListPageState extends State<TaskListPage>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Check for app updates
+  Future<void> _checkForUpdates(BuildContext context) async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(
+              'Checking for updates...',
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      // Check for updates
+      final updateInfo = await UpdateService.checkForUpdate();
+
+      if (!context.mounted) return;
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      if (updateInfo == null) {
+        // Error occurred
+        _showUpdateErrorDialog(context);
+      } else if (updateInfo.isUpdateAvailable) {
+        // Update available
+        await UpdateService.showUpdateDialog(context, updateInfo);
+      } else {
+        // Up to date
+        _showUpToDateDialog(context, updateInfo);
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      // Show error
+      _showUpdateErrorDialog(context);
+    }
+  }
+
+  /// Show up-to-date dialog
+  void _showUpToDateDialog(BuildContext context, UpdateInfo updateInfo) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.green,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('You\'re Up to Date!'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You have the latest version of RemindMe.',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade700,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Colors.grey.shade600,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Current Version: ${updateInfo.currentVersion}',
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show update error dialog
+  void _showUpdateErrorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                color: Colors.red,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Update Check Failed'),
+          ],
+        ),
+        content: Text(
+          'Unable to check for updates. Please ensure you have an active internet connection and try again.',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey.shade700,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }

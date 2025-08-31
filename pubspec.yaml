@@ -38,6 +38,9 @@ dependencies:
   # URL Launcher
   url_launcher: ^6.3.2
   
+  # HTTP requests
+  http: ^1.2.2
+  
   # Date & Time
   intl: ^0.20.2
   timezone: ^0.10.1
