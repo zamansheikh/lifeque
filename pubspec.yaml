@@ -2,7 +2,7 @@ name: remindme
 description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.7+1
+version: 1.0.8+1
 
 environment:
   sdk: ^3.10.0-75.1.beta
@@ -35,6 +35,9 @@ dependencies:
   
   # Location Services  
   geolocator: ^14.0.2
+  
+  # Compass and Sensors
+  flutter_compass: ^0.8.1
   
   # App Info
   package_info_plus: ^8.3.1

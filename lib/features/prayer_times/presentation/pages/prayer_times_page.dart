@@ -23,6 +23,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   CalculationMethod _selectedMethod = CalculationMethod.karachi;
   Madhab _selectedMadhab = Madhab.hanafi;
   bool _isLoading = true;
+  bool _isLocationUpdating = false; // Track background location updates
   String? _error;
 
   // Default coordinates for Bangladesh (Dhaka)
@@ -57,41 +58,132 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   }
 
   Future<void> _loadSavedSettings() async {
-    setState(() => _isLoading = true);
+    // Step 1: Quick load from saved data (if available)
+    await _loadFromSavedData();
 
+    // Step 2: Try to get current location in background and update if successful
+    _updateLocationInBackground();
+  }
+
+  Future<void> _loadFromSavedData() async {
     try {
       // Load saved prayer settings
       _selectedMethod = await _settingsService.getCalculationMethod();
       _selectedMadhab = await _settingsService.getMadhab();
 
-      // Try to get current location first
-      await _requestLocationPermission();
-
-      // If GPS location failed, try to load saved location
-      if (!_isLocationFromGps) {
-        final savedLocation = await _settingsService.getSavedLocation();
-        if (savedLocation != null) {
+      // Try to load saved location first for immediate display
+      final savedLocation = await _settingsService.getSavedLocation();
+      if (savedLocation != null) {
+        setState(() {
+          _latitude = savedLocation.latitude;
+          _longitude = savedLocation.longitude;
+          _locationName = savedLocation.locationName;
+          _isLocationFromGps = savedLocation.isFromGps;
+          _error = null;
+          _isLoading = false; // Show prayer times immediately
+        });
+        _updatePrayerTimes();
+        debugPrint('✅ Fast load: Using saved location for immediate display');
+      } else {
+        // No saved location, need to get current location first
+        debugPrint('ℹ️ No saved location found, getting current location...');
+        setState(() => _isLoading = true);
+        await _requestLocationPermission();
+        if (!_isLocationFromGps) {
+          // GPS failed and no saved location, use default
           setState(() {
-            _latitude = savedLocation.latitude;
-            _longitude = savedLocation.longitude;
-            _locationName = savedLocation.locationName;
-            _error = null;
-          });
-        } else {
-          // No saved location and GPS failed, show message but use default
-          setState(() {
-            _error =
-                'No saved location found. Using default location (Dhaka, Bangladesh). Tap refresh to get your location.';
+            _error = 'No location found. Using default location (Dhaka, Bangladesh). Tap refresh to get your location.';
+            _isLoading = false;
           });
         }
+        _updatePrayerTimes();
       }
-
-      _updatePrayerTimes();
     } catch (e) {
       setState(() {
         _error = 'Error loading prayer settings: $e';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _updateLocationInBackground() async {
+    try {
+      setState(() => _isLocationUpdating = true);
+      debugPrint('🔄 Background: Attempting to get current GPS location...');
+
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        debugPrint('❌ Background: Location services disabled');
+        setState(() => _isLocationUpdating = false);
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          debugPrint('❌ Background: Location permission denied');
+          setState(() => _isLocationUpdating = false);
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        debugPrint('❌ Background: Location permissions permanently denied');
+        setState(() => _isLocationUpdating = false);
+        return;
+      }
+
+      // Get current position with timeout
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+          timeLimit: const Duration(seconds: 15),
+        );
+
+        // Check if location has changed significantly (>100m)
+        double distance = Geolocator.distanceBetween(_latitude, _longitude, position.latitude, position.longitude);
+        
+        if (distance > 100) { // Only update if moved more than 100 meters
+          // Save new GPS location
+          await _settingsService.saveLocation(
+            latitude: position.latitude,
+            longitude: position.longitude,
+            locationName: 'Current Location',
+            isFromGps: true,
+          );
+
+          setState(() {
+            _latitude = position.latitude;
+            _longitude = position.longitude;
+            _locationName = 'Current Location';
+            _isLocationFromGps = true;
+            _error = null;
+          });
+
+          _updatePrayerTimes();
+          debugPrint('✅ Background: Location updated from GPS (moved ${distance.toInt()}m)');
+          
+          // Show subtle notification
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('📍 Location updated from GPS'),
+                duration: Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        } else {
+          debugPrint('ℹ️ Background: Location unchanged (${distance.toInt()}m), keeping current');
+        }
+      } catch (e) {
+        debugPrint('❌ Background: Could not get current location: $e');
+      }
+    } catch (e) {
+      debugPrint('❌ Background: Error updating location: $e');
+    } finally {
+      setState(() => _isLocationUpdating = false);
     }
   }
 
@@ -386,12 +478,21 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                 ),
               ),
               IconButton(
-                onPressed: _refreshLocation,
-                icon: Icon(
-                  Icons.refresh,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                tooltip: 'Refresh Location',
+                onPressed: _isLocationUpdating ? null : _refreshLocation,
+                icon: _isLocationUpdating
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      )
+                    : Icon(
+                        Icons.refresh,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                tooltip: _isLocationUpdating ? 'Updating...' : 'Refresh Location',
               ),
             ],
           ),
@@ -421,23 +522,36 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   }
 
   Future<void> _refreshLocation() async {
-    setState(() => _isLoading = true);
+    setState(() => _isLocationUpdating = true);
+    
+    // Show immediate feedback
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('🔄 Getting your current location...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
     await _requestLocationPermission();
-    if (!_isLocationFromGps) {
-      // If GPS failed, keep using saved location
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not get GPS location. Using saved location.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } else {
+    
+    setState(() => _isLocationUpdating = false);
+    
+    if (_isLocationFromGps) {
       _updatePrayerTimes();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Location updated from GPS'),
+          content: Text('✅ Location updated from GPS'),
           duration: Duration(seconds: 2),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      // If GPS failed, keep using saved location
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Could not get GPS location. Using saved location.'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.orange,
         ),
       );
     }
