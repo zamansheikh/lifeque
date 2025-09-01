@@ -524,6 +524,9 @@ class _StudyTimerPageState extends State<StudyTimerPage>
         ),
       ),
     );
+
+    // Force UI update after settings dialog closes
+    setState(() {});
   }
 
   Widget _buildSettingSlider(
