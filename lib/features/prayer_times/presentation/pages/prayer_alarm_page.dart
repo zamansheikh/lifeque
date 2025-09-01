@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:adhan/adhan.dart';
 import '../../../../core/services/prayer_alarm_service.dart';
 
 class PrayerAlarmPage extends StatefulWidget {
@@ -36,7 +35,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                 onChanged: (value) {
                   _alarmService.toggleGlobalAlarms(value);
                 },
-                activeColor: Colors.white,
+                activeThumbColor : Colors.white,
               );
             },
           ),
@@ -99,7 +98,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                       existingAlarm,
                       globalEnabled,
                     );
-                  }).toList(),
+                  }),
                 ],
               );
             },
