@@ -29,15 +29,15 @@ void main() async {
   await di.init();
   debugPrint('💉 Dependency injection initialized');
 
-  // Initialize notifications
+  // Initialize notifications (without requesting permissions)
   final notificationService = di.sl<NotificationService>();
   debugPrint('🔔 NotificationService instance obtained');
 
   await notificationService.initialize();
   debugPrint('🔔 NotificationService initialized');
 
-  await notificationService.requestPermissions();
-  debugPrint('🔔 NotificationService permissions requested');
+  // Note: Permissions will be handled by splash screen / permission screen
+  debugPrint('🔔 Permission requests moved to dedicated permission flow');
 
   // Check for app updates in background
   _checkForUpdatesInBackground();
