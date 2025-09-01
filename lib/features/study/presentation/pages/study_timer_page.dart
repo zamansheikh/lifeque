@@ -227,6 +227,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
           children: [
             // Settings button
             FloatingActionButton(
+              heroTag: "settings_fab", // Add unique hero tag
               onPressed: isRunning ? null : _showSettingsDialog,
               backgroundColor: isRunning
                   ? Colors.grey.shade300
@@ -259,6 +260,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                 ],
               ),
               child: FloatingActionButton.large(
+                heroTag: "main_fab", // Add unique hero tag
                 onPressed: isRunning ? _stopSession : _startSession,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
@@ -272,14 +274,21 @@ class _StudyTimerPageState extends State<StudyTimerPage>
 
             // Pause/Resume button
             FloatingActionButton(
-              onPressed: isRunning ? _pauseSession : null,
+              heroTag: "pause_resume_fab", // Add unique hero tag
+              onPressed: isRunning ? _pauseSession : _resumeSession,
               backgroundColor: isRunning
                   ? Colors.orange.shade100
+                  : (_studyService.currentPhase != StudyPhase.stopped &&
+                        !isRunning)
+                  ? Colors.green.shade100
                   : Colors.grey.shade300,
               child: Icon(
-                Icons.pause_rounded,
+                isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
                 color: isRunning
                     ? Colors.orange.shade700
+                    : (_studyService.currentPhase != StudyPhase.stopped &&
+                          !isRunning)
+                    ? Colors.green.shade700
                     : Colors.grey.shade500,
               ),
             ),
@@ -439,60 +448,73 @@ class _StudyTimerPageState extends State<StudyTimerPage>
     );
   }
 
+  Future<void> _resumeSession() async {
+    await _studyService.resumeSession();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('▶️ Session resumed!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   Future<void> _showSettingsDialog() async {
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Study Timer Settings'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildSettingSlider(
-                'Focus Duration',
-                _focusDuration,
-                15,
-                60,
-                (value) => setState(() => _focusDuration = value),
-                '${_focusDuration} min',
-              ),
-              _buildSettingSlider(
-                'Short Break',
-                _shortBreakDuration,
-                3,
-                15,
-                (value) => setState(() => _shortBreakDuration = value),
-                '${_shortBreakDuration} min',
-              ),
-              _buildSettingSlider(
-                'Long Break',
-                _longBreakDuration,
-                10,
-                45,
-                (value) => setState(() => _longBreakDuration = value),
-                '${_longBreakDuration} min',
-              ),
-              _buildSettingSlider(
-                'Cycles before Long Break',
-                _cyclesBeforeLongBreak,
-                2,
-                8,
-                (value) => setState(() => _cyclesBeforeLongBreak = value),
-                '$_cyclesBeforeLongBreak cycles',
-              ),
-            ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Study Timer Settings'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSettingSlider(
+                  'Focus Duration',
+                  _focusDuration,
+                  15,
+                  60,
+                  (value) => setDialogState(() => _focusDuration = value),
+                  '${_focusDuration} min',
+                ),
+                _buildSettingSlider(
+                  'Short Break',
+                  _shortBreakDuration,
+                  3,
+                  15,
+                  (value) => setDialogState(() => _shortBreakDuration = value),
+                  '${_shortBreakDuration} min',
+                ),
+                _buildSettingSlider(
+                  'Long Break',
+                  _longBreakDuration,
+                  10,
+                  45,
+                  (value) => setDialogState(() => _longBreakDuration = value),
+                  '${_longBreakDuration} min',
+                ),
+                _buildSettingSlider(
+                  'Cycles before Long Break',
+                  _cyclesBeforeLongBreak,
+                  2,
+                  8,
+                  (value) =>
+                      setDialogState(() => _cyclesBeforeLongBreak = value),
+                  '$_cyclesBeforeLongBreak cycles',
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Save'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
   }

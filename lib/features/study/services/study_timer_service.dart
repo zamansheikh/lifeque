@@ -38,6 +38,7 @@ class StudyTimerService {
   Timer? _timer;
   DateTime? _phaseStartTime;
   int _currentPhaseTimeLeft = 0; // in seconds
+  bool _isPaused = false; // Track if timer is paused
 
   // Stream controllers for UI updates
   final StreamController<StudyPhase> _phaseController =
@@ -129,13 +130,22 @@ class StudyTimerService {
     _phaseController.add(_currentPhase);
   }
 
+  // Track if alarm is currently set
+  bool _alarmIsSet = false;
+
   Future<void> _setAlarm({
     required Duration duration,
     required String title,
     required String body,
   }) async {
     // Cancel any existing alarm
-    await Alarm.stop(_studyAlarmId);
+    if (_alarmIsSet) {
+      await Alarm.stop(_studyAlarmId);
+      _alarmIsSet = false;
+    }
+
+    // Only set if duration is positive
+    if (duration.inSeconds <= 0) return;
 
     final alarmTime = DateTime.now().add(duration);
 
@@ -162,6 +172,8 @@ class StudyTimerService {
 
     try {
       await Alarm.set(alarmSettings: alarmSettings);
+      _alarmIsSet = true;
+      debugPrint('📅 Alarm set for ${alarmTime.toString()}');
     } catch (e) {
       debugPrint('Failed to set study alarm: $e');
     }
@@ -210,7 +222,10 @@ class StudyTimerService {
 
   Future<void> stopSession() async {
     _timer?.cancel();
-    await Alarm.stop(_studyAlarmId);
+    if (_alarmIsSet) {
+      await Alarm.stop(_studyAlarmId);
+      _alarmIsSet = false;
+    }
 
     _currentSession = null;
     _currentPhase = StudyPhase.stopped;
@@ -226,7 +241,10 @@ class StudyTimerService {
 
   Future<void> pauseSession() async {
     _timer?.cancel();
-    await Alarm.stop(_studyAlarmId);
+    if (_alarmIsSet) {
+      await Alarm.stop(_studyAlarmId);
+      _alarmIsSet = false;
+    }
     await _saveSessionState();
   }
 
