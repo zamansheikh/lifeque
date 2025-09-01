@@ -9,6 +9,7 @@ import '../widgets/prayer_time_card.dart';
 import '../widgets/next_prayer_card.dart';
 import '../widgets/qibla_card.dart';
 import '../widgets/restricted_times_card.dart';
+import 'prayer_alarm_page.dart';
 
 class PrayerTimesPage extends StatefulWidget {
   const PrayerTimesPage({super.key});
@@ -702,6 +703,29 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           ),
         ),
         actions: [
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.notifications,
+                size: 20,
+                color: colorScheme.primary,
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PrayerAlarmPage(),
+                ),
+              );
+            },
+            tooltip: 'Prayer Alarms',
+          ),
           IconButton(
             icon: Container(
               padding: const EdgeInsets.all(8),
