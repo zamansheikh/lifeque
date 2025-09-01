@@ -384,7 +384,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<MedicineType>(
-                  value: _selectedType,
+                  // --- Add this line ---
+                  isExpanded: true,
+                  // ---------------------
+                  initialValue: _selectedType,
                   decoration: InputDecoration(
                     labelText: 'Type',
                     prefixIcon: const Icon(
@@ -406,7 +409,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                       value: type,
                       child: Text(
                         _getMedicineTypeDisplayName(type),
-                        overflow: TextOverflow.ellipsis,
+                        overflow: TextOverflow
+                            .ellipsis, // This will now work for the selected item
                       ),
                     );
                   }).toList(),
@@ -416,7 +420,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               const SizedBox(width: 8),
               Expanded(
                 child: DropdownButtonFormField<MealTiming>(
-                  value: _selectedMealTiming,
+                  // --- And add this line here too ---
+                  isExpanded: true,
+                  // ---------------------------------
+                  initialValue: _selectedMealTiming,
                   decoration: InputDecoration(
                     labelText: 'Meal Timing',
                     prefixIcon: const Icon(
@@ -438,7 +445,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                       value: timing,
                       child: Text(
                         _getMealTimingDisplayName(timing),
-                        overflow: TextOverflow.ellipsis,
+                        overflow:
+                            TextOverflow.ellipsis, // This will also work now
                       ),
                     );
                   }).toList(),
@@ -456,6 +464,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               Expanded(
                 flex: 2,
                 child: TextFormField(
+                  // No changes needed here
                   controller: _dosageController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
@@ -477,8 +486,9 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   ),
                   validator: (value) {
                     if (value?.isEmpty ?? true) return 'Required';
-                    if (double.tryParse(value!) == null)
+                    if (double.tryParse(value!) == null) {
                       return 'Invalid number';
+                    }
                     return null;
                   },
                 ),
@@ -486,7 +496,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               const SizedBox(width: 8),
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedDosageUnit,
+                  // --- Add this line ---
+                  isExpanded: true,
+                  // ---------------------
+                  initialValue: _selectedDosageUnit,
                   decoration: InputDecoration(
                     labelText: 'Unit',
                     border: OutlineInputBorder(
@@ -524,7 +537,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                 child: Text(
                   'Times per day:',
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF64748B),
                   ),
@@ -564,7 +577,9 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                       child: Center(
                         child: Text(
                           '$times',
+
                           style: TextStyle(
+                            fontSize: 18,
                             fontWeight: FontWeight.w600,
                             color: _timesPerDay == times
                                 ? Colors.white
@@ -585,7 +600,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
             const Text(
               'Notification Times:',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF64748B),
               ),
@@ -614,7 +629,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                       children: [
                         Icon(
                           Icons.schedule,
-                          size: 14,
+                          size: 16,
                           color: const Color(0xFF3B82F6),
                         ),
                         const SizedBox(width: 3),
@@ -623,7 +638,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                               ? _notificationTimes[index].format(context)
                               : '${8 + index * 4}:00',
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFF3B82F6),
                           ),
@@ -646,6 +661,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: 'Duration (days)',
+                    labelStyle: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF64748B),
+                    ),
                     hintText: '14',
                     prefixIcon: const Icon(
                       Icons.timer,
@@ -663,8 +682,9 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   ),
                   validator: (value) {
                     if (value?.isEmpty ?? true) return 'Required';
-                    if (int.tryParse(value!) == null || int.parse(value) <= 0)
+                    if (int.tryParse(value!) == null || int.parse(value) <= 0) {
                       return 'Invalid';
+                    }
                     return null;
                   },
                 ),
@@ -759,7 +779,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                         vertical: 16,
                       ),
                     ),
-                    maxLines: 2,
+                    // maxLines: 1,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -802,7 +822,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                         vertical: 16,
                       ),
                     ),
-                    maxLines: 2,
+                    // maxLines: 2,
                   ),
                 ],
               ),
