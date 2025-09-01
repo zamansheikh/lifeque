@@ -266,9 +266,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
               end: Alignment.bottomRight,
             ),
           ),
-          child: const Center(
-            child: CircularProgressIndicator(),
-          ),
+          child: const Center(child: CircularProgressIndicator()),
         ),
       );
     }
