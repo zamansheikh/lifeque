@@ -45,7 +45,8 @@ class StudyTimerService {
       StreamController.broadcast();
   final StreamController<int> _timeController = StreamController.broadcast();
   final StreamController<int> _cycleController = StreamController.broadcast();
-  final StreamController<bool> _runningController = StreamController.broadcast();
+  final StreamController<bool> _runningController =
+      StreamController.broadcast();
 
   // Getters for streams
   Stream<StudyPhase> get phaseStream => _phaseController.stream;
@@ -58,8 +59,12 @@ class StudyTimerService {
   int get timeLeft => _currentPhaseTimeLeft;
   int get completedCycles => _completedCycles;
   bool get isRunning => _timer != null && !_isPaused;
-  bool get isPaused => _isPaused && _currentSession != null && _currentPhase != StudyPhase.stopped;
-  bool get hasActiveSession => _currentSession != null && _currentPhase != StudyPhase.stopped;
+  bool get isPaused =>
+      _isPaused &&
+      _currentSession != null &&
+      _currentPhase != StudyPhase.stopped;
+  bool get hasActiveSession =>
+      _currentSession != null && _currentPhase != StudyPhase.stopped;
 
   void _updateRunningState() {
     _runningController.add(isRunning);
@@ -233,7 +238,7 @@ class StudyTimerService {
     _timer?.cancel();
     _timer = null;
     _isPaused = false;
-    
+
     if (_alarmIsSet) {
       await Alarm.stop(_studyAlarmId);
       _alarmIsSet = false;
@@ -254,11 +259,11 @@ class StudyTimerService {
 
   Future<void> pauseSession() async {
     if (!isRunning) return;
-    
+
     _timer?.cancel();
     _timer = null;
     _isPaused = true;
-    
+
     if (_alarmIsSet) {
       await Alarm.stop(_studyAlarmId);
       _alarmIsSet = false;
@@ -270,9 +275,9 @@ class StudyTimerService {
 
   Future<void> resumeSession() async {
     if (!isPaused) return;
-    
+
     _isPaused = false;
-    
+
     if (_currentSession != null && _currentPhase != StudyPhase.stopped) {
       // Recalculate remaining time
       final elapsed = DateTime.now().difference(_phaseStartTime!);

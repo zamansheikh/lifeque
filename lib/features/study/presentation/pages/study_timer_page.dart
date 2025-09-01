@@ -238,7 +238,9 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                       : Colors.grey.shade100,
                   child: Icon(
                     Icons.settings,
-                    color: isRunning ? Colors.grey.shade500 : Colors.grey.shade700,
+                    color: isRunning
+                        ? Colors.grey.shade500
+                        : Colors.grey.shade700,
                   ),
                 ),
 
@@ -255,9 +257,8 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: (isRunning ? Colors.red : phase.color).withValues(
-                          alpha: 0.3,
-                        ),
+                        color: (isRunning ? Colors.red : phase.color)
+                            .withValues(alpha: 0.3),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -279,21 +280,21 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                 // Pause/Resume button
                 FloatingActionButton(
                   heroTag: "pause_resume_fab", // Add unique hero tag
-                  onPressed: isRunning 
-                      ? _pauseSession 
+                  onPressed: isRunning
+                      ? _pauseSession
                       : (isPaused ? _resumeSession : null),
                   backgroundColor: isRunning
                       ? Colors.orange.shade100
                       : isPaused
-                        ? Colors.green.shade100
-                        : Colors.grey.shade300,
+                      ? Colors.green.shade100
+                      : Colors.grey.shade300,
                   child: Icon(
                     isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
                     color: isRunning
                         ? Colors.orange.shade700
                         : isPaused
-                          ? Colors.green.shade700
-                          : Colors.grey.shade500,
+                        ? Colors.green.shade700
+                        : Colors.grey.shade500,
                   ),
                 ),
               ],
