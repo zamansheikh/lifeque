@@ -21,10 +21,10 @@ class _PermissionScreenState extends State<PermissionScreen> {
   @override
   void initState() {
     super.initState();
-    _checkPermissionsAndNavigate();
+    _checkPermissions();
   }
 
-  Future<void> _checkPermissionsAndNavigate() async {
+  Future<void> _checkPermissions() async {
     setState(() => _isLoading = true);
 
     try {
@@ -55,56 +55,6 @@ class _PermissionScreenState extends State<PermissionScreen> {
         }
       } else {
         _batteryOptimization = true; // Not applicable for iOS
-        _batteryStatus = 'Not Required';
-      }
-    } catch (e) {
-      debugPrint('Error checking permissions: $e');
-      if (Platform.isAndroid) {
-        _batteryStatus = 'Check Manually';
-      }
-    }
-
-    setState(() => _isLoading = false);
-
-    // If all permissions are granted, auto-navigate to home after short delay
-    if (_notificationPermission && _batteryOptimization) {
-      debugPrint('✅ All permissions already granted, navigating to home...');
-      await Future.delayed(const Duration(milliseconds: 800));
-      if (mounted) {
-        widget.onPermissionsGranted();
-      }
-    }
-  }
-
-  Future<void> _checkPermissions() async {
-    setState(() => _isLoading = true);
-
-    try {
-      // Check notification permission
-      final notificationStatus = await Permission.notification.status;
-      _notificationPermission = notificationStatus.isGranted;
-
-      // Check battery optimization (Android only)
-      if (Platform.isAndroid) {
-        final deviceInfo = DeviceInfoPlugin();
-        final androidInfo = await deviceInfo.androidInfo;
-
-        // For Android 6.0 and above, check battery optimization
-        if (androidInfo.version.sdkInt >= 23) {
-          final status = await Permission.ignoreBatteryOptimizations.status;
-          if (status.isGranted) {
-            _batteryOptimization = true;
-            _batteryStatus = 'Disabled (Good!)';
-          } else {
-            _batteryOptimization = false;
-            _batteryStatus = 'Enabled (Needs Action)';
-          }
-        } else {
-          _batteryOptimization = true;
-          _batteryStatus = 'Not Required';
-        }
-      } else {
-        _batteryOptimization = true;
         _batteryStatus = 'Not Required';
       }
     } catch (e) {
@@ -316,70 +266,8 @@ class _PermissionScreenState extends State<PermissionScreen> {
               end: Alignment.bottomRight,
             ),
           ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // App Logo
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.asset(
-                      'assets/icon/icon.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.blue.shade400,
-                                Colors.purple.shade400,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            Icons.notifications_active_rounded,
-                            color: Colors.white,
-                            size: 40,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Welcome to RemindMe',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Setting up your experience...',
-                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-                ),
-                const SizedBox(height: 32),
-                const CircularProgressIndicator(),
-              ],
-            ),
+          child: const Center(
+            child: CircularProgressIndicator(),
           ),
         ),
       );

@@ -12,14 +12,20 @@ import '../features/medicines/presentation/pages/add_edit_medicine_page.dart';
 import '../features/prayer_times/presentation/pages/prayer_times_page.dart';
 import '../features/study/presentation/pages/study_timer_page.dart';
 import '../features/permissions/presentation/pages/permission_screen.dart';
+import '../features/splash/presentation/pages/splash_screen.dart';
 import 'services/navigation_service.dart';
 import '../injection_container.dart' as di;
 
 class AppRouter {
   static final GoRouter router = GoRouter(
     navigatorKey: NavigationService.navigatorKey,
-    initialLocation: '/permissions',
+    initialLocation: '/splash',
     routes: [
+      GoRoute(
+        path: '/splash',
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/permissions',
         name: 'permissions',
