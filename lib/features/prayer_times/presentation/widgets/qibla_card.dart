@@ -201,8 +201,12 @@ class _QiblaCardState extends State<QiblaCard>
                         ),
                       ),
 
-                      // Compass markings (N, E, S, W)
-                      if (_hasCompass) _buildCompassMarkings(),
+                      // Compass markings (N, E, S, W) - Rotating with device
+                      if (_hasCompass && _compassDirection != null)
+                        Transform.rotate(
+                          angle: (-_compassDirection! * (math.pi / 180)), // Rotate opposite to device
+                          child: _buildCompassMarkings(),
+                        ),
 
                       // Device direction indicator (if compass available)
                       if (_hasCompass && _compassDirection != null)

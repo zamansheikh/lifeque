@@ -105,23 +105,73 @@ class SalahTimeCalculator {
     };
   }
 
-  Map<String, Map<String, DateTime>> getRestrictedTimes(
-    Map<String, DateTime> startTimes,
-  ) {
+  // Get restricted prayer times (Makruh times) when prayer is discouraged
+  Map<String, Map<String, dynamic>> getRestrictedTimes() {
+    final prayerTimes = getPrayerTimes();
+
     return {
-      'Sunrise': {
-        'start': startTimes['Sunrise']!,
-        'end': startTimes['Sunrise']!.add(const Duration(minutes: 15)),
+      // 1. After Fajr until 15-20 minutes after sunrise
+      'After Fajr': {
+        'start': prayerTimes.fajr,
+        'end': prayerTimes.sunrise.add(const Duration(minutes: 20)),
+        'reason': 'From Fajr until 20 minutes after sunrise',
       },
-      'Zawal': {
-        'start': startTimes['Dhuhr']!.subtract(const Duration(minutes: 5)),
-        'end': startTimes['Dhuhr']!,
+
+      // 2. 15 minutes before Dhuhr (Zawal time)
+      'Before Dhuhr (Zawal)': {
+        'start': prayerTimes.dhuhr.subtract(const Duration(minutes: 15)),
+        'end': prayerTimes.dhuhr,
+        'reason': 'Sun at zenith (Zawal time)',
       },
-      'Sunset': {
-        'start': startTimes['Maghrib']!.subtract(const Duration(minutes: 15)),
-        'end': startTimes['Maghrib']!,
+
+      // 3. After Asr until Maghrib
+      'After Asr': {
+        'start': prayerTimes.asr,
+        'end': prayerTimes.maghrib,
+        'reason': 'From Asr until Maghrib (sunset)',
       },
     };
+  }
+
+  // Check if current time is in a restricted period
+  bool isCurrentTimeRestricted() {
+    final now = DateTime.now();
+    final restrictedTimes = getRestrictedTimes();
+
+    for (final period in restrictedTimes.values) {
+      final start = period['start'] as DateTime;
+      final end = period['end'] as DateTime;
+
+      if (now.isAfter(start) && now.isBefore(end)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  // Get current restricted period info (if any)
+  Map<String, dynamic>? getCurrentRestrictedPeriod() {
+    final now = DateTime.now();
+    final restrictedTimes = getRestrictedTimes();
+
+    for (final entry in restrictedTimes.entries) {
+      final period = entry.value;
+      final start = period['start'] as DateTime;
+      final end = period['end'] as DateTime;
+
+      if (now.isAfter(start) && now.isBefore(end)) {
+        return {
+          'name': entry.key,
+          'start': start,
+          'end': end,
+          'reason': period['reason'],
+          'remaining': end.difference(now),
+        };
+      }
+    }
+
+    return null;
   }
 
   // Get Sunnah times

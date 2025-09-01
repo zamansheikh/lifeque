@@ -8,6 +8,7 @@ import '../../data/services/prayer_settings_service.dart';
 import '../widgets/prayer_time_card.dart';
 import '../widgets/next_prayer_card.dart';
 import '../widgets/qibla_card.dart';
+import '../widgets/restricted_times_card.dart';
 
 class PrayerTimesPage extends StatefulWidget {
   const PrayerTimesPage({super.key});
@@ -767,6 +768,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
                     // Prayer Times
                     _buildPrayerTimesList(),
+                    const SizedBox(height: 20),
+
+                    // Restricted Times (Makruh)
+                    RestrictedTimesCard(calculator: _calculator!),
                     const SizedBox(height: 20),
 
                     // Qibla Direction
