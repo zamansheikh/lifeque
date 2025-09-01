@@ -21,10 +21,10 @@ class _PermissionScreenState extends State<PermissionScreen> {
   @override
   void initState() {
     super.initState();
-    _checkPermissions();
+    _checkPermissionsAndNavigate();
   }
 
-  Future<void> _checkPermissions() async {
+  Future<void> _checkPermissionsAndNavigate() async {
     setState(() => _isLoading = true);
 
     try {
@@ -66,7 +66,57 @@ class _PermissionScreenState extends State<PermissionScreen> {
 
     setState(() => _isLoading = false);
 
-    // If all permissions are granted, proceed
+    // If all permissions are granted, auto-navigate to home after short delay
+    if (_notificationPermission && _batteryOptimization) {
+      debugPrint('✅ All permissions already granted, navigating to home...');
+      await Future.delayed(const Duration(milliseconds: 800));
+      if (mounted) {
+        widget.onPermissionsGranted();
+      }
+    }
+  }
+
+  Future<void> _checkPermissions() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Check notification permission
+      final notificationStatus = await Permission.notification.status;
+      _notificationPermission = notificationStatus.isGranted;
+
+      // Check battery optimization (Android only)
+      if (Platform.isAndroid) {
+        final deviceInfo = DeviceInfoPlugin();
+        final androidInfo = await deviceInfo.androidInfo;
+
+        // For Android 6.0 and above, check battery optimization
+        if (androidInfo.version.sdkInt >= 23) {
+          final status = await Permission.ignoreBatteryOptimizations.status;
+          if (status.isGranted) {
+            _batteryOptimization = true;
+            _batteryStatus = 'Disabled (Good!)';
+          } else {
+            _batteryOptimization = false;
+            _batteryStatus = 'Enabled (Needs Action)';
+          }
+        } else {
+          _batteryOptimization = true;
+          _batteryStatus = 'Not Required';
+        }
+      } else {
+        _batteryOptimization = true;
+        _batteryStatus = 'Not Required';
+      }
+    } catch (e) {
+      debugPrint('Error checking permissions: $e');
+      if (Platform.isAndroid) {
+        _batteryStatus = 'Check Manually';
+      }
+    }
+
+    setState(() => _isLoading = false);
+
+    // If all permissions are granted after manual check, proceed
     if (_notificationPermission && _batteryOptimization) {
       widget.onPermissionsGranted();
     }
@@ -266,7 +316,71 @@ class _PermissionScreenState extends State<PermissionScreen> {
               end: Alignment.bottomRight,
             ),
           ),
-          child: const Center(child: CircularProgressIndicator()),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // App Logo
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset(
+                      'assets/icon/icon.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.blue.shade400,
+                                Colors.purple.shade400,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.notifications_active_rounded,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Welcome to RemindMe',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Setting up your experience...',
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 32),
+                const CircularProgressIndicator(),
+              ],
+            ),
+          ),
         ),
       );
     }
@@ -363,7 +477,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Welcome message
+                  // Welcome message with clearer explanation
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -403,39 +517,125 @@ class _PermissionScreenState extends State<PermissionScreen> {
                             ),
                             const SizedBox(width: 16),
                             const Expanded(
-                              child: Text(
-                                'Setup Required',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Quick Setup Required',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Just 2 simple steps',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'RemindMe needs a few permissions to deliver reliable notifications and reminders. This ensures you never miss important tasks!',
+                          'To ensure you never miss important reminders, RemindMe needs permission to send notifications and run in the background.',
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.grey.shade700,
                             height: 1.4,
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.blue.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline_rounded,
+                                color: Colors.blue.shade600,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Tap the buttons below to grant permissions',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.blue.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Progress indicator
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        // Progress circles
+                        _buildProgressStep(
+                          stepNumber: 1,
+                          title: 'Notifications',
+                          isCompleted: _notificationPermission,
+                          isActive: !_notificationPermission,
+                        ),
+                        Expanded(
+                          child: Container(
+                            height: 2,
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: _notificationPermission
+                                  ? Colors.green
+                                  : Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(1),
+                            ),
+                          ),
+                        ),
+                        _buildProgressStep(
+                          stepNumber: 2,
+                          title: Platform.isAndroid ? 'Battery' : 'Ready',
+                          isCompleted: _batteryOptimization,
+                          isActive:
+                              _notificationPermission && !_batteryOptimization,
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // Permission cards
+                  // Permission cards with clearer actions
                   _buildPermissionCard(
                     title: 'Notifications',
                     description:
-                        'Allow RemindMe to send you task reminders and alerts',
+                        'Get timely alerts for your tasks, medicine reminders, and important events',
                     icon: Icons.notifications_rounded,
                     isGranted: _notificationPermission,
                     onTap: _requestNotificationPermission,
                     color: Colors.blue,
+                    actionText: _notificationPermission
+                        ? 'Granted'
+                        : 'Enable Now',
                   ),
                   const SizedBox(height: 16),
 
@@ -444,11 +644,14 @@ class _PermissionScreenState extends State<PermissionScreen> {
                     _buildPermissionCard(
                       title: 'Battery Optimization',
                       description:
-                          'Status: $_batteryStatus\nDisable battery optimization for reliable background notifications',
+                          'Prevent system from stopping notifications in the background\nStatus: $_batteryStatus',
                       icon: Icons.battery_saver_rounded,
                       isGranted: _batteryOptimization,
                       onTap: _requestBatteryOptimization,
                       color: Colors.orange,
+                      actionText: _batteryOptimization
+                          ? 'Optimized'
+                          : 'Fix Now',
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -576,7 +779,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                   // Success message and continue button
                   if (_notificationPermission && _batteryOptimization) ...[
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [Colors.green.shade50, Colors.green.shade100],
@@ -593,93 +796,112 @@ class _PermissionScreenState extends State<PermissionScreen> {
                           ),
                         ],
                       ),
-                      child: Row(
+                      child: Column(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.check_circle_rounded,
-                              color: Colors.green,
-                              size: 24,
-                            ),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  borderRadius: BorderRadius.circular(50),
+                                ),
+                                child: const Icon(
+                                  Icons.check_rounded,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Perfect! You\'re All Set',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                    Text(
+                                      'RemindMe is ready to help you stay organized',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 16),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'All Set!',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: widget.onPermissionsGranted,
+                              style:
+                                  ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ).copyWith(
+                                    backgroundColor: WidgetStateProperty.all(
+                                      Colors.transparent,
+                                    ),
+                                  ),
+                              child: Ink(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.blue.shade400,
+                                      Colors.purple.shade400,
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.arrow_forward_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Start Using RemindMe',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                Text(
-                                  'You\'re ready to use RemindMe with full functionality.',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.green,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: widget.onPermissionsGranted,
-                        style:
-                            ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ).copyWith(
-                              backgroundColor: WidgetStateProperty.all(
-                                Colors.transparent,
-                              ),
-                            ),
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.blue.shade400,
-                                Colors.purple.shade400,
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Text(
-                              'Continue',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
                       ),
                     ),
                   ],
@@ -693,6 +915,55 @@ class _PermissionScreenState extends State<PermissionScreen> {
     );
   }
 
+  Widget _buildProgressStep({
+    required int stepNumber,
+    required String title,
+    required bool isCompleted,
+    required bool isActive,
+  }) {
+    return Column(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: isCompleted
+                ? Colors.green
+                : isActive
+                ? Colors.blue
+                : Colors.grey.shade300,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: isCompleted
+                ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+                : Text(
+                    '$stepNumber',
+                    style: TextStyle(
+                      color: isActive ? Colors.white : Colors.grey.shade600,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: isCompleted
+                ? Colors.green
+                : isActive
+                ? Colors.blue
+                : Colors.grey.shade600,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPermissionCard({
     required String title,
     required String description,
@@ -700,84 +971,152 @@ class _PermissionScreenState extends State<PermissionScreen> {
     required bool isGranted,
     required VoidCallback onTap,
     required Color color,
+    required String actionText,
   }) {
-    return GestureDetector(
-      onTap: isGranted ? null : onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isGranted
-                ? Colors.green.shade200
-                : color.withValues(alpha: 0.3),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isGranted
+              ? Colors.green.shade200
+              : color.withValues(alpha: 0.3),
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isGranted
-                    ? Colors.green.shade100
-                    : color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                isGranted ? Icons.check_circle_rounded : icon,
-                color: isGranted ? Colors.green : color,
-                size: 24,
-              ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Main card content
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isGranted
+                        ? Colors.green.shade100
+                        : color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    isGranted ? Icons.check_circle_rounded : icon,
+                    color: isGranted ? Colors.green : color,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 14,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+          ),
+
+          // Action button (only show if not granted)
+          if (!isGranted) ...[
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: color.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.touch_app_rounded, color: color, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          actionText,
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
+                ),
+              ),
+            ),
+          ] else ...[
+            // Success indicator for granted permissions
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                border: Border(
+                  top: BorderSide(color: Colors.green.shade200, width: 1),
+                ),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.check_rounded,
+                    color: Colors.green,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 6),
                   Text(
-                    description,
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
+                    actionText,
+                    style: const TextStyle(
+                      color: Colors.green,
                       fontSize: 14,
-                      height: 1.3,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isGranted ? Colors.green.shade50 : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                isGranted
-                    ? Icons.check_rounded
-                    : Icons.arrow_forward_ios_rounded,
-                color: isGranted ? Colors.green : Colors.grey.shade600,
-                size: 16,
-              ),
-            ),
           ],
-        ),
+        ],
       ),
     );
   }
