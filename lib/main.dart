@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as timezone;
+import 'package:alarm/alarm.dart';
 import 'core/app.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/update_service.dart';
@@ -19,6 +20,10 @@ void main() async {
   debugPrint(
     '🕐 Current local time: ${timezone.TZDateTime.now(timezone.local)}',
   );
+
+  // Initialize alarm service
+  await Alarm.init();
+  debugPrint('⏰ Alarm service initialized');
 
   // Initialize dependency injection
   await di.init();

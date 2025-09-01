@@ -572,6 +572,14 @@ class _TaskListPageState extends State<TaskListPage>
                       context.push('/prayer-times');
                     },
                   ),
+                  _buildDrawerItem(
+                    icon: Icons.timer_rounded,
+                    title: 'Study Timer',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/study-timer');
+                    },
+                  ),
                   const Divider(height: 32),
                   _buildDrawerItem(
                     icon: Icons.info_outline_rounded,
