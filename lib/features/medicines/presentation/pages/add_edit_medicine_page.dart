@@ -330,10 +330,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
       _timesPerDay = preset['times'];
 
       // Update notification times based on preset
-      _notificationTimes.clear();
-      for (int i = 0; i < _timesPerDay; i++) {
-        _notificationTimes.add(TimeOfDay(hour: 8 + i * 8, minute: 0));
-      }
+      _notificationTimes = _generateNotificationTimes(_timesPerDay);
     });
   }
 
@@ -553,11 +550,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                     onTap: () {
                       setState(() {
                         _timesPerDay = times;
-                        _notificationTimes = List.generate(
-                          times,
-                          (i) =>
-                              TimeOfDay(hour: 8 + i * (12 ~/ times), minute: 0),
-                        );
+                        // Generate appropriate notification times based on selection
+                        _notificationTimes = _generateNotificationTimes(times);
                       });
                     },
                     child: Container(
@@ -831,6 +825,41 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
         ],
       ),
     );
+  }
+
+  List<TimeOfDay> _generateNotificationTimes(int times) {
+    switch (times) {
+      case 1:
+        // 8 PM
+        return [const TimeOfDay(hour: 20, minute: 0)];
+      case 2:
+        // 8 AM, 8 PM
+        return [
+          const TimeOfDay(hour: 8, minute: 0),
+          const TimeOfDay(hour: 20, minute: 0),
+        ];
+      case 3:
+        // 8 AM, 2 PM, 8 PM
+        return [
+          const TimeOfDay(hour: 8, minute: 0),
+          const TimeOfDay(hour: 14, minute: 0),
+          const TimeOfDay(hour: 20, minute: 0),
+        ];
+      case 4:
+        // 7 AM, 12 PM, 5 PM, 10 PM
+        return [
+          const TimeOfDay(hour: 7, minute: 0),
+          const TimeOfDay(hour: 12, minute: 0),
+          const TimeOfDay(hour: 17, minute: 0),
+          const TimeOfDay(hour: 22, minute: 0),
+        ];
+      default:
+        // Fallback for any other number
+        return List.generate(
+          times,
+          (i) => TimeOfDay(hour: 8 + i * (12 ~/ times), minute: 0),
+        );
+    }
   }
 
   Future<void> _selectTime(int index) async {
