@@ -45,5 +45,23 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Alarm package configurations -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>background-fetch</string>
+		<string>background-processing</string>
+	</array>
+	
+	<!-- Required for audio playback -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to audio to play alarm sounds.</string>
+	
+	<!-- For background app refresh -->
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.gdelataillade.alarm.background_fetch</string>
+	</array>
 </dict>
 </plist>

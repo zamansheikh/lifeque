@@ -45,25 +45,28 @@ class StudyTimerService {
       StreamController.broadcast();
   final StreamController<int> _timeController = StreamController.broadcast();
   final StreamController<int> _cycleController = StreamController.broadcast();
+  final StreamController<bool> _runningController = StreamController.broadcast();
 
   // Getters for streams
   Stream<StudyPhase> get phaseStream => _phaseController.stream;
   Stream<int> get timeLeftStream => _timeController.stream;
   Stream<int> get cycleStream => _cycleController.stream;
+  Stream<bool> get runningStream => _runningController.stream;
 
   // Getters for current state
   StudyPhase get currentPhase => _currentPhase;
   int get timeLeft => _currentPhaseTimeLeft;
   int get completedCycles => _completedCycles;
-  bool get isRunning =>
-      _currentSession != null && _currentPhase != StudyPhase.stopped;
+  bool get isRunning => _timer != null && !_isPaused;
+  bool get isPaused => _isPaused && _currentSession != null && _currentPhase != StudyPhase.stopped;
+  bool get hasActiveSession => _currentSession != null && _currentPhase != StudyPhase.stopped;
+
+  void _updateRunningState() {
+    _runningController.add(isRunning);
+  }
 
   // Alarm IDs
   static const int _studyAlarmId = 1000;
-
-  Future<void> initializeAlarm() async {
-    await Alarm.init();
-  }
 
   Future<void> startStudySession({
     int focusDuration = 25,
@@ -88,6 +91,7 @@ class StudyTimerService {
     _currentPhase = StudyPhase.focus;
     _phaseStartTime = DateTime.now();
     _currentPhaseTimeLeft = _currentSession!.focusDuration * 60;
+    _isPaused = false;
 
     await _setAlarm(
       duration: Duration(minutes: _currentSession!.focusDuration),
@@ -98,12 +102,14 @@ class StudyTimerService {
     _startTimer();
     _phaseController.add(_currentPhase);
     _cycleController.add(_completedCycles);
+    _updateRunningState();
   }
 
   Future<void> _startShortBreak() async {
     _currentPhase = StudyPhase.shortBreak;
     _phaseStartTime = DateTime.now();
     _currentPhaseTimeLeft = _currentSession!.shortBreakDuration * 60;
+    _isPaused = false;
 
     await _setAlarm(
       duration: Duration(minutes: _currentSession!.shortBreakDuration),
@@ -113,12 +119,14 @@ class StudyTimerService {
 
     _startTimer();
     _phaseController.add(_currentPhase);
+    _updateRunningState();
   }
 
   Future<void> _startLongBreak() async {
     _currentPhase = StudyPhase.longBreak;
     _phaseStartTime = DateTime.now();
     _currentPhaseTimeLeft = _currentSession!.longBreakDuration * 60;
+    _isPaused = false;
 
     await _setAlarm(
       duration: Duration(minutes: _currentSession!.longBreakDuration),
@@ -128,6 +136,7 @@ class StudyTimerService {
 
     _startTimer();
     _phaseController.add(_currentPhase);
+    _updateRunningState();
   }
 
   // Track if alarm is currently set
@@ -222,6 +231,9 @@ class StudyTimerService {
 
   Future<void> stopSession() async {
     _timer?.cancel();
+    _timer = null;
+    _isPaused = false;
+    
     if (_alarmIsSet) {
       await Alarm.stop(_studyAlarmId);
       _alarmIsSet = false;
@@ -235,20 +247,32 @@ class StudyTimerService {
     _phaseController.add(_currentPhase);
     _timeController.add(_currentPhaseTimeLeft);
     _cycleController.add(_completedCycles);
+    _updateRunningState();
 
     await _clearSessionState();
   }
 
   Future<void> pauseSession() async {
+    if (!isRunning) return;
+    
     _timer?.cancel();
+    _timer = null;
+    _isPaused = true;
+    
     if (_alarmIsSet) {
       await Alarm.stop(_studyAlarmId);
       _alarmIsSet = false;
     }
     await _saveSessionState();
+    debugPrint('⏸️ Session paused');
+    _updateRunningState();
   }
 
   Future<void> resumeSession() async {
+    if (!isPaused) return;
+    
+    _isPaused = false;
+    
     if (_currentSession != null && _currentPhase != StudyPhase.stopped) {
       // Recalculate remaining time
       final elapsed = DateTime.now().difference(_phaseStartTime!);
@@ -263,6 +287,8 @@ class StudyTimerService {
           body: _getPhaseCompleteBody(_currentPhase),
         );
         _startTimer();
+        debugPrint('▶️ Session resumed');
+        _updateRunningState();
       } else {
         await _onPhaseComplete();
       }

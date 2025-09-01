@@ -74,7 +74,6 @@ class _StudyTimerPageState extends State<StudyTimerPage>
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
 
-    _studyService.initializeAlarm();
     _studyService.loadSavedSession();
   }
 
@@ -218,81 +217,88 @@ class _StudyTimerPageState extends State<StudyTimerPage>
     return StreamBuilder<StudyPhase>(
       stream: _studyService.phaseStream,
       initialData: _studyService.currentPhase,
-      builder: (context, snapshot) {
-        final phase = snapshot.data ?? StudyPhase.stopped;
-        final isRunning = _studyService.isRunning;
+      builder: (context, phaseSnapshot) {
+        return StreamBuilder<bool>(
+          stream: _studyService.runningStream,
+          initialData: _studyService.isRunning,
+          builder: (context, runningSnapshot) {
+            final phase = phaseSnapshot.data ?? StudyPhase.stopped;
+            final isRunning = runningSnapshot.data ?? false;
+            final isPaused = _studyService.isPaused;
 
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            // Settings button
-            FloatingActionButton(
-              heroTag: "settings_fab", // Add unique hero tag
-              onPressed: isRunning ? null : _showSettingsDialog,
-              backgroundColor: isRunning
-                  ? Colors.grey.shade300
-                  : Colors.grey.shade100,
-              child: Icon(
-                Icons.settings,
-                color: isRunning ? Colors.grey.shade500 : Colors.grey.shade700,
-              ),
-            ),
-
-            // Start/Stop button
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: isRunning
-                      ? [Colors.red.shade400, Colors.red.shade600]
-                      : [phase.color.withValues(alpha: 0.8), phase.color],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: (isRunning ? Colors.red : phase.color).withValues(
-                      alpha: 0.3,
-                    ),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Settings button
+                FloatingActionButton(
+                  heroTag: "settings_fab", // Add unique hero tag
+                  onPressed: isRunning ? null : _showSettingsDialog,
+                  backgroundColor: isRunning
+                      ? Colors.grey.shade300
+                      : Colors.grey.shade100,
+                  child: Icon(
+                    Icons.settings,
+                    color: isRunning ? Colors.grey.shade500 : Colors.grey.shade700,
                   ),
-                ],
-              ),
-              child: FloatingActionButton.large(
-                heroTag: "main_fab", // Add unique hero tag
-                onPressed: isRunning ? _stopSession : _startSession,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                child: Icon(
-                  isRunning ? Icons.stop_rounded : Icons.play_arrow_rounded,
-                  color: Colors.white,
-                  size: 36,
                 ),
-              ),
-            ),
 
-            // Pause/Resume button
-            FloatingActionButton(
-              heroTag: "pause_resume_fab", // Add unique hero tag
-              onPressed: isRunning ? _pauseSession : _resumeSession,
-              backgroundColor: isRunning
-                  ? Colors.orange.shade100
-                  : (_studyService.currentPhase != StudyPhase.stopped &&
-                        !isRunning)
-                  ? Colors.green.shade100
-                  : Colors.grey.shade300,
-              child: Icon(
-                isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                color: isRunning
-                    ? Colors.orange.shade700
-                    : (_studyService.currentPhase != StudyPhase.stopped &&
-                          !isRunning)
-                    ? Colors.green.shade700
-                    : Colors.grey.shade500,
-              ),
-            ),
-          ],
+                // Start/Stop button
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: isRunning
+                          ? [Colors.red.shade400, Colors.red.shade600]
+                          : [phase.color.withValues(alpha: 0.8), phase.color],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (isRunning ? Colors.red : phase.color).withValues(
+                          alpha: 0.3,
+                        ),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: FloatingActionButton.large(
+                    heroTag: "main_fab", // Add unique hero tag
+                    onPressed: isRunning ? _stopSession : _startSession,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    child: Icon(
+                      isRunning ? Icons.stop_rounded : Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 36,
+                    ),
+                  ),
+                ),
+
+                // Pause/Resume button
+                FloatingActionButton(
+                  heroTag: "pause_resume_fab", // Add unique hero tag
+                  onPressed: isRunning 
+                      ? _pauseSession 
+                      : (isPaused ? _resumeSession : null),
+                  backgroundColor: isRunning
+                      ? Colors.orange.shade100
+                      : isPaused
+                        ? Colors.green.shade100
+                        : Colors.grey.shade300,
+                  child: Icon(
+                    isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    color: isRunning
+                        ? Colors.orange.shade700
+                        : isPaused
+                          ? Colors.green.shade700
+                          : Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
