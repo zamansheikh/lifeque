@@ -25,11 +25,54 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   final _doctorController = TextEditingController();
   final _notesController = TextEditingController();
 
+  // Common dosage units for quick selection
+  static const List<String> _commonDosageUnits = [
+    'mg',
+    'g',
+    'ml',
+    'drops',
+    'tablets',
+    'capsules',
+    'tsp',
+    'tbsp',
+    'IU',
+    'mcg',
+  ];
+
+  // Quick preset medicines for faster input
+  static const List<Map<String, dynamic>> _medicinePresets = [
+    {
+      'name': 'Paracetamol',
+      'type': MedicineType.tablet,
+      'dosage': '500',
+      'unit': 'mg',
+      'timing': MealTiming.anytime,
+      'times': 3,
+    },
+    {
+      'name': 'Vitamin D',
+      'type': MedicineType.tablet,
+      'dosage': '1000',
+      'unit': 'IU',
+      'timing': MealTiming.withMeal,
+      'times': 1,
+    },
+    {
+      'name': 'Cough Syrup',
+      'type': MedicineType.syrup,
+      'dosage': '5',
+      'unit': 'ml',
+      'timing': MealTiming.anytime,
+      'times': 3,
+    },
+  ];
+
   MedicineType _selectedType = MedicineType.tablet;
   MealTiming _selectedMealTiming = MealTiming.anytime;
   int _timesPerDay = 1;
   DateTime _startDate = DateTime.now();
   List<TimeOfDay> _notificationTimes = [TimeOfDay.now()];
+  String _selectedDosageUnit = 'mg';
 
   // Store loaded medicine data when editing
   Medicine? _loadedMedicine;
@@ -55,6 +98,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
     _descriptionController.text = medicine.description ?? '';
     _dosageController.text = medicine.dosage.toString();
     _dosageUnitController.text = medicine.dosageUnit;
+    _selectedDosageUnit = medicine.dosageUnit;
     _durationController.text = medicine.durationInDays.toString();
     _doctorController.text = medicine.doctorName ?? '';
     _notesController.text = medicine.notes ?? '';
@@ -187,20 +231,15 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
           key: _formKey,
           child: ListView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(12),
             children: [
-              _buildBasicInfoSection(),
-              const SizedBox(height: 24),
-              _buildMedicineDetailsSection(),
-              const SizedBox(height: 24),
-              _buildDosageSection(),
-              const SizedBox(height: 24),
-              _buildTimingSection(),
-              const SizedBox(height: 24),
-              _buildDurationSection(),
-              const SizedBox(height: 24),
-              _buildAdditionalInfoSection(),
-              const SizedBox(height: 40),
+              // Quick presets for common medicines
+              if (!_isEditing) _buildQuickPresetsSection(),
+              if (!_isEditing) const SizedBox(height: 12),
+
+              // Main form in a single compact card
+              _buildMainFormCard(),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -208,9 +247,99 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
     );
   }
 
-  Widget _buildBasicInfoSection() {
+  Widget _buildQuickPresetsSection() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.flash_on, color: Colors.orange, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'Quick Add',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _medicinePresets.map((preset) {
+              return InkWell(
+                onTap: () => _applyPreset(preset),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _getMedicineTypeIcon(preset['type'] as MedicineType),
+                        size: 16,
+                        color: const Color(0xFF3B82F6),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        preset['name'] as String,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _applyPreset(Map<String, dynamic> preset) {
+    setState(() {
+      _nameController.text = preset['name'];
+      _selectedType = preset['type'];
+      _dosageController.text = preset['dosage'];
+      _selectedDosageUnit = preset['unit'];
+      _dosageUnitController.text = preset['unit'];
+      _selectedMealTiming = preset['timing'];
+      _timesPerDay = preset['times'];
+
+      // Update notification times based on preset
+      _notificationTimes.clear();
+      for (int i = 0; i < _timesPerDay; i++) {
+        _notificationTimes.add(TimeOfDay(hour: 8 + i * 8, minute: 0));
+      }
+    });
+  }
+
+  Widget _buildMainFormCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -225,596 +354,328 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Basic Information',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 20),
+          // Medicine Name
           TextFormField(
             controller: _nameController,
             decoration: InputDecoration(
               labelText: 'Medicine Name',
               hintText: 'e.g., Paracetamol',
               prefixIcon: const Icon(
-                Icons.medication_rounded,
+                Icons.medication,
                 color: Color(0xFF3B82F6),
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(
-                  color: Color(0xFF3B82F6),
-                  width: 2,
-                ),
+                borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
               fillColor: const Color(0xFFF8FAFC),
-              labelStyle: const TextStyle(color: Color(0xFF64748B)),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 16,
+              ),
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter medicine name';
-              }
-              return null;
-            },
+            validator: (value) =>
+                value?.isEmpty ?? true ? 'Please enter medicine name' : null,
           ),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _descriptionController,
-            decoration: InputDecoration(
-              labelText: 'Description (Optional)',
-              hintText: 'e.g., For fever and pain relief',
-              prefixIcon: const Icon(
-                Icons.description_rounded,
-                color: Color(0xFF3B82F6),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(
-                  color: Color(0xFF3B82F6),
-                  width: 2,
-                ),
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF8FAFC),
-              labelStyle: const TextStyle(color: Color(0xFF64748B)),
-            ),
-            maxLines: 2,
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildMedicineDetailsSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withValues(alpha: 0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Medicine Details',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 20),
-          DropdownButtonFormField<MedicineType>(
-            value: _selectedType,
-            decoration: InputDecoration(
-              labelText: 'Medicine Type',
-              prefixIcon: const Icon(Icons.category, color: Color(0xFF3B82F6)),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFF3B82F6),
-                  width: 2,
-                ),
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-            ),
-            items: MedicineType.values.map((type) {
-              return DropdownMenuItem(
-                value: type,
-                child: Row(
-                  children: [
-                    Icon(
-                      _getMedicineTypeIcon(type),
-                      size: 20,
-                      color: const Color(0xFF3B82F6),
+          // Medicine Type and Meal Timing in a row
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<MedicineType>(
+                  value: _selectedType,
+                  decoration: InputDecoration(
+                    labelText: 'Type',
+                    prefixIcon: const Icon(
+                      Icons.category,
+                      color: Color(0xFF3B82F6),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _getMedicineTypeDisplayName(type),
-                      style: const TextStyle(
-                        color: Color(0xFF1E293B),
-                        fontWeight: FontWeight.w500,
-                      ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
-                ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedType = value!;
-              });
-            },
-          ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<MealTiming>(
-            value: _selectedMealTiming,
-            decoration: InputDecoration(
-              labelText: 'Meal Timing',
-              prefixIcon: const Icon(
-                Icons.restaurant,
-                color: Color(0xFF3B82F6),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFF3B82F6),
-                  width: 2,
-                ),
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-            ),
-            items: MealTiming.values.map((timing) {
-              return DropdownMenuItem(
-                value: timing,
-                child: Text(
-                  _getMealTimingDisplayName(timing),
-                  style: const TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontWeight: FontWeight.w500,
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 16,
+                    ),
                   ),
+                  items: MedicineType.values.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Text(
+                        _getMedicineTypeDisplayName(type),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) => setState(() => _selectedType = value!),
                 ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedMealTiming = value!;
-              });
-            },
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: DropdownButtonFormField<MealTiming>(
+                  value: _selectedMealTiming,
+                  decoration: InputDecoration(
+                    labelText: 'Meal Timing',
+                    prefixIcon: const Icon(
+                      Icons.restaurant,
+                      color: Color(0xFF3B82F6),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 16,
+                    ),
+                  ),
+                  items: MealTiming.values.map((timing) {
+                    return DropdownMenuItem(
+                      value: timing,
+                      child: Text(
+                        _getMealTimingDisplayName(timing),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) =>
+                      setState(() => _selectedMealTiming = value!),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+          const SizedBox(height: 16),
 
-  Widget _buildDosageSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withValues(alpha: 0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Dosage Information',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 20),
+          // Dosage and Unit in a row
           Row(
             children: [
               Expanded(
                 flex: 2,
                 child: TextFormField(
                   controller: _dosageController,
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: 'Dosage',
                     hintText: '500',
                     prefixIcon: const Icon(
-                      Icons.medication_liquid,
+                      Icons.medical_services,
                       color: Color(0xFF3B82F6),
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF3B82F6),
-                        width: 2,
-                      ),
                     ),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
+                      horizontal: 12,
                       vertical: 16,
                     ),
                   ),
-                  keyboardType: TextInputType.number,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter dosage';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Please enter a valid number';
-                    }
+                    if (value?.isEmpty ?? true) return 'Required';
+                    if (double.tryParse(value!) == null)
+                      return 'Invalid number';
                     return null;
                   },
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 8),
               Expanded(
-                child: TextFormField(
-                  controller: _dosageUnitController,
+                child: DropdownButtonFormField<String>(
+                  value: _selectedDosageUnit,
                   decoration: InputDecoration(
                     labelText: 'Unit',
-                    hintText: 'mg',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF3B82F6),
-                        width: 2,
-                      ),
                     ),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
+                      horizontal: 12,
                       vertical: 16,
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter unit';
-                    }
-                    return null;
+                  items: _commonDosageUnits.map((unit) {
+                    return DropdownMenuItem(
+                      value: unit,
+                      child: Text(unit, overflow: TextOverflow.ellipsis),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedDosageUnit = value!;
+                      _dosageUnitController.text = value;
+                    });
                   },
                 ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
+          const SizedBox(height: 16),
 
-  Widget _buildTimingSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withValues(alpha: 0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Timing & Frequency',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 20),
+          // Times per day with quick buttons
           Row(
             children: [
-              const Text(
-                'Times per day:',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF64748B),
+              const Flexible(
+                child: Text(
+                  'Times per day:',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF64748B),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 16),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      onPressed: _timesPerDay > 1
-                          ? () {
-                              setState(() {
-                                _timesPerDay--;
-                                if (_notificationTimes.length > _timesPerDay) {
-                                  _notificationTimes = _notificationTimes
-                                      .take(_timesPerDay)
-                                      .toList();
-                                }
-                              });
-                            }
-                          : null,
-                      icon: const Icon(Icons.remove, color: Colors.white),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        '$_timesPerDay',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+              const SizedBox(width: 8),
+              ...List.generate(4, (index) {
+                final times = index + 1;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        _timesPerDay = times;
+                        _notificationTimes = List.generate(
+                          times,
+                          (i) =>
+                              TimeOfDay(hour: 8 + i * (12 ~/ times), minute: 0),
+                        );
+                      });
+                    },
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: _timesPerDay == times
+                            ? const Color(0xFF3B82F6)
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _timesPerDay == times
+                              ? const Color(0xFF3B82F6)
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$times',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: _timesPerDay == times
+                                ? Colors.white
+                                : const Color(0xFF64748B),
+                          ),
                         ),
                       ),
                     ),
-                    IconButton(
-                      onPressed: _timesPerDay < 6
-                          ? () {
-                              setState(() {
-                                _timesPerDay++;
-                                if (_notificationTimes.length < _timesPerDay) {
-                                  _notificationTimes.add(TimeOfDay.now());
-                                }
-                              });
-                            }
-                          : null,
-                      icon: const Icon(Icons.add, color: Colors.white),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              }),
             ],
           ),
-          const SizedBox(height: 20),
-          const Text(
-            'Notification Times:',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-            ),
-          ),
-          const SizedBox(height: 12),
-          ..._buildNotificationTimesList(),
-        ],
-      ),
-    );
-  }
+          const SizedBox(height: 16),
 
-  List<Widget> _buildNotificationTimesList() {
-    List<Widget> widgets = [];
-    for (int i = 0; i < _timesPerDay; i++) {
-      if (i >= _notificationTimes.length) {
-        _notificationTimes.add(TimeOfDay.now());
-      }
-      widgets.add(
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            children: [
-              Container(
-                height: 56,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    'Time ${i + 1}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+          // Notification times - compact grid
+          if (_timesPerDay > 0) ...[
+            const Text(
+              'Notification Times:',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF64748B),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: InkWell(
-                  onTap: () => _selectTime(i),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: List.generate(_timesPerDay, (index) {
+                return InkWell(
+                  onTap: () => _selectTime(index),
                   child: Container(
-                    height: 56,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.schedule, color: Color(0xFF3B82F6)),
-                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.schedule,
+                          size: 14,
+                          color: const Color(0xFF3B82F6),
+                        ),
+                        const SizedBox(width: 3),
                         Text(
-                          _notificationTimes[i].format(context),
+                          _notificationTimes.length > index
+                              ? _notificationTimes[index].format(context)
+                              : '${8 + index * 4}:00',
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF1E293B),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF3B82F6),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    return widgets;
-  }
-
-  Widget _buildDurationSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withValues(alpha: 0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Duration',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
+                );
+              }),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 16),
+          ],
+
+          // Duration and Start Date in a row
           Row(
             children: [
               Expanded(
                 child: TextFormField(
                   controller: _durationController,
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: 'Duration (days)',
                     hintText: '14',
                     prefixIcon: const Icon(
-                      Icons.calendar_today,
+                      Icons.timer,
                       color: Color(0xFF3B82F6),
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF3B82F6),
-                        width: 2,
-                      ),
                     ),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
+                      horizontal: 12,
                       vertical: 16,
                     ),
                   ),
-                  keyboardType: TextInputType.number,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter duration';
-                    }
-                    if (int.tryParse(value) == null || int.parse(value) <= 0) {
-                      return 'Please enter a valid number of days';
-                    }
+                    if (value?.isEmpty ?? true) return 'Required';
+                    if (int.tryParse(value!) == null || int.parse(value) <= 0)
+                      return 'Invalid';
                     return null;
                   },
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 8),
               Expanded(
                 child: InkWell(
                   onTap: _selectStartDate,
                   child: Container(
                     height: 56,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF8FAFC),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
@@ -822,8 +683,12 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.event, color: Color(0xFF3B82F6)),
-                        const SizedBox(width: 12),
+                        const Icon(
+                          Icons.calendar_today,
+                          color: Color(0xFF3B82F6),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -832,18 +697,18 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                               const Text(
                                 'Start Date',
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                                  fontSize: 11,
                                   color: Color(0xFF64748B),
                                 ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 '${_startDate.day}/${_startDate.month}/${_startDate.year}',
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w500,
-                                  color: Color(0xFF1E293B),
                                 ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -855,96 +720,93 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildAdditionalInfoSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withValues(alpha: 0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Additional Information',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 20),
-          TextFormField(
-            controller: _doctorController,
-            decoration: InputDecoration(
-              labelText: 'Doctor Name (Optional)',
-              hintText: 'Dr. Smith',
-              prefixIcon: const Icon(Icons.person, color: Color(0xFF3B82F6)),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFF3B82F6),
-                  width: 2,
-                ),
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-            ),
-          ),
+          // Optional fields - collapsible
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _notesController,
-            decoration: InputDecoration(
-              labelText: 'Notes (Optional)',
-              hintText: 'Take with food to avoid stomach upset',
-              prefixIcon: const Icon(Icons.note, color: Color(0xFF3B82F6)),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFF3B82F6),
-                  width: 2,
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: ExpansionTile(
+                title: const Text(
+                  'Additional Info (Optional)',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
+                tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                children: [
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _descriptionController,
+                    decoration: InputDecoration(
+                      labelText: 'Description',
+                      hintText: 'For fever and pain relief',
+                      prefixIcon: const Icon(
+                        Icons.description,
+                        color: Color(0xFF3B82F6),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 16,
+                      ),
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _doctorController,
+                    decoration: InputDecoration(
+                      labelText: 'Doctor Name',
+                      hintText: 'Dr. Smith',
+                      prefixIcon: const Icon(
+                        Icons.person,
+                        color: Color(0xFF3B82F6),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 16,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _notesController,
+                    decoration: InputDecoration(
+                      labelText: 'Notes',
+                      hintText: 'Take with food',
+                      prefixIcon: const Icon(
+                        Icons.note,
+                        color: Color(0xFF3B82F6),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 16,
+                      ),
+                    ),
+                    maxLines: 2,
+                  ),
+                ],
               ),
             ),
-            maxLines: 3,
           ),
         ],
       ),
@@ -952,6 +814,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   }
 
   Future<void> _selectTime(int index) async {
+    if (index >= _notificationTimes.length) {
+      _notificationTimes.add(TimeOfDay(hour: 8 + index * 4, minute: 0));
+    }
+
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: _notificationTimes[index],
@@ -991,7 +857,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
         type: _selectedType,
         mealTiming: _selectedMealTiming,
         dosage: double.parse(_dosageController.text),
-        dosageUnit: _dosageUnitController.text.trim(),
+        dosageUnit: _selectedDosageUnit,
         timesPerDay: _timesPerDay,
         notificationTimes: _notificationTimes
             .map(
@@ -1074,7 +940,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
       case MealTiming.withMeal:
         return 'With Meal';
       case MealTiming.onEmptyStomach:
-        return 'On Empty Stomach';
+        return 'Empty Stomach';
       case MealTiming.anytime:
         return 'Anytime';
     }
