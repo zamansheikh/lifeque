@@ -371,7 +371,7 @@ class StudyTimerService {
         '${_currentSession!.longBreakDuration}|'
         '${_currentSession!.cyclesBeforeLongBreak}|'
         '${_currentPhase.index}|'
-        '${_completedCycles}|'
+        '$_completedCycles|'
         '${_phaseStartTime?.millisecondsSinceEpoch ?? 0}';
   }
 
