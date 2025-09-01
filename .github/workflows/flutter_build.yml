@@ -36,12 +36,12 @@ jobs:
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.8+${{ github.run_number }}
-          name: RemindMe v1.0.8+${{ github.run_number }}
+          tag_name: v1.0.9+${{ github.run_number }}
+          name: RemindMe v1.0.9+${{ github.run_number }}
           files: build/app/outputs/flutter-apk/app-release.apk
           generate_release_notes: true  # 🚀 Auto-generate release notes from commits
           body: |
-            ## 🚀 RemindMe v1.0.8+${{ github.run_number }}
+            ## 🚀 RemindMe v1.0.9+${{ github.run_number }}
             
             ### 📱 What's New
             This release includes the latest improvements and bug fixes for RemindMe!
@@ -52,6 +52,10 @@ jobs:
             - 🔔 Smart notifications and reminders
             - 💊 Medicine reminder system
             - 🕌 Islamic Prayer Times with GPS location
+            - 🧭 Qibla direction with rotating compass
+            - ⏰ Prayer alarm system with dynamic timing
+            - 📚 Study timer with Pomodoro technique
+            - 🚫 Islamic restricted prayer times education
             - 🎯 Clean Material Design 3 UI
             
             ### 🛠️ Recent Changes

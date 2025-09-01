@@ -129,7 +129,7 @@ class PrayerAlarmService {
     final prefs = await SharedPreferences.getInstance();
     final alarmsJson = _alarms.map((alarm) {
       final data = alarm.toJson();
-      return '${data.entries.map((e) => '${e.key}:${e.value}').join('|')}';
+      return data.entries.map((e) => '${e.key}:${e.value}').join('|');
     }).toList();
 
     await prefs.setStringList(_prefsKey, alarmsJson);
