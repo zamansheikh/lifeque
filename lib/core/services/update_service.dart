@@ -6,7 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UpdateService {
-  static const String _githubRepo = 'zamansheikh/remindme';
+  static const String _githubRepo = 'zamansheikh/lifeque';
   static const String _githubApiUrl =
       'https://api.github.com/repos/$_githubRepo/releases/latest';
 
