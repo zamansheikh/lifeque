@@ -191,7 +191,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                     prefixIcon: const Icon(Icons.description_rounded),
                     contentPadding: const EdgeInsets.all(16),
                   ),
-                  maxLines: 3,
+                  maxLines: 2,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter a description';
@@ -201,7 +201,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                 ),
                 const SizedBox(height: 24),
 
-                // Task Type Selector
+                // Task Type Selector - More compact
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -215,220 +215,163 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
                               color: Colors.purple.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Icon(
                               Icons.category_rounded,
                               color: Colors.purple,
+                              size: 18,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           const Text(
                             'Task Type',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              fontSize: 16,
+                              fontSize: 14,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      // Three task type options
-                      Column(
+                      const SizedBox(height: 12),
+                      // Compact horizontal task type selection
+                      Row(
                         children: [
-                          // First row - Task and Reminder
-                          Row(
-                            children: [
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () =>
-                                      setState(() => _taskType = TaskType.task),
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
+                          Expanded(
+                            child: InkWell(
+                              onTap: () =>
+                                  setState(() => _taskType = TaskType.task),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: _taskType == TaskType.task
+                                      ? Colors.blue.withValues(alpha: 0.1)
+                                      : Colors.grey.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: _taskType == TaskType.task
+                                        ? Colors.blue
+                                        : Colors.grey.shade300,
+                                    width: _taskType == TaskType.task ? 2 : 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.assignment_rounded,
                                       color: _taskType == TaskType.task
-                                          ? Colors.blue.withValues(alpha: 0.1)
-                                          : Colors.grey.shade50,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
+                                          ? Colors.blue
+                                          : Colors.grey.shade600,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Task',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
                                         color: _taskType == TaskType.task
                                             ? Colors.blue
-                                            : Colors.grey.shade300,
-                                        width: _taskType == TaskType.task
-                                            ? 2
-                                            : 1,
-                                      ),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.assignment_rounded,
-                                          color: _taskType == TaskType.task
-                                              ? Colors.blue
-                                              : Colors.grey.shade600,
-                                          size: 32,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Task',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            color: _taskType == TaskType.task
-                                                ? Colors.blue
-                                                : Colors.grey.shade700,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Duration-based with start & end',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () => setState(
-                                    () => _taskType = TaskType.reminder,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: _taskType == TaskType.reminder
-                                          ? Colors.orange.withValues(alpha: 0.1)
-                                          : Colors.grey.shade50,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: _taskType == TaskType.reminder
-                                            ? Colors.orange
-                                            : Colors.grey.shade300,
-                                        width: _taskType == TaskType.reminder
-                                            ? 2
-                                            : 1,
-                                      ),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.notifications_active_rounded,
-                                          color: _taskType == TaskType.reminder
-                                              ? Colors.orange
-                                              : Colors.grey.shade600,
-                                          size: 32,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Reminder',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                _taskType == TaskType.reminder
-                                                ? Colors.orange
-                                                : Colors.grey.shade700,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Simple notification at specific time',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          // Second row - Birthday Reminder (full width)
-                          InkWell(
-                            onTap: () =>
-                                setState(() => _taskType = TaskType.birthday),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: _taskType == TaskType.birthday
-                                    ? Colors.pink.withValues(alpha: 0.1)
-                                    : Colors.grey.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: _taskType == TaskType.birthday
-                                      ? Colors.pink
-                                      : Colors.grey.shade300,
-                                  width: _taskType == TaskType.birthday ? 2 : 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.cake_rounded,
-                                    color: _taskType == TaskType.birthday
-                                        ? Colors.pink
-                                        : Colors.grey.shade600,
-                                    size: 32,
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Birthday Reminder',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 16,
-                                            color:
-                                                _taskType == TaskType.birthday
-                                                ? Colors.pink
-                                                : Colors.grey.shade700,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Yearly reminder for birthdays and anniversaries',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (_taskType == TaskType.birthday) ...[
-                                    Container(
-                                      padding: const EdgeInsets.all(6),
-                                      decoration: BoxDecoration(
-                                        color: Colors.pink.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.check_rounded,
-                                        color: Colors.pink,
-                                        size: 16,
+                                            : Colors.grey.shade700,
                                       ),
                                     ),
                                   ],
-                                ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => setState(
+                                () => _taskType = TaskType.reminder,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: _taskType == TaskType.reminder
+                                      ? Colors.orange.withValues(alpha: 0.1)
+                                      : Colors.grey.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: _taskType == TaskType.reminder
+                                        ? Colors.orange
+                                        : Colors.grey.shade300,
+                                    width: _taskType == TaskType.reminder ? 2 : 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.notifications_active_rounded,
+                                      color: _taskType == TaskType.reminder
+                                          ? Colors.orange
+                                          : Colors.grey.shade600,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Reminder',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: _taskType == TaskType.reminder
+                                            ? Colors.orange
+                                            : Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () =>
+                                  setState(() => _taskType = TaskType.birthday),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: _taskType == TaskType.birthday
+                                      ? Colors.pink.withValues(alpha: 0.1)
+                                      : Colors.grey.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: _taskType == TaskType.birthday
+                                        ? Colors.pink
+                                        : Colors.grey.shade300,
+                                    width: _taskType == TaskType.birthday ? 2 : 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.cake_rounded,
+                                      color: _taskType == TaskType.birthday
+                                          ? Colors.pink
+                                          : Colors.grey.shade600,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Birthday',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: _taskType == TaskType.birthday
+                                            ? Colors.pink
+                                            : Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -437,82 +380,165 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-                // Date and Time Section - conditional based on task type
+                // Date and Time Section - More compact layout
                 if (_taskType == TaskType.task) ...[
-                  // Start date and time picker
+                  // Combined Start and End date/time in one container
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade300),
                     ),
-                    child: ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(
+                                Icons.schedule_rounded,
+                                color: Colors.green,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Task Duration',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
                         ),
-                        child: const Icon(
-                          Icons.play_circle_outline_rounded,
-                          color: Colors.green,
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            // Start Date/Time
+                            Expanded(
+                              child: InkWell(
+                                onTap: () => _selectStartDateTime(context),
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.green.withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.play_circle_outline_rounded,
+                                            color: Colors.green,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Start',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.green.shade700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${_startDate.day}/${_startDate.month}/${_startDate.year}',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${_startDate.hour.toString().padLeft(2, '0')}:${_startDate.minute.toString().padLeft(2, '0')}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // End Date/Time
+                            Expanded(
+                              child: InkWell(
+                                onTap: () => _selectEndDateTime(context),
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.red.withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.flag_rounded,
+                                            color: Colors.red,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'End',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.red.shade700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${_endDate.day}/${_endDate.month}/${_endDate.year}',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${_endDate.hour.toString().padLeft(2, '0')}:${_endDate.minute.toString().padLeft(2, '0')}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      title: const Text(
-                        'Start Date & Time',
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      subtitle: Text(
-                        '${_startDate.day}/${_startDate.month}/${_startDate.year} ${_startDate.hour.toString().padLeft(2, '0')}:${_startDate.minute.toString().padLeft(2, '0')}',
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 16,
-                      ),
-                      onTap: () => _selectStartDateTime(context),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // End date and time picker
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.flag_rounded,
-                          color: Colors.red,
-                        ),
-                      ),
-                      title: const Text(
-                        'End Date & Time',
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      subtitle: Text(
-                        '${_endDate.day}/${_endDate.month}/${_endDate.year} ${_endDate.hour.toString().padLeft(2, '0')}:${_endDate.minute.toString().padLeft(2, '0')}',
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 16,
-                      ),
-                      onTap: () => _selectEndDateTime(context),
+                      ],
                     ),
                   ),
                 ] else if (_taskType == TaskType.reminder) ...[
-                  // Reminder time picker
+                  // Compact reminder time picker
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -520,36 +546,35 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                       border: Border.all(color: Colors.grey.shade300),
                     ),
                     child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       leading: Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           color: Colors.orange.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Icon(
                           Icons.access_time_rounded,
                           color: Colors.orange,
+                          size: 18,
                         ),
                       ),
                       title: const Text(
                         'Reminder Time',
-                        style: TextStyle(fontWeight: FontWeight.w500),
+                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                       ),
                       subtitle: Text(
                         _notificationTime != null
                             ? '${_notificationTime!.day}/${_notificationTime!.month}/${_notificationTime!.year} ${_notificationTime!.hour.toString().padLeft(2, '0')}:${_notificationTime!.minute.toString().padLeft(2, '0')}'
                             : 'Tap to set reminder time',
-                        style: TextStyle(color: Colors.grey.shade600),
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                       ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 16,
-                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                       onTap: () => _selectSpecificNotificationTime(context),
                     ),
                   ),
                 ] else if (_taskType == TaskType.birthday) ...[
-                  // Birthday date picker
+                  // Compact birthday date picker
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -557,78 +582,249 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                       border: Border.all(color: Colors.grey.shade300),
                     ),
                     child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       leading: Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           color: Colors.pink.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Icon(
                           Icons.cake_rounded,
                           color: Colors.pink,
+                          size: 18,
                         ),
                       ),
                       title: const Text(
                         'Birthday Date',
-                        style: TextStyle(fontWeight: FontWeight.w500),
+                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                       ),
                       subtitle: Text(
                         '${_startDate.day}/${_startDate.month}/${_startDate.year}',
-                        style: TextStyle(color: Colors.grey.shade600),
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                       ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 16,
-                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                       onTap: () => _selectBirthdayDate(context),
                     ),
                   ),
                 ],
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-                // Notification settings - conditional based on task type
+                // Notification settings - More compact
                 if (_taskType == TaskType.task) ...[
-                  // Notification toggle for tasks
+                  // Notification toggle and settings combined
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade300),
                     ),
-                    child: SwitchListTile(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      title: const Text(
-                        'Enable Notifications',
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      subtitle: Text(
-                        'Get reminded about this task',
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                      value: _isNotificationEnabled,
-                      onChanged: (value) {
-                        setState(() {
-                          _isNotificationEnabled = value;
-                        });
-                      },
-                      secondary: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                    child: Column(
+                      children: [
+                        // Notification toggle
+                        SwitchListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          title: const Text(
+                            'Enable Notifications',
+                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                          ),
+                          subtitle: Text(
+                            'Get reminded about this task',
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                          ),
+                          value: _isNotificationEnabled,
+                          onChanged: (value) {
+                            setState(() {
+                              _isNotificationEnabled = value;
+                            });
+                          },
+                          secondary: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Icons.notifications_rounded,
+                              color: Colors.blue,
+                              size: 18,
+                            ),
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.notifications_rounded,
-                          color: Colors.blue,
-                        ),
-                      ),
+                        // Notification type and settings (when enabled)
+                        if (_isNotificationEnabled) ...[
+                          Divider(height: 1, color: Colors.grey.shade200),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              children: [
+                                // Notification type dropdown - more compact
+                                Row(
+                                  children: [
+                                    Icon(Icons.schedule_rounded, color: Colors.grey.shade600, size: 18),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Type:',
+                                      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: DropdownButtonFormField<NotificationType>(
+                                        isDense: true,
+                                        value: _notificationType,
+                                        decoration: InputDecoration(
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 8,
+                                          ),
+                                        ),
+                                        items: const [
+                                          DropdownMenuItem(
+                                            value: NotificationType.specificTime,
+                                            child: Text('At a specific time', style: TextStyle(fontSize: 13)),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: NotificationType.daily,
+                                            child: Text('Daily reminder', style: TextStyle(fontSize: 13)),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: NotificationType.beforeEnd,
+                                            child: Text('Before end time', style: TextStyle(fontSize: 13)),
+                                          ),
+                                        ],
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _notificationType = value!;
+                                            // Reset other notification settings when type changes
+                                            _notificationTime = null;
+                                            _dailyNotificationTime = null;
+                                            _beforeEndOption = null;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                // Specific settings based on type
+                                if (_notificationType == NotificationType.specificTime) ...[
+                                  const SizedBox(height: 12),
+                                  InkWell(
+                                    onTap: () => _selectSpecificNotificationTime(context),
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: Colors.grey.shade300),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.access_time, color: Colors.grey.shade600, size: 16),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              _notificationTime != null
+                                                  ? '${_notificationTime!.day}/${_notificationTime!.month}/${_notificationTime!.year} ${_notificationTime!.hour.toString().padLeft(2, '0')}:${_notificationTime!.minute.toString().padLeft(2, '0')}'
+                                                  : 'Tap to set time',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: _notificationTime != null ? Colors.black87 : Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ),
+                                          Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade600),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                                if (_notificationType == NotificationType.daily) ...[
+                                  const SizedBox(height: 12),
+                                  InkWell(
+                                    onTap: () => _selectDailyNotificationTime(context),
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: Colors.grey.shade300),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.repeat, color: Colors.grey.shade600, size: 16),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              _dailyNotificationTime != null
+                                                  ? '${_dailyNotificationTime!.hour.toString().padLeft(2, '0')}:${_dailyNotificationTime!.minute.toString().padLeft(2, '0')} every day'
+                                                  : 'Tap to set daily time',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: _dailyNotificationTime != null ? Colors.black87 : Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ),
+                                          Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade600),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                                if (_notificationType == NotificationType.beforeEnd) ...[
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.timer, color: Colors.grey.shade600, size: 16),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Before:',
+                                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: DropdownButtonFormField<BeforeEndOption>(
+                                          isDense: true,
+                                          value: _beforeEndOption,
+                                          decoration: InputDecoration(
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            contentPadding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 8,
+                                            ),
+                                          ),
+                                          hint: const Text('Select', style: TextStyle(fontSize: 13)),
+                                          items: BeforeEndOption.values.map((option) {
+                                            return DropdownMenuItem(
+                                              value: option,
+                                              child: Text(option.displayName, style: const TextStyle(fontSize: 13)),
+                                            );
+                                          }).toList(),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _beforeEndOption = value;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
                 ] else if (_taskType == TaskType.reminder) ...[
-                  // For reminders, show notification is always enabled
+                  // For reminders, show notification is always enabled - more compact
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.orange.withValues(alpha: 0.05),
@@ -637,21 +833,22 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                         color: Colors.orange.withValues(alpha: 0.2),
                       ),
                     ),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             color: Colors.orange.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Icon(
                             Icons.notifications_active_rounded,
                             color: Colors.orange,
+                            size: 18,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -660,15 +857,14 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                 'Notification Enabled',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                 ),
                               ),
-                              const SizedBox(height: 4),
                               Text(
                                 'Reminders always notify at the set time',
                                 style: TextStyle(
                                   color: Colors.grey.shade600,
-                                  fontSize: 14,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -677,13 +873,13 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                         const Icon(
                           Icons.check_circle_rounded,
                           color: Colors.orange,
+                          size: 20,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
                 ] else if (_taskType == TaskType.birthday) ...[
-                  // For birthday reminders, show notification is always enabled
+                  // For birthday reminders, show notification is always enabled - more compact
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.pink.withValues(alpha: 0.05),
@@ -692,21 +888,22 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                         color: Colors.pink.withValues(alpha: 0.2),
                       ),
                     ),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             color: Colors.pink.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Icon(
                             Icons.cake_rounded,
                             color: Colors.pink,
+                            size: 18,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -715,236 +912,47 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                 'Annual Reminder',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                 ),
                               ),
-                              const SizedBox(height: 4),
                               Text(
                                 'Birthday reminders notify every year automatically',
                                 style: TextStyle(
                                   color: Colors.grey.shade600,
-                                  fontSize: 14,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.repeat_rounded, color: Colors.pink),
+                        const Icon(Icons.repeat_rounded, color: Colors.pink, size: 20),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
                 ],
 
-                // Notification settings (shown only for tasks with notifications enabled)
-                if (_taskType == TaskType.task && _isNotificationEnabled) ...[
-                  const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
-                  // Notification type selector
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.purple.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.schedule_rounded,
-                                  color: Colors.purple,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              const Text(
-                                'Notification Type',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<NotificationType>(
-                            initialValue: _notificationType,
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Colors.blue,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                            ),
-                            items: const [
-                              DropdownMenuItem(
-                                value: NotificationType.specificTime,
-                                child: Text('At a specific time'),
-                              ),
-                              DropdownMenuItem(
-                                value: NotificationType.daily,
-                                child: Text('Daily reminder'),
-                              ),
-                              DropdownMenuItem(
-                                value: NotificationType.beforeEnd,
-                                child: Text('Before end time'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                _notificationType = value!;
-                                // Reset other notification settings when type changes
-                                _notificationTime = null;
-                                _dailyNotificationTime = null;
-                                _beforeEndOption = null;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Specific time notification picker
-                  if (_notificationType == NotificationType.specificTime) ...[
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.access_time),
-                        title: const Text('Notification Time'),
-                        subtitle: Text(
-                          _notificationTime != null
-                              ? '${_notificationTime!.day}/${_notificationTime!.month}/${_notificationTime!.year} ${_notificationTime!.hour.toString().padLeft(2, '0')}:${_notificationTime!.minute.toString().padLeft(2, '0')}'
-                              : 'Tap to set notification time',
-                        ),
-                        trailing: const Icon(Icons.arrow_forward_ios),
-                        onTap: () => _selectSpecificNotificationTime(context),
-                      ),
-                    ),
-                  ],
-
-                  // Daily notification time picker
-                  if (_notificationType == NotificationType.daily) ...[
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.repeat),
-                        title: const Text('Daily Notification Time'),
-                        subtitle: Text(
-                          _dailyNotificationTime != null
-                              ? '${_dailyNotificationTime!.hour.toString().padLeft(2, '0')}:${_dailyNotificationTime!.minute.toString().padLeft(2, '0')} every day'
-                              : 'Tap to set daily reminder time',
-                        ),
-                        trailing: const Icon(Icons.arrow_forward_ios),
-                        onTap: () => _selectDailyNotificationTime(context),
-                      ),
-                    ),
-                  ],
-
-                  // Before end option selector
-                  if (_notificationType == NotificationType.beforeEnd) ...[
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.timer),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Notify Before End',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            DropdownButtonFormField<BeforeEndOption>(
-                              initialValue: _beforeEndOption,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                              ),
-                              hint: const Text('Select how long before'),
-                              items: BeforeEndOption.values.map((option) {
-                                return DropdownMenuItem(
-                                  value: option,
-                                  child: Text(option.displayName),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _beforeEndOption = value;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-
-                const SizedBox(height: 16),
-
-                // Pin to notification toggle - available for all task types
+                // Pin to notification toggle - more compact and consistent for all types
                 Container(
                   decoration: BoxDecoration(
-                    color: _taskType == TaskType.reminder
-                        ? Colors.orange.withValues(alpha: 0.05)
-                        : Colors.white,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _taskType == TaskType.reminder
-                          ? Colors.orange.withValues(alpha: 0.2)
-                          : Colors.grey.shade300,
-                    ),
+                    border: Border.all(color: Colors.grey.shade300),
                   ),
                   child: SwitchListTile(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     title: Text(
                       _taskType == TaskType.reminder
                           ? 'Pin Reminder'
                           : 'Pin to Notification',
-                      style: const TextStyle(fontWeight: FontWeight.w500),
+                      style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                     ),
                     subtitle: Text(
                       _taskType == TaskType.reminder
-                          ? 'Keep reminder visible in notifications for easy access'
+                          ? 'Keep visible in notifications'
                           : 'Keep task visible in notifications',
-                      style: TextStyle(color: Colors.grey.shade600),
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                     ),
                     value: _isPinnedToNotification,
                     onChanged: (value) {
@@ -953,26 +961,27 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                       });
                     },
                     secondary: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color:
                             (_taskType == TaskType.reminder
                                     ? Colors.orange
                                     : Colors.blue)
                                 .withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Icon(
                         Icons.push_pin_rounded,
                         color: _taskType == TaskType.reminder
                             ? Colors.orange
                             : Colors.blue,
+                        size: 18,
                       ),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
                 // Save button
                 SizedBox(
