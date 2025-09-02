@@ -582,6 +582,14 @@ class _TaskListPageState extends State<TaskListPage>
                   ),
                   const Divider(height: 32),
                   _buildDrawerItem(
+                    icon: Icons.backup_rounded,
+                    title: 'Backup & Restore',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/backup-settings');
+                    },
+                  ),
+                  _buildDrawerItem(
                     icon: Icons.info_outline_rounded,
                     title: 'About',
                     onTap: () {
