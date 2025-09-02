@@ -1,8 +1,8 @@
-# Example Release Notes for RemindMe
+# Example Release Notes for LifeQue
 
 Here are some example release notes you can use for testing or inspiration:
 
-## 🚀 RemindMe v1.0.6+6
+## 🚀 LifeQue v1.0.6+6
 
 ### ✨ New Features
 - 🕌 **Islamic Prayer Times**: Added comprehensive prayer times with GPS location support
@@ -36,14 +36,14 @@ Here are some example release notes you can use for testing or inspiration:
 - Previous settings and tasks are preserved during update
 
 ### 🐛 Found a Bug?
-Report issues at: https://github.com/zamansheikh/remindme/issues
+Report issues at: https://github.com/zamansheikh/lifeque/issues
 
 ---
 
 ## How to Use These Release Notes
 
 ### Option 1: Manual GitHub Release
-1. Go to https://github.com/zamansheikh/remindme/releases
+1. Go to https://github.com/zamansheikh/lifeque/releases
 2. Click "Edit" on any release
 3. Copy and paste the content above into the description field
 4. Modify as needed for the specific version
