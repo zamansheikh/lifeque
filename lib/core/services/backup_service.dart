@@ -256,9 +256,20 @@ class BackupService {
   }
 
   Future<File> _createBackupFile(BackupData backupData) async {
-    // Get external storage directory for user-accessible backups
-    final directory = await getExternalStorageDirectory() ?? 
-                     await getApplicationDocumentsDirectory();
+    // For Android 13+, prefer app-specific directories to avoid permission issues
+    Directory? directory;
+    
+    if (Platform.isAndroid) {
+      // Use app-specific external directory first (no permissions needed)
+      directory = await getExternalStorageDirectory();
+      if (directory == null) {
+        // Fallback to documents directory
+        directory = await getApplicationDocumentsDirectory();
+      }
+    } else {
+      // For iOS and other platforms
+      directory = await getApplicationDocumentsDirectory();
+    }
     
     final backupDir = Directory('${directory.path}/RemindMe_Backups');
     if (!await backupDir.exists()) {
@@ -276,6 +287,7 @@ class BackupService {
       encoding: utf8,
     );
 
+    debugPrint('🗃️ 📁 Backup file created: ${backupFile.path}');
     return backupFile;
   }
 
@@ -417,9 +429,13 @@ class BackupService {
 
   Future<void> _requestStoragePermissions() async {
     if (Platform.isAndroid) {
-      final status = await Permission.storage.request();
-      if (!status.isGranted) {
-        throw Exception('Storage permission is required for backup/restore');
+      try {
+        // Try to request storage permissions, but don't fail if denied
+        // We'll use app-specific directories as fallback
+        await Permission.storage.request();
+        debugPrint('🗃️ 🔑 Storage permission requested');
+      } catch (e) {
+        debugPrint('🗃️ ⚠️ Permission request failed, using app-specific directory: $e');
       }
     }
   }
