@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/services/backup_service.dart';
 
 class BackupSettingsPage extends StatefulWidget {
@@ -14,11 +15,18 @@ class _BackupSettingsPageState extends State<BackupSettingsPage> {
   List<BackupInfo> _availableBackups = [];
   bool _isLoading = false;
   bool _autoBackupEnabled = true; // This should be stored in preferences
+  StoragePermissionInfo? _permissionInfo;
 
   @override
   void initState() {
     super.initState();
     _loadAvailableBackups();
+    _checkPermissionStatus();
+  }
+
+  Future<void> _checkPermissionStatus() async {
+    final permissionInfo = await _backupService.getStoragePermissionInfo();
+    setState(() => _permissionInfo = permissionInfo);
   }
 
   Future<void> _loadAvailableBackups() async {
@@ -775,32 +783,95 @@ class _BackupSettingsPageState extends State<BackupSettingsPage> {
   }
 
   Widget _buildPermissionInfo() {
+    if (_permissionInfo == null) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        child: const CircularProgressIndicator(),
+      );
+    }
+
+    final info = _permissionInfo!;
+    final color = info.hasFullAccess ? Colors.green : Colors.orange;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.amber.shade50,
+        color: color.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.amber.shade200),
+        border: Border.all(color: color.shade200),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            color: Colors.amber.shade700,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Backups are saved to app-specific storage. For broader access, you may grant storage permissions when prompted.',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.amber.shade800,
+          Row(
+            children: [
+              Icon(
+                info.hasFullAccess ? Icons.check_circle : Icons.info_outline,
+                color: color.shade700,
+                size: 20,
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Storage Access Status',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: color.shade800,
+                  ),
+                ),
+              ),
+              if (info.recommendedAction != null && Platform.isAndroid)
+                TextButton(
+                  onPressed: _requestStoragePermission,
+                  style: TextButton.styleFrom(
+                    foregroundColor: color.shade700,
+                    backgroundColor: color.shade100,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  ),
+                  child: const Text(
+                    'Grant Access',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            info.message,
+            style: TextStyle(
+              fontSize: 13,
+              color: color.shade700,
+              height: 1.4,
             ),
           ),
+          if (info.recommendedAction != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Tip: ${info.recommendedAction}',
+              style: TextStyle(
+                fontSize: 12,
+                color: color.shade600,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Future<void> _requestStoragePermission() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.manageExternalStorage.request();
+      
+      if (status.isPermanentlyDenied) {
+        // Open app settings
+        await openAppSettings();
+      }
+      
+      // Refresh permission status
+      await _checkPermissionStatus();
+    }
   }
 }

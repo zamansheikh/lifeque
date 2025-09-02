@@ -256,19 +256,37 @@ class BackupService {
   }
 
   Future<File> _createBackupFile(BackupData backupData) async {
-    // For Android 13+, prefer app-specific directories to avoid permission issues
     Directory? directory;
+    String directoryType = "app-specific";
     
     if (Platform.isAndroid) {
-      // Use app-specific external directory first (no permissions needed)
-      directory = await getExternalStorageDirectory();
+      // Check if we have MANAGE_EXTERNAL_STORAGE permission
+      final hasManageStorage = await Permission.manageExternalStorage.isGranted;
+      
+      if (hasManageStorage) {
+        // Use Downloads directory for broader accessibility
+        directory = await getDownloadsDirectory();
+        directoryType = "Downloads";
+        debugPrint('🗃️ 📁 Using Downloads directory (broad access granted)');
+      }
+      
       if (directory == null) {
-        // Fallback to documents directory
+        // Fallback to app-specific external directory (no permissions needed)
+        directory = await getExternalStorageDirectory();
+        directoryType = "app-specific external";
+        debugPrint('🗃️ 📁 Using app-specific external directory');
+      }
+      
+      if (directory == null) {
+        // Final fallback to documents directory
         directory = await getApplicationDocumentsDirectory();
+        directoryType = "app documents";
+        debugPrint('🗃️ 📁 Using app documents directory');
       }
     } else {
       // For iOS and other platforms
       directory = await getApplicationDocumentsDirectory();
+      directoryType = "documents";
     }
     
     final backupDir = Directory('${directory.path}/RemindMe_Backups');
@@ -287,7 +305,7 @@ class BackupService {
       encoding: utf8,
     );
 
-    debugPrint('🗃️ 📁 Backup file created: ${backupFile.path}');
+    debugPrint('🗃️ ✅ Backup saved to $directoryType directory: ${backupFile.path}');
     return backupFile;
   }
 
@@ -430,13 +448,61 @@ class BackupService {
   Future<void> _requestStoragePermissions() async {
     if (Platform.isAndroid) {
       try {
-        // Try to request storage permissions, but don't fail if denied
-        // We'll use app-specific directories as fallback
-        await Permission.storage.request();
-        debugPrint('🗃️ 🔑 Storage permission requested');
+        // For Android 13+, we need MANAGE_EXTERNAL_STORAGE for broad file access
+        // or use app-specific directories which don't require permissions
+        final manageStorageStatus = await Permission.manageExternalStorage.status;
+        
+        if (manageStorageStatus.isDenied) {
+          // Request MANAGE_EXTERNAL_STORAGE permission
+          // This will open settings page for user to grant permission
+          await Permission.manageExternalStorage.request();
+          debugPrint('🗃️ 🔑 MANAGE_EXTERNAL_STORAGE permission requested');
+        }
+        
+        // Also check for notification permission since we're here
+        if (await Permission.notification.isDenied) {
+          await Permission.notification.request();
+        }
       } catch (e) {
         debugPrint('🗃️ ⚠️ Permission request failed, using app-specific directory: $e');
       }
+    }
+  }
+
+  /// Check storage permission status and return user-friendly information
+  Future<StoragePermissionInfo> getStoragePermissionInfo() async {
+    if (!Platform.isAndroid) {
+      return StoragePermissionInfo(
+        hasFullAccess: true,
+        canAccessDownloads: true,
+        message: 'Full storage access available',
+        recommendedAction: null,
+      );
+    }
+
+    final manageStorageStatus = await Permission.manageExternalStorage.status;
+    
+    if (manageStorageStatus.isGranted) {
+      return StoragePermissionInfo(
+        hasFullAccess: true,
+        canAccessDownloads: true,
+        message: 'Full storage access granted - backups saved to Downloads folder',
+        recommendedAction: null,
+      );
+    } else if (manageStorageStatus.isPermanentlyDenied) {
+      return StoragePermissionInfo(
+        hasFullAccess: false,
+        canAccessDownloads: false,
+        message: 'Storage permission permanently denied - using app-specific storage',
+        recommendedAction: 'Open app settings to grant "All files access" permission',
+      );
+    } else {
+      return StoragePermissionInfo(
+        hasFullAccess: false,
+        canAccessDownloads: false,
+        message: 'Limited storage access - using app-specific storage',
+        recommendedAction: 'Grant "All files access" permission for Downloads folder access',
+      );
     }
   }
 
@@ -596,4 +662,18 @@ class ValidationResult {
 
   factory ValidationResult.valid() => ValidationResult._(true, null);
   factory ValidationResult.invalid(String error) => ValidationResult._(false, error);
+}
+
+class StoragePermissionInfo {
+  final bool hasFullAccess;
+  final bool canAccessDownloads;
+  final String message;
+  final String? recommendedAction;
+
+  StoragePermissionInfo({
+    required this.hasFullAccess,
+    required this.canAccessDownloads,
+    required this.message,
+    this.recommendedAction,
+  });
 }

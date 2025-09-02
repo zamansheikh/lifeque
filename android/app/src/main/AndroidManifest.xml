@@ -13,10 +13,12 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     
     <!-- Storage permissions for backup/restore functionality -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
-    <!-- For Android 11+ (API 30+), use scoped storage -->
+    <!-- MANAGE_EXTERNAL_STORAGE for comprehensive file access on Android 11+ -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage"/>
+    
+    <!-- Legacy permissions for older Android versions -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
     
     <!-- Alarm-specific permissions -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
