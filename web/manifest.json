@@ -1,11 +1,11 @@
 {
-    "name": "remindme",
-    "short_name": "remindme",
+    "name": "LifeQue",
+    "short_name": "LifeQue",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#hexcode",
     "theme_color": "#hexcode",
-    "description": "A new Flutter project.",
+    "description": "Smart Task & Reminder Manager",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

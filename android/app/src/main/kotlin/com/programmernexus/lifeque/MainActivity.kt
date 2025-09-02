@@ -1,4 +1,4 @@
-package com.programmernexus.remindme
+package com.programmernexus.lifeque
 
 import io.flutter.embedding.android.FlutterActivity
 

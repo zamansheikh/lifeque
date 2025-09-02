@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.programmernexus.remindme"
+    namespace = "com.programmernexus.lifeque"
     compileSdk = 36 // Updated to resolve sqflite_android requirement
     ndkVersion = flutter.ndkVersion
 
@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.programmernexus.remindme"
+        applicationId = "com.programmernexus.lifeque"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
