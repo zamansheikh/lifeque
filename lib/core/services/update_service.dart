@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class UpdateService {
   static const String _githubRepo = 'zamansheikh/lifeque';
@@ -201,6 +202,36 @@ class UpdateService {
                     ],
                   ),
                 ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFFF3CD),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Color(0xFFFFD700)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Color(0xFFFFA000),
+                        size: 22,
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Important: To avoid conflicts, please uninstall the previous version of RemindMe before installing LifeQue.',
+                          style: TextStyle(
+                            color: Color(0xFF856404),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 if (updateInfo.releaseNotes.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   Text(
@@ -218,12 +249,42 @@ class UpdateService {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.grey.shade200),
                     ),
-                    child: Text(
-                      updateInfo.releaseNotes,
-                      style: TextStyle(
-                        color: Colors.grey.shade700,
-                        fontSize: 14,
-                        height: 1.3,
+                    child: MarkdownBody(
+                      data: updateInfo.releaseNotes,
+                      styleSheet: MarkdownStyleSheet(
+                        p: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 14,
+                          height: 1.3,
+                        ),
+                        h1: TextStyle(
+                          color: Colors.blue.shade700,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        h2: TextStyle(
+                          color: Colors.purple.shade700,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        h3: TextStyle(
+                          color: Colors.purple.shade400,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        strong: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        blockquote: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        code: TextStyle(
+                          backgroundColor: Colors.grey.shade200,
+                          fontFamily: 'monospace',
+                        ),
+                        listBullet: TextStyle(color: Colors.grey.shade700),
                       ),
                     ),
                   ),
