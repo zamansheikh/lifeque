@@ -94,7 +94,7 @@ BEGIN
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "LifeQue" "\0"
             VALUE "LegalCopyright", "© 2025 ProgrammerNexus" "\0"
-            VALUE "OriginalFilename", "remindme.exe" "\0"
+            VALUE "OriginalFilename", "lifeque.exe" "\0"
             VALUE "ProductName", "LifeQue" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END

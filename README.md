@@ -1,6 +1,6 @@
-# RemindMe - Comprehensive Islamic & Productivity App
+# LifeQue - Comprehensive Islamic & Productivity App
 
-A Flutter app built following Clean Architecture principles with BLoC pattern, GoRouter, and dependency injection. RemindMe is your complete companion for Islamic practices, productivity, and task management with advanced features for modern Muslim lifestyle.
+A Flutter app built following Clean Architecture principles with BLoC pattern, GoRouter, and dependency injection. LifeQue is your complete companion for Islamic practices, productivity, and task management with advanced features for modern Muslim lifestyle.
 
 ## 🌟 Features
 
@@ -196,8 +196,8 @@ lib/
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/zamansheikh/remindme.git
-cd remindme
+git clone https://github.com/zamansheikh/lifeque.git
+cd lifeque
 ```
 
 2. **Install dependencies:**
@@ -343,8 +343,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/zamansheikh/remindme/issues)
-- **Discussions**: [Community discussions and Q&A](https://github.com/zamansheikh/remindme/discussions)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/zamansheikh/lifeque/issues)
+- **Discussions**: [Community discussions and Q&A](https://github.com/zamansheikh/lifeque/discussions)
 
 ---
 
