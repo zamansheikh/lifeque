@@ -244,7 +244,7 @@ class BackupService {
       appVersion: '1.0.0', // You can get this from package_info
       createdAt: DateTime.now(),
       deviceInfo: await _getDeviceInfo(),
-      databaseVersion: DatabaseHelper._databaseVersion,
+      databaseVersion: DatabaseHelper.databaseVersion,
     );
 
     return BackupData(

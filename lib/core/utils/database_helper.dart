@@ -6,6 +6,9 @@ class DatabaseHelper {
   static const String _databaseName = 'remind_me.db';
   static const int _databaseVersion = 6; // Increased for birthday notifications
 
+  // Public getter for database version
+  static int get databaseVersion => _databaseVersion;
+
   static const String tableTask = 'tasks';
   static const String tableMedicine = 'medicines';
   static const String tableMedicineDose = 'medicine_doses';

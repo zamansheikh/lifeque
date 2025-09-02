@@ -41,6 +41,10 @@ class MedicineDoseModel extends MedicineDose {
     };
   }
 
+  // Add fromMap and toMap methods for backup compatibility
+  factory MedicineDoseModel.fromMap(Map<String, dynamic> map) => MedicineDoseModel.fromJson(map);
+  Map<String, dynamic> toMap() => toJson();
+
   factory MedicineDoseModel.fromEntity(MedicineDose dose) {
     return MedicineDoseModel(
       id: dose.id,
