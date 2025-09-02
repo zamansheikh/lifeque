@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:remindme/core/services/prayer_alarm_service.dart';
+import 'package:lifeque/core/services/prayer_alarm_service.dart';
 
 void main() {
   group('PrayerAlarmService Tests', () {
