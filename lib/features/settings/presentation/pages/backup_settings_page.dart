@@ -49,7 +49,11 @@ class _BackupSettingsPageState extends State<BackupSettingsPage> {
           children: [
             // Header section
             _buildHeaderSection(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            
+            // Permission info note
+            _buildPermissionInfo(),
+            const SizedBox(height: 16),
 
             // Backup actions section
             _buildBackupActionsSection(),
@@ -766,6 +770,36 @@ class _BackupSettingsPageState extends State<BackupSettingsPage> {
         content: Text(message),
         backgroundColor: Colors.blue,
         behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Widget _buildPermissionInfo() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.amber.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: Colors.amber.shade700,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Backups are saved to app-specific storage. For broader access, you may grant storage permissions when prompted.',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.amber.shade800,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
