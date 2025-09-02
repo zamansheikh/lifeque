@@ -427,7 +427,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                 onTap: () => _selectStartDateTime(context),
                                 borderRadius: BorderRadius.circular(8),
                                 child: Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: Colors.green.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(8),
@@ -443,32 +443,27 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                           Icon(
                                             Icons.play_circle_outline_rounded,
                                             color: Colors.green,
-                                            size: 16,
+                                            size: 18,
                                           ),
-                                          const SizedBox(width: 4),
+                                          const SizedBox(width: 6),
                                           Text(
                                             'Start',
                                             style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
                                               color: Colors.green.shade700,
                                             ),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 8),
+                                     
                                       Text(
-                                        '${_startDate.day}/${_startDate.month}/${_startDate.year}',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${_startDate.hour.toString().padLeft(2, '0')}:${_startDate.minute.toString().padLeft(2, '0')}',
+                                        _formatTimeWithAMPM(_startDate),
                                         style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey.shade600,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey.shade700,
                                         ),
                                       ),
                                     ],
@@ -476,14 +471,17 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            SizedBox(
+                              width: 6,
+                              
+                            ),
                             // End Date/Time
                             Expanded(
                               child: InkWell(
                                 onTap: () => _selectEndDateTime(context),
                                 borderRadius: BorderRadius.circular(8),
                                 child: Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: Colors.red.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(8),
@@ -499,32 +497,27 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                           Icon(
                                             Icons.flag_rounded,
                                             color: Colors.red,
-                                            size: 16,
+                                            size: 18,
                                           ),
-                                          const SizedBox(width: 4),
+                                          const SizedBox(width: 6),
                                           Text(
                                             'End',
                                             style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
                                               color: Colors.red.shade700,
                                             ),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 8),
+                                     
                                       Text(
-                                        '${_endDate.day}/${_endDate.month}/${_endDate.year}',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${_endDate.hour.toString().padLeft(2, '0')}:${_endDate.minute.toString().padLeft(2, '0')}',
+                                        _formatTimeWithAMPM(_endDate),
                                         style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey.shade600,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey.shade700,
                                         ),
                                       ),
                                     ],
@@ -565,9 +558,9 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                       ),
                       subtitle: Text(
                         _notificationTime != null
-                            ? '${_notificationTime!.day}/${_notificationTime!.month}/${_notificationTime!.year} ${_notificationTime!.hour.toString().padLeft(2, '0')}:${_notificationTime!.minute.toString().padLeft(2, '0')}'
+                            ? '${_notificationTime!.day}/${_notificationTime!.month}/${_notificationTime!.year} - ${_formatTimeWithAMPM(_notificationTime!)}'
                             : 'Tap to set reminder time',
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                       onTap: () => _selectSpecificNotificationTime(context),
@@ -728,10 +721,10 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                           Expanded(
                                             child: Text(
                                               _notificationTime != null
-                                                  ? '${_notificationTime!.day}/${_notificationTime!.month}/${_notificationTime!.year} ${_notificationTime!.hour.toString().padLeft(2, '0')}:${_notificationTime!.minute.toString().padLeft(2, '0')}'
+                                                  ? _formatTimeWithAMPM(_notificationTime!)
                                                   : 'Tap to set time',
                                               style: TextStyle(
-                                                fontSize: 13,
+                                                fontSize: 14,
                                                 color: _notificationTime != null ? Colors.black87 : Colors.grey.shade600,
                                               ),
                                             ),
@@ -761,10 +754,10 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                           Expanded(
                                             child: Text(
                                               _dailyNotificationTime != null
-                                                  ? '${_dailyNotificationTime!.hour.toString().padLeft(2, '0')}:${_dailyNotificationTime!.minute.toString().padLeft(2, '0')} every day'
+                                                  ? _formatTimeOfDayWithAMPM(_dailyNotificationTime!)
                                                   : 'Tap to set daily time',
                                               style: TextStyle(
-                                                fontSize: 13,
+                                                fontSize: 14,
                                                 color: _dailyNotificationTime != null ? Colors.black87 : Colors.grey.shade600,
                                               ),
                                             ),
@@ -1163,6 +1156,22 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
         _dailyNotificationTime = picked;
       });
     }
+  }
+
+  String _formatTimeWithAMPM(DateTime dateTime) {
+    final hour = dateTime.hour;
+    final minute = dateTime.minute;
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
+  }
+
+  String _formatTimeOfDayWithAMPM(TimeOfDay timeOfDay) {
+    final period = timeOfDay.hour >= 12 ? 'PM' : 'AM';
+    final displayHour = timeOfDay.hour == 0 ? 12 : (timeOfDay.hour > 12 ? timeOfDay.hour - 12 : timeOfDay.hour);
+    
+    return '${displayHour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')} $period every day';
   }
 
   void _saveTask() {
