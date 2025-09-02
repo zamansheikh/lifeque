@@ -39,6 +39,41 @@ extension BeforeEndOptionExtension on BeforeEndOption {
   }
 }
 
+enum BirthdayNotificationOption {
+  oneDayBefore, // 1 day before (for gift preparation)
+  twoHoursBefore, // 2 hours before 
+  tenMinutesBefore, // 10 minutes before
+  exactTime, // Exactly at 12:00 AM on birthday
+}
+
+extension BirthdayNotificationOptionExtension on BirthdayNotificationOption {
+  String get displayName {
+    switch (this) {
+      case BirthdayNotificationOption.oneDayBefore:
+        return '1 day before (gift prep)';
+      case BirthdayNotificationOption.twoHoursBefore:
+        return '2 hours before';
+      case BirthdayNotificationOption.tenMinutesBefore:
+        return '10 minutes before';
+      case BirthdayNotificationOption.exactTime:
+        return 'At exactly 12:00 AM';
+    }
+  }
+  
+  String get description {
+    switch (this) {
+      case BirthdayNotificationOption.oneDayBefore:
+        return 'Get reminder to prepare gifts';
+      case BirthdayNotificationOption.twoHoursBefore:
+        return 'Final preparation reminder';
+      case BirthdayNotificationOption.tenMinutesBefore:
+        return 'Almost time to celebrate!';
+      case BirthdayNotificationOption.exactTime:
+        return 'Birthday celebration time!';
+    }
+  }
+}
+
 class Task extends Equatable {
   final String id;
   final String title;
@@ -53,6 +88,7 @@ class Task extends Equatable {
   final TimeOfDay? dailyNotificationTime; // For daily type
   final BeforeEndOption? beforeEndOption; // For beforeEnd type
   final bool isPinnedToNotification;
+  final List<BirthdayNotificationOption> birthdayNotificationSchedule; // For birthday multiple notifications
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -70,6 +106,7 @@ class Task extends Equatable {
     this.dailyNotificationTime,
     this.beforeEndOption,
     this.isPinnedToNotification = false,
+    this.birthdayNotificationSchedule = const [],
     required this.createdAt,
     this.updatedAt,
   });
@@ -175,6 +212,7 @@ class Task extends Equatable {
     TimeOfDay? dailyNotificationTime,
     BeforeEndOption? beforeEndOption,
     bool? isPinnedToNotification,
+    List<BirthdayNotificationOption>? birthdayNotificationSchedule,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -195,6 +233,7 @@ class Task extends Equatable {
       beforeEndOption: beforeEndOption ?? this.beforeEndOption,
       isPinnedToNotification:
           isPinnedToNotification ?? this.isPinnedToNotification,
+      birthdayNotificationSchedule: birthdayNotificationSchedule ?? this.birthdayNotificationSchedule,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -215,6 +254,7 @@ class Task extends Equatable {
     dailyNotificationTime,
     beforeEndOption,
     isPinnedToNotification,
+    birthdayNotificationSchedule,
     createdAt,
     updatedAt,
   ];
@@ -278,5 +318,70 @@ class Task extends Equatable {
         }
         return null;
     }
+  }
+
+  // Helper method to get all birthday notification times
+  List<DateTime> getBirthdayNotificationTimes() {
+    if (taskType != TaskType.birthday || birthdayNotificationSchedule.isEmpty) {
+      return [];
+    }
+
+    final birthdayDate = startDate; // Birth date
+    final now = tz.TZDateTime.now(tz.local);
+    final currentYear = now.year;
+    
+    // Calculate this year's birthday
+    final thisYearBirthday = tz.TZDateTime(
+      tz.local,
+      currentYear,
+      birthdayDate.month,
+      birthdayDate.day,
+    );
+    
+    // If this year's birthday has passed, calculate next year's
+    final targetBirthday = thisYearBirthday.isAfter(now) 
+        ? thisYearBirthday 
+        : tz.TZDateTime(tz.local, currentYear + 1, birthdayDate.month, birthdayDate.day);
+
+    List<DateTime> notificationTimes = [];
+
+    for (final option in birthdayNotificationSchedule) {
+      late tz.TZDateTime notificationTime;
+      
+      switch (option) {
+        case BirthdayNotificationOption.oneDayBefore:
+          notificationTime = targetBirthday.subtract(const Duration(days: 1));
+          // Set to 9 AM for gift preparation reminder
+          notificationTime = tz.TZDateTime(
+            tz.local,
+            notificationTime.year,
+            notificationTime.month,
+            notificationTime.day,
+            9, // 9 AM
+            0,
+          );
+          break;
+        case BirthdayNotificationOption.twoHoursBefore:
+          notificationTime = targetBirthday.subtract(const Duration(hours: 2));
+          // 10 PM the night before
+          break;
+        case BirthdayNotificationOption.tenMinutesBefore:
+          notificationTime = targetBirthday.subtract(const Duration(minutes: 10));
+          // 11:50 PM the night before
+          break;
+        case BirthdayNotificationOption.exactTime:
+          notificationTime = targetBirthday;
+          // Exactly at 12:00 AM on birthday
+          break;
+      }
+      
+      // Only add future notification times
+      if (notificationTime.isAfter(now)) {
+        notificationTimes.add(notificationTime);
+      }
+    }
+
+    debugPrint('🎂 Birthday notification times for $title: $notificationTimes');
+    return notificationTimes;
   }
 }

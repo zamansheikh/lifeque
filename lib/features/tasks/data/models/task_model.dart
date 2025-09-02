@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/utils/database_helper.dart';
 import '../../domain/entities/task.dart';
 
 part 'task_model.g.dart';
@@ -20,6 +21,7 @@ class TaskModel extends Task {
     super.dailyNotificationTime,
     super.beforeEndOption,
     super.isPinnedToNotification,
+    super.birthdayNotificationSchedule,
     required super.createdAt,
     super.updatedAt,
   });
@@ -44,6 +46,7 @@ class TaskModel extends Task {
       dailyNotificationTime: task.dailyNotificationTime,
       beforeEndOption: task.beforeEndOption,
       isPinnedToNotification: task.isPinnedToNotification,
+      birthdayNotificationSchedule: task.birthdayNotificationSchedule,
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
     );
@@ -66,6 +69,7 @@ class TaskModel extends Task {
       'dailyNotificationMinute': dailyNotificationTime?.minute,
       'beforeEndOption': beforeEndOption?.index,
       'isPinnedToNotification': isPinnedToNotification ? 1 : 0,
+      DatabaseHelper.columnBirthdayNotificationSchedule: birthdayNotificationSchedule.map((e) => e.index).join(','),
       'createdAt': createdAt.millisecondsSinceEpoch,
       'updatedAt': updatedAt?.millisecondsSinceEpoch,
     };
@@ -101,6 +105,9 @@ class TaskModel extends Task {
           ? BeforeEndOption.values[map['beforeEndOption']]
           : null,
       isPinnedToNotification: map['isPinnedToNotification'] == 1,
+      birthdayNotificationSchedule: map[DatabaseHelper.columnBirthdayNotificationSchedule] != null && map[DatabaseHelper.columnBirthdayNotificationSchedule].toString().isNotEmpty
+          ? map[DatabaseHelper.columnBirthdayNotificationSchedule].toString().split(',').map((e) => BirthdayNotificationOption.values[int.parse(e)]).toList()
+          : <BirthdayNotificationOption>[],
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
       updatedAt: map['updatedAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['updatedAt'])
@@ -123,6 +130,7 @@ class TaskModel extends Task {
     TimeOfDay? dailyNotificationTime,
     BeforeEndOption? beforeEndOption,
     bool? isPinnedToNotification,
+    List<BirthdayNotificationOption>? birthdayNotificationSchedule,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -143,6 +151,7 @@ class TaskModel extends Task {
       beforeEndOption: beforeEndOption ?? this.beforeEndOption,
       isPinnedToNotification:
           isPinnedToNotification ?? this.isPinnedToNotification,
+      birthdayNotificationSchedule: birthdayNotificationSchedule ?? this.birthdayNotificationSchedule,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

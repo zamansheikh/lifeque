@@ -28,6 +28,10 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
   TimeOfDay? _dailyNotificationTime;
   BeforeEndOption? _beforeEndOption;
   bool _isPinnedToNotification = false;
+  List<BirthdayNotificationOption> _birthdayNotificationSchedule = [
+    BirthdayNotificationOption.oneDayBefore,
+    BirthdayNotificationOption.exactTime,
+  ]; // Default to 1 day before and exact time
 
   Task? _existingTask;
   bool get _isEditing => widget.taskId != null;
@@ -59,6 +63,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       _dailyNotificationTime = _existingTask!.dailyNotificationTime;
       _beforeEndOption = _existingTask!.beforeEndOption;
       _isPinnedToNotification = _existingTask!.isPinnedToNotification;
+      _birthdayNotificationSchedule = _existingTask!.birthdayNotificationSchedule;
     }
   }
 
@@ -872,7 +877,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                     ),
                   ),
                 ] else if (_taskType == TaskType.birthday) ...[
-                  // For birthday reminders, show notification is always enabled - more compact
+                  // Birthday notification schedule options
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.pink.withValues(alpha: 0.05),
@@ -881,44 +886,122 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                         color: Colors.pink.withValues(alpha: 0.2),
                       ),
                     ),
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.pink.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Icon(
-                            Icons.cake_rounded,
-                            color: Colors.pink,
-                            size: 18,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Annual Reminder',
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.pink.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(
+                                Icons.cake_rounded,
+                                color: Colors.pink,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              child: Text(
+                                'Birthday Notification Schedule',
                                 style: TextStyle(
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w600,
                                   fontSize: 14,
                                 ),
                               ),
-                              Text(
-                                'Birthday reminders notify every year automatically',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Choose when to be reminded about this birthday:',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
                           ),
                         ),
-                        const Icon(Icons.repeat_rounded, color: Colors.pink, size: 20),
+                        const SizedBox(height: 12),
+                        // Birthday notification options
+                        ...BirthdayNotificationOption.values.map((option) {
+                          final isSelected = _birthdayNotificationSchedule.contains(option);
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected 
+                                  ? Colors.pink.withValues(alpha: 0.1)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSelected 
+                                    ? Colors.pink 
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 2 : 1,
+                              ),
+                            ),
+                            child: CheckboxListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                              dense: true,
+                              title: Text(
+                                option.displayName,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                                  color: isSelected ? Colors.pink.shade700 : Colors.black87,
+                                ),
+                              ),
+                              subtitle: Text(
+                                option.description,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isSelected ? Colors.pink.shade600 : Colors.grey.shade600,
+                                ),
+                              ),
+                              value: isSelected,
+                              activeColor: Colors.pink,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  if (value == true) {
+                                    if (!_birthdayNotificationSchedule.contains(option)) {
+                                      _birthdayNotificationSchedule.add(option);
+                                    }
+                                  } else {
+                                    _birthdayNotificationSchedule.remove(option);
+                                  }
+                                });
+                              },
+                            ),
+                          );
+                        }).toList(),
+                        if (_birthdayNotificationSchedule.isEmpty) ...[
+                          Container(
+                            margin: const EdgeInsets.only(top: 8),
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.warning_rounded, color: Colors.orange.shade600, size: 16),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Select at least one notification option',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.orange.shade700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -1184,6 +1267,16 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
           );
           return;
         }
+      } else if (_taskType == TaskType.birthday) {
+        // Validate birthday notification schedule
+        if (_birthdayNotificationSchedule.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select at least one birthday notification option'),
+            ),
+          );
+          return;
+        }
       } else {
         // Validate notification settings for tasks based on type
         if (_isNotificationEnabled) {
@@ -1262,6 +1355,9 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
             : null,
         beforeEndOption: _beforeEndOption,
         isPinnedToNotification: _isPinnedToNotification,
+        birthdayNotificationSchedule: _taskType == TaskType.birthday
+            ? _birthdayNotificationSchedule
+            : [],
         createdAt: _isEditing ? _existingTask!.createdAt : now,
         updatedAt: _isEditing ? now : null,
       );

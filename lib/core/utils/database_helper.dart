@@ -4,7 +4,7 @@ import '../../../../core/error/exceptions.dart' as app_exceptions;
 
 class DatabaseHelper {
   static const String _databaseName = 'remind_me.db';
-  static const int _databaseVersion = 5; // Increased for medicine tables
+  static const int _databaseVersion = 6; // Increased for birthday notifications
 
   static const String tableTask = 'tasks';
   static const String tableMedicine = 'medicines';
@@ -25,6 +25,7 @@ class DatabaseHelper {
   static const String columnDailyNotificationMinute = 'dailyNotificationMinute';
   static const String columnBeforeEndOption = 'beforeEndOption';
   static const String columnIsPinnedToNotification = 'isPinnedToNotification';
+  static const String columnBirthdayNotificationSchedule = 'birthdayNotificationSchedule';
   static const String columnCreatedAt = 'createdAt';
   static const String columnUpdatedAt = 'updatedAt';
 
@@ -92,6 +93,7 @@ class DatabaseHelper {
           $columnDailyNotificationMinute INTEGER,
           $columnBeforeEndOption INTEGER,
           $columnIsPinnedToNotification INTEGER NOT NULL DEFAULT 0,
+          $columnBirthdayNotificationSchedule TEXT,
           $columnCreatedAt INTEGER NOT NULL,
           $columnUpdatedAt INTEGER
         )
@@ -207,6 +209,12 @@ class DatabaseHelper {
           $columnUpdatedAt INTEGER NOT NULL,
           FOREIGN KEY ($columnMedicineId) REFERENCES $tableMedicine ($columnId) ON DELETE CASCADE
         )
+      ''');
+    }
+    if (oldVersion < 6) {
+      // Add birthday notification schedule column
+      await db.execute('''
+        ALTER TABLE $tableTask ADD COLUMN $columnBirthdayNotificationSchedule TEXT
       ''');
     }
   }

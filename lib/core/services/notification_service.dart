@@ -624,6 +624,12 @@ class NotificationService {
       return;
     }
 
+    // Special handling for birthday tasks with multiple notification schedule
+    if (task.taskType == TaskType.birthday && task.birthdayNotificationSchedule.isNotEmpty) {
+      await _scheduleBirthdayNotifications(task);
+      return;
+    }
+
     // Check if we can schedule exact alarms
     final androidPlugin = _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
@@ -763,6 +769,67 @@ class NotificationService {
       debugPrint('🔔 scheduledNotificationTime is null');
     }
 
+    // If task is pinned to notification, create a persistent notification
+    if (task.isPinnedToNotification && task.isActive && !task.isCompleted) {
+      await _showPersistentNotification(task);
+    }
+  }
+
+  Future<void> _scheduleBirthdayNotifications(Task task) async {
+    debugPrint('🎂 Scheduling multiple birthday notifications for: ${task.title}');
+    
+    final notificationTimes = task.getBirthdayNotificationTimes();
+    debugPrint('🎂 Found ${notificationTimes.length} notification times');
+    
+    for (int i = 0; i < notificationTimes.length; i++) {
+      final notificationTime = notificationTimes[i];
+      final option = task.birthdayNotificationSchedule[i % task.birthdayNotificationSchedule.length];
+      
+      final scheduledDate = tz.TZDateTime.from(notificationTime, tz.local);
+      final now = tz.TZDateTime.now(tz.local);
+      
+      if (scheduledDate.isAfter(now)) {
+        String title;
+        String body;
+        
+        switch (option) {
+          case BirthdayNotificationOption.oneDayBefore:
+            title = '🎁 Gift Prep Reminder: ${task.title}';
+            body = 'Tomorrow is ${task.title}\'s birthday! Time to prepare gifts 🎁';
+            break;
+          case BirthdayNotificationOption.twoHoursBefore:
+            title = '🎂 Birthday Soon: ${task.title}';
+            body = '${task.title}\'s birthday is in 2 hours! Final preparations 🎈';
+            break;
+          case BirthdayNotificationOption.tenMinutesBefore:
+            title = '🎉 Almost Time: ${task.title}';
+            body = '${task.title}\'s birthday is in 10 minutes! Get ready to celebrate! 🎊';
+            break;
+          case BirthdayNotificationOption.exactTime:
+            title = '🎂 Happy Birthday ${task.title}! 🎉';
+            body = 'It\'s ${task.title}\'s birthday today! Don\'t forget to wish them well! 🎈🎊';
+            break;
+        }
+        
+        // Use unique notification ID for each birthday notification
+        final notificationId = task.id.hashCode + (i * 1000);
+        
+        await _flutterLocalNotificationsPlugin.zonedSchedule(
+          notificationId,
+          title,
+          body,
+          scheduledDate,
+          _getNotificationDetails(task.taskType, task.id),
+          payload: task.id,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        );
+        
+        debugPrint('🎂 Scheduled ${option.displayName} notification for: $scheduledDate');
+      } else {
+        debugPrint('🎂 Skipping past notification time: $scheduledDate');
+      }
+    }
+    
     // If task is pinned to notification, create a persistent notification
     if (task.isPinnedToNotification && task.isActive && !task.isCompleted) {
       await _showPersistentNotification(task);
@@ -916,7 +983,7 @@ class NotificationService {
           ),
           const AndroidNotificationAction(
             'view_details',
-            '�️ Details',
+            '👁️ Details',
             showsUserInterface: true,
           ),
         ];
@@ -960,7 +1027,18 @@ class NotificationService {
   }
 
   Future<void> cancelTaskNotification(Task task) async {
+    // Cancel the main notification
     await _flutterLocalNotificationsPlugin.cancel(task.id.hashCode);
+    
+    // For birthday tasks, cancel all multiple notifications
+    if (task.taskType == TaskType.birthday && task.birthdayNotificationSchedule.isNotEmpty) {
+      for (int i = 0; i < task.birthdayNotificationSchedule.length; i++) {
+        final notificationId = task.id.hashCode + (i * 1000);
+        await _flutterLocalNotificationsPlugin.cancel(notificationId);
+        debugPrint('🎂 Cancelled birthday notification ID: $notificationId');
+      }
+    }
+    
     await cancelPersistentNotification(task);
   }
 
