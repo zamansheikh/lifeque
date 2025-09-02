@@ -116,7 +116,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
-        title: 'RemindMe',
+        title: 'LifeQue',
         theme: ThemeData(
           primarySwatch: Colors.blue,
           useMaterial3: true,

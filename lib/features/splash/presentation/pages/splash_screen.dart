@@ -180,7 +180,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                       // App Name
                       Text(
-                        'RemindMe',
+                        'LifeQue',
                         style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.w900,

@@ -28,7 +28,7 @@ class UpdateService {
             Uri.parse(_githubApiUrl),
             headers: {
               'Accept': 'application/vnd.github.v3+json',
-              'User-Agent': 'RemindMe-App',
+              'User-Agent': 'LifeQue-App',
             },
           )
           .timeout(const Duration(seconds: 10));
@@ -180,7 +180,7 @@ class UpdateService {
                     ),
                     children: [
                       const TextSpan(
-                        text: 'A new version of RemindMe is available!\n\n',
+                        text: 'A new version of LifeQue is available!\n\n',
                       ),
                       const TextSpan(
                         text: 'Current Version: ',

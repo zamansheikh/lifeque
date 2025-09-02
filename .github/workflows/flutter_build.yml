@@ -36,16 +36,16 @@ jobs:
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.10+${{ github.run_number }}
-          name: RemindMe v1.0.10+${{ github.run_number }}
+          tag_name: v1.0.11+${{ github.run_number }}
+          name: LifeQue v1.0.11+${{ github.run_number }}
           files: build/app/outputs/flutter-apk/app-release.apk
           generate_release_notes: true  # 🚀 Auto-generate release notes from commits
           body: |
-            ## 🚀 RemindMe v1.0.10+${{ github.run_number }}
-            
+            ## 🚀 LifeQue v1.0.11+${{ github.run_number }}
+
             ### 📱 What's New
-            This release includes the latest improvements and bug fixes for RemindMe!
-            
+            This release includes the latest improvements and bug fixes for LifeQue!
+
             ### 📋 Features
             - ✅ Task management with start/end dates
             - 📋 Progress tracking with visual indicators
@@ -68,6 +68,6 @@ jobs:
             4. Enjoy the latest features!
             
             ### 🐛 Found a Bug?
-            Report issues at: https://github.com/zamansheikh/remindme/issues
+            Report issues at: https://github.com/zamansheikh/lifeque/issues
         # env:
         #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

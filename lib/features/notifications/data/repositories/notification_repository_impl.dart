@@ -163,7 +163,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
       // Schedule periodic notifications using Flutter Local Notifications
       // This is a simplified implementation
       await showInstantNotification(
-        title: 'RemindMe',
+        title: 'LifeQue',
         body: 'Background task setup completed',
       );
     } catch (e) {

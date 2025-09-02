@@ -185,8 +185,8 @@ class _PermissionScreenState extends State<PermissionScreen> {
           ],
         ),
         content: const Text(
-          'For reliable notifications, RemindMe needs to run in the background:\n\n'
-          '1. Find "RemindMe" in the app list\n'
+          'For reliable notifications, LifeQue needs to run in the background:\n\n'
+          '1. Find "LifeQue" in the app list\n'
           '2. Select "Don\'t optimize" or "Allow"\n'
           '3. Confirm your choice\n\n'
           'This ensures you never miss important reminders!',
@@ -230,7 +230,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Did you disable battery optimization?'),
         content: const Text(
-          'Have you disabled battery optimization for RemindMe in your device settings?',
+          'Have you disabled battery optimization for LifeQue in your device settings?',
           style: TextStyle(height: 1.4),
         ),
         actions: [
@@ -339,7 +339,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'RemindMe',
+                              'LifeQue',
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.w900,
@@ -428,7 +428,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'To ensure you never miss important reminders, RemindMe needs permission to send notifications and run in the background.',
+                          'To ensure you never miss important reminders, LifeQue needs permission to send notifications and run in the background.',
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.grey.shade700,
@@ -584,7 +584,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                               ),
                               const SizedBox(width: 12),
                               const Text(
-                                'What RemindMe Can Do',
+                                'What LifeQue Can Do',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -712,7 +712,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                                       ),
                                     ),
                                     Text(
-                                      'RemindMe is ready to help you stay organized',
+                                      'LifeQue is ready to help you stay organized',
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: Colors.green,
@@ -773,7 +773,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                                       ),
                                       SizedBox(width: 8),
                                       Text(
-                                        'Start Using RemindMe',
+                                        'Start Using LifeQue',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           fontSize: 16,

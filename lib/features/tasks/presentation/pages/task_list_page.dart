@@ -57,7 +57,7 @@ class _TaskListPageState extends State<TaskListPage>
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
-          'RemindMe',
+          'LifeQue',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
@@ -521,7 +521,7 @@ class _TaskListPageState extends State<TaskListPage>
                   const SizedBox(height: 16),
                   // App Name
                   const Text(
-                    'RemindMe',
+                    'LifeQue',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -718,7 +718,7 @@ class _TaskListPageState extends State<TaskListPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'RemindMe',
+                    'LifeQue',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -1032,7 +1032,7 @@ class _TaskListPageState extends State<TaskListPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'You have the latest version of RemindMe.',
+              'You have the latest version of LifeQue.',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey.shade700,
