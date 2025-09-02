@@ -256,21 +256,40 @@ class _BackupSettingsPageState extends State<BackupSettingsPage> {
                 style: TextStyle(color: Colors.orange.shade700),
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _importBackup,
-                  icon: const Icon(Icons.restore),
-                  label: const Text('Import & Restore'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading ? null : _importBackup,
+                      icon: const Icon(Icons.file_upload),
+                      label: const Text('Import File'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading ? null : _showAvailableBackupsDialog,
+                      icon: const Icon(Icons.restore),
+                      label: const Text('Local Backups'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -872,6 +891,118 @@ class _BackupSettingsPageState extends State<BackupSettingsPage> {
       
       // Refresh permission status
       await _checkPermissionStatus();
+    }
+  }
+
+  Future<void> _showAvailableBackupsDialog() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      final availableBackups = await _backupService.getAvailableBackups();
+      
+      if (!mounted) return;
+      
+      if (availableBackups.isEmpty) {
+        _showInfoSnackBar('No local backups found');
+        return;
+      }
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Select Backup to Restore'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 300,
+            child: ListView.builder(
+              itemCount: availableBackups.length,
+              itemBuilder: (context, index) {
+                final backup = availableBackups[index];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: Icon(
+                      backup.isAutomatic ? Icons.schedule : Icons.backup,
+                      color: Colors.blue,
+                    ),
+                    title: Text(
+                      backup.fileName,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Created: ${backup.createdAt.toString().substring(0, 19)}'),
+                        Text('Size: ${backup.sizeFormatted} • ${backup.dataCount}'),
+                      ],
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.restore),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _restoreFromLocalBackup(backup.filePath);
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      _showErrorSnackBar('Failed to load backups: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _restoreFromLocalBackup(String backupFilePath) async {
+    // Show confirmation dialog
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Restore'),
+        content: const Text(
+          'This will replace all current data with the backup data. A backup of your current data will be created first.\n\nContinue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            child: const Text('Restore'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await _backupService.importFromAvailableBackups(backupFilePath);
+      
+      if (result.isSuccess) {
+        _showSuccessSnackBar(result.message);
+        await _loadAvailableBackups(); // Refresh the list
+      } else {
+        _showErrorSnackBar(result.message);
+      }
+    } catch (e) {
+      _showErrorSnackBar('Restore failed: $e');
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 }

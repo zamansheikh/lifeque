@@ -78,22 +78,45 @@ class BackupService {
     try {
       debugPrint('🗃️ 📥 Starting backup import...');
 
-      // Let user select backup file
+      // Let user select backup file with multiple supported file types for Android 15 compatibility
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['remindme'],
+        type: FileType.any, // Changed from custom to any for broader compatibility
         dialogTitle: 'Select RemindMe Backup File',
+        allowMultiple: false,
       );
 
       if (result == null || result.files.isEmpty) {
         return BackupResult.error('No backup file selected');
       }
 
-      final backupFile = File(result.files.first.path!);
+      final filePath = result.files.first.path;
+      if (filePath == null) {
+        return BackupResult.error('Invalid file path');
+      }
+
+      // Validate file extension
+      if (!filePath.endsWith('.remindme')) {
+        return BackupResult.error('Invalid backup file. Please select a .remindme file');
+      }
+
+      final backupFile = File(filePath);
       return await restoreFromFile(backupFile);
     } catch (e) {
       debugPrint('🗃️ ❌ Error importing backup: $e');
       return BackupResult.error('Failed to import backup: $e');
+    }
+  }
+
+  /// Import backup from available local backups (alternative for Android 15)
+  Future<BackupResult> importFromAvailableBackups(String backupFilePath) async {
+    try {
+      debugPrint('🗃️ 📥 Importing from local backup: $backupFilePath');
+      
+      final backupFile = File(backupFilePath);
+      return await restoreFromFile(backupFile);
+    } catch (e) {
+      debugPrint('🗃️ ❌ Error importing local backup: $e');
+      return BackupResult.error('Failed to import local backup: $e');
     }
   }
 
@@ -183,36 +206,75 @@ class BackupService {
     try {
       final backups = <BackupInfo>[];
 
-      // Get automatic backups
-      final directory = await getApplicationDocumentsDirectory();
-      final backupDir = Directory('${directory.path}/auto_backups');
-      
-      if (await backupDir.exists()) {
-        final autoBackups = await backupDir
-            .list()
-            .where((entity) => entity.path.endsWith('.remindme'))
-            .cast<File>()
-            .toList();
+      // Check all possible backup directories
+      final directories = <Directory>[];
 
-        for (final file in autoBackups) {
-          final stat = await file.stat();
-          final content = await file.readAsString();
-          final data = BackupData.fromJson(jsonDecode(content));
-          
-          backups.add(BackupInfo(
-            fileName: file.path.split('/').last,
-            filePath: file.path,
-            createdAt: data.metadata.createdAt,
-            size: stat.size,
-            dataCount: data.summary,
-            isAutomatic: true,
-          ));
+      // 1. Check Downloads directory (if permission granted)
+      if (Platform.isAndroid && await Permission.manageExternalStorage.isGranted) {
+        final downloadsDir = await getDownloadsDirectory();
+        if (downloadsDir != null) {
+          directories.add(Directory('${downloadsDir.path}/RemindMe_Backups'));
+        }
+      }
+
+      // 2. Check app-specific external directory
+      final externalDir = await getExternalStorageDirectory();
+      if (externalDir != null) {
+        directories.add(Directory('${externalDir.path}/RemindMe_Backups'));
+      }
+
+      // 3. Check app documents directory
+      final documentsDir = await getApplicationDocumentsDirectory();
+      directories.add(Directory('${documentsDir.path}/RemindMe_Backups'));
+      directories.add(Directory('${documentsDir.path}/auto_backups'));
+
+      // Scan all directories for backup files
+      for (final directory in directories) {
+        if (await directory.exists()) {
+          try {
+            final files = await directory
+                .list()
+                .where((entity) => entity.path.endsWith('.remindme'))
+                .cast<File>()
+                .toList();
+
+            for (final file in files) {
+              try {
+                final stat = await file.stat();
+                final content = await file.readAsString();
+                final data = BackupData.fromJson(jsonDecode(content));
+                
+                // Check if this backup is already in the list (avoid duplicates)
+                final isDuplicate = backups.any((backup) => 
+                    backup.fileName == file.path.split('/').last &&
+                    backup.createdAt == data.metadata.createdAt);
+
+                if (!isDuplicate) {
+                  backups.add(BackupInfo(
+                    fileName: file.path.split('/').last,
+                    filePath: file.path,
+                    createdAt: data.metadata.createdAt,
+                    size: stat.size,
+                    dataCount: data.summary,
+                    isAutomatic: directory.path.contains('auto_backups'),
+                  ));
+                }
+              } catch (e) {
+                debugPrint('🗃️ ⚠️ Error processing backup file ${file.path}: $e');
+                // Continue with other files
+              }
+            }
+          } catch (e) {
+            debugPrint('🗃️ ⚠️ Error scanning directory ${directory.path}: $e');
+            // Continue with other directories
+          }
         }
       }
 
       // Sort by creation date (newest first)
       backups.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
+      debugPrint('🗃️ 📋 Found ${backups.length} available backups');
       return backups;
     } catch (e) {
       debugPrint('🗃️ ❌ Error getting available backups: $e');
@@ -264,14 +326,23 @@ class BackupService {
       final hasManageStorage = await Permission.manageExternalStorage.isGranted;
       
       if (hasManageStorage) {
-        // Use Downloads directory for broader accessibility
-        directory = await getDownloadsDirectory();
-        directoryType = "Downloads";
-        debugPrint('🗃️ 📁 Using Downloads directory (broad access granted)');
+        // Use public Downloads directory for broader accessibility
+        try {
+          // Try to get the public Downloads directory
+          final downloadsDir = await getDownloadsDirectory();
+          if (downloadsDir != null) {
+            // Create our backup folder in Downloads
+            directory = Directory('${downloadsDir.path}');
+            directoryType = "public Downloads";
+            debugPrint('🗃️ 📁 Using public Downloads directory for accessibility');
+          }
+        } catch (e) {
+          debugPrint('🗃️ ⚠️ Could not access Downloads directory: $e');
+        }
       }
       
       if (directory == null) {
-        // Fallback to app-specific external directory (no permissions needed)
+        // Fallback to app-specific external directory (accessible via file manager but not file picker)
         directory = await getExternalStorageDirectory();
         directoryType = "app-specific external";
         debugPrint('🗃️ 📁 Using app-specific external directory');
