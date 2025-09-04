@@ -13,7 +13,6 @@ import '../features/prayer_times/presentation/pages/prayer_times_page.dart';
 import '../features/study/presentation/pages/study_timer_page.dart';
 import '../features/permissions/presentation/pages/permission_screen.dart';
 import '../features/splash/presentation/pages/splash_screen.dart';
-import '../features/settings/presentation/pages/backup_settings_page.dart';
 import 'services/navigation_service.dart';
 import '../injection_container.dart' as di;
 
@@ -55,11 +54,6 @@ class AppRouter {
         path: '/study-timer',
         name: 'study-timer',
         builder: (context, state) => const StudyTimerPage(),
-      ),
-      GoRoute(
-        path: '/backup-settings',
-        name: 'backup-settings',
-        builder: (context, state) => const BackupSettingsPage(),
       ),
       GoRoute(
         path: '/add-medicine',
