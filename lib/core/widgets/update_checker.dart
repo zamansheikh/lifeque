@@ -1,5 +1,5 @@
 // ==========================================
-// UPDATE CHECKER WIDGET (DEPRECATED)  
+// UPDATE CHECKER WIDGET (DEPRECATED)
 // ==========================================
 // This widget has been replaced with Google Play Store in-app updates
 // Using InAppUpdateService instead of GitHub-based updates

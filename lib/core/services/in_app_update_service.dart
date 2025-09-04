@@ -10,9 +10,9 @@ class InAppUpdateService {
   static Future<AppUpdateInfo?> checkForUpdates() async {
     try {
       debugPrint('🔄 Checking for app updates from Google Play Store...');
-      
+
       final updateInfo = await InAppUpdate.checkForUpdate();
-      
+
       if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
         debugPrint('🆕 Update available: ${updateInfo.availableVersionCode}');
         return updateInfo;
@@ -60,7 +60,10 @@ class InAppUpdateService {
   }
 
   /// Show update dialog with options
-  static Future<void> showUpdateDialog(BuildContext context, AppUpdateInfo updateInfo) async {
+  static Future<void> showUpdateDialog(
+    BuildContext context,
+    AppUpdateInfo updateInfo,
+  ) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -153,7 +156,7 @@ class InAppUpdateService {
   static Future<void> checkAndHandleUpdates(BuildContext context) async {
     try {
       final updateInfo = await checkForUpdates();
-      
+
       if (updateInfo != null && context.mounted) {
         // Show update dialog
         await showUpdateDialog(context, updateInfo);

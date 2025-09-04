@@ -590,10 +590,13 @@ class _TaskListPageState extends State<TaskListPage>
                       Navigator.pop(context);
                       _showAboutDialog(
                         context,
-                        _updateInfo?.updateAvailability == UpdateAvailability.updateAvailable,
+                        _updateInfo?.updateAvailability ==
+                            UpdateAvailability.updateAvailable,
                       );
                     },
-                    showUpdateBadge: _updateInfo?.updateAvailability == UpdateAvailability.updateAvailable,
+                    showUpdateBadge:
+                        _updateInfo?.updateAvailability ==
+                        UpdateAvailability.updateAvailable,
                   ),
                 ],
               ),
