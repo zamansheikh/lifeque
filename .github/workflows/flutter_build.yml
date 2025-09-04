@@ -1,73 +1,73 @@
-name: Build Flutter APK and Create Release
+# name: Build Flutter APK and Create Release
 
-on:
-  push:
-    branches:
-      - main  # or your preferred branch
+# on:
+#   push:
+#     branches:
+#       - main  # or your preferred branch
 
-# 👇 Add permissions to allow creating releases
-permissions:
-  contents: write  # Grants write access to repository contents, including releases
+# # 👇 Add permissions to allow creating releases
+# permissions:
+#   contents: write  # Grants write access to repository contents, including releases
 
-jobs:
-  build:
-    name: Build APK
-    runs-on: ubuntu-latest
+# jobs:
+#   build:
+#     name: Build APK
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'beta'
+#       - name: Set up Flutter
+#         uses: subosito/flutter-action@v2
+#         with:
+#           channel: 'master'
 
-      # Generate .env file from GitHub secret
-      # - name: Generate .env file
-      #   run: echo "${{ secrets.ENV_FILE }}" > .env
+#       # Generate .env file from GitHub secret
+#       # - name: Generate .env file
+#       #   run: echo "${{ secrets.ENV_FILE }}" > .env
 
-      - name: Install dependencies
-        run: flutter pub get
+#       - name: Install dependencies
+#         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --release
+#       - name: Build APK
+#         run: flutter build apk --release
 
-      - name: Upload Release Asset
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v1.0.11+${{ github.run_number }}
-          name: LifeQue v1.0.11+${{ github.run_number }}
-          files: build/app/outputs/flutter-apk/app-release.apk
-          generate_release_notes: true  # 🚀 Auto-generate release notes from commits
-          body: |
-            ## 🚀 LifeQue v1.0.11+${{ github.run_number }}
+#       - name: Upload Release Asset
+#         uses: softprops/action-gh-release@v2
+#         with:
+#           tag_name: v1.0.11+${{ github.run_number }}
+#           name: LifeQue v1.0.11+${{ github.run_number }}
+#           files: build/app/outputs/flutter-apk/app-release.apk
+#           generate_release_notes: true  # 🚀 Auto-generate release notes from commits
+#           body: |
+#             ## 🚀 LifeQue v1.0.11+${{ github.run_number }}
 
-            ### 📱 What's New
-            This release includes the latest improvements and bug fixes for LifeQue!
+#             ### 📱 What's New
+#             This release includes the latest improvements and bug fixes for LifeQue!
 
-            ### 📋 Features
-            - ✅ Task management with start/end dates
-            - 📋 Progress tracking with visual indicators
-            - 🔔 Smart notifications and reminders
-            - 💊 Medicine reminder system
-            - 🕌 Islamic Prayer Times with GPS location
-            - 🧭 Qibla direction with rotating compass
-            - ⏰ Prayer alarm system with dynamic timing
-            - 📚 Study timer with Pomodoro technique
-            - 🚫 Islamic restricted prayer times education
-            - 🎯 Clean Material Design 3 UI
+#             ### 📋 Features
+#             - ✅ Task management with start/end dates
+#             - 📋 Progress tracking with visual indicators
+#             - 🔔 Smart notifications and reminders
+#             - 💊 Medicine reminder system
+#             - 🕌 Islamic Prayer Times with GPS location
+#             - 🧭 Qibla direction with rotating compass
+#             - ⏰ Prayer alarm system with dynamic timing
+#             - 📚 Study timer with Pomodoro technique
+#             - 🚫 Islamic restricted prayer times education
+#             - 🎯 Clean Material Design 3 UI
             
-            ### 🛠️ Recent Changes
-            Check the commits below for detailed changes since the last release.
+#             ### 🛠️ Recent Changes
+#             Check the commits below for detailed changes since the last release.
             
-            ### 📥 Installation
-            1. Download the APK file below
-            2. Enable "Install from unknown sources" in Android settings
-            3. Install the APK file
-            4. Enjoy the latest features!
+#             ### 📥 Installation
+#             1. Download the APK file below
+#             2. Enable "Install from unknown sources" in Android settings
+#             3. Install the APK file
+#             4. Enjoy the latest features!
             
-            ### 🐛 Found a Bug?
-            Report issues at: https://github.com/zamansheikh/lifeque/issues
-        # env:
-        #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#             ### 🐛 Found a Bug?
+#             Report issues at: https://github.com/zamansheikh/lifeque/issues
+#         # env:
+#         #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
