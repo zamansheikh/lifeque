@@ -48,6 +48,9 @@ dependencies:
   
   # HTTP requests
   http: ^1.5.0
+
+  # In-App Updates
+  in_app_update: ^4.2.3
   
   # Date & Time
   intl: ^0.20.2

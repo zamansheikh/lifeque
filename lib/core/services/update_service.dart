@@ -1,3 +1,11 @@
+// ==========================================
+// GITHUB UPDATE SERVICE (DEPRECATED)
+// ==========================================
+// This service has been replaced with Google Play Store in-app updates
+// Using in_app_update package for better user experience
+// Keeping this code commented for reference and potential future use
+
+/*
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -450,3 +458,8 @@ class UpdateInfo {
     return 'UpdateInfo(current: $currentVersion, latest: $latestVersion, available: $isUpdateAvailable)';
   }
 }
+*/
+
+// ==========================================
+// END OF DEPRECATED GITHUB UPDATE SERVICE
+// ==========================================

@@ -100,7 +100,7 @@
             <p><strong>App Name:</strong> LifeQue - Islamic & Productivity App</p>
             <p><strong>Package Name:</strong> com.programmernexus.lifeque</p>
             <p><strong>Developer:</strong> Programmer Nexus</p>
-            <p><strong>Last Updated:</strong> September 4, 2025</p>
+            <p><strong>Last Updated:</strong> September 5, 2025</p>
         </div>
 
         <div class="highlight">
@@ -145,13 +145,12 @@
             <ul>
                 <li><code>ACCESS_FINE_LOCATION</code> - GPS location for precise prayer time calculations</li>
                 <li><code>ACCESS_COARSE_LOCATION</code> - Network-based location as fallback</li>
-                <li><code>INTERNET</code> - Required for app updates and development (no data transmission)</li>
+                <li><code>INTERNET</code> - Required for Google Play Store in-app updates (no personal data transmission)</li>
                 <li><code>POST_NOTIFICATIONS</code> - Displaying prayer, task, and medicine reminders</li>
                 <li><code>SCHEDULE_EXACT_ALARM</code> - Precise scheduling of prayer and medicine alarms</li>
                 <li><code>WAKE_LOCK</code> - Keep device awake for important alarms</li>
                 <li><code>VIBRATE</code> - Vibration alerts for notifications</li>
                 <li><code>RECEIVE_BOOT_COMPLETED</code> - Restart alarms after device reboot</li>
-                <li><code>MANAGE_EXTERNAL_STORAGE</code> - Backup and restore functionality</li>
                 <li><code>FOREGROUND_SERVICE</code> - Background alarm services</li>
             </ul>
         </div>
@@ -190,11 +189,12 @@
         </div>
 
         <h3>5.1 App Updates</h3>
-        <p>The app may check for updates from GitHub releases:</p>
+        <p>The app uses Google Play Store's in-app update system:</p>
         <ul>
-            <li><strong>Purpose:</strong> Notify users about available app updates</li>
-            <li><strong>Data Sent:</strong> No personal data is transmitted during update checks</li>
-            <li><strong>Frequency:</strong> Only when explicitly triggered by user action</li>
+            <li><strong>Purpose:</strong> Provide seamless app updates through Google Play Store</li>
+            <li><strong>Data Handling:</strong> Update checks are handled entirely by Google Play services</li>
+            <li><strong>Privacy:</strong> No personal data is accessed or transmitted by our app during updates</li>
+            <li><strong>User Control:</strong> Users can choose to install updates immediately or defer them</li>
         </ul>
 
         <h2>6. Islamic Calculation Accuracy</h2>

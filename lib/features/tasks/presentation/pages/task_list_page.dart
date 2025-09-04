@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/services/update_service.dart';
+import 'package:in_app_update/in_app_update.dart';
+// import '../../../../core/services/update_service.dart'; // Commented out - using in-app updates
+import '../../../../core/services/in_app_update_service.dart';
 import '../bloc/task_bloc.dart';
 import '../widgets/task_card_factory.dart';
 
@@ -17,7 +19,7 @@ class TaskListPage extends StatefulWidget {
 class _TaskListPageState extends State<TaskListPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  UpdateInfo? _updateInfo;
+  AppUpdateInfo? _updateInfo;
 
   @override
   void initState() {
@@ -29,8 +31,8 @@ class _TaskListPageState extends State<TaskListPage>
   /// Check for updates in background without showing UI
   void _checkForUpdatesInBackground() async {
     try {
-      final updateInfo = await UpdateService.checkForUpdateSilently();
-      if (mounted && updateInfo?.isUpdateAvailable == true) {
+      final updateInfo = await InAppUpdateService.checkForUpdates();
+      if (mounted && updateInfo != null) {
         setState(() {
           _updateInfo = updateInfo;
         });
@@ -588,10 +590,10 @@ class _TaskListPageState extends State<TaskListPage>
                       Navigator.pop(context);
                       _showAboutDialog(
                         context,
-                        _updateInfo?.isUpdateAvailable == true,
+                        _updateInfo?.updateAvailability == UpdateAvailability.updateAvailable,
                       );
                     },
-                    showUpdateBadge: _updateInfo?.isUpdateAvailable == true,
+                    showUpdateBadge: _updateInfo?.updateAvailability == UpdateAvailability.updateAvailable,
                   ),
                 ],
               ),
@@ -958,9 +960,7 @@ class _TaskListPageState extends State<TaskListPage>
       debugPrint('🔍 Loading dialog shown, starting update check...');
 
       // Check for updates with a reasonable timeout
-      final updateInfo = await UpdateService.checkForUpdate().timeout(
-        const Duration(seconds: 15),
-      );
+      final updateInfo = await InAppUpdateService.checkForUpdates();
 
       debugPrint('🔍 Update check completed: $updateInfo');
 
@@ -973,17 +973,17 @@ class _TaskListPageState extends State<TaskListPage>
       Navigator.of(context).pop();
 
       if (updateInfo == null) {
-        debugPrint('🔍 No update info received, showing error');
-        // Error occurred
-        _showUpdateErrorDialog(context);
-      } else if (updateInfo.isUpdateAvailable) {
-        debugPrint('🔍 Update available, showing update dialog');
-        // Update available
-        await UpdateService.showUpdateDialog(context, updateInfo);
+        debugPrint('🔍 No update available');
+        // App is up to date
+        _showUpToDateDialog(context);
       } else {
-        debugPrint('🔍 App is up to date, showing success dialog');
-        // Up to date
-        _showUpToDateDialog(context, updateInfo);
+        debugPrint('🔍 Update available, showing update dialog');
+        // Update available - use in-app update dialog
+        await InAppUpdateService.showUpdateDialog(context, updateInfo);
+        // Update the stored update info
+        setState(() {
+          _updateInfo = updateInfo;
+        });
       }
     } catch (e) {
       debugPrint('❌ Update check failed: $e');
@@ -1004,7 +1004,7 @@ class _TaskListPageState extends State<TaskListPage>
 
   /// Check for app updates
   /// Show up-to-date dialog
-  void _showUpToDateDialog(BuildContext context, UpdateInfo updateInfo) {
+  void _showUpToDateDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1057,7 +1057,7 @@ class _TaskListPageState extends State<TaskListPage>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Current Version: ${updateInfo.currentVersion}',
+                      'Your app is up to date with the latest version from Google Play Store.',
                       style: TextStyle(
                         color: Colors.grey.shade700,
                         fontSize: 14,

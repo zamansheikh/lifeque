@@ -1,3 +1,11 @@
+// ==========================================
+// UPDATE MANAGER WIDGET (DEPRECATED)
+// ==========================================
+// This widget has been replaced with Google Play Store in-app updates
+// Using InAppUpdateService instead of GitHub-based updates
+// Keeping this code commented for reference
+
+/*
 import 'package:flutter/material.dart';
 import '../services/update_service.dart';
 
@@ -54,3 +62,8 @@ class _UpdateManagerState extends State<UpdateManager> {
     return widget.child;
   }
 }
+*/
+
+// ==========================================
+// END OF DEPRECATED UPDATE MANAGER WIDGET
+// ==========================================
