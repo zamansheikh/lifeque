@@ -58,11 +58,11 @@ class MedicineModel extends Medicine {
     if (notificationTimes == null) {
       return <String>[];
     }
-    
+
     if (notificationTimes is List) {
       return List<String>.from(notificationTimes);
     }
-    
+
     if (notificationTimes is String) {
       try {
         final decoded = jsonDecode(notificationTimes);
@@ -74,7 +74,7 @@ class MedicineModel extends Medicine {
         return [notificationTimes];
       }
     }
-    
+
     return <String>[];
   }
 
@@ -106,30 +106,39 @@ class MedicineModel extends Medicine {
     final json = {
       'id': map['id'],
       'name': map['name'],
-      'description': map['description'], 
+      'description': map['description'],
       'type': map['type'],
       'mealTiming': map['mealTiming'],
       'dosage': map['dosage'],
       'dosageUnit': map['dosageUnit'],
       'timesPerDay': map['timesPerDay'],
-      'notificationTimes': map['notificationTimes'], // Will be handled by _parseNotificationTimes
+      'notificationTimes':
+          map['notificationTimes'], // Will be handled by _parseNotificationTimes
       'durationInDays': map['durationInDays'],
-      'startDate': map['startDate'] is int 
-          ? DateTime.fromMillisecondsSinceEpoch(map['startDate']).toIso8601String()
+      'startDate': map['startDate'] is int
+          ? DateTime.fromMillisecondsSinceEpoch(
+              map['startDate'],
+            ).toIso8601String()
           : map['startDate'],
-      'endDate': map['endDate'] != null 
-          ? (map['endDate'] is int 
-              ? DateTime.fromMillisecondsSinceEpoch(map['endDate']).toIso8601String()
-              : map['endDate'])
+      'endDate': map['endDate'] != null
+          ? (map['endDate'] is int
+                ? DateTime.fromMillisecondsSinceEpoch(
+                    map['endDate'],
+                  ).toIso8601String()
+                : map['endDate'])
           : null,
       'status': map['status'],
       'doctorName': map['doctorName'],
       'notes': map['notes'],
-      'createdAt': map['createdAt'] is int 
-          ? DateTime.fromMillisecondsSinceEpoch(map['createdAt']).toIso8601String()
+      'createdAt': map['createdAt'] is int
+          ? DateTime.fromMillisecondsSinceEpoch(
+              map['createdAt'],
+            ).toIso8601String()
           : map['createdAt'],
-      'updatedAt': map['updatedAt'] is int 
-          ? DateTime.fromMillisecondsSinceEpoch(map['updatedAt']).toIso8601String()
+      'updatedAt': map['updatedAt'] is int
+          ? DateTime.fromMillisecondsSinceEpoch(
+              map['updatedAt'],
+            ).toIso8601String()
           : map['updatedAt'],
     };
     return MedicineModel.fromJson(json);

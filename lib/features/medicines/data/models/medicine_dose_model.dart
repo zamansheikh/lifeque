@@ -47,21 +47,29 @@ class MedicineDoseModel extends MedicineDose {
     final json = {
       'id': map['id'],
       'medicineId': map['medicineId'],
-      'scheduledTime': map['scheduledTime'] is int 
-          ? DateTime.fromMillisecondsSinceEpoch(map['scheduledTime']).toIso8601String()
+      'scheduledTime': map['scheduledTime'] is int
+          ? DateTime.fromMillisecondsSinceEpoch(
+              map['scheduledTime'],
+            ).toIso8601String()
           : map['scheduledTime'],
       'status': map['status'],
-      'takenAt': map['takenAt'] != null 
-          ? (map['takenAt'] is int 
-              ? DateTime.fromMillisecondsSinceEpoch(map['takenAt']).toIso8601String()
-              : map['takenAt'])
+      'takenAt': map['takenAt'] != null
+          ? (map['takenAt'] is int
+                ? DateTime.fromMillisecondsSinceEpoch(
+                    map['takenAt'],
+                  ).toIso8601String()
+                : map['takenAt'])
           : null,
       'notes': map['notes'],
-      'createdAt': map['createdAt'] is int 
-          ? DateTime.fromMillisecondsSinceEpoch(map['createdAt']).toIso8601String()
+      'createdAt': map['createdAt'] is int
+          ? DateTime.fromMillisecondsSinceEpoch(
+              map['createdAt'],
+            ).toIso8601String()
           : map['createdAt'],
-      'updatedAt': map['updatedAt'] is int 
-          ? DateTime.fromMillisecondsSinceEpoch(map['updatedAt']).toIso8601String()
+      'updatedAt': map['updatedAt'] is int
+          ? DateTime.fromMillisecondsSinceEpoch(
+              map['updatedAt'],
+            ).toIso8601String()
           : map['updatedAt'],
     };
     return MedicineDoseModel.fromJson(json);
