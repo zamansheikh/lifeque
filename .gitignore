@@ -46,4 +46,6 @@ app.*.map.json
 
 
 # Docs
-/docs/
+docs/IN_APP_UPDATES.md
+docs/Notification DOCS.md
+docs/prayer_alarm_system.md
