@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../../domain/entities/medicine.dart';
 
 class MedicineModel extends Medicine {
@@ -37,7 +38,7 @@ class MedicineModel extends Medicine {
       dosage: json['dosage'].toDouble(),
       dosageUnit: json['dosageUnit'],
       timesPerDay: json['timesPerDay'],
-      notificationTimes: List<String>.from(json['notificationTimes']),
+      notificationTimes: _parseNotificationTimes(json['notificationTimes']),
       durationInDays: json['durationInDays'],
       startDate: DateTime.parse(json['startDate']),
       endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
@@ -50,6 +51,31 @@ class MedicineModel extends Medicine {
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
     );
+  }
+
+  // Helper method to parse notification times from either List or JSON string
+  static List<String> _parseNotificationTimes(dynamic notificationTimes) {
+    if (notificationTimes == null) {
+      return <String>[];
+    }
+    
+    if (notificationTimes is List) {
+      return List<String>.from(notificationTimes);
+    }
+    
+    if (notificationTimes is String) {
+      try {
+        final decoded = jsonDecode(notificationTimes);
+        if (decoded is List) {
+          return List<String>.from(decoded);
+        }
+      } catch (e) {
+        // If it's not valid JSON, treat as a single time string
+        return [notificationTimes];
+      }
+    }
+    
+    return <String>[];
   }
 
   Map<String, dynamic> toJson() {
@@ -74,8 +100,40 @@ class MedicineModel extends Medicine {
     };
   }
 
-  // Add fromMap and toMap methods for backup compatibility
-  factory MedicineModel.fromMap(Map<String, dynamic> map) => MedicineModel.fromJson(map);
+  // Add fromMap method for database compatibility - handles database column names
+  factory MedicineModel.fromMap(Map<String, dynamic> map) {
+    // Convert database column names to JSON format for consistency
+    final json = {
+      'id': map['id'],
+      'name': map['name'],
+      'description': map['description'], 
+      'type': map['type'],
+      'mealTiming': map['mealTiming'],
+      'dosage': map['dosage'],
+      'dosageUnit': map['dosageUnit'],
+      'timesPerDay': map['timesPerDay'],
+      'notificationTimes': map['notificationTimes'], // Will be handled by _parseNotificationTimes
+      'durationInDays': map['durationInDays'],
+      'startDate': map['startDate'] is int 
+          ? DateTime.fromMillisecondsSinceEpoch(map['startDate']).toIso8601String()
+          : map['startDate'],
+      'endDate': map['endDate'] != null 
+          ? (map['endDate'] is int 
+              ? DateTime.fromMillisecondsSinceEpoch(map['endDate']).toIso8601String()
+              : map['endDate'])
+          : null,
+      'status': map['status'],
+      'doctorName': map['doctorName'],
+      'notes': map['notes'],
+      'createdAt': map['createdAt'] is int 
+          ? DateTime.fromMillisecondsSinceEpoch(map['createdAt']).toIso8601String()
+          : map['createdAt'],
+      'updatedAt': map['updatedAt'] is int 
+          ? DateTime.fromMillisecondsSinceEpoch(map['updatedAt']).toIso8601String()
+          : map['updatedAt'],
+    };
+    return MedicineModel.fromJson(json);
+  }
   Map<String, dynamic> toMap() => toJson();
 
   factory MedicineModel.fromEntity(Medicine medicine) {

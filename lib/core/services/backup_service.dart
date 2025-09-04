@@ -33,7 +33,7 @@ class BackupService {
       final backupFile = await _createBackupFile(backupData);
 
       debugPrint('🗃️ ✅ Backup created successfully: ${backupFile.path}');
-      
+
       return BackupResult.success(
         message: 'Backup created successfully',
         filePath: backupFile.path,
@@ -59,7 +59,8 @@ class BackupService {
       await Share.shareXFiles(
         [XFile(backupResult.filePath!)],
         subject: 'RemindMe App Data Backup',
-        text: 'Your RemindMe app data backup is attached. Keep this file safe to restore your data later.\n\n${backupResult.dataCount}',
+        text:
+            'Your RemindMe app data backup is attached. Keep this file safe to restore your data later.\n\n${backupResult.dataCount}',
       );
 
       return BackupResult.success(
@@ -80,7 +81,8 @@ class BackupService {
 
       // Let user select backup file with multiple supported file types for Android 15 compatibility
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.any, // Changed from custom to any for broader compatibility
+        type: FileType
+            .any, // Changed from custom to any for broader compatibility
         dialogTitle: 'Select RemindMe Backup File',
         allowMultiple: false,
       );
@@ -96,7 +98,9 @@ class BackupService {
 
       // Validate file extension
       if (!filePath.endsWith('.remindme')) {
-        return BackupResult.error('Invalid backup file. Please select a .remindme file');
+        return BackupResult.error(
+          'Invalid backup file. Please select a .remindme file',
+        );
       }
 
       final backupFile = File(filePath);
@@ -111,7 +115,7 @@ class BackupService {
   Future<BackupResult> importFromAvailableBackups(String backupFilePath) async {
     try {
       debugPrint('🗃️ 📥 Importing from local backup: $backupFilePath');
-      
+
       final backupFile = File(backupFilePath);
       return await restoreFromFile(backupFile);
     } catch (e) {
@@ -136,7 +140,9 @@ class BackupService {
       // Validate backup data
       final validationResult = _validateBackupData(backupData);
       if (!validationResult.isValid) {
-        return BackupResult.error('Invalid backup file: ${validationResult.error}');
+        return BackupResult.error(
+          'Invalid backup file: ${validationResult.error}',
+        );
       }
 
       // Create backup of current data before restore
@@ -149,7 +155,7 @@ class BackupService {
       await _restoreAllData(backupData);
 
       debugPrint('🗃️ ✅ Backup restored successfully');
-      
+
       return BackupResult.success(
         message: 'Backup restored successfully',
         dataCount: backupData.summary,
@@ -168,7 +174,7 @@ class BackupService {
       // Get app documents directory for automatic backups
       final directory = await getApplicationDocumentsDirectory();
       final backupDir = Directory('${directory.path}/auto_backups');
-      
+
       if (!await backupDir.exists()) {
         await backupDir.create(recursive: true);
       }
@@ -181,15 +187,17 @@ class BackupService {
 
       // Create backup with timestamp
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      final backupFile = File('${backupDir.path}/auto_backup_$timestamp.remindme');
-      
+      final backupFile = File(
+        '${backupDir.path}/auto_backup_$timestamp.remindme',
+      );
+
       await backupFile.writeAsString(
         jsonEncode(backupData.toJson()),
         encoding: utf8,
       );
 
       debugPrint('🗃️ ✅ Automatic backup created: ${backupFile.path}');
-      
+
       return BackupResult.success(
         message: 'Automatic backup created',
         filePath: backupFile.path,
@@ -210,7 +218,8 @@ class BackupService {
       final directories = <Directory>[];
 
       // 1. Check Downloads directory (if permission granted)
-      if (Platform.isAndroid && await Permission.manageExternalStorage.isGranted) {
+      if (Platform.isAndroid &&
+          await Permission.manageExternalStorage.isGranted) {
         final downloadsDir = await getDownloadsDirectory();
         if (downloadsDir != null) {
           directories.add(Directory('${downloadsDir.path}/RemindMe_Backups'));
@@ -243,24 +252,30 @@ class BackupService {
                 final stat = await file.stat();
                 final content = await file.readAsString();
                 final data = BackupData.fromJson(jsonDecode(content));
-                
+
                 // Check if this backup is already in the list (avoid duplicates)
-                final isDuplicate = backups.any((backup) => 
-                    backup.fileName == file.path.split('/').last &&
-                    backup.createdAt == data.metadata.createdAt);
+                final isDuplicate = backups.any(
+                  (backup) =>
+                      backup.fileName == file.path.split('/').last &&
+                      backup.createdAt == data.metadata.createdAt,
+                );
 
                 if (!isDuplicate) {
-                  backups.add(BackupInfo(
-                    fileName: file.path.split('/').last,
-                    filePath: file.path,
-                    createdAt: data.metadata.createdAt,
-                    size: stat.size,
-                    dataCount: data.summary,
-                    isAutomatic: directory.path.contains('auto_backups'),
-                  ));
+                  backups.add(
+                    BackupInfo(
+                      fileName: file.path.split('/').last,
+                      filePath: file.path,
+                      createdAt: data.metadata.createdAt,
+                      size: stat.size,
+                      dataCount: data.summary,
+                      isAutomatic: directory.path.contains('auto_backups'),
+                    ),
+                  );
                 }
               } catch (e) {
-                debugPrint('🗃️ ⚠️ Error processing backup file ${file.path}: $e');
+                debugPrint(
+                  '🗃️ ⚠️ Error processing backup file ${file.path}: $e',
+                );
                 // Continue with other files
               }
             }
@@ -294,12 +309,16 @@ class BackupService {
 
     // Get all medicines
     final medicinesData = await db.query(DatabaseHelper.tableMedicine);
-    final medicines = medicinesData.map((map) => MedicineModel.fromMap(map)).toList();
+    final medicines = medicinesData
+        .map((map) => MedicineModel.fromMap(map))
+        .toList();
     debugPrint('🗃️ 💊 Found ${medicines.length} medicines');
 
     // Get all medicine doses
     final dosesData = await db.query(DatabaseHelper.tableMedicineDose);
-    final doses = dosesData.map((map) => MedicineDoseModel.fromMap(map)).toList();
+    final doses = dosesData
+        .map((map) => MedicineDoseModel.fromMap(map))
+        .toList();
     debugPrint('🗃️ 💉 Found ${doses.length} medicine doses');
 
     final metadata = BackupMetadata(
@@ -320,11 +339,11 @@ class BackupService {
   Future<File> _createBackupFile(BackupData backupData) async {
     Directory? directory;
     String directoryType = "app-specific";
-    
+
     if (Platform.isAndroid) {
       // Check if we have MANAGE_EXTERNAL_STORAGE permission
       final hasManageStorage = await Permission.manageExternalStorage.isGranted;
-      
+
       if (hasManageStorage) {
         // Use public Downloads directory for broader accessibility
         try {
@@ -334,20 +353,22 @@ class BackupService {
             // Create our backup folder in Downloads
             directory = Directory('${downloadsDir.path}');
             directoryType = "public Downloads";
-            debugPrint('🗃️ 📁 Using public Downloads directory for accessibility');
+            debugPrint(
+              '🗃️ 📁 Using public Downloads directory for accessibility',
+            );
           }
         } catch (e) {
           debugPrint('🗃️ ⚠️ Could not access Downloads directory: $e');
         }
       }
-      
+
       if (directory == null) {
         // Fallback to app-specific external directory (accessible via file manager but not file picker)
         directory = await getExternalStorageDirectory();
         directoryType = "app-specific external";
         debugPrint('🗃️ 📁 Using app-specific external directory');
       }
-      
+
       if (directory == null) {
         // Final fallback to documents directory
         directory = await getApplicationDocumentsDirectory();
@@ -359,7 +380,7 @@ class BackupService {
       directory = await getApplicationDocumentsDirectory();
       directoryType = "documents";
     }
-    
+
     final backupDir = Directory('${directory.path}/RemindMe_Backups');
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
@@ -376,15 +397,21 @@ class BackupService {
       encoding: utf8,
     );
 
-    debugPrint('🗃️ ✅ Backup saved to $directoryType directory: ${backupFile.path}');
+    debugPrint(
+      '🗃️ ✅ Backup saved to $directoryType directory: ${backupFile.path}',
+    );
     return backupFile;
   }
 
   ValidationResult _validateBackupData(BackupData backupData) {
     try {
       // Check if metadata exists and is valid
-      if (backupData.metadata.createdAt.isAfter(DateTime.now().add(Duration(days: 1)))) {
-        return ValidationResult.invalid('Backup file appears to be from the future');
+      if (backupData.metadata.createdAt.isAfter(
+        DateTime.now().add(Duration(days: 1)),
+      )) {
+        return ValidationResult.invalid(
+          'Backup file appears to be from the future',
+        );
       }
 
       // Check if tasks are valid
@@ -417,18 +444,20 @@ class BackupService {
   Future<void> _createPreRestoreBackup() async {
     try {
       debugPrint('🗃️ 🛡️ Creating pre-restore backup...');
-      
+
       final directory = await getApplicationDocumentsDirectory();
       final preRestoreDir = Directory('${directory.path}/pre_restore_backups');
-      
+
       if (!await preRestoreDir.exists()) {
         await preRestoreDir.create(recursive: true);
       }
 
       final backupData = await _collectAllData();
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      final backupFile = File('${preRestoreDir.path}/pre_restore_$timestamp.remindme');
-      
+      final backupFile = File(
+        '${preRestoreDir.path}/pre_restore_$timestamp.remindme',
+      );
+
       await backupFile.writeAsString(
         jsonEncode(backupData.toJson()),
         encoding: utf8,
@@ -487,7 +516,9 @@ class BackupService {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
-    debugPrint('🗃️ ✅ Restored ${backupData.medicineDoses.length} medicine doses');
+    debugPrint(
+      '🗃️ ✅ Restored ${backupData.medicineDoses.length} medicine doses',
+    );
 
     debugPrint('🗃️ ✅ All data restored successfully');
   }
@@ -502,8 +533,10 @@ class BackupService {
 
       if (backupFiles.length > 5) {
         // Sort by modification time
-        backupFiles.sort((a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()));
-        
+        backupFiles.sort(
+          (a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()),
+        );
+
         // Delete oldest backups
         final filesToDelete = backupFiles.take(backupFiles.length - 5);
         for (final file in filesToDelete) {
@@ -521,21 +554,24 @@ class BackupService {
       try {
         // For Android 13+, we need MANAGE_EXTERNAL_STORAGE for broad file access
         // or use app-specific directories which don't require permissions
-        final manageStorageStatus = await Permission.manageExternalStorage.status;
-        
+        final manageStorageStatus =
+            await Permission.manageExternalStorage.status;
+
         if (manageStorageStatus.isDenied) {
           // Request MANAGE_EXTERNAL_STORAGE permission
           // This will open settings page for user to grant permission
           await Permission.manageExternalStorage.request();
           debugPrint('🗃️ 🔑 MANAGE_EXTERNAL_STORAGE permission requested');
         }
-        
+
         // Also check for notification permission since we're here
         if (await Permission.notification.isDenied) {
           await Permission.notification.request();
         }
       } catch (e) {
-        debugPrint('🗃️ ⚠️ Permission request failed, using app-specific directory: $e');
+        debugPrint(
+          '🗃️ ⚠️ Permission request failed, using app-specific directory: $e',
+        );
       }
     }
   }
@@ -552,27 +588,31 @@ class BackupService {
     }
 
     final manageStorageStatus = await Permission.manageExternalStorage.status;
-    
+
     if (manageStorageStatus.isGranted) {
       return StoragePermissionInfo(
         hasFullAccess: true,
         canAccessDownloads: true,
-        message: 'Full storage access granted - backups saved to Downloads folder',
+        message:
+            'Full storage access granted - backups saved to Downloads folder',
         recommendedAction: null,
       );
     } else if (manageStorageStatus.isPermanentlyDenied) {
       return StoragePermissionInfo(
         hasFullAccess: false,
         canAccessDownloads: false,
-        message: 'Storage permission permanently denied - using app-specific storage',
-        recommendedAction: 'Open app settings to grant "All files access" permission',
+        message:
+            'Storage permission permanently denied - using app-specific storage',
+        recommendedAction:
+            'Open app settings to grant "All files access" permission',
       );
     } else {
       return StoragePermissionInfo(
         hasFullAccess: false,
         canAccessDownloads: false,
         message: 'Limited storage access - using app-specific storage',
-        recommendedAction: 'Grant "All files access" permission for Downloads folder access',
+        recommendedAction:
+            'Grant "All files access" permission for Downloads folder access',
       );
     }
   }
@@ -694,10 +734,7 @@ class BackupResult {
   }
 
   factory BackupResult.error(String message) {
-    return BackupResult._(
-      isSuccess: false,
-      message: message,
-    );
+    return BackupResult._(isSuccess: false, message: message);
   }
 }
 
@@ -732,7 +769,8 @@ class ValidationResult {
   ValidationResult._(this.isValid, this.error);
 
   factory ValidationResult.valid() => ValidationResult._(true, null);
-  factory ValidationResult.invalid(String error) => ValidationResult._(false, error);
+  factory ValidationResult.invalid(String error) =>
+      ValidationResult._(false, error);
 }
 
 class StoragePermissionInfo {

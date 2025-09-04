@@ -41,8 +41,31 @@ class MedicineDoseModel extends MedicineDose {
     };
   }
 
-  // Add fromMap and toMap methods for backup compatibility
-  factory MedicineDoseModel.fromMap(Map<String, dynamic> map) => MedicineDoseModel.fromJson(map);
+  // Add fromMap method for database compatibility - handles database column names
+  factory MedicineDoseModel.fromMap(Map<String, dynamic> map) {
+    // Convert database column names to JSON format for consistency
+    final json = {
+      'id': map['id'],
+      'medicineId': map['medicineId'],
+      'scheduledTime': map['scheduledTime'] is int 
+          ? DateTime.fromMillisecondsSinceEpoch(map['scheduledTime']).toIso8601String()
+          : map['scheduledTime'],
+      'status': map['status'],
+      'takenAt': map['takenAt'] != null 
+          ? (map['takenAt'] is int 
+              ? DateTime.fromMillisecondsSinceEpoch(map['takenAt']).toIso8601String()
+              : map['takenAt'])
+          : null,
+      'notes': map['notes'],
+      'createdAt': map['createdAt'] is int 
+          ? DateTime.fromMillisecondsSinceEpoch(map['createdAt']).toIso8601String()
+          : map['createdAt'],
+      'updatedAt': map['updatedAt'] is int 
+          ? DateTime.fromMillisecondsSinceEpoch(map['updatedAt']).toIso8601String()
+          : map['updatedAt'],
+    };
+    return MedicineDoseModel.fromJson(json);
+  }
   Map<String, dynamic> toMap() => toJson();
 
   factory MedicineDoseModel.fromEntity(MedicineDose dose) {
