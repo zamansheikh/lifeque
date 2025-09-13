@@ -420,10 +420,10 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                         // Enhanced Sessions List
                         if (sessions.isEmpty)
                           Container(
-                            padding: const EdgeInsets.all(40),
+                            padding: const EdgeInsets.all(36),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.05),
@@ -436,37 +436,37 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                             child: Column(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(20),
+                                  padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: const Color(
                                       0xFF2563EB,
                                     ).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(
                                     Icons.receipt_long_rounded,
-                                    size: 48,
+                                    size: 36,
                                     color: Color(0xFF2563EB),
                                   ),
                                 ),
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 12),
                                 Text(
                                   state.isSearching
                                       ? 'No sessions found'
                                       : 'No expense sessions yet',
                                   style: const TextStyle(
-                                    fontSize: 20,
+                                    fontSize: 18,
                                     color: Color(0xFF1E293B),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 6),
                                 Text(
                                   state.isSearching
                                       ? 'Try adjusting your search query'
                                       : 'Add your first expense session to get started',
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     color: Colors.grey[600],
                                   ),
                                   textAlign: TextAlign.center,
@@ -493,7 +493,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                                         elevation: 0,
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 24,
-                                          vertical: 16,
+                                          vertical: 12,
                                         ),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
