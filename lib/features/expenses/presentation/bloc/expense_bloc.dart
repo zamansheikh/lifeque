@@ -220,7 +220,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       result.fold(
         (failure) => emit(const ExpenseError('Failed to delete session')),
         (_) {
-          emit(const ExpenseOperationSuccess('Session deleted successfully'));
+          // Directly reload data instead of emitting success then reloading
           add(ChangeSelectedMonth(currentState.selectedMonth));
         },
       );

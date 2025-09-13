@@ -54,7 +54,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
 
       context.read<ExpenseBloc>().add(SetBudgetEvent(budget));
 
-      // Show success message
+      // Show success message and navigate back
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -71,9 +71,14 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
             margin: const EdgeInsets.all(16),
           ),
         );
+        
+        // Delay navigation to allow the bloc to process the event
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            context.pop();
+          }
+        });
       }
-
-      context.pop();
     }
   }
 

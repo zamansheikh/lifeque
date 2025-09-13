@@ -366,7 +366,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                           selectedMonth: state.selectedMonth,
                         ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
 
                         BudgetCard(
                           budget: state.currentBudget,
@@ -375,7 +375,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                           selectedMonth: state.selectedMonth,
                         ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
 
                         // Enhanced Sessions Header
                         Row(
@@ -404,35 +404,6 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                                 ),
                               ],
                             ),
-                            if (!state.isSearching)
-                              Container(
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF3B82F6),
-                                      Color(0xFF2563EB),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: ElevatedButton.icon(
-                                  onPressed: _addExpenseSession,
-                                  icon: const Icon(Icons.add_rounded, size: 18),
-                                  label: const Text('Add Session'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    foregroundColor: Colors.white,
-                                    elevation: 0,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
 

@@ -24,7 +24,7 @@ class MonthlySummaryCard extends StatelessWidget {
 
     return Container(
       // margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
@@ -46,7 +46,7 @@ class MonthlySummaryCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
@@ -54,7 +54,7 @@ class MonthlySummaryCard extends StatelessWidget {
                 child: const Icon(
                   Icons.calendar_month,
                   color: Colors.white,
-                  size: 20,
+                  size: 18,
                 ),
               ),
               const SizedBox(width: 10),
@@ -65,12 +65,11 @@ class MonthlySummaryCard extends StatelessWidget {
                     Text(
                       _formatMonthYear(selectedMonth),
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 2),
                     Text(
                       'Purchased ${total > 0 ? ((purchased / total) * 100).toStringAsFixed(0) : '0'}% of total',
                       style: TextStyle(
@@ -104,20 +103,20 @@ class MonthlySummaryCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
           // Progress
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: LinearProgressIndicator(
               value: progress,
-              minHeight: 8,
+              minHeight: 6,
               backgroundColor: Colors.white.withOpacity(0.15),
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
           // Stats row with better spacing
           Row(
