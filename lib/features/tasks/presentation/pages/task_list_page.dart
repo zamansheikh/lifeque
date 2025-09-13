@@ -559,6 +559,22 @@ class _TaskListPageState extends State<TaskListPage>
                     isSelected: true,
                   ),
                   _buildDrawerItem(
+                    icon: Icons.checklist_rounded,
+                    title: 'Todos',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/todos');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.account_balance_wallet_rounded,
+                    title: 'Expense Tracker',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/expenses');
+                    },
+                  ),
+                  _buildDrawerItem(
                     icon: Icons.medication_rounded,
                     title: 'Medicines',
                     onTap: () {
