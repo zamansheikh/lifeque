@@ -23,8 +23,8 @@ class MonthlySummaryCard extends StatelessWidget {
     final progress = total > 0 ? (purchased / total).clamp(0.0, 1.0) : 0.0;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      padding: const EdgeInsets.all(14),
+      // margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
@@ -51,7 +51,11 @@ class MonthlySummaryCard extends StatelessWidget {
                   color: Colors.white.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.calendar_month, color: Colors.white, size: 20),
+                child: const Icon(
+                  Icons.calendar_month,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -113,15 +117,40 @@ class MonthlySummaryCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
-          // Stats row
+          // Stats row with better spacing
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStat(Icons.check_circle, 'Purchased', purchased, Colors.white, isMoney: true),
-              _buildStat(Icons.cancel, 'Missed', missed, Colors.white70, isMoney: true),
-              _buildStat(Icons.savings, 'Saved', saved, Colors.white70, isMoney: true),
+              Expanded(
+                child: _buildStat(
+                  Icons.check_circle,
+                  'Purchased',
+                  purchased,
+                  Colors.white,
+                  isMoney: true,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildStat(
+                  Icons.cancel,
+                  'Missed',
+                  missed,
+                  Colors.white70,
+                  isMoney: true,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildStat(
+                  Icons.savings,
+                  'Saved',
+                  saved,
+                  Colors.white70,
+                  isMoney: true,
+                ),
+              ),
             ],
           ),
         ],
@@ -129,34 +158,39 @@ class MonthlySummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStat(IconData icon, String label, double value, Color color,
-      {bool isMoney = false}) {
+  Widget _buildStat(
+    IconData icon,
+    String label,
+    double value,
+    Color color, {
+    bool isMoney = false,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(width: 6),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(fontSize: 11, color: color.withOpacity(0.9)),
-              ),
-              Text(
-                isMoney ? '\$${value.toStringAsFixed(0)}' : value.toString(),
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
-            ],
+          Icon(icon, color: color, size: 18),
+          const SizedBox(height: 6),
+          Text(
+            isMoney ? '\$${value.toStringAsFixed(0)}' : value.toString(),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: color.withOpacity(0.9),
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

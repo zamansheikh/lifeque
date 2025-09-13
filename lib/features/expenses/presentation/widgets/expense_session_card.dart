@@ -280,7 +280,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                       Icons.account_balance_wallet_rounded,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: _buildAmountCard(
                       'Purchased',
@@ -290,7 +290,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                     ),
                   ),
                   if (missedAmount > 0) ...[
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: _buildAmountCard(
                         'Missed',
@@ -369,29 +369,29 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
     IconData icon,
   ) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: color.withOpacity(0.2), width: 1),
       ),
       child: Column(
         children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(height: 4),
+          Icon(icon, size: 16, color: color),
+          const SizedBox(height: 3),
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               color: color.withOpacity(0.8),
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           Text(
             amount,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               color: color,
               fontWeight: FontWeight.w700,
             ),

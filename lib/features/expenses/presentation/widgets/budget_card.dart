@@ -56,7 +56,7 @@ class BudgetCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -64,7 +64,7 @@ class BudgetCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
@@ -74,10 +74,10 @@ class BudgetCard extends StatelessWidget {
                         ? Icons.warning_rounded
                         : Icons.account_balance_wallet_rounded,
                     color: Colors.white,
-                    size: 24,
+                    size: 22,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,7 +85,7 @@ class BudgetCard extends StatelessWidget {
                       const Text(
                         'Monthly Budget',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
@@ -93,7 +93,7 @@ class BudgetCard extends StatelessWidget {
                       Text(
                         _getBudgetStatus(percentage, isOverBudget),
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           color: Colors.white.withValues(alpha: 0.8),
                           fontWeight: FontWeight.w500,
                         ),
@@ -111,19 +111,20 @@ class BudgetCard extends StatelessWidget {
                     icon: const Icon(
                       Icons.edit_rounded,
                       color: Colors.white,
-                      size: 18,
+                      size: 16,
                     ),
                     label: const Text(
                       'Edit',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       ),
                     ),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+                        horizontal: 12,
+                        vertical: 6,
                       ),
                     ),
                   ),
@@ -131,17 +132,17 @@ class BudgetCard extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
 
             // Progress bar
             Container(
-              height: 12,
+              height: 10,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(5),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(5),
                 child: LinearProgressIndicator(
                   value: (percentage > 1.0 ? 1.0 : percentage).clamp(0.0, 1.0),
                   backgroundColor: Colors.transparent,
@@ -152,14 +153,14 @@ class BudgetCard extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
             // Amount details
             Row(
               children: [
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
@@ -169,13 +170,13 @@ class BudgetCard extends StatelessWidget {
                         const Icon(
                           Icons.trending_up_rounded,
                           color: Colors.white,
-                          size: 24,
+                          size: 20,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
                           '\$${actualSpent.toStringAsFixed(2)}',
                           style: const TextStyle(
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
@@ -183,7 +184,7 @@ class BudgetCard extends StatelessWidget {
                         const Text(
                           'Spent',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),
@@ -192,10 +193,10 @@ class BudgetCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
@@ -205,13 +206,13 @@ class BudgetCard extends StatelessWidget {
                         const Icon(
                           Icons.account_balance_wallet_rounded,
                           color: Colors.white,
-                          size: 24,
+                          size: 20,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
                           '\$${budgetAmount.toStringAsFixed(2)}',
                           style: const TextStyle(
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
@@ -219,7 +220,7 @@ class BudgetCard extends StatelessWidget {
                         const Text(
                           'Budget',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),
@@ -231,7 +232,7 @@ class BudgetCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
@@ -243,9 +244,9 @@ class BudgetCard extends StatelessWidget {
                               ? Icons.error_outline_rounded
                               : Icons.savings_rounded,
                           color: Colors.white,
-                          size: 24,
+                          size: 20,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
                           isOverBudget
                               ? '\$${(-remaining).toStringAsFixed(2)}'
@@ -259,7 +260,7 @@ class BudgetCard extends StatelessWidget {
                         Text(
                           isOverBudget ? 'Over' : 'Left',
                           style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),
