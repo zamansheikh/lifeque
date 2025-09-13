@@ -65,7 +65,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
           widget.onTap?.call();
         },
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          // margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: Colors.white,
