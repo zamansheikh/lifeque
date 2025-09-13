@@ -211,13 +211,17 @@ class NotificationService {
         return;
       } catch (e) {
         retryCount++;
-        debugPrint('🔔 ⏳ Services not ready (attempt $retryCount/$maxRetries): $e');
-        
+        debugPrint(
+          '🔔 ⏳ Services not ready (attempt $retryCount/$maxRetries): $e',
+        );
+
         if (retryCount >= maxRetries) {
-          debugPrint('🔔 ❌ Services still not ready after $maxRetries attempts');
+          debugPrint(
+            '🔔 ❌ Services still not ready after $maxRetries attempts',
+          );
           throw Exception('Services not ready after maximum retries');
         }
-        
+
         await Future.delayed(retryDelay);
       }
     }

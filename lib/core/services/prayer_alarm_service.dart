@@ -288,7 +288,8 @@ class PrayerAlarmService {
       volumeSettings: VolumeSettings.fade(
         volume: 1.0, // Max volume to ensure audibility through main speaker
         fadeDuration: const Duration(seconds: 2),
-        volumeEnforced: true, // Force volume setting to override system settings
+        volumeEnforced:
+            true, // Force volume setting to override system settings
       ),
       notificationSettings: NotificationSettings(
         title: '🕌 Prayer Time',
