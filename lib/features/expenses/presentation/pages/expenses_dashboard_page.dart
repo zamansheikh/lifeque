@@ -14,19 +14,32 @@ class ExpensesDashboardPage extends StatefulWidget {
   State<ExpensesDashboardPage> createState() => _ExpensesDashboardPageState();
 }
 
-class _ExpensesDashboardPageState extends State<ExpensesDashboardPage> {
+class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
+    with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   DateTime _selectedMonth = DateTime.now();
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     context.read<ExpenseBloc>().add(LoadSessions());
+
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    _animationController.forward();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -56,6 +69,19 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage> {
       firstDate: firstDate,
       lastDate: lastDate,
       initialDatePickerMode: DatePickerMode.year,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: const Color(0xFF2563EB),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black87,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
@@ -76,198 +102,395 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text(
-          'Expense Tracker',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 24),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black87,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_month),
-            onPressed: _showMonthPicker,
-            tooltip: 'Change Month',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Search Bar
-          Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+      body: CustomScrollView(
+        slivers: [
+          // Enhanced App Bar
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF2563EB),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text(
+                'Expense Tracker',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                  color: Colors.white,
                 ),
-              ],
-            ),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: 'Search expense sessions...',
-                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+              ),
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF3B82F6),
+                      Color(0xFF2563EB),
+                      Color(0xFF1D4ED8),
+                    ],
+                  ),
                 ),
               ),
             ),
+            actions: [
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                child: IconButton(
+                  icon: const Icon(Icons.calendar_month, color: Colors.white),
+                  onPressed: _showMonthPicker,
+                  tooltip: 'Change Month',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
 
-          // Month Selector
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    final prevMonth = DateTime(
-                      _selectedMonth.year,
-                      _selectedMonth.month - 1,
-                    );
-                    _onMonthChanged(prevMonth);
-                  },
-                  icon: const Icon(Icons.chevron_left),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _showMonthPicker,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-                      ),
-                      child: Text(
-                        _formatMonthYear(_selectedMonth),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+          // Content
+          SliverToBoxAdapter(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+
+                  // Enhanced Search Bar
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          spreadRadius: 0,
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: _onSearchChanged,
+                      style: const TextStyle(fontSize: 16),
+                      decoration: InputDecoration(
+                        hintText: 'Search expense sessions...',
+                        hintStyle: TextStyle(color: Colors.grey[500]),
+                        prefixIcon: Container(
+                          margin: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2563EB).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.search_rounded,
+                            color: Color(0xFF2563EB),
+                            size: 20,
+                          ),
+                        ),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _onSearchChanged('');
+                                },
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
                         ),
                       ),
                     ),
                   ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    final nextMonth = DateTime(
-                      _selectedMonth.year,
-                      _selectedMonth.month + 1,
-                    );
-                    _onMonthChanged(nextMonth);
-                  },
-                  icon: const Icon(Icons.chevron_right),
-                ),
-              ],
+
+                  const SizedBox(height: 20),
+
+                  // Enhanced Month Selector
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          spreadRadius: 0,
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: IconButton(
+                              onPressed: () {
+                                final prevMonth = DateTime(
+                                  _selectedMonth.year,
+                                  _selectedMonth.month - 1,
+                                );
+                                _onMonthChanged(prevMonth);
+                              },
+                              icon: const Icon(
+                                Icons.chevron_left_rounded,
+                                size: 24,
+                              ),
+                              style: IconButton.styleFrom(
+                                foregroundColor: Colors.grey[700],
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: _showMonthPicker,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      _formatMonthYear(_selectedMonth),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Tap to change',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: IconButton(
+                              onPressed: () {
+                                final nextMonth = DateTime(
+                                  _selectedMonth.year,
+                                  _selectedMonth.month + 1,
+                                );
+                                _onMonthChanged(nextMonth);
+                              },
+                              icon: const Icon(
+                                Icons.chevron_right_rounded,
+                                size: 24,
+                              ),
+                              style: IconButton.styleFrom(
+                                foregroundColor: Colors.grey[700],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
 
-          const SizedBox(height: 16),
-
           // Main Content
-          Expanded(
+          SliverToBoxAdapter(
             child: BlocConsumer<ExpenseBloc, ExpenseState>(
               listener: (context, state) {
                 if (state is ExpenseError) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(state.message),
-                      backgroundColor: Colors.red,
+                      backgroundColor: Colors.red[600],
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      margin: const EdgeInsets.all(16),
                     ),
                   );
                 }
               },
               builder: (context, state) {
                 if (state is ExpenseLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Container(
+                    height: 300,
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(color: Color(0xFF2563EB)),
+                          SizedBox(height: 16),
+                          Text(
+                            'Loading your expenses...',
+                            style: TextStyle(
+                              color: Color(0xFF64748B),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 } else if (state is ExpenseLoaded) {
                   final sessions = state.isSearching
                       ? state.searchResults
                       : state.sessions;
 
-                  return ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: [
-                      // Monthly Summary Card
-                      MonthlySummaryCard(
-                        monthlyTotal: state.monthlyTotal,
-                        monthlyPurchased: state.monthlyPurchased,
-                        monthlyMissed: state.monthlyMissed,
-                        selectedMonth: state.selectedMonth,
-                      ),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        // Enhanced Summary Cards
+                        MonthlySummaryCard(
+                          monthlyTotal: state.monthlyTotal,
+                          monthlyPurchased: state.monthlyPurchased,
+                          monthlyMissed: state.monthlyMissed,
+                          selectedMonth: state.selectedMonth,
+                        ),
 
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                      // Budget Card
-                      BudgetCard(
-                        budget: state.currentBudget,
-                        actualSpent: state.monthlyPurchased,
-                        onSetBudget: _setBudget,
-                        selectedMonth: state.selectedMonth,
-                      ),
+                        BudgetCard(
+                          budget: state.currentBudget,
+                          actualSpent: state.monthlyPurchased,
+                          onSetBudget: _setBudget,
+                          selectedMonth: state.selectedMonth,
+                        ),
 
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 24),
 
-                      // Sessions Header
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            state.isSearching
-                                ? 'Search Results (${sessions.length})'
-                                : 'Expense Sessions (${sessions.length})',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                        // Enhanced Sessions Header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  state.isSearching
+                                      ? 'Search Results'
+                                      : 'Expense Sessions',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                ),
+                                Text(
+                                  '${sessions.length} ${sessions.length == 1 ? 'session' : 'sessions'}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          if (!state.isSearching)
-                            TextButton.icon(
-                              onPressed: _addExpenseSession,
-                              icon: const Icon(Icons.add),
-                              label: const Text('Add Session'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Theme.of(context).primaryColor,
+                            if (!state.isSearching)
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF3B82F6),
+                                      Color(0xFF2563EB),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: ElevatedButton.icon(
+                                  onPressed: _addExpenseSession,
+                                  icon: const Icon(Icons.add_rounded, size: 18),
+                                  label: const Text('Add Session'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
                               ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Enhanced Sessions List
+                        if (sessions.isEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(40),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  spreadRadius: 0,
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Sessions List
-                      if (sessions.isEmpty)
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32),
                             child: Column(
                               children: [
-                                Icon(
-                                  Icons.receipt_long_outlined,
-                                  size: 64,
-                                  color: Colors.grey[400],
+                                Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF2563EB,
+                                    ).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Icon(
+                                    Icons.receipt_long_rounded,
+                                    size: 48,
+                                    color: Color(0xFF2563EB),
+                                  ),
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 20),
                                 Text(
                                   state.isSearching
                                       ? 'No sessions found'
                                       : 'No expense sessions yet',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w500,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    color: Color(0xFF1E293B),
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -276,50 +499,125 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage> {
                                       ? 'Try adjusting your search query'
                                       : 'Add your first expense session to get started',
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[500],
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
+                                if (!state.isSearching) ...[
+                                  const SizedBox(height: 24),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFF3B82F6),
+                                          Color(0xFF2563EB),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: ElevatedButton.icon(
+                                      onPressed: _addExpenseSession,
+                                      icon: const Icon(Icons.add_rounded),
+                                      label: const Text('Create First Session'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
+                          )
+                        else
+                          Column(
+                            children: sessions
+                                .asMap()
+                                .entries
+                                .map(
+                                  (entry) => Container(
+                                    margin: EdgeInsets.only(
+                                      bottom: entry.key == sessions.length - 1
+                                          ? 100
+                                          : 12,
+                                    ),
+                                    child: ExpenseSessionCard(
+                                      session: entry.value,
+                                      onTap: () =>
+                                          _navigateToSessionDetail(entry.value),
+                                      onEdit: () =>
+                                          _navigateToEditSession(entry.value),
+                                      onDelete: () =>
+                                          _showDeleteConfirmation(entry.value),
+                                      onToggleItem: (itemId) =>
+                                          _toggleItemPurchased(
+                                            entry.value.id,
+                                            itemId,
+                                          ),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                           ),
-                        )
-                      else
-                        ...sessions.map(
-                          (session) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: ExpenseSessionCard(
-                              session: session,
-                              onTap: () => _navigateToSessionDetail(session),
-                              onEdit: () => _navigateToEditSession(session),
-                              onDelete: () => _showDeleteConfirmation(session),
-                              onToggleItem: (itemId) =>
-                                  _toggleItemPurchased(session.id, itemId),
-                            ),
-                          ),
-                        ),
-
-                      const SizedBox(height: 80), // Space for FAB
-                    ],
+                      ],
+                    ),
                   );
                 } else if (state is ExpenseOperationSuccess) {
-                  // Show loading while operation completes and then refreshes
-                  return const Center(child: CircularProgressIndicator());
+                  return Container(
+                    height: 300,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF2563EB),
+                      ),
+                    ),
+                  );
                 } else if (state is ExpenseError) {
-                  return Center(
+                  return Container(
+                    padding: const EdgeInsets.all(40),
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          spreadRadius: 0,
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: Colors.red[300],
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.error_outline_rounded,
+                            size: 48,
+                            color: Colors.red[600],
+                          ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
                         Text(
                           'Error Loading Data',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 20,
                             fontWeight: FontWeight.w600,
                             color: Colors.red[700],
                           ),
@@ -327,36 +625,74 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage> {
                         const SizedBox(height: 8),
                         Text(
                           state.message,
-                          style: TextStyle(color: Colors.red[600]),
+                          style: TextStyle(
+                            color: Colors.red[600],
+                            fontSize: 16,
+                          ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
                           onPressed: () {
                             context.read<ExpenseBloc>().add(LoadSessions());
                           },
-                          child: const Text('Retry'),
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Try Again'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red[600],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   );
                 } else {
-                  // Initial state - show loading
-                  return const Center(child: CircularProgressIndicator());
+                  return Container(
+                    height: 300,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF2563EB),
+                      ),
+                    ),
+                  );
                 }
               },
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _addExpenseSession,
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text(
-          'Add Session',
-          style: TextStyle(fontWeight: FontWeight.w600),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF2563EB).withOpacity(0.3),
+              spreadRadius: 0,
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: _addExpenseSession,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          icon: const Icon(Icons.add_rounded, size: 24),
+          label: const Text(
+            'Add Session',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          ),
         ),
       ),
     );
@@ -398,20 +734,32 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Session'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Delete Session',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         content: Text('Are you sure you want to delete "${session.title}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
           ),
-          TextButton(
-            onPressed: () {
-              context.read<ExpenseBloc>().add(DeleteSessionEvent(session.id));
-              Navigator.of(context).pop();
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.red[600],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: TextButton(
+              onPressed: () {
+                context.read<ExpenseBloc>().add(DeleteSessionEvent(session.id));
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
           ),
         ],
       ),
