@@ -363,7 +363,16 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       result.fold(
         (failure) => emit(const ExpenseError('Failed to set budget')),
         (_) {
-          add(ChangeSelectedMonth(currentState.selectedMonth));
+          // Reload all data to reflect the budget update
+          add(LoadBudgets());
+          add(LoadBudgetByMonth(
+            currentState.selectedMonth.year,
+            currentState.selectedMonth.month,
+          ));
+          add(LoadSessionsByMonth(
+            currentState.selectedMonth.year,
+            currentState.selectedMonth.month,
+          ));
         },
       );
     }
