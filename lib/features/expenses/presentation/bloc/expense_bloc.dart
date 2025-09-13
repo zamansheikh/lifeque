@@ -365,14 +365,18 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
         (_) {
           // Reload all data to reflect the budget update
           add(LoadBudgets());
-          add(LoadBudgetByMonth(
-            currentState.selectedMonth.year,
-            currentState.selectedMonth.month,
-          ));
-          add(LoadSessionsByMonth(
-            currentState.selectedMonth.year,
-            currentState.selectedMonth.month,
-          ));
+          add(
+            LoadBudgetByMonth(
+              currentState.selectedMonth.year,
+              currentState.selectedMonth.month,
+            ),
+          );
+          add(
+            LoadSessionsByMonth(
+              currentState.selectedMonth.year,
+              currentState.selectedMonth.month,
+            ),
+          );
         },
       );
     }
