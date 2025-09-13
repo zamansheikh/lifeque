@@ -71,7 +71,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
             margin: const EdgeInsets.all(16),
           ),
         );
-        
+
         // Delay navigation to allow the bloc to process the event
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
