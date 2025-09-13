@@ -72,7 +72,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -237,7 +237,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                       child: LinearProgressIndicator(
                         value: completion,
                         minHeight: 8,
-                        backgroundColor: Colors.grey.withOpacity(0.15),
+                        backgroundColor: Colors.grey.withValues(alpha: 0.15),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           completion == 1.0
                               ? const Color(0xFF10B981)
@@ -371,9 +371,9 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.2), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
       child: Column(
         children: [
@@ -383,7 +383,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
             label,
             style: TextStyle(
               fontSize: 10,
-              color: color.withOpacity(0.8),
+              color: color.withValues(alpha: 0.8),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -413,13 +413,13 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: item.isPurchased
-                  ? const Color(0xFF10B981).withOpacity(0.08)
-                  : Colors.grey.withOpacity(0.05),
+                  ? const Color(0xFF10B981).withValues(alpha: 0.08)
+                  : Colors.grey.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: item.isPurchased
-                    ? const Color(0xFF10B981).withOpacity(0.2)
-                    : Colors.grey.withOpacity(0.15),
+                    ? const Color(0xFF10B981).withValues(alpha: 0.2)
+                    : Colors.grey.withValues(alpha: 0.15),
                 width: 1,
               ),
             ),
@@ -471,8 +471,8 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                   ),
                   decoration: BoxDecoration(
                     color: item.isPurchased
-                        ? const Color(0xFF10B981).withOpacity(0.15)
-                        : Colors.grey.withOpacity(0.1),
+                        ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                        : Colors.grey.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
