@@ -68,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Normal app launch - wait for animation to complete and give user time to see splash
     debugPrint('🚀 Normal app launch - checking permissions after delay');
-    await Future.delayed(const Duration(milliseconds: 2000));
+    await Future.delayed(const Duration(milliseconds: 1200));
 
     try {
       // Check all required permissions
