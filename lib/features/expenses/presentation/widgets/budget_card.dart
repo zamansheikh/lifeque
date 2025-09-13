@@ -345,67 +345,67 @@ class BudgetCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
                 Icons.account_balance_wallet_rounded,
-                size: 48,
+                size: 36,
                 color: Colors.white,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             const Text(
               'No Budget Set',
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1E293B),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               'Set a monthly budget to track your spending and stay on target',
               style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
+                fontSize: 14,
+                color: Colors.grey,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
                 ),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: ElevatedButton.icon(
                 onPressed: onSetBudget,
-                icon: const Icon(Icons.add_rounded, size: 20),
+                icon: const Icon(Icons.add_rounded, size: 16),
                 label: const Text(
                   'Set Budget',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
+                    horizontal: 16,
+                    vertical: 8,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
