@@ -873,6 +873,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     if (_calculator == null) return const SizedBox();
 
     final prayerTimes = _calculator!.getPrayerTimesMap();
+    final startTimes = _calculator!.getStartTimes();
+    final endTimes = _calculator!.getEndTimes(startTimes);
     final currentPrayer = _calculator!.getCurrentPrayer();
 
     return Column(
@@ -889,12 +891,14 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
           final prayer = _getPrayerFromString(entry.key);
           final isActive = currentPrayer == prayer;
+          final endTime = endTimes[entry.key];
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: PrayerTimeCard(
               name: entry.key,
               time: entry.value,
+              endTime: endTime,
               isActive: isActive,
             ),
           );

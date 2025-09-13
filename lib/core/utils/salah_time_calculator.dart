@@ -85,6 +85,9 @@ class SalahTimeCalculator {
   }
 
   Map<String, DateTime> getEndTimes(Map<String, DateTime> startTimes) {
+    // Calculate proper prayer end times based on Islamic jurisprudence
+    final prayerTimes = getPrayerTimes();
+
     // End of Isha is the next day's Fajr.
     // We need to calculate it for the next day.
     final tomorrowCalculator = SalahTimeCalculator(
@@ -97,11 +100,11 @@ class SalahTimeCalculator {
     final tomorrowFajr = tomorrowCalculator.getPrayerTimes().fajr;
 
     return {
-      'Fajr': startTimes['Sunrise']!,
-      'Dhuhr': startTimes['Asr']!,
-      'Asr': startTimes['Maghrib']!,
-      'Maghrib': startTimes['Isha']!,
-      'Isha': tomorrowFajr,
+      'Fajr': prayerTimes.sunrise, // Fajr ends at sunrise
+      'Dhuhr': prayerTimes.asr, // Dhuhr ends at Asr time
+      'Asr': prayerTimes.maghrib, // Asr ends at Maghrib time
+      'Maghrib': prayerTimes.isha, // Maghrib ends at Isha time
+      'Isha': tomorrowFajr, // Isha ends at next day's Fajr
     };
   }
 
@@ -124,11 +127,15 @@ class SalahTimeCalculator {
         'reason': 'Sun at zenith (Zawal time)',
       },
 
-      // 3. After Asr until Maghrib
+      // 3. After Asr prayer until sunset (traditional approach)
       'After Asr': {
-        'start': prayerTimes.asr,
-        'end': prayerTimes.maghrib,
-        'reason': 'From Asr until Maghrib (sunset)',
+        'start': prayerTimes.asr.add(
+          const Duration(minutes: 15),
+        ), // Start 15 minutes after Asr begins
+        'end': prayerTimes.maghrib.subtract(
+          const Duration(minutes: 3),
+        ), // End just before Maghrib call
+        'reason': 'From after Asr prayer until sunset',
       },
     };
   }

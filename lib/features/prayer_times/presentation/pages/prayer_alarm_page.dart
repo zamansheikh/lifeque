@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/services/prayer_alarm_service.dart';
+import '../../../../core/utils/alarm_sound_utils.dart';
 
 class PrayerAlarmPage extends StatefulWidget {
   const PrayerAlarmPage({super.key});
@@ -35,7 +36,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                 onChanged: (value) {
                   _alarmService.toggleGlobalAlarms(value);
                 },
-                activeThumbColor : Colors.white,
+                activeThumbColor: Colors.white,
               );
             },
           ),
@@ -155,9 +156,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                       Icon(Icons.access_time, size: 16, color: Colors.grey),
                       const SizedBox(width: 8),
                       Text(
-                        existingAlarm.type == PrayerAlarmType.beforePrayerEnd
-                            ? '${existingAlarm.minutesBeforeEnd} minutes before prayer ends'
-                            : 'Fixed time: ${_formatTime(existingAlarm.fixedTime!)}',
+                        _getAlarmDetailsText(existingAlarm),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -241,8 +240,23 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
 
     if (alarm.type == PrayerAlarmType.beforePrayerEnd) {
       return '${alarm.minutesBeforeEnd} min before end';
+    } else if (alarm.type == PrayerAlarmType.afterPrayerStart) {
+      return '${alarm.minutesAfterStart} min after start';
     } else {
       return 'Fixed: ${_formatTime(alarm.fixedTime!)}';
+    }
+  }
+
+  String _getAlarmDetailsText(PrayerAlarmConfig alarm) {
+    if (alarm.type == PrayerAlarmType.beforePrayerEnd) {
+      return '${alarm.minutesBeforeEnd} minutes before prayer ends';
+    } else if (alarm.type == PrayerAlarmType.afterPrayerStart) {
+      return '${alarm.minutesAfterStart} minutes after prayer starts';
+    } else if (alarm.type == PrayerAlarmType.fixedTime &&
+        alarm.fixedTime != null) {
+      return 'Fixed time: ${_formatTime(alarm.fixedTime!)}';
+    } else {
+      return 'Invalid alarm configuration';
     }
   }
 
@@ -286,7 +300,9 @@ class _AlarmConfigDialog extends StatefulWidget {
 class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
   late PrayerAlarmType _selectedType;
   late int _minutesBeforeEnd;
+  late int _minutesAfterStart;
   late TimeOfDay _fixedTime;
+  late String _selectedSoundPath;
 
   @override
   void initState() {
@@ -295,12 +311,16 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
     if (widget.existingAlarm != null) {
       _selectedType = widget.existingAlarm!.type;
       _minutesBeforeEnd = widget.existingAlarm!.minutesBeforeEnd;
+      _minutesAfterStart = widget.existingAlarm!.minutesAfterStart;
+      _selectedSoundPath = widget.existingAlarm!.soundPath;
       _fixedTime = widget.existingAlarm!.fixedTime != null
           ? TimeOfDay.fromDateTime(widget.existingAlarm!.fixedTime!)
           : const TimeOfDay(hour: 9, minute: 0);
     } else {
       _selectedType = PrayerAlarmType.beforePrayerEnd;
       _minutesBeforeEnd = 5;
+      _minutesAfterStart = 5;
+      _selectedSoundPath = AlarmSoundUtils.availableAlarmSounds[0]['path']!;
       _fixedTime = const TimeOfDay(hour: 9, minute: 0);
     }
   }
@@ -328,6 +348,17 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
               },
             ),
             RadioListTile<PrayerAlarmType>(
+              title: const Text('After prayer starts'),
+              subtitle: const Text('Alert X minutes after prayer time begins'),
+              value: PrayerAlarmType.afterPrayerStart,
+              groupValue: _selectedType,
+              onChanged: (value) {
+                setState(() {
+                  _selectedType = value!;
+                });
+              },
+            ),
+            RadioListTile<PrayerAlarmType>(
               title: const Text('Fixed time'),
               subtitle: const Text('Alert at a specific time'),
               value: PrayerAlarmType.fixedTime,
@@ -346,6 +377,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<int>(
+                isExpanded: true, // Fix pixel overflow
                 value: _minutesBeforeEnd,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
@@ -354,7 +386,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                     vertical: 8,
                   ),
                 ),
-                items: [5, 10, 15, 20].map((minutes) {
+                items: [5, 10, 15, 20, 25, 30, 35, 40].map((minutes) {
                   return DropdownMenuItem(
                     value: minutes,
                     child: Text('$minutes minutes'),
@@ -363,6 +395,34 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                 onChanged: (value) {
                   setState(() {
                     _minutesBeforeEnd = value!;
+                  });
+                },
+              ),
+            ] else if (_selectedType == PrayerAlarmType.afterPrayerStart) ...[
+              Text(
+                'Minutes after prayer starts',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<int>(
+                isExpanded: true, // Fix pixel overflow
+                value: _minutesAfterStart,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                ),
+                items: [5, 10, 15, 20, 25, 30, 35, 40].map((minutes) {
+                  return DropdownMenuItem(
+                    value: minutes,
+                    child: Text('$minutes minutes'),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _minutesAfterStart = value!;
                   });
                 },
               ),
@@ -389,6 +449,34 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                 ),
               ),
             ],
+            const SizedBox(height: 16),
+            Text('Alarm Sound', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              isExpanded: true, // Fix pixel overflow
+              value: _selectedSoundPath,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
+              items: AlarmSoundUtils.availableAlarmSounds.map((sound) {
+                return DropdownMenuItem(
+                  value: sound['path']!,
+                  child: Text(
+                    sound['name']!,
+                    overflow: TextOverflow.ellipsis, // Prevent overflow
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedSoundPath = value!;
+                });
+              },
+            ),
           ],
         ),
       ),
@@ -418,6 +506,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
       prayerName: widget.prayer,
       type: _selectedType,
       minutesBeforeEnd: _minutesBeforeEnd,
+      minutesAfterStart: _minutesAfterStart,
       fixedTime: _selectedType == PrayerAlarmType.fixedTime
           ? DateTime(
               DateTime.now().year,
@@ -428,6 +517,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
             )
           : null,
       isEnabled: true,
+      soundPath: _selectedSoundPath,
     );
 
     widget.onSave(config);

@@ -4,12 +4,14 @@ import 'package:intl/intl.dart';
 class PrayerTimeCard extends StatelessWidget {
   final String name;
   final DateTime time;
+  final DateTime? endTime;
   final bool isActive;
 
   const PrayerTimeCard({
     super.key,
     required this.name,
     required this.time,
+    this.endTime,
     this.isActive = false,
   });
 
@@ -96,6 +98,15 @@ class PrayerTimeCard extends StatelessWidget {
                   color: isActive ? colorScheme.primary : Colors.black87,
                 ),
               ),
+              if (endTime != null)
+                Text(
+                  'Ends: ${DateFormat('h:mm a').format(endTime!)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               if (isActive)
                 Container(
                   padding: const EdgeInsets.symmetric(

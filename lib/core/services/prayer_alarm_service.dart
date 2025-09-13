@@ -4,13 +4,15 @@ import 'package:alarm/alarm.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:adhan/adhan.dart';
 import '../utils/salah_time_calculator.dart';
+import '../utils/alarm_sound_utils.dart';
 
-enum PrayerAlarmType { beforePrayerEnd, fixedTime }
+enum PrayerAlarmType { beforePrayerEnd, fixedTime, afterPrayerStart }
 
 class PrayerAlarmConfig {
   final String prayerName;
   final PrayerAlarmType type;
   final int minutesBeforeEnd; // For beforePrayerEnd type
+  final int minutesAfterStart; // For afterPrayerStart type
   final DateTime? fixedTime; // For fixedTime type
   final bool isEnabled;
   final String soundPath;
@@ -19,9 +21,10 @@ class PrayerAlarmConfig {
     required this.prayerName,
     required this.type,
     this.minutesBeforeEnd = 5,
+    this.minutesAfterStart = 5,
     this.fixedTime,
     this.isEnabled = true,
-    this.soundPath = 'assets/sounds/adhan.mp3',
+    this.soundPath = 'assets/audio/alarm_sound_1.mp3', // Use custom sound
   });
 
   Map<String, dynamic> toJson() {
@@ -29,6 +32,7 @@ class PrayerAlarmConfig {
       'prayerName': prayerName,
       'type': type.index,
       'minutesBeforeEnd': minutesBeforeEnd,
+      'minutesAfterStart': minutesAfterStart,
       'fixedTime': fixedTime?.millisecondsSinceEpoch,
       'isEnabled': isEnabled,
       'soundPath': soundPath,
@@ -38,13 +42,25 @@ class PrayerAlarmConfig {
   factory PrayerAlarmConfig.fromJson(Map<String, dynamic> json) {
     return PrayerAlarmConfig(
       prayerName: json['prayerName'],
-      type: PrayerAlarmType.values[json['type']],
-      minutesBeforeEnd: json['minutesBeforeEnd'] ?? 5,
+      type:
+          PrayerAlarmType.values[json['type'] is String
+              ? int.parse(json['type'])
+              : json['type']],
+      minutesBeforeEnd: json['minutesBeforeEnd'] is String
+          ? int.parse(json['minutesBeforeEnd'])
+          : (json['minutesBeforeEnd'] ?? 5),
+      minutesAfterStart: json['minutesAfterStart'] is String
+          ? int.parse(json['minutesAfterStart'])
+          : (json['minutesAfterStart'] ?? 5),
       fixedTime: json['fixedTime'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['fixedTime'])
+          ? DateTime.fromMillisecondsSinceEpoch(
+              json['fixedTime'] is String
+                  ? int.parse(json['fixedTime'])
+                  : json['fixedTime'],
+            )
           : null,
       isEnabled: json['isEnabled'] ?? true,
-      soundPath: json['soundPath'] ?? 'assets/sounds/adhan.mp3',
+      soundPath: json['soundPath'] ?? 'assets/audio/alarm_sound_1.mp3',
     );
   }
 }
@@ -82,6 +98,11 @@ class PrayerAlarmService {
 
   Future<void> initialize() async {
     developer.log('PrayerAlarmService: Initializing');
+
+    // Initialize streams with default values to prevent null issues
+    _enabledController.add(_isEnabled);
+    _alarmsController.add(_alarms);
+
     await _loadSettings();
     await _loadAlarms();
     _startRefreshTimer();
@@ -97,32 +118,65 @@ class PrayerAlarmService {
   }
 
   Future<void> _loadAlarms() async {
-    final prefs = await SharedPreferences.getInstance();
-    final alarmsJson = prefs.getStringList(_prefsKey) ?? [];
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final alarmsData = prefs.getStringList(_prefsKey) ?? [];
 
-    _alarms = alarmsJson.map((json) {
-      final Map<String, dynamic> data = {};
-      final parts = json.split('|');
-      for (String part in parts) {
-        final keyValue = part.split(':');
-        if (keyValue.length == 2) {
-          final key = keyValue[0];
-          final value = keyValue[1];
-          if (key == 'type' || key == 'minutesBeforeEnd') {
-            data[key] = int.parse(value);
-          } else if (key == 'fixedTime') {
-            data[key] = value != 'null' ? int.parse(value) : null;
-          } else if (key == 'isEnabled') {
-            data[key] = value == 'true';
-          } else {
-            data[key] = value;
+      _alarms = alarmsData.map((alarmString) {
+        final data = <String, dynamic>{};
+        final parts = alarmString.split('|');
+        for (final part in parts) {
+          final keyValue = part.split(':');
+          if (keyValue.length == 2) {
+            final key = keyValue[0];
+            final value = keyValue[1];
+            if (key == 'type' ||
+                key == 'minutesBeforeEnd' ||
+                key == 'minutesAfterStart') {
+              data[key] = int.parse(value);
+            } else if (key == 'fixedTime') {
+              data[key] = value != 'null' ? int.parse(value) : null;
+            } else if (key == 'isEnabled') {
+              data[key] = value == 'true';
+            } else {
+              data[key] = value;
+            }
           }
         }
-      }
-      return PrayerAlarmConfig.fromJson(data);
-    }).toList();
+        return PrayerAlarmConfig.fromJson(data);
+      }).toList();
 
+      _alarmsController.add(_alarms);
+    } catch (e) {
+      developer.log(
+        'PrayerAlarmService: Error loading alarms, clearing data: $e',
+      );
+      // Clear corrupted data and start fresh
+      await clearAllAlarms();
+    }
+  }
+
+  // Method to clear all stored alarm data
+  Future<void> clearAllAlarms() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_prefsKey);
+    _alarms.clear();
     _alarmsController.add(_alarms);
+    developer.log('PrayerAlarmService: All alarm data cleared');
+  }
+
+  // Diagnostic method to check service health
+  Map<String, dynamic> getServiceDiagnostics() {
+    return {
+      'totalAlarms': _alarms.length,
+      'isEnabled': _isEnabled,
+      'alarmTypes': _alarms.map((a) => a.type.toString()).toList(),
+      'prayerNames': _alarms.map((a) => a.prayerName).toList(),
+      'streamControllersClosed': {
+        'alarms': _alarmsController.isClosed,
+        'enabled': _enabledController.isClosed,
+      },
+    };
   }
 
   Future<void> _saveAlarms() async {
@@ -206,6 +260,11 @@ class PrayerAlarmService {
         config.prayerName,
         config.minutesBeforeEnd,
       );
+    } else if (config.type == PrayerAlarmType.afterPrayerStart) {
+      alarmTime = await _calculateAfterPrayerStartTime(
+        config.prayerName,
+        config.minutesAfterStart,
+      );
     }
 
     if (alarmTime == null || alarmTime.isBefore(DateTime.now())) {
@@ -215,11 +274,13 @@ class PrayerAlarmService {
       return;
     }
 
+    // Get user's preferred alarm sound
+    final alarmSoundPath = await AlarmSoundUtils.getPrayerAlarmSound();
+
     final alarmSettings = AlarmSettings(
       id: alarmId,
       dateTime: alarmTime,
-      assetAudioPath:
-          'packages/alarm/assets/alarm.mp3', // Use default alarm sound
+      assetAudioPath: alarmSoundPath, // Use user's preferred sound
       loopAudio: false,
       vibrate: true,
       warningNotificationOnKill: true,
@@ -311,12 +372,60 @@ class PrayerAlarmService {
     }
   }
 
+  Future<DateTime?> _calculateAfterPrayerStartTime(
+    String prayerName,
+    int minutesAfter,
+  ) async {
+    try {
+      // Get next occurrence of this prayer
+      final calculator = SalahTimeCalculator(
+        latitude: 23.8103, // Default to Dhaka, should get from saved location
+        longitude: 90.4125,
+        date: DateTime.now(),
+        method: CalculationMethod.karachi,
+      );
+
+      final prayerTimes = calculator.getPrayerTimesMap();
+      final prayerTime = prayerTimes[prayerName];
+
+      if (prayerTime == null) return null;
+
+      // If prayer time has passed today, calculate for tomorrow
+      final now = DateTime.now();
+      DateTime targetPrayerTime = prayerTime;
+
+      if (prayerTime.isBefore(now)) {
+        final tomorrowCalculator = SalahTimeCalculator(
+          latitude: 23.8103,
+          longitude: 90.4125,
+          date: now.add(const Duration(days: 1)),
+          method: CalculationMethod.karachi,
+        );
+        final tomorrowTimes = tomorrowCalculator.getPrayerTimesMap();
+        targetPrayerTime = tomorrowTimes[prayerName] ?? prayerTime;
+      }
+
+      // Calculate alarm time as prayer start time + minutes after
+      final alarmTime = targetPrayerTime.add(Duration(minutes: minutesAfter));
+
+      return alarmTime;
+    } catch (e) {
+      developer.log(
+        'PrayerAlarmService: Error calculating after prayer start time: $e',
+      );
+      return null;
+    }
+  }
+
   String _getAlarmMessage(PrayerAlarmConfig config) {
     if (config.type == PrayerAlarmType.fixedTime) {
       return '${config.prayerName} prayer time reminder';
-    } else {
+    } else if (config.type == PrayerAlarmType.beforePrayerEnd) {
       return '${config.minutesBeforeEnd} minutes left for ${config.prayerName}';
+    } else if (config.type == PrayerAlarmType.afterPrayerStart) {
+      return '${config.prayerName} prayer started ${config.minutesAfterStart} minutes ago';
     }
+    return '${config.prayerName} prayer time reminder';
   }
 
   Future<void> _cancelAlarm(String prayerName) async {
