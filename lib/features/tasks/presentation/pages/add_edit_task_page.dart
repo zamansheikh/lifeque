@@ -726,7 +726,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                             NotificationType
                                           >(
                                             isDense: true,
-                                            value: _notificationType,
+                                            initialValue: _notificationType,
                                             decoration: InputDecoration(
                                               border: OutlineInputBorder(
                                                 borderRadius:
@@ -910,7 +910,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                               BeforeEndOption
                                             >(
                                               isDense: true,
-                                              value: _beforeEndOption,
+                                              initialValue: _beforeEndOption,
                                               decoration: InputDecoration(
                                                 border: OutlineInputBorder(
                                                   borderRadius:
@@ -1124,7 +1124,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                               },
                             ),
                           );
-                        }).toList(),
+                        }),
                         if (_birthdayNotificationSchedule.isEmpty) ...[
                           Container(
                             margin: const EdgeInsets.only(top: 8),

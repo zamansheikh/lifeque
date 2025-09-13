@@ -833,8 +833,9 @@ class _MedicineProgressCard extends StatelessWidget {
                                   AddEditMedicinePage(medicineId: medicine.id),
                             ),
                           );
-                          if (context.mounted)
+                          if (context.mounted) {
                             context.read<MedicineCubit>().loadDashboard();
+                          }
                         },
                       ),
                     ),

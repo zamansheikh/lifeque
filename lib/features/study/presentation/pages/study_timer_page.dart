@@ -481,7 +481,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                   15,
                   60,
                   (value) => setDialogState(() => _focusDuration = value),
-                  '${_focusDuration} min',
+                  '$_focusDuration min',
                 ),
                 _buildSettingSlider(
                   'Short Break',
@@ -489,7 +489,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                   3,
                   15,
                   (value) => setDialogState(() => _shortBreakDuration = value),
-                  '${_shortBreakDuration} min',
+                  '$_shortBreakDuration min',
                 ),
                 _buildSettingSlider(
                   'Long Break',
@@ -497,7 +497,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                   10,
                   45,
                   (value) => setDialogState(() => _longBreakDuration = value),
-                  '${_longBreakDuration} min',
+                  '$_longBreakDuration min',
                 ),
                 _buildSettingSlider(
                   'Cycles before Long Break',

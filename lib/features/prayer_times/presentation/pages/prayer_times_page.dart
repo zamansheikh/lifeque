@@ -902,7 +902,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               isActive: isActive,
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

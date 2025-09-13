@@ -454,7 +454,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               isExpanded: true, // Fix pixel overflow
-              value: _selectedSoundPath,
+              initialValue : _selectedSoundPath,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(

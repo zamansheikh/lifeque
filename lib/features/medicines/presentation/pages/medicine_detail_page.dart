@@ -69,7 +69,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                         AddEditMedicinePage(medicine: widget.medicine),
                   ),
                 );
-                if (mounted) {
+                if (context.mounted) {
                   context.read<MedicineCubit>().loadMedicineDetail(
                     widget.medicine.id,
                   );

@@ -90,6 +90,7 @@ class TodoModel extends Todo {
     );
   }
 
+  @override
   TodoModel copyWith({
     String? id,
     String? title,
