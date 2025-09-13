@@ -28,7 +28,8 @@ class DatabaseHelper {
   static const String columnDailyNotificationMinute = 'dailyNotificationMinute';
   static const String columnBeforeEndOption = 'beforeEndOption';
   static const String columnIsPinnedToNotification = 'isPinnedToNotification';
-  static const String columnBirthdayNotificationSchedule = 'birthdayNotificationSchedule';
+  static const String columnBirthdayNotificationSchedule =
+      'birthdayNotificationSchedule';
   static const String columnCreatedAt = 'createdAt';
   static const String columnUpdatedAt = 'updatedAt';
 

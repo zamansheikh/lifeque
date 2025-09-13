@@ -3,6 +3,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:io';
+import '../../../../core/services/notification_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -48,7 +49,25 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkPermissionsAndNavigate() async {
-    // Wait for animation to complete and give user time to see splash
+    // Check if app was launched by notification action
+    final bool isNotificationLaunch =
+        NotificationService.isAppLaunchedByNotification;
+
+    if (isNotificationLaunch) {
+      debugPrint(
+        '🔔 App launched by notification - skipping permission check delay',
+      );
+      // Reset the flag after use
+      NotificationService.setAppLaunchedByNotification(false);
+      // Navigate immediately to home without permission checks
+      if (mounted) {
+        context.go('/');
+      }
+      return;
+    }
+
+    // Normal app launch - wait for animation to complete and give user time to see splash
+    debugPrint('🚀 Normal app launch - checking permissions after delay');
     await Future.delayed(const Duration(milliseconds: 2000));
 
     try {

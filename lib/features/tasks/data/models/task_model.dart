@@ -27,33 +27,52 @@ class TaskModel extends Task {
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
-      taskType: json['taskType'] != null 
-          ? TaskType.values.firstWhere((e) => e.toString() == json['taskType'], orElse: () => TaskType.task)
+      taskType: json['taskType'] != null
+          ? TaskType.values.firstWhere(
+              (e) => e.toString() == json['taskType'],
+              orElse: () => TaskType.task,
+            )
           : TaskType.task,
       startDate: DateTime.parse(json['startDate'] as String),
       endDate: DateTime.parse(json['endDate'] as String),
       isCompleted: json['isCompleted'] as bool? ?? false,
       isNotificationEnabled: json['isNotificationEnabled'] as bool? ?? true,
       notificationType: json['notificationType'] != null
-          ? NotificationType.values.firstWhere((e) => e.toString() == json['notificationType'], orElse: () => NotificationType.specificTime)
+          ? NotificationType.values.firstWhere(
+              (e) => e.toString() == json['notificationType'],
+              orElse: () => NotificationType.specificTime,
+            )
           : NotificationType.specificTime,
-      notificationTime: json['notificationTime'] != null 
+      notificationTime: json['notificationTime'] != null
           ? DateTime.parse(json['notificationTime'] as String)
           : null,
-      dailyNotificationTime: (json['dailyNotificationHour'] != null && json['dailyNotificationMinute'] != null)
-          ? TimeOfDay(hour: json['dailyNotificationHour'] as int, minute: json['dailyNotificationMinute'] as int)
+      dailyNotificationTime:
+          (json['dailyNotificationHour'] != null &&
+              json['dailyNotificationMinute'] != null)
+          ? TimeOfDay(
+              hour: json['dailyNotificationHour'] as int,
+              minute: json['dailyNotificationMinute'] as int,
+            )
           : null,
       beforeEndOption: json['beforeEndOption'] != null
-          ? BeforeEndOption.values.firstWhere((e) => e.toString() == json['beforeEndOption'], orElse: () => BeforeEndOption.tenMinutes)
+          ? BeforeEndOption.values.firstWhere(
+              (e) => e.toString() == json['beforeEndOption'],
+              orElse: () => BeforeEndOption.tenMinutes,
+            )
           : null,
       isPinnedToNotification: json['isPinnedToNotification'] as bool? ?? false,
       birthdayNotificationSchedule: json['birthdayNotificationSchedule'] != null
-          ? (json['birthdayNotificationSchedule'] as List).map((e) => 
-              BirthdayNotificationOption.values.firstWhere((opt) => opt.toString() == e, orElse: () => BirthdayNotificationOption.exactTime)
-            ).toList()
+          ? (json['birthdayNotificationSchedule'] as List)
+                .map(
+                  (e) => BirthdayNotificationOption.values.firstWhere(
+                    (opt) => opt.toString() == e,
+                    orElse: () => BirthdayNotificationOption.exactTime,
+                  ),
+                )
+                .toList()
           : <BirthdayNotificationOption>[],
       createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] != null 
+      updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'] as String)
           : null,
     );
@@ -75,7 +94,9 @@ class TaskModel extends Task {
       'dailyNotificationMinute': dailyNotificationTime?.minute,
       'beforeEndOption': beforeEndOption?.toString(),
       'isPinnedToNotification': isPinnedToNotification,
-      'birthdayNotificationSchedule': birthdayNotificationSchedule.map((e) => e.toString()).toList(),
+      'birthdayNotificationSchedule': birthdayNotificationSchedule
+          .map((e) => e.toString())
+          .toList(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };
@@ -119,7 +140,8 @@ class TaskModel extends Task {
       'dailyNotificationMinute': dailyNotificationTime?.minute,
       'beforeEndOption': beforeEndOption?.index,
       'isPinnedToNotification': isPinnedToNotification ? 1 : 0,
-      DatabaseHelper.columnBirthdayNotificationSchedule: birthdayNotificationSchedule.map((e) => e.index).join(','),
+      DatabaseHelper.columnBirthdayNotificationSchedule:
+          birthdayNotificationSchedule.map((e) => e.index).join(','),
       'createdAt': createdAt.millisecondsSinceEpoch,
       'updatedAt': updatedAt?.millisecondsSinceEpoch,
     };
@@ -155,8 +177,16 @@ class TaskModel extends Task {
           ? BeforeEndOption.values[map['beforeEndOption']]
           : null,
       isPinnedToNotification: map['isPinnedToNotification'] == 1,
-      birthdayNotificationSchedule: map[DatabaseHelper.columnBirthdayNotificationSchedule] != null && map[DatabaseHelper.columnBirthdayNotificationSchedule].toString().isNotEmpty
-          ? map[DatabaseHelper.columnBirthdayNotificationSchedule].toString().split(',').map((e) => BirthdayNotificationOption.values[int.parse(e)]).toList()
+      birthdayNotificationSchedule:
+          map[DatabaseHelper.columnBirthdayNotificationSchedule] != null &&
+              map[DatabaseHelper.columnBirthdayNotificationSchedule]
+                  .toString()
+                  .isNotEmpty
+          ? map[DatabaseHelper.columnBirthdayNotificationSchedule]
+                .toString()
+                .split(',')
+                .map((e) => BirthdayNotificationOption.values[int.parse(e)])
+                .toList()
           : <BirthdayNotificationOption>[],
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
       updatedAt: map['updatedAt'] != null
@@ -201,7 +231,8 @@ class TaskModel extends Task {
       beforeEndOption: beforeEndOption ?? this.beforeEndOption,
       isPinnedToNotification:
           isPinnedToNotification ?? this.isPinnedToNotification,
-      birthdayNotificationSchedule: birthdayNotificationSchedule ?? this.birthdayNotificationSchedule,
+      birthdayNotificationSchedule:
+          birthdayNotificationSchedule ?? this.birthdayNotificationSchedule,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

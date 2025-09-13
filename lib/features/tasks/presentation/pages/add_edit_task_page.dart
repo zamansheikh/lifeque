@@ -63,7 +63,8 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       _dailyNotificationTime = _existingTask!.dailyNotificationTime;
       _beforeEndOption = _existingTask!.beforeEndOption;
       _isPinnedToNotification = _existingTask!.isPinnedToNotification;
-      _birthdayNotificationSchedule = _existingTask!.birthdayNotificationSchedule;
+      _birthdayNotificationSchedule =
+          _existingTask!.birthdayNotificationSchedule;
     }
   }
 
@@ -251,7 +252,10 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                   setState(() => _taskType = TaskType.task),
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: _taskType == TaskType.task
                                       ? Colors.blue.withValues(alpha: 0.1)
@@ -292,12 +296,14 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: InkWell(
-                              onTap: () => setState(
-                                () => _taskType = TaskType.reminder,
-                              ),
+                              onTap: () =>
+                                  setState(() => _taskType = TaskType.reminder),
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: _taskType == TaskType.reminder
                                       ? Colors.orange.withValues(alpha: 0.1)
@@ -307,7 +313,9 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                     color: _taskType == TaskType.reminder
                                         ? Colors.orange
                                         : Colors.grey.shade300,
-                                    width: _taskType == TaskType.reminder ? 2 : 1,
+                                    width: _taskType == TaskType.reminder
+                                        ? 2
+                                        : 1,
                                   ),
                                 ),
                                 child: Column(
@@ -342,7 +350,10 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                   setState(() => _taskType = TaskType.birthday),
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: _taskType == TaskType.birthday
                                       ? Colors.pink.withValues(alpha: 0.1)
@@ -352,7 +363,9 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                     color: _taskType == TaskType.birthday
                                         ? Colors.pink
                                         : Colors.grey.shade300,
-                                    width: _taskType == TaskType.birthday ? 2 : 1,
+                                    width: _taskType == TaskType.birthday
+                                        ? 2
+                                        : 1,
                                   ),
                                 ),
                                 child: Column(
@@ -437,11 +450,14 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                     color: Colors.green.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: Colors.green.withValues(alpha: 0.2),
+                                      color: Colors.green.withValues(
+                                        alpha: 0.2,
+                                      ),
                                     ),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
@@ -462,7 +478,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                         ],
                                       ),
                                       const SizedBox(height: 8),
-                                     
+
                                       Text(
                                         _formatTimeWithAMPM(_startDate),
                                         style: TextStyle(
@@ -476,10 +492,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                 ),
                               ),
                             ),
-                            SizedBox(
-                              width: 6,
-                              
-                            ),
+                            SizedBox(width: 6),
                             // End Date/Time
                             Expanded(
                               child: InkWell(
@@ -495,7 +508,8 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                     ),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
@@ -516,7 +530,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                         ],
                                       ),
                                       const SizedBox(height: 8),
-                                     
+
                                       Text(
                                         _formatTimeWithAMPM(_endDate),
                                         style: TextStyle(
@@ -544,7 +558,10 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                       border: Border.all(color: Colors.grey.shade300),
                     ),
                     child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       leading: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
@@ -559,15 +576,24 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                       ),
                       title: const Text(
                         'Reminder Time',
-                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
                       ),
                       subtitle: Text(
                         _notificationTime != null
                             ? '${_notificationTime!.day}/${_notificationTime!.month}/${_notificationTime!.year} - ${_formatTimeWithAMPM(_notificationTime!)}'
                             : 'Tap to set reminder time',
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 13,
+                        ),
                       ),
-                      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 14,
+                      ),
                       onTap: () => _selectSpecificNotificationTime(context),
                     ),
                   ),
@@ -580,7 +606,10 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                       border: Border.all(color: Colors.grey.shade300),
                     ),
                     child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       leading: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
@@ -595,13 +624,22 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                       ),
                       title: const Text(
                         'Birthday Date',
-                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
                       ),
                       subtitle: Text(
                         '${_startDate.day}/${_startDate.month}/${_startDate.year}',
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 12,
+                        ),
                       ),
-                      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 14,
+                      ),
                       onTap: () => _selectBirthdayDate(context),
                     ),
                   ),
@@ -621,14 +659,23 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                       children: [
                         // Notification toggle
                         SwitchListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
+                          ),
                           title: const Text(
                             'Enable Notifications',
-                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
                           ),
                           subtitle: Text(
                             'Get reminded about this task',
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
                           ),
                           value: _isNotificationEnabled,
                           onChanged: (value) {
@@ -659,157 +706,245 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                 // Notification type dropdown - more compact
                                 Row(
                                   children: [
-                                    Icon(Icons.schedule_rounded, color: Colors.grey.shade600, size: 18),
+                                    Icon(
+                                      Icons.schedule_rounded,
+                                      color: Colors.grey.shade600,
+                                      size: 18,
+                                    ),
                                     const SizedBox(width: 8),
                                     const Text(
                                       'Type:',
-                                      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 13,
+                                      ),
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(
-                                      child: DropdownButtonFormField<NotificationType>(
-                                        isDense: true,
-                                        value: _notificationType,
-                                        decoration: InputDecoration(
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(6),
+                                      child:
+                                          DropdownButtonFormField<
+                                            NotificationType
+                                          >(
+                                            isDense: true,
+                                            value: _notificationType,
+                                            decoration: InputDecoration(
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              contentPadding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 8,
+                                                  ),
+                                            ),
+                                            items: const [
+                                              DropdownMenuItem(
+                                                value: NotificationType
+                                                    .specificTime,
+                                                child: Text(
+                                                  'At a specific time',
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ),
+                                              DropdownMenuItem(
+                                                value: NotificationType.daily,
+                                                child: Text(
+                                                  'Daily reminder',
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ),
+                                              DropdownMenuItem(
+                                                value:
+                                                    NotificationType.beforeEnd,
+                                                child: Text(
+                                                  'Before end time',
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _notificationType = value!;
+                                                // Reset other notification settings when type changes
+                                                _notificationTime = null;
+                                                _dailyNotificationTime = null;
+                                                _beforeEndOption = null;
+                                              });
+                                            },
                                           ),
-                                          contentPadding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 8,
-                                          ),
-                                        ),
-                                        items: const [
-                                          DropdownMenuItem(
-                                            value: NotificationType.specificTime,
-                                            child: Text('At a specific time', style: TextStyle(fontSize: 13)),
-                                          ),
-                                          DropdownMenuItem(
-                                            value: NotificationType.daily,
-                                            child: Text('Daily reminder', style: TextStyle(fontSize: 13)),
-                                          ),
-                                          DropdownMenuItem(
-                                            value: NotificationType.beforeEnd,
-                                            child: Text('Before end time', style: TextStyle(fontSize: 13)),
-                                          ),
-                                        ],
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _notificationType = value!;
-                                            // Reset other notification settings when type changes
-                                            _notificationTime = null;
-                                            _dailyNotificationTime = null;
-                                            _beforeEndOption = null;
-                                          });
-                                        },
-                                      ),
                                     ),
                                   ],
                                 ),
                                 // Specific settings based on type
-                                if (_notificationType == NotificationType.specificTime) ...[
+                                if (_notificationType ==
+                                    NotificationType.specificTime) ...[
                                   const SizedBox(height: 12),
                                   InkWell(
-                                    onTap: () => _selectSpecificNotificationTime(context),
+                                    onTap: () =>
+                                        _selectSpecificNotificationTime(
+                                          context,
+                                        ),
                                     borderRadius: BorderRadius.circular(6),
                                     child: Container(
                                       padding: const EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         color: Colors.grey.shade50,
                                         borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(color: Colors.grey.shade300),
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
                                       ),
                                       child: Row(
                                         children: [
-                                          Icon(Icons.access_time, color: Colors.grey.shade600, size: 16),
+                                          Icon(
+                                            Icons.access_time,
+                                            color: Colors.grey.shade600,
+                                            size: 16,
+                                          ),
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
                                               _notificationTime != null
-                                                  ? _formatTimeWithAMPM(_notificationTime!)
+                                                  ? _formatTimeWithAMPM(
+                                                      _notificationTime!,
+                                                    )
                                                   : 'Tap to set time',
                                               style: TextStyle(
                                                 fontSize: 14,
-                                                color: _notificationTime != null ? Colors.black87 : Colors.grey.shade600,
+                                                color: _notificationTime != null
+                                                    ? Colors.black87
+                                                    : Colors.grey.shade600,
                                               ),
                                             ),
                                           ),
-                                          Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade600),
+                                          Icon(
+                                            Icons.arrow_forward_ios,
+                                            size: 14,
+                                            color: Colors.grey.shade600,
+                                          ),
                                         ],
                                       ),
                                     ),
                                   ),
                                 ],
-                                if (_notificationType == NotificationType.daily) ...[
+                                if (_notificationType ==
+                                    NotificationType.daily) ...[
                                   const SizedBox(height: 12),
                                   InkWell(
-                                    onTap: () => _selectDailyNotificationTime(context),
+                                    onTap: () =>
+                                        _selectDailyNotificationTime(context),
                                     borderRadius: BorderRadius.circular(6),
                                     child: Container(
                                       padding: const EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         color: Colors.grey.shade50,
                                         borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(color: Colors.grey.shade300),
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
                                       ),
                                       child: Row(
                                         children: [
-                                          Icon(Icons.repeat, color: Colors.grey.shade600, size: 16),
+                                          Icon(
+                                            Icons.repeat,
+                                            color: Colors.grey.shade600,
+                                            size: 16,
+                                          ),
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
                                               _dailyNotificationTime != null
-                                                  ? _formatTimeOfDayWithAMPM(_dailyNotificationTime!)
+                                                  ? _formatTimeOfDayWithAMPM(
+                                                      _dailyNotificationTime!,
+                                                    )
                                                   : 'Tap to set daily time',
                                               style: TextStyle(
                                                 fontSize: 14,
-                                                color: _dailyNotificationTime != null ? Colors.black87 : Colors.grey.shade600,
+                                                color:
+                                                    _dailyNotificationTime !=
+                                                        null
+                                                    ? Colors.black87
+                                                    : Colors.grey.shade600,
                                               ),
                                             ),
                                           ),
-                                          Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade600),
+                                          Icon(
+                                            Icons.arrow_forward_ios,
+                                            size: 14,
+                                            color: Colors.grey.shade600,
+                                          ),
                                         ],
                                       ),
                                     ),
                                   ),
                                 ],
-                                if (_notificationType == NotificationType.beforeEnd) ...[
+                                if (_notificationType ==
+                                    NotificationType.beforeEnd) ...[
                                   const SizedBox(height: 12),
                                   Row(
                                     children: [
-                                      Icon(Icons.timer, color: Colors.grey.shade600, size: 16),
+                                      Icon(
+                                        Icons.timer,
+                                        color: Colors.grey.shade600,
+                                        size: 16,
+                                      ),
                                       const SizedBox(width: 8),
                                       const Text(
                                         'Before:',
-                                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 13,
+                                        ),
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
-                                        child: DropdownButtonFormField<BeforeEndOption>(
-                                          isDense: true,
-                                          value: _beforeEndOption,
-                                          decoration: InputDecoration(
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(6),
+                                        child:
+                                            DropdownButtonFormField<
+                                              BeforeEndOption
+                                            >(
+                                              isDense: true,
+                                              value: _beforeEndOption,
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 8,
+                                                    ),
+                                              ),
+                                              hint: const Text(
+                                                'Select',
+                                                style: TextStyle(fontSize: 13),
+                                              ),
+                                              items: BeforeEndOption.values.map(
+                                                (option) {
+                                                  return DropdownMenuItem(
+                                                    value: option,
+                                                    child: Text(
+                                                      option.displayName,
+                                                      style: const TextStyle(
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ).toList(),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  _beforeEndOption = value;
+                                                });
+                                              },
                                             ),
-                                            contentPadding: const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 8,
-                                            ),
-                                          ),
-                                          hint: const Text('Select', style: TextStyle(fontSize: 13)),
-                                          items: BeforeEndOption.values.map((option) {
-                                            return DropdownMenuItem(
-                                              value: option,
-                                              child: Text(option.displayName, style: const TextStyle(fontSize: 13)),
-                                            );
-                                          }).toList(),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _beforeEndOption = value;
-                                            });
-                                          },
-                                        ),
                                       ),
                                     ],
                                   ),
@@ -927,37 +1062,47 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                         const SizedBox(height: 12),
                         // Birthday notification options
                         ...BirthdayNotificationOption.values.map((option) {
-                          final isSelected = _birthdayNotificationSchedule.contains(option);
+                          final isSelected = _birthdayNotificationSchedule
+                              .contains(option);
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
-                              color: isSelected 
+                              color: isSelected
                                   ? Colors.pink.withValues(alpha: 0.1)
                                   : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: isSelected 
-                                    ? Colors.pink 
+                                color: isSelected
+                                    ? Colors.pink
                                     : Colors.grey.shade300,
                                 width: isSelected ? 2 : 1,
                               ),
                             ),
                             child: CheckboxListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 2,
+                              ),
                               dense: true,
                               title: Text(
                                 option.displayName,
                                 style: TextStyle(
                                   fontSize: 13,
-                                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-                                  color: isSelected ? Colors.pink.shade700 : Colors.black87,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w500
+                                      : FontWeight.normal,
+                                  color: isSelected
+                                      ? Colors.pink.shade700
+                                      : Colors.black87,
                                 ),
                               ),
                               subtitle: Text(
                                 option.description,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: isSelected ? Colors.pink.shade600 : Colors.grey.shade600,
+                                  color: isSelected
+                                      ? Colors.pink.shade600
+                                      : Colors.grey.shade600,
                                 ),
                               ),
                               value: isSelected,
@@ -965,11 +1110,15 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                               onChanged: (bool? value) {
                                 setState(() {
                                   if (value == true) {
-                                    if (!_birthdayNotificationSchedule.contains(option)) {
+                                    if (!_birthdayNotificationSchedule.contains(
+                                      option,
+                                    )) {
                                       _birthdayNotificationSchedule.add(option);
                                     }
                                   } else {
-                                    _birthdayNotificationSchedule.remove(option);
+                                    _birthdayNotificationSchedule.remove(
+                                      option,
+                                    );
                                   }
                                 });
                               },
@@ -983,11 +1132,17 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                             decoration: BoxDecoration(
                               color: Colors.orange.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                color: Colors.orange.withValues(alpha: 0.3),
+                              ),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.warning_rounded, color: Colors.orange.shade600, size: 16),
+                                Icon(
+                                  Icons.warning_rounded,
+                                  color: Colors.orange.shade600,
+                                  size: 16,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -1017,18 +1172,27 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                     border: Border.all(color: Colors.grey.shade300),
                   ),
                   child: SwitchListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
                     title: Text(
                       _taskType == TaskType.reminder
                           ? 'Pin Reminder'
                           : 'Pin to Notification',
-                      style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
                     ),
                     subtitle: Text(
                       _taskType == TaskType.reminder
                           ? 'Keep visible in notifications'
                           : 'Keep task visible in notifications',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                      ),
                     ),
                     value: _isPinnedToNotification,
                     onChanged: (value) {
@@ -1246,14 +1410,16 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
     final minute = dateTime.minute;
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-    
+
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
   }
 
   String _formatTimeOfDayWithAMPM(TimeOfDay timeOfDay) {
     final period = timeOfDay.hour >= 12 ? 'PM' : 'AM';
-    final displayHour = timeOfDay.hour == 0 ? 12 : (timeOfDay.hour > 12 ? timeOfDay.hour - 12 : timeOfDay.hour);
-    
+    final displayHour = timeOfDay.hour == 0
+        ? 12
+        : (timeOfDay.hour > 12 ? timeOfDay.hour - 12 : timeOfDay.hour);
+
     return '${displayHour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')} $period every day';
   }
 
@@ -1272,7 +1438,9 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
         if (_birthdayNotificationSchedule.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Please select at least one birthday notification option'),
+              content: Text(
+                'Please select at least one birthday notification option',
+              ),
             ),
           );
           return;

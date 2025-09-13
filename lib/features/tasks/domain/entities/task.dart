@@ -41,7 +41,7 @@ extension BeforeEndOptionExtension on BeforeEndOption {
 
 enum BirthdayNotificationOption {
   oneDayBefore, // 1 day before (for gift preparation)
-  twoHoursBefore, // 2 hours before 
+  twoHoursBefore, // 2 hours before
   tenMinutesBefore, // 10 minutes before
   exactTime, // Exactly at 12:00 AM on birthday
 }
@@ -59,7 +59,7 @@ extension BirthdayNotificationOptionExtension on BirthdayNotificationOption {
         return 'At exactly 12:00 AM';
     }
   }
-  
+
   String get description {
     switch (this) {
       case BirthdayNotificationOption.oneDayBefore:
@@ -88,7 +88,8 @@ class Task extends Equatable {
   final TimeOfDay? dailyNotificationTime; // For daily type
   final BeforeEndOption? beforeEndOption; // For beforeEnd type
   final bool isPinnedToNotification;
-  final List<BirthdayNotificationOption> birthdayNotificationSchedule; // For birthday multiple notifications
+  final List<BirthdayNotificationOption>
+  birthdayNotificationSchedule; // For birthday multiple notifications
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -233,7 +234,8 @@ class Task extends Equatable {
       beforeEndOption: beforeEndOption ?? this.beforeEndOption,
       isPinnedToNotification:
           isPinnedToNotification ?? this.isPinnedToNotification,
-      birthdayNotificationSchedule: birthdayNotificationSchedule ?? this.birthdayNotificationSchedule,
+      birthdayNotificationSchedule:
+          birthdayNotificationSchedule ?? this.birthdayNotificationSchedule,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -329,7 +331,7 @@ class Task extends Equatable {
     final birthdayDate = startDate; // Birth date
     final now = tz.TZDateTime.now(tz.local);
     final currentYear = now.year;
-    
+
     // Calculate this year's birthday
     final thisYearBirthday = tz.TZDateTime(
       tz.local,
@@ -337,17 +339,22 @@ class Task extends Equatable {
       birthdayDate.month,
       birthdayDate.day,
     );
-    
+
     // If this year's birthday has passed, calculate next year's
-    final targetBirthday = thisYearBirthday.isAfter(now) 
-        ? thisYearBirthday 
-        : tz.TZDateTime(tz.local, currentYear + 1, birthdayDate.month, birthdayDate.day);
+    final targetBirthday = thisYearBirthday.isAfter(now)
+        ? thisYearBirthday
+        : tz.TZDateTime(
+            tz.local,
+            currentYear + 1,
+            birthdayDate.month,
+            birthdayDate.day,
+          );
 
     List<DateTime> notificationTimes = [];
 
     for (final option in birthdayNotificationSchedule) {
       late tz.TZDateTime notificationTime;
-      
+
       switch (option) {
         case BirthdayNotificationOption.oneDayBefore:
           notificationTime = targetBirthday.subtract(const Duration(days: 1));
@@ -366,7 +373,9 @@ class Task extends Equatable {
           // 10 PM the night before
           break;
         case BirthdayNotificationOption.tenMinutesBefore:
-          notificationTime = targetBirthday.subtract(const Duration(minutes: 10));
+          notificationTime = targetBirthday.subtract(
+            const Duration(minutes: 10),
+          );
           // 11:50 PM the night before
           break;
         case BirthdayNotificationOption.exactTime:
@@ -374,7 +383,7 @@ class Task extends Equatable {
           // Exactly at 12:00 AM on birthday
           break;
       }
-      
+
       // Only add future notification times
       if (notificationTime.isAfter(now)) {
         notificationTimes.add(notificationTime);
