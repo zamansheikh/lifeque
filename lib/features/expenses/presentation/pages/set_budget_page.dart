@@ -144,7 +144,10 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
               ),
               style: TextButton.styleFrom(
                 backgroundColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -407,8 +410,9 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
           setState(() {});
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              isSelected ? Colors.transparent : const Color(0xFFF8FAFC),
+          backgroundColor: isSelected
+              ? Colors.transparent
+              : const Color(0xFFF8FAFC),
           foregroundColor: isSelected ? Colors.white : const Color(0xFF64748B),
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
