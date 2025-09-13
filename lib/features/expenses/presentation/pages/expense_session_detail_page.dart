@@ -19,15 +19,73 @@ class ExpenseSessionDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           session.title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            color: Color(0xFF1E293B),
+          ),
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
+        shadowColor: Colors.black12,
+        surfaceTintColor: Colors.transparent,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: Color(0xFF64748B),
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
         actions: [
-          IconButton(
-            onPressed: () => context.push('/expenses/edit', extra: session),
-            icon: const Icon(Icons.edit),
-            tooltip: 'Edit Session',
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TextButton.icon(
+              onPressed: () => context.push('/expenses/edit', extra: session),
+              icon: const Icon(
+                Icons.edit_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              label: const Text(
+                'Edit',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -37,7 +95,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
           // Session Info Card
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -46,7 +104,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                       Icon(
                         Icons.shopping_cart,
                         color: theme.primaryColor,
-                        size: 24,
+                        size: 22,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -56,7 +114,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                             Text(
                               session.title,
                               style: const TextStyle(
-                                fontSize: 20,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -64,7 +122,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                             Text(
                               _formatDate(session.date),
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: Colors.grey[600],
                               ),
                             ),
@@ -76,7 +134,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                   if (session.notes != null) ...[
                     const SizedBox(height: 16),
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: Colors.blue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -84,14 +142,14 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.note, color: Colors.blue[700], size: 18),
+                          Icon(Icons.note, color: Colors.blue[700], size: 16),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               session.notes!,
                               style: TextStyle(
                                 color: Colors.blue[700],
-                                fontSize: 14,
+                                fontSize: 13,
                               ),
                             ),
                           ),
@@ -109,13 +167,13 @@ class ExpenseSessionDetailPage extends StatelessWidget {
           // Summary Card
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Summary',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -154,14 +212,14 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                           Text(
                             'Total Amount',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               color: Colors.grey[600],
                             ),
                           ),
                           Text(
                             '\$${session.totalAmount.toStringAsFixed(2)}',
                             style: const TextStyle(
-                              fontSize: 24,
+                              fontSize: 20,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -173,14 +231,14 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                           Text(
                             'Purchased',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               color: Colors.grey[600],
                             ),
                           ),
                           Text(
                             '\$${session.purchasedAmount.toStringAsFixed(2)}',
                             style: const TextStyle(
-                              fontSize: 20,
+                              fontSize: 18,
                               fontWeight: FontWeight.w600,
                               color: Colors.green,
                             ),
@@ -193,14 +251,14 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                           Text(
                             'Missed (Saved)',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               color: Colors.grey[600],
                             ),
                           ),
                           Text(
                             '\$${session.missedAmount.toStringAsFixed(2)}',
                             style: const TextStyle(
-                              fontSize: 20,
+                              fontSize: 18,
                               fontWeight: FontWeight.w600,
                               color: Colors.orange,
                             ),
@@ -251,18 +309,8 @@ class ExpenseSessionDetailPage extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 80), // Space for FAB
+          const SizedBox(height: 8),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/expenses/edit', extra: session),
-        backgroundColor: theme.primaryColor,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.edit),
-        label: const Text(
-          'Edit Session',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
       ),
     );
   }
@@ -275,26 +323,26 @@ class ExpenseSessionDetailPage extends StatelessWidget {
   ) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 8),
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 6),
             Text(
               value,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: color,
               ),
             ),
             Text(
               label,
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
           ],
@@ -312,7 +360,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: item.isPurchased
               ? Colors.green.withValues(alpha: 0.1)
@@ -350,7 +398,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                   Text(
                     item.name,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
                       decoration: item.isPurchased
                           ? TextDecoration.lineThrough
@@ -364,7 +412,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Purchased: ${_formatDateTime(item.purchasedAt!)}',
-                      style: TextStyle(fontSize: 12, color: Colors.green[600]),
+                      style: TextStyle(fontSize: 11, color: Colors.green[600]),
                     ),
                   ],
                 ],
@@ -376,7 +424,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                 Text(
                   '\$${item.amount.toStringAsFixed(2)}',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: item.isPurchased ? Colors.green : Colors.grey[700],
                   ),
