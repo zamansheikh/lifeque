@@ -257,11 +257,13 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   ) async {
     try {
       final budgets = await localDataSource.getAllBudgets();
-      final budget = budgets
-          .where((budget) => budget.year == year && budget.month == month)
-          .map((budget) => budget.toEntity())
-          .firstOrNull;
-      return Right(budget);
+      // Choose the most recently updated budget for the given month/year
+      final candidates = budgets
+          .where((b) => b.year == year && b.month == month)
+          .toList();
+      if (candidates.isEmpty) return const Right(null);
+      candidates.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+      return Right(candidates.first.toEntity());
     } catch (e) {
       return Left(CacheFailure());
     }

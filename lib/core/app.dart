@@ -19,6 +19,7 @@ import '../features/expenses/presentation/pages/expenses_dashboard_page.dart';
 import '../features/expenses/presentation/pages/add_expense_session_page.dart';
 import '../features/expenses/presentation/pages/expense_session_detail_page.dart';
 import '../features/expenses/presentation/pages/set_budget_page.dart';
+import '../features/expenses/domain/entities/monthly_budget.dart';
 import '../features/expenses/domain/entities/expense_session.dart';
 import '../features/prayer_times/presentation/pages/prayer_times_page.dart';
 import '../features/study/presentation/pages/study_timer_page.dart';
@@ -156,7 +157,18 @@ class AppRouter {
         path: '/expenses/budget',
         name: 'set-budget',
         builder: (context, state) {
-          final selectedMonth = state.extra as DateTime;
+          // Expecting a map: { 'selectedMonth': DateTime, 'existingBudget': MonthlyBudget? }
+          final extra = state.extra;
+          if (extra is Map<String, Object?>) {
+            final selectedMonth = extra['selectedMonth'] as DateTime;
+            final existingBudget = extra['existingBudget'] as MonthlyBudget?;
+            return SetBudgetPage(
+              selectedMonth: selectedMonth,
+              existingBudget: existingBudget,
+            );
+          }
+          // Fallback: keep backward compatibility if only DateTime was passed
+          final selectedMonth = extra as DateTime;
           return SetBudgetPage(selectedMonth: selectedMonth);
         },
       ),

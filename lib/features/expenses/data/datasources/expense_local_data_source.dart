@@ -106,12 +106,29 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
   @override
   Future<void> saveBudget(MonthlyBudgetModel budget) async {
     final budgets = await getAllBudgets();
-    final index = budgets.indexWhere((b) => b.id == budget.id);
-
-    if (index != -1) {
-      budgets[index] = budget;
+    // First try by ID
+    int index = budgets.indexWhere((b) => b.id == budget.id);
+    if (index == -1) {
+      // If ID not found, try to find by (year, month) to avoid duplicates
+      index = budgets.indexWhere(
+        (b) => b.year == budget.year && b.month == budget.month,
+      );
+      if (index != -1) {
+        // Preserve original id and createdAt when updating existing month entry
+        final existing = budgets[index];
+        budgets[index] = MonthlyBudgetModel(
+          id: existing.id,
+          year: budget.year,
+          month: budget.month,
+          targetAmount: budget.targetAmount,
+          createdAt: existing.createdAt,
+          updatedAt: budget.updatedAt,
+        );
+      } else {
+        budgets.add(budget);
+      }
     } else {
-      budgets.add(budget);
+      budgets[index] = budget;
     }
 
     await saveAllBudgets(budgets);
@@ -126,8 +143,24 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
 
   @override
   Future<void> saveAllBudgets(List<MonthlyBudgetModel> budgets) async {
+    // Deduplicate by (year, month), keep most recently updated
+    final Map<String, MonthlyBudgetModel> latestByMonth = {};
+    for (final b in budgets) {
+      final key = '${b.year}-${b.month}';
+      final existing = latestByMonth[key];
+      if (existing == null || b.updatedAt.isAfter(existing.updatedAt)) {
+        latestByMonth[key] = b;
+      }
+    }
+    final deduped = latestByMonth.values.toList()
+      ..sort((a, b) {
+        // stable sort by year/month ascending to keep storage tidy
+        final byYear = a.year.compareTo(b.year);
+        if (byYear != 0) return byYear;
+        return a.month.compareTo(b.month);
+      });
     final jsonString = json.encode(
-      budgets.map((budget) => budget.toJson()).toList(),
+      deduped.map((budget) => budget.toJson()).toList(),
     );
     await sharedPreferences.setString(budgetsKey, jsonString);
   }

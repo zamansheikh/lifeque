@@ -95,7 +95,15 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
   }
 
   void _setBudget() {
-    context.push('/expenses/budget', extra: _selectedMonth);
+    final state = context.read<ExpenseBloc>().state;
+    final existingBudget = state is ExpenseLoaded ? state.currentBudget : null;
+    context.push(
+      '/expenses/budget',
+      extra: {
+        'selectedMonth': _selectedMonth,
+        'existingBudget': existingBudget,
+      },
+    );
   }
 
   @override
