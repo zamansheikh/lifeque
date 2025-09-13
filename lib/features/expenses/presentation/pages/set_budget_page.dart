@@ -122,7 +122,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF10B981).withOpacity(0.3),
+                  color: const Color(0xFF10B981).withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -170,7 +170,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF64748B).withOpacity(0.08),
+                    color: const Color(0xFF64748B).withValues(alpha: 0.08),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -252,10 +252,10 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF3B82F6).withOpacity(0.06),
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: const Color(0xFF3B82F6).withOpacity(0.2),
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
                       ),
                     ),
                     child: Row(
@@ -293,7 +293,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF64748B).withOpacity(0.08),
+                    color: const Color(0xFF64748B).withValues(alpha: 0.08),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -396,7 +396,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: const Color(0xFF3B82F6).withOpacity(0.3),
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
                   spreadRadius: 0,
                   blurRadius: 8,
                   offset: const Offset(0, 4),
@@ -421,7 +421,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
             side: BorderSide(
               color: isSelected
                   ? Colors.transparent
-                  : Colors.grey.withOpacity(0.2),
+                  : Colors.grey.withValues(alpha: 0.2),
             ),
           ),
         ),

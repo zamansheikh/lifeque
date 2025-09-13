@@ -66,13 +66,13 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               spreadRadius: 0,
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               spreadRadius: 0,
               blurRadius: 5,
               offset: const Offset(0, 1),
@@ -124,7 +124,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                                   (completionPercentage == 1.0
                                           ? const Color(0xFF10B981)
                                           : const Color(0xFF3B82F6))
-                                      .withOpacity(0.3),
+                                      .withValues(alpha: 0.3),
                               spreadRadius: 0,
                               blurRadius: 8,
                               offset: const Offset(0, 3),
@@ -258,7 +258,9 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                     decoration: BoxDecoration(
                       color: const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                      border: Border.all(
+                        color: Colors.grey.withValues(alpha: 0.1),
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -320,7 +322,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                                         (completionPercentage == 1.0
                                                 ? const Color(0xFF10B981)
                                                 : const Color(0xFF3B82F6))
-                                            .withOpacity(0.3),
+                                            .withValues(alpha: 0.3),
                                     spreadRadius: 0,
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
@@ -353,7 +355,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                                 decoration: BoxDecoration(
                                   color: const Color(
                                     0xFF10B981,
-                                  ).withOpacity(0.1),
+                                  ).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Row(
@@ -425,7 +427,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                       decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(
-                            color: Colors.grey.withOpacity(0.2),
+                            color: Colors.grey.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -496,7 +498,9 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF3B82F6).withOpacity(0.1),
+                                color: const Color(
+                                  0xFF3B82F6,
+                                ).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
@@ -530,9 +534,9 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
       child: Column(
         children: [
@@ -542,7 +546,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
             label,
             style: TextStyle(
               fontSize: 11,
-              color: color.withOpacity(0.8),
+              color: color.withValues(alpha: 0.8),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -572,13 +576,13 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: item.isPurchased
-                  ? const Color(0xFF10B981).withOpacity(0.08)
-                  : Colors.grey.withOpacity(0.05),
+                  ? const Color(0xFF10B981).withValues(alpha: 0.08)
+                  : Colors.grey.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: item.isPurchased
-                    ? const Color(0xFF10B981).withOpacity(0.2)
-                    : Colors.grey.withOpacity(0.15),
+                    ? const Color(0xFF10B981).withValues(alpha: 0.2)
+                    : Colors.grey.withValues(alpha: 0.15),
                 width: 1,
               ),
             ),
@@ -630,8 +634,8 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                   ),
                   decoration: BoxDecoration(
                     color: item.isPurchased
-                        ? const Color(0xFF10B981).withOpacity(0.15)
-                        : Colors.grey.withOpacity(0.1),
+                        ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                        : Colors.grey.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

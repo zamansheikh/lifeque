@@ -7,10 +7,7 @@ import '../bloc/todo_bloc.dart';
 class TodoDetailPage extends StatelessWidget {
   final Todo todo;
 
-  const TodoDetailPage({
-    super.key,
-    required this.todo,
-  });
+  const TodoDetailPage({super.key, required this.todo});
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +16,7 @@ class TodoDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Todo Details',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 24,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 24),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -69,7 +63,7 @@ class TodoDetailPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     spreadRadius: 1,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
@@ -81,9 +75,13 @@ class TodoDetailPage extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       if (todo.isCompleted) {
-                        context.read<TodoBloc>().add(UncompleteTodoEvent(todo.id));
+                        context.read<TodoBloc>().add(
+                          UncompleteTodoEvent(todo.id),
+                        );
                       } else {
-                        context.read<TodoBloc>().add(CompleteTodoEvent(todo.id));
+                        context.read<TodoBloc>().add(
+                          CompleteTodoEvent(todo.id),
+                        );
                       }
                       context.pop(); // Go back to refresh the list
                     },
@@ -93,12 +91,12 @@ class TodoDetailPage extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: todo.isCompleted 
+                          color: todo.isCompleted
                               ? Theme.of(context).primaryColor
-                              : Colors.grey.withOpacity(0.5),
+                              : Colors.grey.withValues(alpha: 0.5),
                           width: 2,
                         ),
-                        color: todo.isCompleted 
+                        color: todo.isCompleted
                             ? Theme.of(context).primaryColor
                             : Colors.transparent,
                       ),
@@ -118,7 +116,7 @@ class TodoDetailPage extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: todo.isCompleted 
+                        color: todo.isCompleted
                             ? Theme.of(context).primaryColor
                             : Colors.black87,
                       ),
@@ -139,7 +137,7 @@ class TodoDetailPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     spreadRadius: 1,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
@@ -163,10 +161,10 @@ class TodoDetailPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: todo.isCompleted 
+                      color: todo.isCompleted
                           ? Colors.grey[500]
                           : Colors.black87,
-                      decoration: todo.isCompleted 
+                      decoration: todo.isCompleted
                           ? TextDecoration.lineThrough
                           : null,
                     ),
@@ -187,7 +185,7 @@ class TodoDetailPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withValues(alpha: 0.1),
                       spreadRadius: 1,
                       blurRadius: 4,
                       offset: const Offset(0, 2),
@@ -210,7 +208,7 @@ class TodoDetailPage extends StatelessWidget {
                       todo.description!,
                       style: TextStyle(
                         fontSize: 16,
-                        color: todo.isCompleted 
+                        color: todo.isCompleted
                             ? Colors.grey[500]
                             : Colors.black87,
                       ),
@@ -233,7 +231,7 @@ class TodoDetailPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           spreadRadius: 1,
                           blurRadius: 4,
                           offset: const Offset(0, 2),
@@ -286,7 +284,7 @@ class TodoDetailPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           spreadRadius: 1,
                           blurRadius: 4,
                           offset: const Offset(0, 2),
@@ -342,17 +340,23 @@ class TodoDetailPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withValues(alpha: 0.1),
                       spreadRadius: 1,
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
                   ],
-                  border: todo.isOverdue 
-                      ? Border.all(color: Colors.red.withOpacity(0.3), width: 1)
+                  border: todo.isOverdue
+                      ? Border.all(
+                          color: Colors.red.withValues(alpha: 0.3),
+                          width: 1,
+                        )
                       : todo.isDueToday
-                          ? Border.all(color: Colors.orange.withOpacity(0.3), width: 1)
-                          : null,
+                      ? Border.all(
+                          color: Colors.orange.withValues(alpha: 0.3),
+                          width: 1,
+                        )
+                      : null,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -374,8 +378,8 @@ class TodoDetailPage extends StatelessWidget {
                           color: todo.isOverdue
                               ? Colors.red
                               : todo.isDueToday
-                                  ? Colors.orange
-                                  : Theme.of(context).primaryColor,
+                              ? Colors.orange
+                              : Theme.of(context).primaryColor,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -386,8 +390,8 @@ class TodoDetailPage extends StatelessWidget {
                             color: todo.isOverdue
                                 ? Colors.red
                                 : todo.isDueToday
-                                    ? Colors.orange
-                                    : Colors.black87,
+                                ? Colors.orange
+                                : Colors.black87,
                           ),
                         ),
                       ],
@@ -407,7 +411,7 @@ class TodoDetailPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     spreadRadius: 1,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
@@ -419,18 +423,11 @@ class TodoDetailPage extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.schedule,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
+                      Icon(Icons.schedule, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 8),
                       Text(
                         'Created: ${_formatDateTime(todo.createdAt)}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -480,9 +477,7 @@ class TodoDetailPage extends StatelessWidget {
               Navigator.of(context).pop(); // Close dialog
               context.pop(); // Go back to list
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
           ),
         ],
@@ -508,8 +503,9 @@ class TodoDetailPage extends StatelessWidget {
       dateStr = '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     }
 
-    final timeStr = '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-    
+    final timeStr =
+        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+
     return '$dateStr at $timeStr';
   }
 }

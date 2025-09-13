@@ -7,10 +7,7 @@ import '../bloc/todo_bloc.dart';
 class AddEditTodoPage extends StatefulWidget {
   final Todo? todo;
 
-  const AddEditTodoPage({
-    super.key,
-    this.todo,
-  });
+  const AddEditTodoPage({super.key, this.todo});
 
   bool get isEditing => todo != null;
 
@@ -22,7 +19,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  
+
   TodoCategory _selectedCategory = TodoCategory.personal;
   TodoPriority _selectedPriority = TodoPriority.medium;
   DateTime? _selectedDueDate;
@@ -79,8 +76,8 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
       final todo = Todo(
         id: widget.todo?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleController.text.trim(),
-        description: _descriptionController.text.trim().isEmpty 
-            ? null 
+        description: _descriptionController.text.trim().isEmpty
+            ? null
             : _descriptionController.text.trim(),
         category: _selectedCategory,
         priority: _selectedPriority,
@@ -107,10 +104,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
       appBar: AppBar(
         title: Text(
           widget.isEditing ? 'Edit Todo' : 'Add Todo',
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 24,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 24),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -141,7 +135,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     spreadRadius: 1,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
@@ -174,7 +168,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     spreadRadius: 1,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
@@ -202,7 +196,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     spreadRadius: 1,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
@@ -240,14 +234,14 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: isSelected 
-                                  ? category.color.withOpacity(0.2)
+                              color: isSelected
+                                  ? category.color.withValues(alpha: 0.2)
                                   : Colors.grey[100],
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: isSelected 
+                                color: isSelected
                                     ? category.color
-                                    : Colors.grey.withOpacity(0.3),
+                                    : Colors.grey.withValues(alpha: 0.3),
                               ),
                             ),
                             child: Row(
@@ -256,7 +250,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                                 Icon(
                                   category.icon,
                                   size: 16,
-                                  color: isSelected 
+                                  color: isSelected
                                       ? category.color
                                       : Colors.grey[600],
                                 ),
@@ -266,7 +260,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: isSelected 
+                                    color: isSelected
                                         ? category.color
                                         : Colors.grey[700],
                                   ),
@@ -291,7 +285,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     spreadRadius: 1,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
@@ -329,14 +323,14 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: isSelected 
-                                  ? priority.color.withOpacity(0.2)
+                              color: isSelected
+                                  ? priority.color.withValues(alpha: 0.2)
                                   : Colors.grey[100],
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: isSelected 
+                                color: isSelected
                                     ? priority.color
-                                    : Colors.grey.withOpacity(0.3),
+                                    : Colors.grey.withValues(alpha: 0.3),
                               ),
                             ),
                             child: Row(
@@ -345,7 +339,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                                 Icon(
                                   priority.icon,
                                   size: 16,
-                                  color: isSelected 
+                                  color: isSelected
                                       ? priority.color
                                       : Colors.grey[600],
                                 ),
@@ -355,7 +349,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: isSelected 
+                                    color: isSelected
                                         ? priority.color
                                         : Colors.grey[700],
                                   ),
@@ -380,7 +374,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     spreadRadius: 1,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
@@ -396,7 +390,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                     children: [
                       Icon(
                         Icons.access_time,
-                        color: _selectedDueDate != null 
+                        color: _selectedDueDate != null
                             ? Theme.of(context).primaryColor
                             : Colors.grey[600],
                       ),
@@ -410,7 +404,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: _selectedDueDate != null 
+                                color: _selectedDueDate != null
                                     ? Theme.of(context).primaryColor
                                     : Colors.black87,
                               ),
@@ -465,8 +459,9 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
       dateStr = '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     }
 
-    final timeStr = '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-    
+    final timeStr =
+        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+
     return '$dateStr at $timeStr';
   }
 }

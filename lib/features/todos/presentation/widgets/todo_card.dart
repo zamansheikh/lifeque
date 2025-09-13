@@ -27,16 +27,16 @@ class TodoCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
         ],
         border: isOverdue
-            ? Border.all(color: Colors.red.withOpacity(0.3), width: 1)
+            ? Border.all(color: Colors.red.withValues(alpha: 0.3), width: 1)
             : isDueToday
-            ? Border.all(color: Colors.orange.withOpacity(0.3), width: 1)
+            ? Border.all(color: Colors.orange.withValues(alpha: 0.3), width: 1)
             : null,
       ),
       child: Material(
@@ -59,7 +59,7 @@ class TodoCard extends StatelessWidget {
                       border: Border.all(
                         color: todo.isCompleted
                             ? Theme.of(context).primaryColor
-                            : Colors.grey.withOpacity(0.5),
+                            : Colors.grey.withValues(alpha: 0.5),
                         width: 2,
                       ),
                       color: todo.isCompleted
@@ -124,7 +124,7 @@ class TodoCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: todo.priority.color.withOpacity(0.2),
+                              color: todo.priority.color.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Row(
@@ -157,7 +157,7 @@ class TodoCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: todo.category.color.withOpacity(0.2),
+                              color: todo.category.color.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Row(
@@ -192,10 +192,10 @@ class TodoCard extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: isOverdue
-                                    ? Colors.red.withOpacity(0.1)
+                                    ? Colors.red.withValues(alpha: 0.1)
                                     : isDueToday
-                                    ? Colors.orange.withOpacity(0.1)
-                                    : Colors.grey.withOpacity(0.1),
+                                    ? Colors.orange.withValues(alpha: 0.1)
+                                    : Colors.grey.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Row(

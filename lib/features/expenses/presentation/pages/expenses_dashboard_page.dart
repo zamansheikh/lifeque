@@ -141,7 +141,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF3B82F6).withOpacity(0.3),
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -170,7 +170,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 4),
@@ -187,7 +187,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                   prefixIcon: Container(
                     margin: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB).withOpacity(0.1),
+                      color: const Color(0xFF2563EB).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -224,7 +224,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     spreadRadius: 0,
                     blurRadius: 10,
                     offset: const Offset(0, 4),
@@ -447,7 +447,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   spreadRadius: 0,
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
@@ -461,7 +461,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                                   decoration: BoxDecoration(
                                     color: const Color(
                                       0xFF2563EB,
-                                    ).withOpacity(0.1),
+                                    ).withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: const Icon(
@@ -579,7 +579,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           spreadRadius: 0,
                           blurRadius: 10,
                           offset: const Offset(0, 4),
@@ -592,7 +592,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
+                            color: Colors.red.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Icon(
@@ -664,7 +664,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF2563EB).withOpacity(0.3),
+              color: const Color(0xFF2563EB).withValues(alpha: 0.3),
               spreadRadius: 0,
               blurRadius: 12,
               offset: const Offset(0, 6),

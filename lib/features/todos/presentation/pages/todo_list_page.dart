@@ -102,7 +102,7 @@ class _TodoListPageState extends State<TodoListPage> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   spreadRadius: 1,
                   blurRadius: 4,
                   offset: const Offset(0, 2),
@@ -141,12 +141,12 @@ class _TodoListPageState extends State<TodoListPage> {
                       backgroundColor: Colors.white,
                       selectedColor: Theme.of(
                         context,
-                      ).primaryColor.withOpacity(0.2),
+                      ).primaryColor.withValues(alpha: 0.2),
                       checkmarkColor: Theme.of(context).primaryColor,
                       side: BorderSide(
                         color: _selectedFilter == filter
                             ? Theme.of(context).primaryColor
-                            : Colors.grey.withOpacity(0.3),
+                            : Colors.grey.withValues(alpha: 0.3),
                       ),
                     ),
                   ),
@@ -193,12 +193,12 @@ class _TodoListPageState extends State<TodoListPage> {
                       ],
                     ),
                     backgroundColor: _selectedCategory != null
-                        ? _selectedCategory!.color.withOpacity(0.2)
+                        ? _selectedCategory!.color.withValues(alpha: 0.2)
                         : Colors.white,
                     side: BorderSide(
                       color:
                           _selectedCategory?.color ??
-                          Colors.grey.withOpacity(0.3),
+                          Colors.grey.withValues(alpha: 0.3),
                     ),
                   ),
                 ),
