@@ -337,7 +337,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
               },
               builder: (context, state) {
                 if (state is ExpenseLoading) {
-                  return Container(
+                  return SizedBox(
                     height: 300,
                     child: const Center(
                       child: Column(
@@ -537,11 +537,12 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                                 )
                                 .toList(),
                           ),
+                        if (sessions.isEmpty) const SizedBox(height: 100),
                       ],
                     ),
                   );
                 } else if (state is ExpenseOperationSuccess) {
-                  return Container(
+                  return SizedBox(
                     height: 300,
                     child: const Center(
                       child: CircularProgressIndicator(
@@ -621,7 +622,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                     ),
                   );
                 } else {
-                  return Container(
+                  return SizedBox(
                     height: 300,
                     child: const Center(
                       child: CircularProgressIndicator(
