@@ -106,8 +106,12 @@ class NotificationService {
 
         // Handle the launch notification response if available
         if (launchDetails.notificationResponse != null) {
-          debugPrint('🔔 Processing launch notification response');
-          _onNotificationTapped(launchDetails.notificationResponse!);
+          debugPrint('🔔 Delayed processing of launch notification response');
+          // Delay the action processing to ensure all services are ready
+          Future.delayed(const Duration(milliseconds: 500), () {
+            debugPrint('🔔 Processing delayed launch notification response');
+            _onNotificationTapped(launchDetails.notificationResponse!);
+          });
         }
       }
     } catch (e) {
@@ -193,11 +197,40 @@ class NotificationService {
     }
   }
 
+  /// Ensure all services are ready before processing notification actions
+  Future<void> _ensureServicesReady() async {
+    int retryCount = 0;
+    const maxRetries = 10;
+    const retryDelay = Duration(milliseconds: 100);
+
+    while (retryCount < maxRetries) {
+      try {
+        // Try to access the TaskBloc to ensure DI is ready
+        di.sl<TaskBloc>();
+        debugPrint('🔔 ✅ Services ready, TaskBloc accessible');
+        return;
+      } catch (e) {
+        retryCount++;
+        debugPrint('🔔 ⏳ Services not ready (attempt $retryCount/$maxRetries): $e');
+        
+        if (retryCount >= maxRetries) {
+          debugPrint('🔔 ❌ Services still not ready after $maxRetries attempts');
+          throw Exception('Services not ready after maximum retries');
+        }
+        
+        await Future.delayed(retryDelay);
+      }
+    }
+  }
+
   Future<void> _handleNotificationAction(
     String actionId,
     String payload,
   ) async {
     debugPrint('🔔 Handling action: $actionId for payload: $payload');
+
+    // Add retry mechanism for cold app starts
+    await _ensureServicesReady();
 
     // Check if this is a medicine notification
     if (payload.startsWith('medicine_')) {

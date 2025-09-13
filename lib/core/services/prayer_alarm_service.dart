@@ -286,8 +286,9 @@ class PrayerAlarmService {
       warningNotificationOnKill: true,
       androidFullScreenIntent: true,
       volumeSettings: VolumeSettings.fade(
-        volume: 0.8,
+        volume: 1.0, // Max volume to ensure audibility through main speaker
         fadeDuration: const Duration(seconds: 2),
+        volumeEnforced: true, // Force volume setting to override system settings
       ),
       notificationSettings: NotificationSettings(
         title: '🕌 Prayer Time',
