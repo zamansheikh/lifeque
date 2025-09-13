@@ -137,6 +137,14 @@ class AppRouter {
         builder: (context, state) => const AddExpenseSessionPage(),
       ),
       GoRoute(
+        path: '/expenses/edit',
+        name: 'edit-expense-session',
+        builder: (context, state) {
+          final session = state.extra as ExpenseSession;
+          return AddExpenseSessionPage(session: session);
+        },
+      ),
+      GoRoute(
         path: '/expenses/detail',
         name: 'expense-session-detail',
         builder: (context, state) {

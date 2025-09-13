@@ -181,7 +181,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       result.fold(
         (failure) => emit(const ExpenseError('Failed to add session')),
         (_) {
-          emit(const ExpenseOperationSuccess('Session added successfully'));
+          // Directly reload data instead of showing success state
           add(ChangeSelectedMonth(currentState.selectedMonth));
         },
       );
@@ -202,7 +202,6 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       result.fold(
         (failure) => emit(const ExpenseError('Failed to update session')),
         (_) {
-          emit(const ExpenseOperationSuccess('Session updated successfully'));
           add(ChangeSelectedMonth(currentState.selectedMonth));
         },
       );
@@ -364,14 +363,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       result.fold(
         (failure) => emit(const ExpenseError('Failed to set budget')),
         (_) {
-          emit(const ExpenseOperationSuccess('Budget set successfully'));
-          add(LoadBudgets());
-          add(
-            LoadBudgetByMonth(
-              currentState.selectedMonth.year,
-              currentState.selectedMonth.month,
-            ),
-          );
+          add(ChangeSelectedMonth(currentState.selectedMonth));
         },
       );
     }

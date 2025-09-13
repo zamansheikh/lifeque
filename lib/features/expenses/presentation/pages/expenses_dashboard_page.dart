@@ -187,13 +187,6 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage> {
                       backgroundColor: Colors.red,
                     ),
                   );
-                } else if (state is ExpenseOperationSuccess) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.message),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
                 }
               },
               builder: (context, state) {
@@ -309,8 +302,47 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage> {
                       const SizedBox(height: 80), // Space for FAB
                     ],
                   );
+                } else if (state is ExpenseOperationSuccess) {
+                  // Show loading while operation completes and then refreshes
+                  return const Center(child: CircularProgressIndicator());
+                } else if (state is ExpenseError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red[300],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error Loading Data',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red[700],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          state.message,
+                          style: TextStyle(color: Colors.red[600]),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<ExpenseBloc>().add(LoadSessions());
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
                 } else {
-                  return const Center(child: Text('Something went wrong'));
+                  // Initial state - show loading
+                  return const Center(child: CircularProgressIndicator());
                 }
               },
             ),
@@ -353,13 +385,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage> {
   }
 
   void _navigateToEditSession(ExpenseSession session) {
-    // For now, just show a message that edit is not implemented
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Edit functionality will be available soon'),
-        backgroundColor: Colors.orange,
-      ),
-    );
+    context.push('/expenses/edit', extra: session);
   }
 
   void _toggleItemPurchased(String sessionId, String itemId) {

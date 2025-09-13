@@ -57,6 +57,20 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
         context.read<ExpenseBloc>().add(SetBudgetEvent(budget));
       }
 
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.existingBudget != null
+                  ? 'Budget updated successfully'
+                  : 'Budget set successfully',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
       context.pop();
     }
   }

@@ -222,7 +222,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => NotificationService());
   sl.registerLazySingleton(() => NavigationService());
   sl.registerLazySingleton(() => InAppUpdateService());
-  
+
   // External
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);

@@ -6,7 +6,9 @@ import '../../domain/entities/expense_session.dart';
 import '../bloc/expense_bloc.dart';
 
 class AddExpenseSessionPage extends StatefulWidget {
-  const AddExpenseSessionPage({super.key});
+  final ExpenseSession? session; // For editing existing session
+
+  const AddExpenseSessionPage({super.key, this.session});
 
   @override
   State<AddExpenseSessionPage> createState() => _AddExpenseSessionPageState();
@@ -18,6 +20,26 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage> {
   final _notesController = TextEditingController();
   final List<ExpenseItemForm> _items = [];
   DateTime _selectedDate = DateTime.now();
+  bool get _isEditing => widget.session != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      _titleController.text = widget.session!.title;
+      _notesController.text = widget.session!.notes ?? '';
+      _selectedDate = widget.session!.date;
+
+      // Load existing items
+      for (final item in widget.session!.items) {
+        final itemForm = ExpenseItemForm();
+        itemForm.nameController.text = item.name;
+        itemForm.amountController.text = item.amount.toString();
+        itemForm.isPurchased = item.isPurchased;
+        _items.add(itemForm);
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -61,9 +83,13 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage> {
       final items = _items
           .map(
             (itemForm) => ExpenseItem(
-              id:
-                  DateTime.now().millisecondsSinceEpoch.toString() +
-                  _items.indexOf(itemForm).toString(),
+              id: _isEditing
+                  ? (widget.session!.items.length > _items.indexOf(itemForm)
+                        ? widget.session!.items[_items.indexOf(itemForm)].id
+                        : DateTime.now().millisecondsSinceEpoch.toString() +
+                              _items.indexOf(itemForm).toString())
+                  : DateTime.now().millisecondsSinceEpoch.toString() +
+                        _items.indexOf(itemForm).toString(),
               name: itemForm.nameController.text.trim(),
               amount: double.parse(itemForm.amountController.text),
               isPurchased: itemForm.isPurchased,
@@ -73,17 +99,38 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage> {
           .toList();
 
       final session = ExpenseSession(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: _isEditing
+            ? widget.session!.id
+            : DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleController.text.trim(),
         date: _selectedDate,
         items: items,
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
-        createdAt: DateTime.now(),
+        createdAt: _isEditing ? widget.session!.createdAt : DateTime.now(),
       );
 
-      context.read<ExpenseBloc>().add(AddSessionEvent(session));
+      if (_isEditing) {
+        context.read<ExpenseBloc>().add(UpdateSessionEvent(session));
+      } else {
+        context.read<ExpenseBloc>().add(AddSessionEvent(session));
+      }
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEditing
+                  ? 'Session updated successfully'
+                  : 'Session added successfully',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
       context.pop();
     } else if (_items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,9 +147,9 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text(
-          'Add Expense Session',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        title: Text(
+          _isEditing ? 'Edit Expense Session' : 'Add Expense Session',
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -110,7 +157,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage> {
           TextButton(
             onPressed: _saveSession,
             child: Text(
-              'Save',
+              _isEditing ? 'Update' : 'Save',
               style: TextStyle(
                 color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.w600,
@@ -306,10 +353,10 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage> {
         onPressed: _saveSession,
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.save),
-        label: const Text(
-          'Save Session',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        icon: Icon(_isEditing ? Icons.update : Icons.save),
+        label: Text(
+          _isEditing ? 'Update Session' : 'Save Session',
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../domain/entities/expense_session.dart';
 import '../../domain/entities/expense_item.dart';
 import '../bloc/expense_bloc.dart';
@@ -7,15 +8,12 @@ import '../bloc/expense_bloc.dart';
 class ExpenseSessionDetailPage extends StatelessWidget {
   final ExpenseSession session;
 
-  const ExpenseSessionDetailPage({
-    super.key,
-    required this.session,
-  });
+  const ExpenseSessionDetailPage({super.key, required this.session});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -25,6 +23,13 @@ class ExpenseSessionDetailPage extends StatelessWidget {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: () => context.push('/expenses/edit', extra: session),
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edit Session',
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -79,11 +84,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.note,
-                            color: Colors.blue[700],
-                            size: 18,
-                          ),
+                          Icon(Icons.note, color: Colors.blue[700], size: 18),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -114,10 +115,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                 children: [
                   const Text(
                     'Summary',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -237,18 +235,17 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                       const Spacer(),
                       Text(
                         '${session.items.length} items',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  ...session.items.map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildItemCard(item, context),
-                  )),
+                  ...session.items.map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildItemCard(item, context),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -258,26 +255,24 @@ class ExpenseSessionDetailPage extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Edit functionality will be available soon'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        },
-        backgroundColor: Colors.grey,
+        onPressed: () => context.push('/expenses/edit', extra: session),
+        backgroundColor: theme.primaryColor,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.edit),
         label: const Text(
-          'Edit Soon',
+          'Edit Session',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
     );
   }
 
-  Widget _buildSummaryItem(String label, String value, IconData icon, Color color) {
+  Widget _buildSummaryItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -299,10 +294,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
             ),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
           ],
@@ -322,12 +314,12 @@ class ExpenseSessionDetailPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: item.isPurchased 
+          color: item.isPurchased
               ? Colors.green.withOpacity(0.1)
               : Colors.grey.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: item.isPurchased 
+            color: item.isPurchased
                 ? Colors.green.withOpacity(0.3)
                 : Colors.grey.withOpacity(0.2),
             width: 1.5,
@@ -347,11 +339,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                 ),
               ),
               child: item.isPurchased
-                  ? const Icon(
-                      Icons.check,
-                      size: 16,
-                      color: Colors.white,
-                    )
+                  ? const Icon(Icons.check, size: 16, color: Colors.white)
                   : null,
             ),
             const SizedBox(width: 16),
@@ -364,18 +352,19 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      decoration: item.isPurchased ? TextDecoration.lineThrough : null,
-                      color: item.isPurchased ? Colors.grey[600] : Colors.black87,
+                      decoration: item.isPurchased
+                          ? TextDecoration.lineThrough
+                          : null,
+                      color: item.isPurchased
+                          ? Colors.grey[600]
+                          : Colors.black87,
                     ),
                   ),
                   if (item.isPurchased && item.purchasedAt != null) ...[
                     const SizedBox(height: 4),
                     Text(
                       'Purchased: ${_formatDateTime(item.purchasedAt!)}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.green[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.green[600]),
                     ),
                   ],
                 ],
@@ -395,10 +384,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                 if (!item.isPurchased)
                   Text(
                     'Tap to mark',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 10, color: Colors.grey[500]),
                   ),
               ],
             ),
