@@ -210,34 +210,34 @@ class _TaskListPageState extends State<TaskListPage>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
                   // Welcome illustration
                     ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: Image.asset(
                       'assets/icon/icon.png',
-                      height: 150,
-                      width: 150,
+                      height: 100,
+                      width: 100,
                       fit: BoxFit.cover,
                     ),
                     ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
                   // Welcome message
                   const Text(
                     'Welcome to LifeQue! 🎯',
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.5,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Text(
                     'Your journey to productivity starts here',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       color: Colors.grey.shade600,
                       fontWeight: FontWeight.w500,
                     ),
