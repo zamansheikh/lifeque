@@ -217,7 +217,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '\$${session.totalAmount.toStringAsFixed(2)}',
+                            '৳${session.totalAmount.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -236,7 +236,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '\$${session.purchasedAmount.toStringAsFixed(2)}',
+                            '৳${session.purchasedAmount.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -256,7 +256,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '\$${session.missedAmount.toStringAsFixed(2)}',
+                            '৳${session.missedAmount.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -422,7 +422,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '\$${item.amount.toStringAsFixed(2)}',
+                  '৳${item.amount.toStringAsFixed(2)}',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

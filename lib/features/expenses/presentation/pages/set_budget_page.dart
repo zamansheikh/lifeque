@@ -431,7 +431,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
           ),
         ),
         child: Text(
-          '\$${amount.toInt()}',
+          '৳${amount.toInt()}',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 14,

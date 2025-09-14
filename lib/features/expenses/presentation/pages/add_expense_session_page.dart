@@ -414,7 +414,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                           label: 'Notes (Optional)',
                           hint: 'Additional notes about this session',
                           icon: Icons.notes_rounded,
-                          maxLines: 3,
+                          maxLines: 2,
                         ),
                       ],
                     ),
@@ -470,35 +470,6 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                                 color: Color(0xFF1E293B),
                               ),
                             ),
-                            const Spacer(),
-                            Container(
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF3B82F6),
-                                    Color(0xFF2563EB),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: ElevatedButton.icon(
-                                onPressed: _addItem,
-                                icon: const Icon(Icons.add_rounded, size: 16),
-                                label: const Text('Add Item'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                            ),
                           ],
                         ),
 
@@ -542,10 +513,43 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Tap "Add Item" to get started',
+                                  'Add your first item below',
                                   style: TextStyle(
                                     color: Colors.grey[600],
                                     fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Container(
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFF3B82F6),
+                                        Color(0xFF2563EB),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: ElevatedButton.icon(
+                                    onPressed: _addItem,
+                                    icon: const Icon(
+                                      Icons.add_rounded,
+                                      size: 18,
+                                    ),
+                                    label: const Text('Add First Item'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 14,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -558,6 +562,34 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                               child: _buildEnhancedItemForm(index),
                             );
                           }),
+                          // Add Item button placed after all items
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ElevatedButton.icon(
+                              onPressed: _addItem,
+                              icon: const Icon(Icons.add_rounded, size: 18),
+                              label: const Text('Add Another Item'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ],
                     ),
@@ -660,7 +692,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        '\$${_calculateTotal().toStringAsFixed(2)}',
+                                        '৳${_calculateTotal().toStringAsFixed(2)}',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.w700,
@@ -880,7 +912,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Icon(
-                          Icons.attach_money_rounded,
+                          Icons.currency_lira,
                           color: Color(0xFF3B82F6),
                           size: 16,
                         ),

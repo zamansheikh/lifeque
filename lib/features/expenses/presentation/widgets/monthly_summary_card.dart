@@ -84,7 +84,7 @@ class MonthlySummaryCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '\$${purchased.toStringAsFixed(0)}',
+                    '৳${purchased.toStringAsFixed(0)}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -92,7 +92,7 @@ class MonthlySummaryCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'of \$${total.toStringAsFixed(0)}',
+                    'of ৳${total.toStringAsFixed(0)}',
                     style: TextStyle(
                       fontSize: 11,
                       color: Colors.white.withValues(alpha: 0.9),
@@ -175,7 +175,7 @@ class MonthlySummaryCard extends StatelessWidget {
           Icon(icon, color: color, size: 18),
           const SizedBox(height: 6),
           Text(
-            isMoney ? '\$${value.toStringAsFixed(0)}' : value.toString(),
+            isMoney ? '৳${value.toStringAsFixed(0)}' : value.toString(),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,

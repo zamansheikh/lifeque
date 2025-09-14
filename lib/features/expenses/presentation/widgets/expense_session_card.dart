@@ -251,7 +251,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '\$${widget.session.purchasedAmount.toStringAsFixed(0)}',
+                        '৳${widget.session.purchasedAmount.toStringAsFixed(0)}',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -259,7 +259,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                         ),
                       ),
                       Text(
-                        'of \$${widget.session.totalAmount.toStringAsFixed(0)}',
+                        'of ৳${widget.session.totalAmount.toStringAsFixed(0)}',
                         style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                       ),
                     ],
@@ -275,7 +275,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                   Expanded(
                     child: _buildAmountCard(
                       'Total',
-                      '\$${widget.session.totalAmount.toStringAsFixed(0)}',
+                      '৳${widget.session.totalAmount.toStringAsFixed(0)}',
                       const Color(0xFF3B82F6),
                       Icons.account_balance_wallet_rounded,
                     ),
@@ -284,7 +284,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                   Expanded(
                     child: _buildAmountCard(
                       'Purchased',
-                      '\$${widget.session.purchasedAmount.toStringAsFixed(0)}',
+                      '৳${widget.session.purchasedAmount.toStringAsFixed(0)}',
                       const Color(0xFF10B981),
                       Icons.shopping_bag_rounded,
                     ),
@@ -294,7 +294,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                     Expanded(
                       child: _buildAmountCard(
                         'Missed',
-                        '\$${missedAmount.toStringAsFixed(0)}',
+                        '৳${missedAmount.toStringAsFixed(0)}',
                         const Color(0xFFF59E0B),
                         Icons.error_outline_rounded,
                       ),
@@ -476,7 +476,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '\$${item.amount.toStringAsFixed(2)}',
+                    '৳${item.amount.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,

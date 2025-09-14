@@ -174,7 +174,7 @@ class BudgetCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '\$${actualSpent.toStringAsFixed(2)}',
+                          '৳${actualSpent.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -210,7 +210,7 @@ class BudgetCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '\$${budgetAmount.toStringAsFixed(2)}',
+                          '৳${budgetAmount.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -249,8 +249,8 @@ class BudgetCard extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           isOverBudget
-                              ? '\$${(-remaining).toStringAsFixed(2)}'
-                              : '\$${remaining.toStringAsFixed(2)}',
+                              ? '৳${(-remaining).toStringAsFixed(2)}'
+                              : '৳${remaining.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -436,14 +436,14 @@ class BudgetCard extends StatelessWidget {
     bool isOverBudget,
   ) {
     if (isOverBudget) {
-      return 'You\'ve exceeded your budget by \$${(-remaining).toStringAsFixed(2)}';
+      return 'You\'ve exceeded your budget by ৳${(-remaining).toStringAsFixed(2)}';
     }
     if (remaining == 0) {
       return 'Budget exactly met! Great job!';
     }
     if (percentage > 0.8) {
-      return 'Almost at your limit! \$${remaining.toStringAsFixed(2)} left';
+      return 'Almost at your limit! ৳${remaining.toStringAsFixed(2)} left';
     }
-    return 'You have \$${remaining.toStringAsFixed(2)} left to spend';
+    return 'You have ৳${remaining.toStringAsFixed(2)} left to spend';
   }
 }
