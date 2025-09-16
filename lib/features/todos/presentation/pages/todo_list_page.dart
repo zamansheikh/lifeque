@@ -85,7 +85,7 @@ class _TodoListPageState extends State<TodoListPage> {
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text(
-          'My Todos',
+          'My To-Dos',
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 24),
         ),
         backgroundColor: Colors.transparent,

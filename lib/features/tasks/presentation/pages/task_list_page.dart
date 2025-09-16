@@ -683,7 +683,7 @@ class _TaskListPageState extends State<TaskListPage>
                   ),
                   _buildDrawerItem(
                     icon: Icons.checklist_rounded,
-                    title: 'Todos',
+                    title: 'To-Dos',
                     onTap: () {
                       Navigator.pop(context);
                       context.push('/todos');

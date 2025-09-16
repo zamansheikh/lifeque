@@ -378,7 +378,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
               const SizedBox(height: 8),
               DropdownButtonFormField<int>(
                 isExpanded: true, // Fix pixel overflow
-                value: _minutesBeforeEnd,
+                initialValue: _minutesBeforeEnd,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(
@@ -406,7 +406,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
               const SizedBox(height: 8),
               DropdownButtonFormField<int>(
                 isExpanded: true, // Fix pixel overflow
-                value: _minutesAfterStart,
+                initialValue: _minutesAfterStart,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(
@@ -454,7 +454,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               isExpanded: true, // Fix pixel overflow
-              initialValue : _selectedSoundPath,
+              initialValue: _selectedSoundPath,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(
