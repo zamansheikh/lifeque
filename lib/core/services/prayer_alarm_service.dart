@@ -16,6 +16,7 @@ class PrayerAlarmConfig {
   final DateTime? fixedTime; // For fixedTime type
   final bool isEnabled;
   final String soundPath;
+  final int alarmDurationMinutes; // Duration in minutes before auto-stop
 
   PrayerAlarmConfig({
     required this.prayerName,
@@ -25,6 +26,7 @@ class PrayerAlarmConfig {
     this.fixedTime,
     this.isEnabled = true,
     this.soundPath = 'assets/audio/alarm_sound_1.mp3', // Use custom sound
+    this.alarmDurationMinutes = 2, // Default 2 minutes
   });
 
   Map<String, dynamic> toJson() {
@@ -36,6 +38,7 @@ class PrayerAlarmConfig {
       'fixedTime': fixedTime?.millisecondsSinceEpoch,
       'isEnabled': isEnabled,
       'soundPath': soundPath,
+      'alarmDurationMinutes': alarmDurationMinutes,
     };
   }
 
@@ -61,6 +64,9 @@ class PrayerAlarmConfig {
           : null,
       isEnabled: json['isEnabled'] ?? true,
       soundPath: json['soundPath'] ?? 'assets/audio/alarm_sound_1.mp3',
+      alarmDurationMinutes: json['alarmDurationMinutes'] is String
+          ? int.parse(json['alarmDurationMinutes'])
+          : (json['alarmDurationMinutes'] ?? 2),
     );
   }
 }
@@ -132,7 +138,8 @@ class PrayerAlarmService {
             final value = keyValue[1];
             if (key == 'type' ||
                 key == 'minutesBeforeEnd' ||
-                key == 'minutesAfterStart') {
+                key == 'minutesAfterStart' ||
+                key == 'alarmDurationMinutes') {
               data[key] = int.parse(value);
             } else if (key == 'fixedTime') {
               data[key] = value != 'null' ? int.parse(value) : null;
@@ -281,7 +288,7 @@ class PrayerAlarmService {
       id: alarmId,
       dateTime: alarmTime,
       assetAudioPath: alarmSoundPath, // Use user's preferred sound
-      loopAudio: false,
+      loopAudio: true, // Enable looping to repeat the sound
       vibrate: true,
       warningNotificationOnKill: true,
       androidFullScreenIntent: true,
@@ -304,6 +311,17 @@ class PrayerAlarmService {
       developer.log(
         'PrayerAlarmService: Scheduled alarm for ${config.prayerName} at $alarmTime',
       );
+
+      // Auto-stop alarm after configured duration if not manually stopped
+      Timer(Duration(minutes: config.alarmDurationMinutes), () async {
+        final isRinging = await Alarm.isRinging(alarmId);
+        if (isRinging) {
+          await Alarm.stop(alarmId);
+          developer.log(
+            'PrayerAlarmService: Auto-stopped alarm for ${config.prayerName} after ${config.alarmDurationMinutes} minutes',
+          );
+        }
+      });
     } catch (e) {
       developer.log('PrayerAlarmService: Error scheduling alarm: $e');
     }

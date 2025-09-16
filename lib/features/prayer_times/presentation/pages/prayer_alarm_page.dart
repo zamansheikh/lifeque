@@ -303,6 +303,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
   late int _minutesAfterStart;
   late TimeOfDay _fixedTime;
   late String _selectedSoundPath;
+  late int _alarmDurationMinutes;
 
   @override
   void initState() {
@@ -313,6 +314,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
       _minutesBeforeEnd = widget.existingAlarm!.minutesBeforeEnd;
       _minutesAfterStart = widget.existingAlarm!.minutesAfterStart;
       _selectedSoundPath = widget.existingAlarm!.soundPath;
+      _alarmDurationMinutes = widget.existingAlarm!.alarmDurationMinutes;
       _fixedTime = widget.existingAlarm!.fixedTime != null
           ? TimeOfDay.fromDateTime(widget.existingAlarm!.fixedTime!)
           : const TimeOfDay(hour: 9, minute: 0);
@@ -321,6 +323,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
       _minutesBeforeEnd = 5;
       _minutesAfterStart = 5;
       _selectedSoundPath = AlarmSoundUtils.availableAlarmSounds[0]['path']!;
+      _alarmDurationMinutes = 2; // Default 2 minutes
       _fixedTime = const TimeOfDay(hour: 9, minute: 0);
     }
   }
@@ -477,6 +480,36 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                 });
               },
             ),
+            const SizedBox(height: 16),
+            Text(
+              'Alarm Duration',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<int>(
+              value: _alarmDurationMinutes,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                hintText: 'Select duration',
+              ),
+              items: const [
+                DropdownMenuItem(value: 1, child: Text('1 minute')),
+                DropdownMenuItem(value: 2, child: Text('2 minutes')),
+                DropdownMenuItem(value: 3, child: Text('3 minutes')),
+                DropdownMenuItem(value: 5, child: Text('5 minutes')),
+                DropdownMenuItem(value: 10, child: Text('10 minutes')),
+                DropdownMenuItem(value: 15, child: Text('15 minutes')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _alarmDurationMinutes = value!;
+                });
+              },
+            ),
           ],
         ),
       ),
@@ -518,6 +551,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
           : null,
       isEnabled: true,
       soundPath: _selectedSoundPath,
+      alarmDurationMinutes: _alarmDurationMinutes,
     );
 
     widget.onSave(config);
