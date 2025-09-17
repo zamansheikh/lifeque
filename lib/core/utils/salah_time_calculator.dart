@@ -88,8 +88,8 @@ class SalahTimeCalculator {
     // Calculate proper prayer end times based on Islamic jurisprudence
     final prayerTimes = getPrayerTimes();
 
-    // End of Isha is the next day's Fajr.
-    // We need to calculate it for the next day.
+    // Calculate Islamic midnight for Isha end time
+    // Islamic midnight = halfway between Maghrib and next day's Fajr
     final tomorrowCalculator = SalahTimeCalculator(
       latitude: coordinates.latitude,
       longitude: coordinates.longitude,
@@ -99,12 +99,19 @@ class SalahTimeCalculator {
     );
     final tomorrowFajr = tomorrowCalculator.getPrayerTimes().fajr;
 
+    // Calculate Islamic midnight (midpoint between Maghrib and next Fajr)
+    final maghribTime = prayerTimes.maghrib.millisecondsSinceEpoch;
+    final nextFajrTime = tomorrowFajr.millisecondsSinceEpoch;
+    final midnightTime =
+        maghribTime + ((nextFajrTime - maghribTime) / 2).round();
+    final islamicMidnight = DateTime.fromMillisecondsSinceEpoch(midnightTime);
+
     return {
       'Fajr': prayerTimes.sunrise, // Fajr ends at sunrise
       'Dhuhr': prayerTimes.asr, // Dhuhr ends at Asr time
       'Asr': prayerTimes.maghrib, // Asr ends at Maghrib time
       'Maghrib': prayerTimes.isha, // Maghrib ends at Isha time
-      'Isha': tomorrowFajr, // Isha ends at next day's Fajr
+      'Isha': islamicMidnight, // Isha ends at Islamic midnight
     };
   }
 
@@ -205,6 +212,29 @@ class SalahTimeCalculator {
   double getQiblaDirection() {
     final qibla = Qibla(coordinates);
     return qibla.direction;
+  }
+
+  // Get Islamic midnight (midpoint between Maghrib and next Fajr)
+  DateTime getIslamicMidnight() {
+    final prayerTimes = getPrayerTimes();
+
+    // Calculate next day's Fajr
+    final tomorrowCalculator = SalahTimeCalculator(
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+      date: date.add(const Duration(days: 1)),
+      method: method,
+      madhab: params.madhab,
+    );
+    final tomorrowFajr = tomorrowCalculator.getPrayerTimes().fajr;
+
+    // Calculate Islamic midnight (midpoint between Maghrib and next Fajr)
+    final maghribTime = prayerTimes.maghrib.millisecondsSinceEpoch;
+    final nextFajrTime = tomorrowFajr.millisecondsSinceEpoch;
+    final midnightTime =
+        maghribTime + ((nextFajrTime - maghribTime) / 2).round();
+
+    return DateTime.fromMillisecondsSinceEpoch(midnightTime);
   }
 
   // Get detailed explanation about restricted times
