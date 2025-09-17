@@ -212,7 +212,7 @@ class _TaskListPageState extends State<TaskListPage>
                 children: [
                   const SizedBox(height: 24),
                   // Welcome illustration
-                    ClipRRect(
+                  ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: Image.asset(
                       'assets/icon/icon.png',
@@ -220,7 +220,7 @@ class _TaskListPageState extends State<TaskListPage>
                       width: 100,
                       fit: BoxFit.cover,
                     ),
-                    ),
+                  ),
                   const SizedBox(height: 24),
 
                   // Welcome message
@@ -325,7 +325,10 @@ class _TaskListPageState extends State<TaskListPage>
                     width: double.infinity,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color.fromARGB(255, 98, 168, 224), Color.fromARGB(255, 76, 75, 162)],
+                        colors: [
+                          Color.fromARGB(255, 98, 168, 224),
+                          Color.fromARGB(255, 76, 75, 162),
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [

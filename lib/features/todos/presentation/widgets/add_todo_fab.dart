@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class AddTodoFab extends StatelessWidget {
   final VoidCallback? onPressed;
 
-  const AddTodoFab({
-    super.key,
-    this.onPressed,
-  });
+  const AddTodoFab({super.key, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +15,7 @@ class AddTodoFab extends StatelessWidget {
       icon: const Icon(Icons.add),
       label: const Text(
         'Add Todo',
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-        ),
+        style: TextStyle(fontWeight: FontWeight.w600),
       ),
     );
   }

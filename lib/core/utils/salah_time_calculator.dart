@@ -109,33 +109,47 @@ class SalahTimeCalculator {
   }
 
   // Get restricted prayer times (Makruh times) when prayer is discouraged
+  // Based on Islamic Foundation Bangladesh guidelines
   Map<String, Map<String, dynamic>> getRestrictedTimes() {
     final prayerTimes = getPrayerTimes();
 
     return {
-      // 1. After Fajr until 15-20 minutes after sunrise
-      'After Fajr': {
-        'start': prayerTimes.fajr,
-        'end': prayerTimes.sunrise.add(const Duration(minutes: 20)),
-        'reason': 'From Fajr until 20 minutes after sunrise',
-      },
-
-      // 2. 15 minutes before Dhuhr (Zawal time)
-      'Before Dhuhr (Zawal)': {
-        'start': prayerTimes.dhuhr.subtract(const Duration(minutes: 15)),
-        'end': prayerTimes.dhuhr,
-        'reason': 'Sun at zenith (Zawal time)',
-      },
-
-      // 3. After Asr prayer until sunset (traditional approach)
-      'After Asr': {
-        'start': prayerTimes.asr.add(
+      // 1. Sunrise Time: From when sun begins to rise until fully risen (~15 minutes)
+      'Sunrise Period': {
+        'start': prayerTimes.sunrise, 
+        'end': prayerTimes.sunrise.add(
           const Duration(minutes: 15),
-        ), // Start 15 minutes after Asr begins
-        'end': prayerTimes.maghrib.subtract(
-          const Duration(minutes: 3),
-        ), // End just before Maghrib call
-        'reason': 'From after Asr prayer until sunset',
+        ), // End 15 minutes after sunrise
+        'reason': 'Sunrise prohibited time (~15 minutes)',
+        'duration': '~15 minutes',
+        'description':
+            'From the moment the sun begins to rise until it has fully risen',
+      },
+
+      // 2. Midday (Zawal) Time: 6 minutes before zenith (precautionary measure)
+      'Zawal (Midday)': {
+        'start': prayerTimes.dhuhr.subtract(const Duration(minutes: 6)),
+        'end': prayerTimes.dhuhr.add(
+          const Duration(minutes: 1),
+        ), // Small buffer after Dhuhr starts
+        'reason': 'Zawal - Sun at zenith (6 minutes precautionary)',
+        'duration': '~6 minutes',
+        'description':
+            'About 3 minutes before sun reaches zenith, extended to 6 minutes for precaution',
+      },
+
+      // 3. Sunset Time: From when sun begins to set until completely disappeared (~15 minutes)
+      // Note: Asr can be prayed during this time if not performed earlier
+      'Sunset Period': {
+        'start': prayerTimes.maghrib.subtract(
+          const Duration(minutes: 15),
+        ), // Start 15 min before Maghrib
+        'end': prayerTimes.maghrib,
+        'reason': 'Sunset prohibited time (~15 minutes)',
+        'duration': '~15 minutes',
+        'description':
+            'From when sun begins to set until completely disappeared. Note: Asr prayer may be offered if not performed earlier',
+        'special_note': 'Asr prayer is allowed during this time if delayed',
       },
     };
   }
@@ -191,6 +205,50 @@ class SalahTimeCalculator {
   double getQiblaDirection() {
     final qibla = Qibla(coordinates);
     return qibla.direction;
+  }
+
+  // Get detailed explanation about restricted times
+  static String getRestrictedTimesExplanation() {
+    return '''
+Important Information about the Prohibited Times of Salat
+
+According to Islamic Shari'ah, there are three times when performing Salat (prayer) is prohibited. These are determined with reference to the timing of Asr and sunrise/sunset exceptions.
+
+(1) Sunrise Time:
+From the moment the sun begins to rise until it has fully risen.
+➡️ The duration of this prohibited time is approximately 15 minutes.
+
+(2) Midday (Zawal) Time:
+This time occurs about 3 minutes before the sun reaches its zenith (midday).
+➡️ However, for greater precaution, the Islamic Foundation has set this prohibited time to 6 minutes before zenith.
+
+(3) Sunset Time:
+From the moment the sun begins to set until it has completely disappeared below the horizon.
+➡️ The duration of this prohibited time is approximately 15 minutes.
+
+Special Note:
+If the Asr prayer of that day has not been performed before sunset, then only the Asr prayer may be offered during this prohibited time, because delaying beyond that would cause the Asr prayer to be completely missed.
+
+This is why the prohibited time of sunset is shown as overlapping with the last time for Asr prayer.
+
+However, intentionally delaying Salat until this prohibited period is never appropriate.
+
+Further Explanation:
+Previously, both sunrise and sunset prohibited times were considered to last about 23 minutes.
+But after modern astronomical and scientific research, experts have confirmed that these times do not exceed 15 minutes.
+Therefore, in our current schedules, the previously estimated 23 minutes has now been corrected to 15 minutes for accuracy.
+
+✅ Summary:
+• Sunrise: ~15 minutes
+• Midday (Zawal): ~6 minutes (precautionary)
+• Sunset: ~15 minutes
+➡️ Total prohibited time per day: ~36 minutes
+''';
+  }
+
+  // Get total prohibited time duration per day
+  static String getTotalProhibitedDuration() {
+    return "~36 minutes"; // 15 + 6 + 15 = 36 minutes
   }
 }
 
