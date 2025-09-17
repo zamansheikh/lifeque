@@ -116,7 +116,7 @@ class SalahTimeCalculator {
     return {
       // 1. Sunrise Time: From when sun begins to rise until fully risen (~15 minutes)
       'Sunrise Period': {
-        'start': prayerTimes.sunrise, 
+        'start': prayerTimes.sunrise,
         'end': prayerTimes.sunrise.add(
           const Duration(minutes: 15),
         ), // End 15 minutes after sunrise

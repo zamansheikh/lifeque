@@ -172,140 +172,185 @@ class RestrictedTimesCard extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // All Restricted Times List
+          // Compact Restricted Times Table
           const Text(
             'Today\'s Restricted Periods',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
 
-          ...restrictedTimes.entries.map((entry) {
-            final period = entry.value;
-            final start = period['start'] as DateTime;
-            final end = period['end'] as DateTime;
-            final reason = period['reason'] as String;
-            final now = DateTime.now();
-            final isActive = now.isAfter(start) && now.isBefore(end);
-            final isPast = now.isAfter(end);
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isActive
-                    ? Colors.orange.shade50
-                    : isPast
-                    ? Colors.grey.shade50
-                    : Colors.red.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isActive
-                      ? Colors.orange.shade200
-                      : isPast
-                      ? Colors.grey.shade200
-                      : Colors.red.shade200,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              children: [
+                // Table Header
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      Icon(
-                        isActive
-                            ? Icons.pause_circle_filled
-                            : isPast
-                            ? Icons.check_circle
-                            : Icons.schedule,
-                        color: isActive
-                            ? Colors.orange.shade600
-                            : isPast
-                            ? Colors.grey.shade600
-                            : Colors.red.shade600,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
+                      const SizedBox(width: 24), // Space for icon
+                      const Expanded(
+                        flex: 2,
                         child: Text(
-                          entry.key,
+                          'Period',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: isActive
-                                ? Colors.orange.shade700
-                                : isPast
-                                ? Colors.grey.shade600
-                                : Colors.red.shade700,
+                            color: Colors.black87,
                           ),
                         ),
                       ),
-                      if (isActive)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
+                      const Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Time Range',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.orange,
-                            borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      const Expanded(
+                        flex: 1,
+                        child: Text(
+                          'Status',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
                           ),
-                          child: const Text(
-                            'NOW',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Table Rows
+                ...restrictedTimes.entries.map((entry) {
+                  final period = entry.value;
+                  final start = period['start'] as DateTime;
+                  final end = period['end'] as DateTime;
+                  final now = DateTime.now();
+                  final isActive = now.isAfter(start) && now.isBefore(end);
+                  final isPast = now.isAfter(end);
+
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isActive ? Colors.orange.shade50 : Colors.white,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.grey.shade200,
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isActive
+                              ? Icons.pause_circle_filled
+                              : isPast
+                              ? Icons.check_circle_outline
+                              : Icons.schedule_outlined,
+                          color: isActive
+                              ? Colors.orange.shade600
+                              : isPast
+                              ? Colors.grey.shade400
+                              : Colors.red.shade600,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            entry.key,
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: isActive
+                                  ? Colors.orange.shade700
+                                  : isPast
+                                  ? Colors.grey.shade500
+                                  : Colors.black87,
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    reason,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isActive
-                          ? Colors.orange.shade600
-                          : isPast
-                          ? Colors.grey.shade500
-                          : Colors.red.shade600,
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            '${DateFormat('h:mm a').format(start)} - ${DateFormat('h:mm a').format(end)}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isActive
+                                  ? Colors.orange.shade600
+                                  : isPast
+                                  ? Colors.grey.shade500
+                                  : Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? Colors.orange
+                                    : isPast
+                                    ? Colors.grey.shade400
+                                    : Colors.blue.shade100,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                isActive
+                                    ? 'ACTIVE'
+                                    : isPast
+                                    ? 'PAST'
+                                    : 'UPCOMING',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: isActive
+                                      ? Colors.white
+                                      : isPast
+                                      ? Colors.white
+                                      : Colors.blue.shade700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Text(
-                        'From: ${DateFormat('h:mm a').format(start)}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: isActive
-                              ? Colors.orange.shade700
-                              : isPast
-                              ? Colors.grey.shade600
-                              : Colors.red.shade700,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        'To: ${DateFormat('h:mm a').format(end)}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: isActive
-                              ? Colors.orange.shade700
-                              : isPast
-                              ? Colors.grey.shade600
-                              : Colors.red.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          }),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
 
           const SizedBox(height: 16),
 
@@ -344,6 +389,8 @@ class RestrictedTimesCard extends StatelessWidget {
   }
 
   void _showRestrictedTimesInfo(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -353,130 +400,248 @@ class RestrictedTimesCard extends StatelessWidget {
         maxChildSize: 0.95,
         minChildSize: 0.5,
         builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, -4),
+              ),
+            ],
           ),
           child: Column(
             children: [
-              // Handle bar
+              // Modern handle bar
               Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
+                margin: const EdgeInsets.only(top: 16),
+                width: 48,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: colorScheme.onSurface.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
 
-              // Header
+              // Modern header
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(24, 24, 16, 16),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(
-                        Icons.schedule_rounded,
-                        color: Colors.red,
-                        size: 24,
+                      child: Icon(
+                        Icons.access_time_rounded,
+                        color: colorScheme.primary,
+                        size: 28,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    const Expanded(
+                    const SizedBox(width: 20),
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Prohibited Prayer Times',
                             style: TextStyle(
-                              fontSize: 20,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface,
                             ),
                           ),
+                          const SizedBox(height: 4),
                           Text(
-                            'Islamic Shari\'ah Guidelines',
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                            'Islamic Guidelines & Jurisprudence',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.7,
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.onSurface.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
 
-              const Divider(height: 1),
-
               // Content
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Summary card
+                      // Modern summary card
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.blue.shade50, Colors.blue.shade100],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              colorScheme.primary.withValues(alpha: 0.08),
+                              colorScheme.primary.withValues(alpha: 0.04),
+                            ],
                           ),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue.shade200),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: colorScheme.primary.withValues(alpha: 0.2),
+                          ),
                         ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              '✅ Summary',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue,
-                              ),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.summarize_rounded,
+                                  color: colorScheme.primary,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Summary',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              '• Sunrise: ~15 minutes\n• Midday (Zawal): ~6 minutes (precautionary)\n• Sunset: ~15 minutes',
-                              style: TextStyle(fontSize: 14),
+                            const SizedBox(height: 16),
+
+                            // Time periods in a clean grid
+                            _buildSummaryRow(
+                              context,
+                              Icons.wb_sunny_outlined,
+                              'Sunrise',
+                              '~15 minutes',
+                              colorScheme,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 12),
+                            _buildSummaryRow(
+                              context,
+                              Icons.wb_sunny,
+                              'Midday (Zawal)',
+                              '~6 minutes (precautionary)',
+                              colorScheme,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSummaryRow(
+                              context,
+                              Icons.wb_twilight,
+                              'Sunset',
+                              '~15 minutes',
+                              colorScheme,
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // Total duration highlight
                             Container(
+                              width: double.infinity,
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
+                                horizontal: 16,
+                                vertical: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.blue,
-                                borderRadius: BorderRadius.circular(8),
+                                color: colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Text(
-                                'Total prohibited time per day: ${SalahTimeCalculator.getTotalProhibitedDuration()}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.timer_outlined,
+                                    color: colorScheme.onPrimary,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Total: ${SalahTimeCalculator.getTotalProhibitedDuration()} per day',
+                                    style: TextStyle(
+                                      color: colorScheme.onPrimary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
 
-                      // Detailed explanation
-                      Text(
-                        SalahTimeCalculator.getRestrictedTimesExplanation(),
-                        style: const TextStyle(fontSize: 14, height: 1.6),
+                      // Detailed explanation with modern styling
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: colorScheme.outline.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.article_outlined,
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Detailed Guidelines',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              SalahTimeCalculator.getRestrictedTimesExplanation(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                height: 1.6,
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.8,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -486,6 +651,50 @@ class RestrictedTimesCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSummaryRow(
+    BuildContext context,
+    IconData icon,
+    String period,
+    String duration,
+    ColorScheme colorScheme,
+  ) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: colorScheme.primary, size: 16),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                period,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              Text(
+                duration,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
