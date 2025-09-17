@@ -214,35 +214,36 @@ Important Information about the Prohibited Times of Salat
 
 According to Islamic Shari'ah, there are three times when performing Salat (prayer) is prohibited. These are determined with reference to the timing of Asr and sunrise/sunset exceptions.
 
-(1) Sunrise Time:
+(1) 🌅 Sunrise Time:
 From the moment the sun begins to rise until it has fully risen.
-➡️ The duration of this prohibited time is approximately 15 minutes.
+⏳ The duration of this prohibited time is approximately 15 minutes.
 
-(2) Midday (Zawal) Time:
+(2) 🕛 Midday (Zawal) Time:
 This time occurs about 3 minutes before the sun reaches its zenith (midday).
-➡️ However, for greater precaution, the Islamic Foundation has set this prohibited time to 6 minutes before zenith.
+⏳ However, for greater precaution, the Islamic Foundation has set this prohibited time to 6 minutes before zenith.
 
-(3) Sunset Time:
+(3) 🌇 Sunset Time:
 From the moment the sun begins to set until it has completely disappeared below the horizon.
-➡️ The duration of this prohibited time is approximately 15 minutes.
+⏳ The duration of this prohibited time is approximately 15 minutes.
 
-Special Note:
+📎 Special Note:
 If the Asr prayer of that day has not been performed before sunset, then only the Asr prayer may be offered during this prohibited time, because delaying beyond that would cause the Asr prayer to be completely missed.
 
 This is why the prohibited time of sunset is shown as overlapping with the last time for Asr prayer.
 
 However, intentionally delaying Salat until this prohibited period is never appropriate.
 
-Further Explanation:
+📖 Further Explanation:
 Previously, both sunrise and sunset prohibited times were considered to last about 23 minutes.
 But after modern astronomical and scientific research, experts have confirmed that these times do not exceed 15 minutes.
 Therefore, in our current schedules, the previously estimated 23 minutes has now been corrected to 15 minutes for accuracy.
 
-✅ Summary:
-• Sunrise: ~15 minutes
-• Midday (Zawal): ~6 minutes (precautionary)
-• Sunset: ~15 minutes
-➡️ Total prohibited time per day: ~36 minutes
+🧾 Summary:
+  • 🌅 Sunrise: ~15 minutes
+  • 🕛 Midday (Zawal): ~6 minutes (precautionary)
+  • 🌇 Sunset: ~15 minutes
+  
+📒 Total prohibited time per day: ~36 minutes
 ''';
   }
 
