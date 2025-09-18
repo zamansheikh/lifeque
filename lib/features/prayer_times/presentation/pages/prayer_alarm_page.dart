@@ -716,7 +716,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Radio tiles with modern design
                     _buildModernRadioTile(
                       context,
@@ -751,7 +751,10 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                         'Minutes before prayer ends',
                         DropdownButtonFormField<int>(
                           value: _minutesBeforeEnd,
-                          decoration: _getInputDecoration(context, 'Select minutes'),
+                          decoration: _getInputDecoration(
+                            context,
+                            'Select minutes',
+                          ),
                           items: [5, 10, 15, 20, 25, 30, 35, 40].map((minutes) {
                             return DropdownMenuItem(
                               value: minutes,
@@ -765,13 +768,17 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                           },
                         ),
                       ),
-                    ] else if (_selectedType == PrayerAlarmType.afterPrayerStart) ...[
+                    ] else if (_selectedType ==
+                        PrayerAlarmType.afterPrayerStart) ...[
                       _buildConfigSection(
                         context,
                         'Minutes after prayer starts',
                         DropdownButtonFormField<int>(
                           value: _minutesAfterStart,
-                          decoration: _getInputDecoration(context, 'Select minutes'),
+                          decoration: _getInputDecoration(
+                            context,
+                            'Select minutes',
+                          ),
                           items: [5, 10, 15, 20, 25, 30, 35, 40].map((minutes) {
                             return DropdownMenuItem(
                               value: minutes,
@@ -805,7 +812,9 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: colorScheme.outline.withValues(alpha: 0.5),
+                                color: colorScheme.outline.withValues(
+                                  alpha: 0.5,
+                                ),
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -840,8 +849,13 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                       'Alarm Sound',
                       DropdownButtonFormField<String>(
                         value: _selectedSoundPath,
-                        decoration: _getInputDecoration(context, 'Select sound'),
-                        items: AlarmSoundUtils.availableAlarmSounds.map((sound) {
+                        decoration: _getInputDecoration(
+                          context,
+                          'Select sound',
+                        ),
+                        items: AlarmSoundUtils.availableAlarmSounds.map((
+                          sound,
+                        ) {
                           return DropdownMenuItem(
                             value: sound['path']!,
                             child: Text(
@@ -866,14 +880,23 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                       'Alarm Duration',
                       DropdownButtonFormField<int>(
                         value: _alarmDurationMinutes,
-                        decoration: _getInputDecoration(context, 'Select duration'),
+                        decoration: _getInputDecoration(
+                          context,
+                          'Select duration',
+                        ),
                         items: const [
                           DropdownMenuItem(value: 1, child: Text('1 minute')),
                           DropdownMenuItem(value: 2, child: Text('2 minutes')),
                           DropdownMenuItem(value: 3, child: Text('3 minutes')),
                           DropdownMenuItem(value: 5, child: Text('5 minutes')),
-                          DropdownMenuItem(value: 10, child: Text('10 minutes')),
-                          DropdownMenuItem(value: 15, child: Text('15 minutes')),
+                          DropdownMenuItem(
+                            value: 10,
+                            child: Text('10 minutes'),
+                          ),
+                          DropdownMenuItem(
+                            value: 15,
+                            child: Text('15 minutes'),
+                          ),
                         ],
                         onChanged: (value) {
                           setState(() {
@@ -1065,7 +1088,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
 
   InputDecoration _getInputDecoration(BuildContext context, String hint) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return InputDecoration(
       hintText: hint,
       border: OutlineInputBorder(
@@ -1082,17 +1105,11 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: colorScheme.primary,
-          width: 2,
-        ),
+        borderSide: BorderSide(color: colorScheme.primary, width: 2),
       ),
       filled: true,
       fillColor: colorScheme.surface,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 16,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
 
@@ -1101,7 +1118,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
     final minute = time.minute;
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-    
+
     return '${displayHour.toString()}:${minute.toString().padLeft(2, '0')} $period';
   }
 
