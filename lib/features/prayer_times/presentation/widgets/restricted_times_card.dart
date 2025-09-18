@@ -204,7 +204,7 @@ class RestrictedTimesCard extends StatelessWidget {
                     children: [
                       const SizedBox(width: 24), // Space for icon
                       const Expanded(
-                        flex: 2,
+                        flex: 6,
                         child: Text(
                           'Period',
                           style: TextStyle(
@@ -215,7 +215,7 @@ class RestrictedTimesCard extends StatelessWidget {
                         ),
                       ),
                       const Expanded(
-                        flex: 2,
+                        flex: 4,
                         child: Text(
                           'Time Range',
                           style: TextStyle(
@@ -226,7 +226,7 @@ class RestrictedTimesCard extends StatelessWidget {
                         ),
                       ),
                       const Expanded(
-                        flex: 1,
+                        flex: 4,
                         child: Text(
                           'Status',
                           textAlign: TextAlign.center,
@@ -281,7 +281,7 @@ class RestrictedTimesCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          flex: 2,
+                          flex: 6,
                           child: Text(
                             entry.key,
                             style: TextStyle(
@@ -296,9 +296,9 @@ class RestrictedTimesCard extends StatelessWidget {
                           ),
                         ),
                         Expanded(
-                          flex: 2,
+                          flex: 4,
                           child: Text(
-                            '${DateFormat('h:mm a').format(start)} - ${DateFormat('h:mm a').format(end)}',
+                            '${DateFormat('h:mm a').format(start)} - \n${DateFormat('h:mm a').format(end)}',
                             style: TextStyle(
                               fontSize: 13,
                               color: isActive
@@ -310,7 +310,7 @@ class RestrictedTimesCard extends StatelessWidget {
                           ),
                         ),
                         Expanded(
-                          flex: 1,
+                          flex: 4,
                           child: Center(
                             child: Container(
                               padding: const EdgeInsets.symmetric(
