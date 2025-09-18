@@ -26,13 +26,10 @@ class _PermissionScreenState extends State<PermissionScreen>
   // Overlay tutorial state variables
   bool _showOverlay = false;
   bool _hasShownOverlay = false;
-  bool _showBatteryOverlay = false;
   bool _hasShownBatteryOverlay = false;
   String _currentOverlayType = ''; // 'notification' or 'battery'
   late AnimationController _overlayController;
   late Animation<double> _overlayAnimation;
-  late Animation<double> _pulseAnimation;
-  late Animation<double> _floatingAnimation;
   final GlobalKey _notificationCardKey = GlobalKey();
   final GlobalKey _batteryCardKey = GlobalKey();
 
@@ -49,33 +46,6 @@ class _PermissionScreenState extends State<PermissionScreen>
       parent: _overlayController,
       curve: Curves.easeInOut,
     );
-    
-    // Create pulsing animation for spotlight effect
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.2,
-    ).animate(CurvedAnimation(
-      parent: _overlayController,
-      curve: Curves.easeInOut,
-    ));
-    
-    // Create floating animation for tutorial card
-    _floatingAnimation = Tween<double>(
-      begin: 0.0,
-      end: 10.0,
-    ).animate(CurvedAnimation(
-      parent: _overlayController,
-      curve: Curves.easeInOut,
-    ));
-    
-    // Start repeating animations
-    _overlayController.addStatusListener((status) {
-      if (status == AnimationStatus.completed && _showOverlay) {
-        _overlayController.reverse();
-      } else if (status == AnimationStatus.dismissed && _showOverlay) {
-        _overlayController.forward();
-      }
-    });
 
     _checkPermissions();
   }
@@ -333,7 +303,9 @@ class _PermissionScreenState extends State<PermissionScreen>
       _overlayController.forward();
     }
     // Show battery overlay if notification is granted but battery isn't
-    else if (!_hasShownBatteryOverlay && _notificationPermission && !_batteryOptimization) {
+    else if (!_hasShownBatteryOverlay &&
+        _notificationPermission &&
+        !_batteryOptimization) {
       setState(() {
         _showOverlay = true;
         _hasShownBatteryOverlay = true;
@@ -348,10 +320,12 @@ class _PermissionScreenState extends State<PermissionScreen>
     setState(() {
       _showOverlay = false;
     });
-    
+
     // Check if we should show the next overlay
     Future.delayed(const Duration(milliseconds: 500), () {
-      if (_currentOverlayType == 'notification' && !_hasShownBatteryOverlay && !_batteryOptimization) {
+      if (_currentOverlayType == 'notification' &&
+          !_hasShownBatteryOverlay &&
+          !_batteryOptimization) {
         _showTutorialOverlay(); // This will show battery overlay
       }
     });
@@ -377,15 +351,12 @@ class _PermissionScreenState extends State<PermissionScreen>
                 ),
               ),
             ),
-            
+
             // Floating particles effect
             ..._buildFloatingParticles(),
-            
-            // Enhanced spotlight effect
+
+            // Enhanced spotlight effect with integrated instructions
             _buildEnhancedSpotlight(),
-            
-            // Creative tutorial card
-            _buildCreativeTutorialCard(),
           ],
         );
       },
@@ -396,9 +367,10 @@ class _PermissionScreenState extends State<PermissionScreen>
     return List.generate(20, (index) {
       final random = (index * 17) % 100;
       final x = (random / 100) * MediaQuery.of(context).size.width;
-      final y = (((index * 23) % 100) / 100) * MediaQuery.of(context).size.height;
+      final y =
+          (((index * 23) % 100) / 100) * MediaQuery.of(context).size.height;
       final delay = (index * 0.1) % 1.0;
-      
+
       return Positioned(
         left: x,
         top: y,
@@ -412,18 +384,22 @@ class _PermissionScreenState extends State<PermissionScreen>
                 animationValue * -50,
               ),
               child: Opacity(
-                opacity: (0.3 * _overlayAnimation.value * math.sin(animationValue * math.pi)).abs(),
+                opacity:
+                    (0.3 *
+                            _overlayAnimation.value *
+                            math.sin(animationValue * math.pi))
+                        .abs(),
                 child: Container(
                   width: 4 + (random % 3),
                   height: 4 + (random % 3),
                   decoration: BoxDecoration(
-                    color: _currentOverlayType == 'notification' 
+                    color: _currentOverlayType == 'notification'
                         ? Colors.blue.withOpacity(0.6)
                         : Colors.green.withOpacity(0.6),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: _currentOverlayType == 'notification' 
+                        color: _currentOverlayType == 'notification'
                             ? Colors.blue.withOpacity(0.3)
                             : Colors.green.withOpacity(0.3),
                         blurRadius: 10,
@@ -442,16 +418,18 @@ class _PermissionScreenState extends State<PermissionScreen>
 
   Widget _buildEnhancedSpotlight() {
     // Get the target card based on overlay type
-    final GlobalKey targetKey = _currentOverlayType == 'notification' 
-        ? _notificationCardKey 
+    final GlobalKey targetKey = _currentOverlayType == 'notification'
+        ? _notificationCardKey
         : _batteryCardKey;
-        
-    final RenderBox? renderBox = targetKey.currentContext?.findRenderObject() as RenderBox?;
+
+    final RenderBox? renderBox =
+        targetKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return const SizedBox.shrink();
 
     final size = renderBox.size;
     final position = renderBox.localToGlobal(Offset.zero);
-    final pulseValue = _pulseAnimation.value;
+    // Use a static value instead of pulsing animation for better usability
+    final pulseValue = 1.0;
 
     return Stack(
       children: [
@@ -467,425 +445,90 @@ class _PermissionScreenState extends State<PermissionScreen>
             ),
             animation: _overlayAnimation.value,
             pulseValue: pulseValue,
-            color: _currentOverlayType == 'notification' ? Colors.blue : Colors.green,
+            color: _currentOverlayType == 'notification'
+                ? Colors.blue
+                : Colors.green,
           ),
         ),
-        
-        // Animated arrow pointing to the card
+
+        // Speech bubble instruction below the card
         Positioned(
-          left: position.dx + size.width + 20,
-          top: position.dy + size.height / 2 - 15,
-          child: AnimatedBuilder(
-            animation: _floatingAnimation,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(_floatingAnimation.value, 0),
+          left: position.dx + 20,
+          top: position.dy + size.height + 15,
+          width: size.width - 40,
+          child: Column(
+            children: [
+              // Custom speech bubble with tail
+              CustomPaint(
+                painter: SpeechBubblePainter(
+                  color: _currentOverlayType == 'notification'
+                      ? Colors.blue
+                      : Colors.green,
+                ),
                 child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: _currentOverlayType == 'notification' 
-                        ? Colors.blue.withOpacity(0.9)
-                        : Colors.green.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _currentOverlayType == 'notification' 
-                            ? Colors.blue.withOpacity(0.3)
-                            : Colors.green.withOpacity(0.3),
-                        blurRadius: 15,
-                        spreadRadius: 3,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  width: size.width - 40,
+                  padding: const EdgeInsets.fromLTRB(20, 25, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.touch_app_rounded,
-                        color: Colors.white,
-                        size: 20,
+                      Row(
+                        children: [
+                          Icon(
+                            _currentOverlayType == 'notification'
+                                ? Icons.notifications_active
+                                : Icons.battery_saver,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _currentOverlayType == 'notification'
+                                  ? 'Enable Notifications'
+                                  : 'Battery Optimization',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: _hideTutorialOverlay,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(height: 8),
                       Text(
-                        'Tap here',
-                        style: TextStyle(
+                        _currentOverlayType == 'notification'
+                            ? 'To enable battery optimization need to click here, here is some extra information why need.'
+                            : 'To enable battery optimization need to click here, here is some extra information why need.',
+                        style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
                           fontSize: 12,
+                          height: 1.3,
                         ),
                       ),
                     ],
                   ),
                 ),
-              );
-            },
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildCreativeTutorialCard() {
-    final isNotification = _currentOverlayType == 'notification';
-    final primaryColor = isNotification ? Colors.blue : Colors.green;
-    final title = isNotification ? 'Enable Notifications' : 'Battery Optimization';
-    final subtitle = isNotification 
-        ? 'Never miss important reminders' 
-        : 'Keep app running in background';
-    final icon = isNotification ? Icons.notifications_active : Icons.battery_saver;
-    
-    return Positioned(
-      top: MediaQuery.of(context).size.height * 0.05,
-      left: 16,
-      right: 16,
-      child: AnimatedBuilder(
-        animation: _floatingAnimation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, math.sin(_overlayAnimation.value * 2 * math.pi) * 5),
-            child: Transform.scale(
-              scale: 0.8 + (_overlayAnimation.value * 0.2),
-              child: Material(
-                elevation: 20,
-                borderRadius: BorderRadius.circular(24),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        primaryColor.shade50,
-                        Colors.white,
-                        primaryColor.shade50,
-                      ],
-                    ),
-                    border: Border.all(
-                      color: primaryColor.withOpacity(0.2),
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryColor.withOpacity(0.3),
-                        blurRadius: 30,
-                        spreadRadius: 5,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Stack(
-                      children: [
-                        // Animated background pattern
-                        Positioned.fill(
-                          child: AnimatedBuilder(
-                            animation: _overlayAnimation,
-                            builder: (context, child) {
-                              return CustomPaint(
-                                painter: PatternPainter(
-                                  animation: _overlayAnimation.value,
-                                  color: primaryColor,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        
-                        // Main content
-                        Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Animated header with 3D effect
-                              Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      primaryColor.shade100,
-                                      primaryColor.shade200,
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: primaryColor.withOpacity(0.3),
-                                      blurRadius: 15,
-                                      offset: const Offset(0, 5),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    AnimatedBuilder(
-                                      animation: _overlayAnimation,
-                                      builder: (context, child) {
-                                        return Transform.rotate(
-                                          angle: _overlayAnimation.value * 0.1,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(
-                                              color: primaryColor.shade600,
-                                              borderRadius: BorderRadius.circular(15),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: primaryColor.withOpacity(0.4),
-                                                  blurRadius: 10,
-                                                  offset: const Offset(0, 3),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Icon(
-                                              icon,
-                                              color: Colors.white,
-                                              size: 28,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            title,
-                                            style: TextStyle(
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold,
-                                              color: primaryColor.shade800,
-                                            ),
-                                          ),
-                                          Text(
-                                            subtitle,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: primaryColor.shade600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              
-                              // Content based on overlay type
-                              _buildOverlayContent(),
-                              
-                              const SizedBox(height: 24),
-                              
-                              // Enhanced action buttons
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: TextButton(
-                                      onPressed: _hideTutorialOverlay,
-                                      style: TextButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(vertical: 16),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'Maybe Later',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    flex: 2,
-                                    child: AnimatedBuilder(
-                                      animation: _overlayAnimation,
-                                      builder: (context, child) {
-                                        return Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(12),
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                primaryColor.shade600,
-                                                primaryColor.shade700,
-                                              ],
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: primaryColor.withOpacity(0.4),
-                                                blurRadius: 15,
-                                                offset: const Offset(0, 5),
-                                              ),
-                                            ],
-                                          ),
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              _hideTutorialOverlay();
-                                              Future.delayed(const Duration(milliseconds: 300), () {
-                                                final targetKey = isNotification 
-                                                    ? _notificationCardKey 
-                                                    : _batteryCardKey;
-                                                Scrollable.ensureVisible(
-                                                  targetKey.currentContext!,
-                                                  duration: const Duration(milliseconds: 600),
-                                                  curve: Curves.easeInOut,
-                                                );
-                                              });
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.transparent,
-                                              foregroundColor: Colors.white,
-                                              shadowColor: Colors.transparent,
-                                              padding: const EdgeInsets.symmetric(vertical: 16),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                const Icon(Icons.touch_app_rounded, size: 20),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  'Got It!',
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildOverlayContent() {
-    if (_currentOverlayType == 'notification') {
-      return Column(
-        children: [
-          Text(
-            'LifeQue needs notification permission to remind you about:',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade700,
-              height: 1.4,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ...[
-            ('📝', 'Task deadlines and upcoming events'),
-            ('💊', 'Medicine reminders with exact timing'),
-            ('🎂', 'Birthday and anniversary alerts'),
-            ('🕌', 'Prayer times and spiritual reminders'),
-          ].map((item) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              children: [
-                Text(item.$1, style: const TextStyle(fontSize: 20)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    item.$2,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade700,
-                      height: 1.3,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )).toList(),
-          const SizedBox(height: 16),
-          Text(
-            'Tap the notification card below to enable this feature.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.blue.shade600,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      );
-    } else {
-      return Column(
-        children: [
-          Text(
-            'Battery optimization may prevent LifeQue from running properly in the background:',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade700,
-              height: 1.4,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ...[
-            ('🔋', 'Allows reliable background notifications'),
-            ('⏰', 'Ensures timely medicine reminders'),
-            ('📱', 'Prevents system from stopping the app'),
-            ('🚀', 'Better overall app performance'),
-          ].map((item) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              children: [
-                Text(item.$1, style: const TextStyle(fontSize: 20)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    item.$2,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade700,
-                      height: 1.3,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )).toList(),
-          const SizedBox(height: 16),
-          Text(
-            'Tap the battery optimization card below to disable it.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.green.shade600,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      );
-    }
-  }  @override
+  @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
@@ -1527,10 +1170,12 @@ class EnhancedSpotlightPainter extends CustomPainter {
 
     // Create animated spotlight area with pulsing effect
     final spotlightPath = Path()
-      ..addRRect(RRect.fromRectAndRadius(
-        spotlightRect.inflate(pulseValue * 5),
-        const Radius.circular(20),
-      ));
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          spotlightRect.inflate(pulseValue * 5),
+          const Radius.circular(20),
+        ),
+      );
 
     // Subtract the spotlight area from the screen
     final combinedPath = Path.combine(
@@ -1552,7 +1197,10 @@ class EnhancedSpotlightPainter extends CustomPainter {
 
     canvas.drawPath(
       combinedPath,
-      Paint()..shader = gradient.createShader(Rect.fromLTWH(0, 0, size.width, size.height)),
+      Paint()
+        ..shader = gradient.createShader(
+          Rect.fromLTWH(0, 0, size.width, size.height),
+        ),
     );
 
     // Multiple glow layers for enhanced effect
@@ -1588,9 +1236,9 @@ class EnhancedSpotlightPainter extends CustomPainter {
   @override
   bool shouldRepaint(EnhancedSpotlightPainter oldDelegate) {
     return oldDelegate.spotlightRect != spotlightRect ||
-           oldDelegate.animation != animation ||
-           oldDelegate.pulseValue != pulseValue ||
-           oldDelegate.color != color;
+        oldDelegate.animation != animation ||
+        oldDelegate.pulseValue != pulseValue ||
+        oldDelegate.color != color;
   }
 }
 
@@ -1599,10 +1247,7 @@ class PatternPainter extends CustomPainter {
   final double animation;
   final Color color;
 
-  PatternPainter({
-    required this.animation,
-    required this.color,
-  });
+  PatternPainter({required this.animation, required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1619,11 +1264,7 @@ class PatternPainter extends CustomPainter {
     // Draw animated circles
     for (int i = 1; i <= 5; i++) {
       final radius = (maxRadius / 5 * i) * (0.5 + animation * 0.5);
-      canvas.drawCircle(
-        Offset(centerX, centerY),
-        radius,
-        paint,
-      );
+      canvas.drawCircle(Offset(centerX, centerY), radius, paint);
     }
 
     // Draw animated grid lines
@@ -1631,24 +1272,105 @@ class PatternPainter extends CustomPainter {
     final offset = (animation * gridSize) % gridSize;
 
     for (double x = -offset; x < size.width + gridSize; x += gridSize) {
-      canvas.drawLine(
-        Offset(x, 0),
-        Offset(x, size.height),
-        paint,
-      );
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
 
     for (double y = -offset; y < size.height + gridSize; y += gridSize) {
-      canvas.drawLine(
-        Offset(0, y),
-        Offset(size.width, y),
-        paint,
-      );
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
 
   @override
   bool shouldRepaint(PatternPainter oldDelegate) {
     return oldDelegate.animation != animation || oldDelegate.color != color;
+  }
+}
+
+class SpeechBubblePainter extends CustomPainter {
+  final Color color;
+
+  SpeechBubblePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withOpacity(0.95)
+      ..style = PaintingStyle.fill;
+
+    final shadowPaint = Paint()
+      ..color = color.withOpacity(0.3)
+      ..style = PaintingStyle.fill
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+
+    final path = Path();
+    final shadowPath = Path();
+
+    const radius = 15.0;
+    const tailHeight = 15.0;
+    const tailWidth = 25.0;
+    final tailStartX = size.width * 0.2; // Position the tail towards the left
+
+    // Create the speech bubble shape with tail pointing up
+    // Start from top-left corner (after the tail)
+    path.moveTo(radius, tailHeight);
+
+    // Top edge (with space for tail)
+    path.lineTo(tailStartX - tailWidth / 2, tailHeight);
+
+    // Create the tail pointing upward
+    path.lineTo(tailStartX, 0); // Tip of the tail
+    path.lineTo(tailStartX + tailWidth / 2, tailHeight);
+
+    // Continue top edge
+    path.lineTo(size.width - radius, tailHeight);
+
+    // Top-right corner
+    path.arcToPoint(
+      Offset(size.width, tailHeight + radius),
+      radius: const Radius.circular(radius),
+    );
+
+    // Right edge
+    path.lineTo(size.width, size.height - radius);
+
+    // Bottom-right corner
+    path.arcToPoint(
+      Offset(size.width - radius, size.height),
+      radius: const Radius.circular(radius),
+    );
+
+    // Bottom edge
+    path.lineTo(radius, size.height);
+
+    // Bottom-left corner
+    path.arcToPoint(
+      Offset(0, size.height - radius),
+      radius: const Radius.circular(radius),
+    );
+
+    // Left edge
+    path.lineTo(0, tailHeight + radius);
+
+    // Top-left corner
+    path.arcToPoint(
+      Offset(radius, tailHeight),
+      radius: const Radius.circular(radius),
+    );
+
+    path.close();
+
+    // Create shadow path (slightly offset)
+    shadowPath.addPath(path, const Offset(0, 3));
+
+    // Draw shadow first
+    canvas.drawPath(shadowPath, shadowPaint);
+
+    // Draw the main bubble
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(SpeechBubblePainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }
