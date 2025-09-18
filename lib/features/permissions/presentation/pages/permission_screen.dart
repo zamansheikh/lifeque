@@ -451,10 +451,10 @@ class _PermissionScreenState extends State<PermissionScreen>
           ),
         ),
 
-        // Speech bubble instruction below the card
+        // Speech bubble instruction with smart positioning
         Positioned(
           left: position.dx + 20,
-          top: position.dy + size.height + 15,
+          top: _getSpeechBubbleTop(position, size),
           width: size.width - 40,
           child: Column(
             children: [
@@ -464,10 +464,13 @@ class _PermissionScreenState extends State<PermissionScreen>
                   color: _currentOverlayType == 'notification'
                       ? Colors.blue
                       : Colors.green,
+                  pointUp: _shouldBubblePointUp(position, size),
                 ),
                 child: Container(
                   width: size.width - 40,
-                  padding: const EdgeInsets.fromLTRB(20, 25, 20, 20),
+                  padding: _shouldBubblePointUp(position, size) 
+                      ? const EdgeInsets.fromLTRB(20, 20, 20, 25)
+                      : const EdgeInsets.fromLTRB(20, 25, 20, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -526,6 +529,26 @@ class _PermissionScreenState extends State<PermissionScreen>
         ),
       ],
     );
+  }
+
+  // Helper methods for smart speech bubble positioning
+  bool _shouldBubblePointUp(Offset position, Size size) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final bubbleHeight = 120.0; // Estimated height of speech bubble
+    final cardBottom = position.dy + size.height;
+    
+    // If there's not enough space below the card, position bubble above
+    return (cardBottom + bubbleHeight + 50) > screenHeight;
+  }
+
+  double _getSpeechBubbleTop(Offset position, Size size) {
+    if (_shouldBubblePointUp(position, size)) {
+      // Position above the card
+      return position.dy - 135; // Bubble height + spacing
+    } else {
+      // Position below the card
+      return position.dy + size.height + 15;
+    }
   }
 
   @override
@@ -1288,8 +1311,9 @@ class PatternPainter extends CustomPainter {
 
 class SpeechBubblePainter extends CustomPainter {
   final Color color;
+  final bool pointUp;
 
-  SpeechBubblePainter({required this.color});
+  SpeechBubblePainter({required this.color, this.pointUp = false});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1304,58 +1328,107 @@ class SpeechBubblePainter extends CustomPainter {
 
     final path = Path();
     final shadowPath = Path();
-
+    
     const radius = 15.0;
     const tailHeight = 15.0;
     const tailWidth = 25.0;
     final tailStartX = size.width * 0.2; // Position the tail towards the left
 
-    // Create the speech bubble shape with tail pointing up
-    // Start from top-left corner (after the tail)
-    path.moveTo(radius, tailHeight);
-
-    // Top edge (with space for tail)
-    path.lineTo(tailStartX - tailWidth / 2, tailHeight);
-
-    // Create the tail pointing upward
-    path.lineTo(tailStartX, 0); // Tip of the tail
-    path.lineTo(tailStartX + tailWidth / 2, tailHeight);
-
-    // Continue top edge
-    path.lineTo(size.width - radius, tailHeight);
-
-    // Top-right corner
-    path.arcToPoint(
-      Offset(size.width, tailHeight + radius),
-      radius: const Radius.circular(radius),
-    );
-
-    // Right edge
-    path.lineTo(size.width, size.height - radius);
-
-    // Bottom-right corner
-    path.arcToPoint(
-      Offset(size.width - radius, size.height),
-      radius: const Radius.circular(radius),
-    );
-
-    // Bottom edge
-    path.lineTo(radius, size.height);
-
-    // Bottom-left corner
-    path.arcToPoint(
-      Offset(0, size.height - radius),
-      radius: const Radius.circular(radius),
-    );
-
-    // Left edge
-    path.lineTo(0, tailHeight + radius);
-
-    // Top-left corner
-    path.arcToPoint(
-      Offset(radius, tailHeight),
-      radius: const Radius.circular(radius),
-    );
+    if (pointUp) {
+      // Create speech bubble with tail pointing down (bubble above card)
+      // Start from bottom-left corner (after the tail)
+      path.moveTo(radius, size.height - tailHeight);
+      
+      // Bottom edge (with space for tail)
+      path.lineTo(tailStartX - tailWidth / 2, size.height - tailHeight);
+      
+      // Create the tail pointing downward
+      path.lineTo(tailStartX, size.height); // Tip of the tail
+      path.lineTo(tailStartX + tailWidth / 2, size.height - tailHeight);
+      
+      // Continue bottom edge
+      path.lineTo(size.width - radius, size.height - tailHeight);
+      
+      // Bottom-right corner
+      path.arcToPoint(
+        Offset(size.width, size.height - tailHeight - radius),
+        radius: const Radius.circular(radius),
+      );
+      
+      // Right edge
+      path.lineTo(size.width, radius);
+      
+      // Top-right corner
+      path.arcToPoint(
+        Offset(size.width - radius, 0),
+        radius: const Radius.circular(radius),
+      );
+      
+      // Top edge
+      path.lineTo(radius, 0);
+      
+      // Top-left corner
+      path.arcToPoint(
+        Offset(0, radius),
+        radius: const Radius.circular(radius),
+      );
+      
+      // Left edge
+      path.lineTo(0, size.height - tailHeight - radius);
+      
+      // Bottom-left corner
+      path.arcToPoint(
+        Offset(radius, size.height - tailHeight),
+        radius: const Radius.circular(radius),
+      );
+    } else {
+      // Create speech bubble with tail pointing up (bubble below card) - original logic
+      // Start from top-left corner (after the tail)
+      path.moveTo(radius, tailHeight);
+      
+      // Top edge (with space for tail)
+      path.lineTo(tailStartX - tailWidth / 2, tailHeight);
+      
+      // Create the tail pointing upward
+      path.lineTo(tailStartX, 0); // Tip of the tail
+      path.lineTo(tailStartX + tailWidth / 2, tailHeight);
+      
+      // Continue top edge
+      path.lineTo(size.width - radius, tailHeight);
+      
+      // Top-right corner
+      path.arcToPoint(
+        Offset(size.width, tailHeight + radius),
+        radius: const Radius.circular(radius),
+      );
+      
+      // Right edge
+      path.lineTo(size.width, size.height - radius);
+      
+      // Bottom-right corner
+      path.arcToPoint(
+        Offset(size.width - radius, size.height),
+        radius: const Radius.circular(radius),
+      );
+      
+      // Bottom edge
+      path.lineTo(radius, size.height);
+      
+      // Bottom-left corner
+      path.arcToPoint(
+        Offset(0, size.height - radius),
+        radius: const Radius.circular(radius),
+      );
+      
+      // Left edge
+      path.lineTo(0, tailHeight + radius);
+      
+      // Top-left corner
+      path.arcToPoint(
+        Offset(radius, tailHeight),
+        radius: const Radius.circular(radius),
+      );
+    }
 
     path.close();
 
@@ -1364,13 +1437,13 @@ class SpeechBubblePainter extends CustomPainter {
 
     // Draw shadow first
     canvas.drawPath(shadowPath, shadowPaint);
-
+    
     // Draw the main bubble
     canvas.drawPath(path, paint);
   }
 
   @override
   bool shouldRepaint(SpeechBubblePainter oldDelegate) {
-    return oldDelegate.color != color;
+    return oldDelegate.color != color || oldDelegate.pointUp != pointUp;
   }
 }
