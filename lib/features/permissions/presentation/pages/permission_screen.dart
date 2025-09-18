@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:io';
+import 'dart:math' as math;
 import '../widgets/permission_card.dart';
 import '../widgets/feature_card.dart';
 import '../widgets/progress_step.dart';
@@ -25,9 +26,15 @@ class _PermissionScreenState extends State<PermissionScreen>
   // Overlay tutorial state variables
   bool _showOverlay = false;
   bool _hasShownOverlay = false;
+  bool _showBatteryOverlay = false;
+  bool _hasShownBatteryOverlay = false;
+  String _currentOverlayType = ''; // 'notification' or 'battery'
   late AnimationController _overlayController;
   late Animation<double> _overlayAnimation;
+  late Animation<double> _pulseAnimation;
+  late Animation<double> _floatingAnimation;
   final GlobalKey _notificationCardKey = GlobalKey();
+  final GlobalKey _batteryCardKey = GlobalKey();
 
   @override
   void initState() {
@@ -35,13 +42,40 @@ class _PermissionScreenState extends State<PermissionScreen>
 
     // Initialize animation controller for overlay
     _overlayController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     _overlayAnimation = CurvedAnimation(
       parent: _overlayController,
       curve: Curves.easeInOut,
     );
+    
+    // Create pulsing animation for spotlight effect
+    _pulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.2,
+    ).animate(CurvedAnimation(
+      parent: _overlayController,
+      curve: Curves.easeInOut,
+    ));
+    
+    // Create floating animation for tutorial card
+    _floatingAnimation = Tween<double>(
+      begin: 0.0,
+      end: 10.0,
+    ).animate(CurvedAnimation(
+      parent: _overlayController,
+      curve: Curves.easeInOut,
+    ));
+    
+    // Start repeating animations
+    _overlayController.addStatusListener((status) {
+      if (status == AnimationStatus.completed && _showOverlay) {
+        _overlayController.reverse();
+      } else if (status == AnimationStatus.dismissed && _showOverlay) {
+        _overlayController.forward();
+      }
+    });
 
     _checkPermissions();
   }
@@ -289,21 +323,36 @@ class _PermissionScreenState extends State<PermissionScreen>
 
   // Tutorial overlay methods
   void _showTutorialOverlay() {
+    // Show notification overlay first if not granted and not shown
     if (!_hasShownOverlay && !_notificationPermission) {
       setState(() {
         _showOverlay = true;
         _hasShownOverlay = true;
+        _currentOverlayType = 'notification';
+      });
+      _overlayController.forward();
+    }
+    // Show battery overlay if notification is granted but battery isn't
+    else if (!_hasShownBatteryOverlay && _notificationPermission && !_batteryOptimization) {
+      setState(() {
+        _showOverlay = true;
+        _hasShownBatteryOverlay = true;
+        _currentOverlayType = 'battery';
       });
       _overlayController.forward();
     }
   }
 
   void _hideTutorialOverlay() {
-    _overlayController.reverse().then((_) {
-      if (mounted) {
-        setState(() {
-          _showOverlay = false;
-        });
+    _overlayController.stop();
+    setState(() {
+      _showOverlay = false;
+    });
+    
+    // Check if we should show the next overlay
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (_currentOverlayType == 'notification' && !_hasShownBatteryOverlay && !_batteryOptimization) {
+        _showTutorialOverlay(); // This will show battery overlay
       }
     });
   }
@@ -314,183 +363,529 @@ class _PermissionScreenState extends State<PermissionScreen>
       builder: (context, child) {
         return Stack(
           children: [
-            // Dark overlay background
+            // Animated gradient background with particles effect
             Container(
-              color: Colors.black.withOpacity(0.7 * _overlayAnimation.value),
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.5 * _overlayAnimation.value,
+                  colors: [
+                    Colors.black.withOpacity(0.4 * _overlayAnimation.value),
+                    Colors.black.withOpacity(0.8 * _overlayAnimation.value),
+                    Colors.black.withOpacity(0.95 * _overlayAnimation.value),
+                  ],
+                ),
+              ),
             ),
-
-            // Spotlight effect on notification card
-            _buildSpotlight(),
-
-            // Tutorial card with information
-            _buildTutorialCard(),
+            
+            // Floating particles effect
+            ..._buildFloatingParticles(),
+            
+            // Enhanced spotlight effect
+            _buildEnhancedSpotlight(),
+            
+            // Creative tutorial card
+            _buildCreativeTutorialCard(),
           ],
         );
       },
     );
   }
 
-  Widget _buildSpotlight() {
-    // Get the notification card position and size
-    final RenderBox? renderBox =
-        _notificationCardKey.currentContext?.findRenderObject() as RenderBox?;
+  List<Widget> _buildFloatingParticles() {
+    return List.generate(20, (index) {
+      final random = (index * 17) % 100;
+      final x = (random / 100) * MediaQuery.of(context).size.width;
+      final y = (((index * 23) % 100) / 100) * MediaQuery.of(context).size.height;
+      final delay = (index * 0.1) % 1.0;
+      
+      return Positioned(
+        left: x,
+        top: y,
+        child: AnimatedBuilder(
+          animation: _overlayAnimation,
+          builder: (context, child) {
+            final animationValue = (_overlayAnimation.value + delay) % 1.0;
+            return Transform.translate(
+              offset: Offset(
+                math.sin(animationValue * 2 * math.pi) * 20,
+                animationValue * -50,
+              ),
+              child: Opacity(
+                opacity: (0.3 * _overlayAnimation.value * math.sin(animationValue * math.pi)).abs(),
+                child: Container(
+                  width: 4 + (random % 3),
+                  height: 4 + (random % 3),
+                  decoration: BoxDecoration(
+                    color: _currentOverlayType == 'notification' 
+                        ? Colors.blue.withOpacity(0.6)
+                        : Colors.green.withOpacity(0.6),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: _currentOverlayType == 'notification' 
+                            ? Colors.blue.withOpacity(0.3)
+                            : Colors.green.withOpacity(0.3),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    });
+  }
+
+  Widget _buildEnhancedSpotlight() {
+    // Get the target card based on overlay type
+    final GlobalKey targetKey = _currentOverlayType == 'notification' 
+        ? _notificationCardKey 
+        : _batteryCardKey;
+        
+    final RenderBox? renderBox = targetKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return const SizedBox.shrink();
 
     final size = renderBox.size;
     final position = renderBox.localToGlobal(Offset.zero);
+    final pulseValue = _pulseAnimation.value;
 
-    return CustomPaint(
-      size: MediaQuery.of(context).size,
-      painter: SpotlightPainter(
-        spotlightRect: Rect.fromLTWH(
-          position.dx - 8,
-          position.dy - 8,
-          size.width + 16,
-          size.height + 16,
+    return Stack(
+      children: [
+        // Multiple layered spotlight effects
+        CustomPaint(
+          size: MediaQuery.of(context).size,
+          painter: EnhancedSpotlightPainter(
+            spotlightRect: Rect.fromLTWH(
+              position.dx - 12,
+              position.dy - 12,
+              size.width + 24,
+              size.height + 24,
+            ),
+            animation: _overlayAnimation.value,
+            pulseValue: pulseValue,
+            color: _currentOverlayType == 'notification' ? Colors.blue : Colors.green,
+          ),
         ),
-        animation: _overlayAnimation.value,
+        
+        // Animated arrow pointing to the card
+        Positioned(
+          left: position.dx + size.width + 20,
+          top: position.dy + size.height / 2 - 15,
+          child: AnimatedBuilder(
+            animation: _floatingAnimation,
+            builder: (context, child) {
+              return Transform.translate(
+                offset: Offset(_floatingAnimation.value, 0),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _currentOverlayType == 'notification' 
+                        ? Colors.blue.withOpacity(0.9)
+                        : Colors.green.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _currentOverlayType == 'notification' 
+                            ? Colors.blue.withOpacity(0.3)
+                            : Colors.green.withOpacity(0.3),
+                        blurRadius: 15,
+                        spreadRadius: 3,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.touch_app_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tap here',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCreativeTutorialCard() {
+    final isNotification = _currentOverlayType == 'notification';
+    final primaryColor = isNotification ? Colors.blue : Colors.green;
+    final title = isNotification ? 'Enable Notifications' : 'Battery Optimization';
+    final subtitle = isNotification 
+        ? 'Never miss important reminders' 
+        : 'Keep app running in background';
+    final icon = isNotification ? Icons.notifications_active : Icons.battery_saver;
+    
+    return Positioned(
+      top: MediaQuery.of(context).size.height * 0.05,
+      left: 16,
+      right: 16,
+      child: AnimatedBuilder(
+        animation: _floatingAnimation,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, math.sin(_overlayAnimation.value * 2 * math.pi) * 5),
+            child: Transform.scale(
+              scale: 0.8 + (_overlayAnimation.value * 0.2),
+              child: Material(
+                elevation: 20,
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        primaryColor.shade50,
+                        Colors.white,
+                        primaryColor.shade50,
+                      ],
+                    ),
+                    border: Border.all(
+                      color: primaryColor.withOpacity(0.2),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withOpacity(0.3),
+                        blurRadius: 30,
+                        spreadRadius: 5,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Stack(
+                      children: [
+                        // Animated background pattern
+                        Positioned.fill(
+                          child: AnimatedBuilder(
+                            animation: _overlayAnimation,
+                            builder: (context, child) {
+                              return CustomPaint(
+                                painter: PatternPainter(
+                                  animation: _overlayAnimation.value,
+                                  color: primaryColor,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        
+                        // Main content
+                        Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Animated header with 3D effect
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      primaryColor.shade100,
+                                      primaryColor.shade200,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: primaryColor.withOpacity(0.3),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    AnimatedBuilder(
+                                      animation: _overlayAnimation,
+                                      builder: (context, child) {
+                                        return Transform.rotate(
+                                          angle: _overlayAnimation.value * 0.1,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: primaryColor.shade600,
+                                              borderRadius: BorderRadius.circular(15),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: primaryColor.withOpacity(0.4),
+                                                  blurRadius: 10,
+                                                  offset: const Offset(0, 3),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Icon(
+                                              icon,
+                                              color: Colors.white,
+                                              size: 28,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            title,
+                                            style: TextStyle(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold,
+                                              color: primaryColor.shade800,
+                                            ),
+                                          ),
+                                          Text(
+                                            subtitle,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: primaryColor.shade600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              
+                              // Content based on overlay type
+                              _buildOverlayContent(),
+                              
+                              const SizedBox(height: 24),
+                              
+                              // Enhanced action buttons
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextButton(
+                                      onPressed: _hideTutorialOverlay,
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(vertical: 16),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Maybe Later',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    flex: 2,
+                                    child: AnimatedBuilder(
+                                      animation: _overlayAnimation,
+                                      builder: (context, child) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(12),
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                primaryColor.shade600,
+                                                primaryColor.shade700,
+                                              ],
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: primaryColor.withOpacity(0.4),
+                                                blurRadius: 15,
+                                                offset: const Offset(0, 5),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ElevatedButton(
+                                            onPressed: () {
+                                              _hideTutorialOverlay();
+                                              Future.delayed(const Duration(milliseconds: 300), () {
+                                                final targetKey = isNotification 
+                                                    ? _notificationCardKey 
+                                                    : _batteryCardKey;
+                                                Scrollable.ensureVisible(
+                                                  targetKey.currentContext!,
+                                                  duration: const Duration(milliseconds: 600),
+                                                  curve: Curves.easeInOut,
+                                                );
+                                              });
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.transparent,
+                                              foregroundColor: Colors.white,
+                                              shadowColor: Colors.transparent,
+                                              padding: const EdgeInsets.symmetric(vertical: 16),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                const Icon(Icons.touch_app_rounded, size: 20),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'Got It!',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTutorialCard() {
-    return Positioned(
-      top: MediaQuery.of(context).size.height * 0.1,
-      left: 24,
-      right: 24,
-      child: Transform.scale(
-        scale: _overlayAnimation.value,
-        child: Material(
-          elevation: 8,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue.shade50, Colors.purple.shade50],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
+  Widget _buildOverlayContent() {
+    if (_currentOverlayType == 'notification') {
+      return Column(
+        children: [
+          Text(
+            'LifeQue needs notification permission to remind you about:',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade700,
+              height: 1.4,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ...[
+            ('📝', 'Task deadlines and upcoming events'),
+            ('💊', 'Medicine reminders with exact timing'),
+            ('🎂', 'Birthday and anniversary alerts'),
+            ('🕌', 'Prayer times and spiritual reminders'),
+          ].map((item) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
               children: [
-                // Tutorial header
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.lightbulb_rounded,
-                        color: Colors.blue.shade700,
-                        size: 24,
-                      ),
+                Text(item.$1, style: const TextStyle(fontSize: 20)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    item.$2,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade700,
+                      height: 1.3,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Enable Notifications',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                          Text(
-                            'Never miss important reminders',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Tutorial content
-                Text(
-                  'LifeQue needs notification permission to remind you about:\n\n'
-                  '• 📝 Task deadlines and upcoming events\n'
-                  '• 💊 Medicine reminders with exact timing\n'
-                  '• 🎂 Birthday and anniversary alerts\n'
-                  '• ⏰ Prayer times and spiritual reminders\n\n'
-                  'Tap the notification card below to enable this feature.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    height: 1.5,
-                    color: Colors.grey.shade700,
                   ),
-                ),
-                const SizedBox(height: 24),
-
-                // Action buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: _hideTutorialOverlay,
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: Text(
-                          'Maybe Later',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _hideTutorialOverlay();
-                          // Automatically scroll to and highlight the notification card
-                          Future.delayed(const Duration(milliseconds: 300), () {
-                            Scrollable.ensureVisible(
-                              _notificationCardKey.currentContext!,
-                              duration: const Duration(milliseconds: 600),
-                              curve: Curves.easeInOut,
-                            );
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade600,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Got It!',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
+          )).toList(),
+          const SizedBox(height: 16),
+          Text(
+            'Tap the notification card below to enable this feature.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.blue.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-      ),
-    );
-  }
-
-  @override
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          Text(
+            'Battery optimization may prevent LifeQue from running properly in the background:',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade700,
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ...[
+            ('🔋', 'Allows reliable background notifications'),
+            ('⏰', 'Ensures timely medicine reminders'),
+            ('📱', 'Prevents system from stopping the app'),
+            ('🚀', 'Better overall app performance'),
+          ].map((item) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Text(item.$1, style: const TextStyle(fontSize: 20)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    item.$2,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade700,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )).toList(),
+          const SizedBox(height: 16),
+          Text(
+            'Tap the battery optimization card below to disable it.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.green.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      );
+    }
+  }  @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
@@ -770,6 +1165,7 @@ class _PermissionScreenState extends State<PermissionScreen>
                       // Battery Optimization (Android only)
                       if (Platform.isAndroid) ...[
                         PermissionCard(
+                          key: _batteryCardKey,
                           title: 'Battery Optimization',
                           description:
                               'Prevent system from stopping notifications in the background\nStatus: $_batteryStatus',
@@ -1106,5 +1502,153 @@ class SpotlightPainter extends CustomPainter {
   bool shouldRepaint(SpotlightPainter oldDelegate) {
     return oldDelegate.spotlightRect != spotlightRect ||
         oldDelegate.animation != animation;
+  }
+}
+
+// Enhanced spotlight painter with pulsing effects
+class EnhancedSpotlightPainter extends CustomPainter {
+  final Rect spotlightRect;
+  final double animation;
+  final double pulseValue;
+  final Color color;
+
+  EnhancedSpotlightPainter({
+    required this.spotlightRect,
+    required this.animation,
+    required this.pulseValue,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Create a path for the entire screen
+    final screenPath = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    // Create animated spotlight area with pulsing effect
+    final spotlightPath = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+        spotlightRect.inflate(pulseValue * 5),
+        const Radius.circular(20),
+      ));
+
+    // Subtract the spotlight area from the screen
+    final combinedPath = Path.combine(
+      PathOperation.difference,
+      screenPath,
+      spotlightPath,
+    );
+
+    // Draw the darkened area with animated gradient
+    final gradient = RadialGradient(
+      center: Alignment.center,
+      radius: 1.5,
+      colors: [
+        Colors.black.withOpacity(0.3 * animation),
+        Colors.black.withOpacity(0.7 * animation),
+        Colors.black.withOpacity(0.95 * animation),
+      ],
+    );
+
+    canvas.drawPath(
+      combinedPath,
+      Paint()..shader = gradient.createShader(Rect.fromLTWH(0, 0, size.width, size.height)),
+    );
+
+    // Multiple glow layers for enhanced effect
+    for (int i = 3; i >= 1; i--) {
+      final glowPaint = Paint()
+        ..color = color.withOpacity((0.4 * animation) / i)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 15.0 * i);
+
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          spotlightRect.inflate(8 + (pulseValue * 5) + (i * 3)),
+          const Radius.circular(25),
+        ),
+        glowPaint,
+      );
+    }
+
+    // Inner highlight ring
+    final highlightPaint = Paint()
+      ..color = color.withOpacity(0.6 * animation)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        spotlightRect.inflate(2 + pulseValue * 2),
+        const Radius.circular(18),
+      ),
+      highlightPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(EnhancedSpotlightPainter oldDelegate) {
+    return oldDelegate.spotlightRect != spotlightRect ||
+           oldDelegate.animation != animation ||
+           oldDelegate.pulseValue != pulseValue ||
+           oldDelegate.color != color;
+  }
+}
+
+// Pattern painter for animated background effects
+class PatternPainter extends CustomPainter {
+  final double animation;
+  final Color color;
+
+  PatternPainter({
+    required this.animation,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withOpacity(0.05 * animation)
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    // Create animated geometric pattern
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    final maxRadius = math.max(size.width, size.height) / 2;
+
+    // Draw animated circles
+    for (int i = 1; i <= 5; i++) {
+      final radius = (maxRadius / 5 * i) * (0.5 + animation * 0.5);
+      canvas.drawCircle(
+        Offset(centerX, centerY),
+        radius,
+        paint,
+      );
+    }
+
+    // Draw animated grid lines
+    final gridSize = 30.0;
+    final offset = (animation * gridSize) % gridSize;
+
+    for (double x = -offset; x < size.width + gridSize; x += gridSize) {
+      canvas.drawLine(
+        Offset(x, 0),
+        Offset(x, size.height),
+        paint,
+      );
+    }
+
+    for (double y = -offset; y < size.height + gridSize; y += gridSize) {
+      canvas.drawLine(
+        Offset(0, y),
+        Offset(size.width, y),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(PatternPainter oldDelegate) {
+    return oldDelegate.animation != animation || oldDelegate.color != color;
   }
 }
