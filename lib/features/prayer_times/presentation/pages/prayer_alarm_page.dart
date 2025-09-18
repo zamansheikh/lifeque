@@ -622,208 +622,487 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('${widget.prayer} Alarm'),
-      content: SingleChildScrollView(
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withValues(alpha: 0.1),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Alarm Type', style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 8),
-            RadioListTile<PrayerAlarmType>(
-              title: const Text('Before prayer ends'),
-              subtitle: const Text('Alert X minutes before prayer time ends'),
-              value: PrayerAlarmType.beforePrayerEnd,
-              groupValue: _selectedType,
-              onChanged: (value) {
-                setState(() {
-                  _selectedType = value!;
-                });
-              },
-            ),
-            RadioListTile<PrayerAlarmType>(
-              title: const Text('After prayer starts'),
-              subtitle: const Text('Alert X minutes after prayer time begins'),
-              value: PrayerAlarmType.afterPrayerStart,
-              groupValue: _selectedType,
-              onChanged: (value) {
-                setState(() {
-                  _selectedType = value!;
-                });
-              },
-            ),
-            RadioListTile<PrayerAlarmType>(
-              title: const Text('Fixed time'),
-              subtitle: const Text('Alert at a specific time'),
-              value: PrayerAlarmType.fixedTime,
-              groupValue: _selectedType,
-              onChanged: (value) {
-                setState(() {
-                  _selectedType = value!;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            if (_selectedType == PrayerAlarmType.beforePrayerEnd) ...[
-              Text(
-                'Minutes before prayer ends',
-                style: Theme.of(context).textTheme.titleSmall,
+            // Header with gradient background
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    colorScheme.primary,
+                    colorScheme.primary.withValues(alpha: 0.8),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
               ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<int>(
-                isExpanded: true, // Fix pixel overflow
-                initialValue: _minutesBeforeEnd,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.alarm,
+                      color: colorScheme.onPrimary,
+                      size: 24,
+                    ),
                   ),
-                ),
-                items: [5, 10, 15, 20, 25, 30, 35, 40].map((minutes) {
-                  return DropdownMenuItem(
-                    value: minutes,
-                    child: Text('$minutes minutes'),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _minutesBeforeEnd = value!;
-                  });
-                },
-              ),
-            ] else if (_selectedType == PrayerAlarmType.afterPrayerStart) ...[
-              Text(
-                'Minutes after prayer starts',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<int>(
-                isExpanded: true, // Fix pixel overflow
-                initialValue: _minutesAfterStart,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${widget.prayer} Alarm',
+                          style: textTheme.headlineSmall?.copyWith(
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Configure reminder settings',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                items: [5, 10, 15, 20, 25, 30, 35, 40].map((minutes) {
-                  return DropdownMenuItem(
-                    value: minutes,
-                    child: Text('$minutes minutes'),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _minutesAfterStart = value!;
-                  });
-                },
+                ],
               ),
-            ] else ...[
-              Text('Fixed time', style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: 8),
-              ListTile(
-                title: Text(_formatTime(_fixedTime)),
-                leading: const Icon(Icons.access_time),
-                onTap: () async {
-                  final time = await showTimePicker(
-                    context: context,
-                    initialTime: _fixedTime,
-                  );
-                  if (time != null) {
-                    setState(() {
-                      _fixedTime = time;
-                    });
-                  }
-                },
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(4),
+            ),
+
+            // Content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Alarm Type Section
+                    Text(
+                      'Alarm Type',
+                      style: textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Radio tiles with modern design
+                    _buildModernRadioTile(
+                      context,
+                      'Before prayer ends',
+                      'Alert X minutes before prayer time ends',
+                      Icons.schedule,
+                      PrayerAlarmType.beforePrayerEnd,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildModernRadioTile(
+                      context,
+                      'After prayer starts',
+                      'Alert X minutes after prayer time begins',
+                      Icons.play_circle_outline,
+                      PrayerAlarmType.afterPrayerStart,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildModernRadioTile(
+                      context,
+                      'Fixed time',
+                      'Alert at a specific time',
+                      Icons.access_time,
+                      PrayerAlarmType.fixedTime,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Dynamic configuration based on type
+                    if (_selectedType == PrayerAlarmType.beforePrayerEnd) ...[
+                      _buildConfigSection(
+                        context,
+                        'Minutes before prayer ends',
+                        DropdownButtonFormField<int>(
+                          value: _minutesBeforeEnd,
+                          decoration: _getInputDecoration(context, 'Select minutes'),
+                          items: [5, 10, 15, 20, 25, 30, 35, 40].map((minutes) {
+                            return DropdownMenuItem(
+                              value: minutes,
+                              child: Text('$minutes minutes'),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _minutesBeforeEnd = value!;
+                            });
+                          },
+                        ),
+                      ),
+                    ] else if (_selectedType == PrayerAlarmType.afterPrayerStart) ...[
+                      _buildConfigSection(
+                        context,
+                        'Minutes after prayer starts',
+                        DropdownButtonFormField<int>(
+                          value: _minutesAfterStart,
+                          decoration: _getInputDecoration(context, 'Select minutes'),
+                          items: [5, 10, 15, 20, 25, 30, 35, 40].map((minutes) {
+                            return DropdownMenuItem(
+                              value: minutes,
+                              child: Text('$minutes minutes'),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _minutesAfterStart = value!;
+                            });
+                          },
+                        ),
+                      ),
+                    ] else ...[
+                      _buildConfigSection(
+                        context,
+                        'Fixed time',
+                        InkWell(
+                          onTap: () async {
+                            final time = await showTimePicker(
+                              context: context,
+                              initialTime: _fixedTime,
+                            );
+                            if (time != null) {
+                              setState(() {
+                                _fixedTime = time;
+                              });
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: colorScheme.outline.withValues(alpha: 0.5),
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.access_time,
+                                  color: colorScheme.primary,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  _formatTime(_fixedTime),
+                                  style: textTheme.bodyLarge,
+                                ),
+                                const Spacer(),
+                                Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 24),
+
+                    // Alarm Sound Section
+                    _buildConfigSection(
+                      context,
+                      'Alarm Sound',
+                      DropdownButtonFormField<String>(
+                        value: _selectedSoundPath,
+                        decoration: _getInputDecoration(context, 'Select sound'),
+                        items: AlarmSoundUtils.availableAlarmSounds.map((sound) {
+                          return DropdownMenuItem(
+                            value: sound['path']!,
+                            child: Text(
+                              sound['name']!,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSoundPath = value!;
+                          });
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Alarm Duration Section
+                    _buildConfigSection(
+                      context,
+                      'Alarm Duration',
+                      DropdownButtonFormField<int>(
+                        value: _alarmDurationMinutes,
+                        decoration: _getInputDecoration(context, 'Select duration'),
+                        items: const [
+                          DropdownMenuItem(value: 1, child: Text('1 minute')),
+                          DropdownMenuItem(value: 2, child: Text('2 minutes')),
+                          DropdownMenuItem(value: 3, child: Text('3 minutes')),
+                          DropdownMenuItem(value: 5, child: Text('5 minutes')),
+                          DropdownMenuItem(value: 10, child: Text('10 minutes')),
+                          DropdownMenuItem(value: 15, child: Text('15 minutes')),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _alarmDurationMinutes = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-            const SizedBox(height: 16),
-            Text('Alarm Sound', style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              isExpanded: true, // Fix pixel overflow
-              initialValue: _selectedSoundPath,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+            ),
+
+            // Actions
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
                 ),
               ),
-              items: AlarmSoundUtils.availableAlarmSounds.map((sound) {
-                return DropdownMenuItem(
-                  value: sound['path']!,
-                  child: Text(
-                    sound['name']!,
-                    overflow: TextOverflow.ellipsis, // Prevent overflow
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
                   ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedSoundPath = value!;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Alarm Duration',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<int>(
-              value: _alarmDurationMinutes,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                hintText: 'Select duration',
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: _saveAlarm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.check,
+                            size: 20,
+                            color: colorScheme.onPrimary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Save',
+                            style: textTheme.labelLarge?.copyWith(
+                              color: colorScheme.onPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              items: const [
-                DropdownMenuItem(value: 1, child: Text('1 minute')),
-                DropdownMenuItem(value: 2, child: Text('2 minutes')),
-                DropdownMenuItem(value: 3, child: Text('3 minutes')),
-                DropdownMenuItem(value: 5, child: Text('5 minutes')),
-                DropdownMenuItem(value: 10, child: Text('10 minutes')),
-                DropdownMenuItem(value: 15, child: Text('15 minutes')),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _alarmDurationMinutes = value!;
-                });
-              },
             ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _saveAlarm,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.teal,
-            foregroundColor: Colors.white,
+    );
+  }
+
+  Widget _buildModernRadioTile(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    PrayerAlarmType value,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isSelected = _selectedType == value;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedType = value;
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorScheme.primary.withValues(alpha: 0.1)
+              : colorScheme.surface,
+          border: Border.all(
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outline.withValues(alpha: 0.3),
+            width: isSelected ? 2 : 1,
           ),
-          child: const Text('Save'),
+          borderRadius: BorderRadius.circular(12),
         ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: isSelected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: isSelected ? colorScheme.primary : colorScheme.outline,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConfigSection(BuildContext context, String title, Widget child) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: textTheme.titleSmall?.copyWith(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        child,
       ],
     );
   }
 
+  InputDecoration _getInputDecoration(BuildContext context, String hint) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return InputDecoration(
+      hintText: hint,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: colorScheme.outline.withValues(alpha: 0.5),
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: colorScheme.outline.withValues(alpha: 0.5),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: colorScheme.primary,
+          width: 2,
+        ),
+      ),
+      filled: true,
+      fillColor: colorScheme.surface,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 16,
+      ),
+    );
+  }
+
   String _formatTime(TimeOfDay time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+    final hour = time.hour;
+    final minute = time.minute;
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    
+    return '${displayHour.toString()}:${minute.toString().padLeft(2, '0')} $period';
   }
 
   void _saveAlarm() {
