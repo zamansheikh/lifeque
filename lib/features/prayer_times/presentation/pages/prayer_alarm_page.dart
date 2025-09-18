@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:adhan/adhan.dart';
 import '../../../../core/services/prayer_alarm_service.dart';
 import '../../../../core/utils/alarm_sound_utils.dart';
+import '../../../../core/utils/salah_time_calculator.dart';
 
 class PrayerAlarmPage extends StatefulWidget {
   const PrayerAlarmPage({super.key});
@@ -447,29 +450,110 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
     if (!alarm.isEnabled) return 'Disabled';
 
     if (alarm.type == PrayerAlarmType.beforePrayerEnd) {
+      final actualTime = _calculateActualAlarmTime(alarm.prayerName, alarm);
+      if (actualTime != null) {
+        return _formatTimeWithAMPM(actualTime);
+      }
       return '${alarm.minutesBeforeEnd} min before end';
     } else if (alarm.type == PrayerAlarmType.afterPrayerStart) {
+      final actualTime = _calculateActualAlarmTime(alarm.prayerName, alarm);
+      if (actualTime != null) {
+        return _formatTimeWithAMPM(actualTime);
+      }
       return '${alarm.minutesAfterStart} min after start';
     } else {
-      return 'Fixed: ${_formatTime(alarm.fixedTime!)}';
+      return _formatTimeWithAMPM(alarm.fixedTime!);
     }
   }
 
   String _getAlarmDetailsText(PrayerAlarmConfig alarm) {
     if (alarm.type == PrayerAlarmType.beforePrayerEnd) {
+      final actualTime = _calculateActualAlarmTime(alarm.prayerName, alarm);
+      if (actualTime != null) {
+        return '${alarm.minutesBeforeEnd} minutes before prayer ends (${_formatTimeWithAMPM(actualTime)})';
+      }
       return '${alarm.minutesBeforeEnd} minutes before prayer ends';
     } else if (alarm.type == PrayerAlarmType.afterPrayerStart) {
+      final actualTime = _calculateActualAlarmTime(alarm.prayerName, alarm);
+      if (actualTime != null) {
+        return '${alarm.minutesAfterStart} minutes after prayer starts (${_formatTimeWithAMPM(actualTime)})';
+      }
       return '${alarm.minutesAfterStart} minutes after prayer starts';
     } else if (alarm.type == PrayerAlarmType.fixedTime &&
         alarm.fixedTime != null) {
-      return 'Fixed time: ${_formatTime(alarm.fixedTime!)}';
+      return 'Fixed time: ${_formatTimeWithAMPM(alarm.fixedTime!)}';
     } else {
       return 'Invalid alarm configuration';
     }
   }
 
-  String _formatTime(DateTime time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  String _formatTimeWithAMPM(DateTime time) {
+    return DateFormat('h:mm a').format(time);
+  }
+
+  DateTime? _calculateActualAlarmTime(
+    String prayerName,
+    PrayerAlarmConfig alarm,
+  ) {
+    try {
+      // For this demo, we'll use default coordinates (Dhaka, Bangladesh)
+      // In a real app, you'd get this from user settings
+      final calculator = SalahTimeCalculator(
+        latitude: 23.8103, // Dhaka latitude
+        longitude: 90.4125, // Dhaka longitude
+        date: DateTime.now(),
+        method: CalculationMethod.karachi, // Common method for Bangladesh
+      );
+
+      final prayerTimes = calculator.getPrayerTimesMap();
+
+      if (alarm.type == PrayerAlarmType.beforePrayerEnd) {
+        // Get the next prayer time to calculate "end" time
+        DateTime? prayerEndTime;
+        switch (prayerName) {
+          case 'Fajr':
+            prayerEndTime = prayerTimes['Sunrise'];
+            break;
+          case 'Dhuhr':
+            prayerEndTime = prayerTimes['Asr'];
+            break;
+          case 'Asr':
+            prayerEndTime = prayerTimes['Maghrib'];
+            break;
+          case 'Maghrib':
+            prayerEndTime = prayerTimes['Isha'];
+            break;
+          case 'Isha':
+            // Isha ends at midnight (or next Fajr)
+            final nextDay = DateTime.now().add(const Duration(days: 1));
+            final nextCalc = SalahTimeCalculator(
+              latitude: 23.8103,
+              longitude: 90.4125,
+              date: nextDay,
+              method: CalculationMethod.karachi,
+            );
+            prayerEndTime = nextCalc.getPrayerTimesMap()['Fajr'];
+            break;
+        }
+
+        if (prayerEndTime != null) {
+          return prayerEndTime.subtract(
+            Duration(minutes: alarm.minutesBeforeEnd),
+          );
+        }
+      } else if (alarm.type == PrayerAlarmType.afterPrayerStart) {
+        final prayerStartTime = prayerTimes[prayerName];
+        if (prayerStartTime != null) {
+          return prayerStartTime.add(
+            Duration(minutes: alarm.minutesAfterStart),
+          );
+        }
+      }
+    } catch (e) {
+      // If calculation fails, return null to fall back to basic description
+      return null;
+    }
+    return null;
   }
 
   void _showAlarmConfigDialog(String prayer, PrayerAlarmConfig? existingAlarm) {
