@@ -468,7 +468,7 @@ class _PermissionScreenState extends State<PermissionScreen>
                 ),
                 child: Container(
                   width: size.width - 40,
-                  padding: _shouldBubblePointUp(position, size) 
+                  padding: _shouldBubblePointUp(position, size)
                       ? const EdgeInsets.fromLTRB(20, 20, 20, 25)
                       : const EdgeInsets.fromLTRB(20, 25, 20, 20),
                   child: Column(
@@ -536,7 +536,7 @@ class _PermissionScreenState extends State<PermissionScreen>
     final screenHeight = MediaQuery.of(context).size.height;
     final bubbleHeight = 120.0; // Estimated height of speech bubble
     final cardBottom = position.dy + size.height;
-    
+
     // If there's not enough space below the card, position bubble above
     return (cardBottom + bubbleHeight + 50) > screenHeight;
   }
@@ -1328,7 +1328,7 @@ class SpeechBubblePainter extends CustomPainter {
 
     final path = Path();
     final shadowPath = Path();
-    
+
     const radius = 15.0;
     const tailHeight = 15.0;
     const tailWidth = 25.0;
@@ -1338,44 +1338,41 @@ class SpeechBubblePainter extends CustomPainter {
       // Create speech bubble with tail pointing down (bubble above card)
       // Start from bottom-left corner (after the tail)
       path.moveTo(radius, size.height - tailHeight);
-      
+
       // Bottom edge (with space for tail)
       path.lineTo(tailStartX - tailWidth / 2, size.height - tailHeight);
-      
+
       // Create the tail pointing downward
       path.lineTo(tailStartX, size.height); // Tip of the tail
       path.lineTo(tailStartX + tailWidth / 2, size.height - tailHeight);
-      
+
       // Continue bottom edge
       path.lineTo(size.width - radius, size.height - tailHeight);
-      
+
       // Bottom-right corner
       path.arcToPoint(
         Offset(size.width, size.height - tailHeight - radius),
         radius: const Radius.circular(radius),
       );
-      
+
       // Right edge
       path.lineTo(size.width, radius);
-      
+
       // Top-right corner
       path.arcToPoint(
         Offset(size.width - radius, 0),
         radius: const Radius.circular(radius),
       );
-      
+
       // Top edge
       path.lineTo(radius, 0);
-      
+
       // Top-left corner
-      path.arcToPoint(
-        Offset(0, radius),
-        radius: const Radius.circular(radius),
-      );
-      
+      path.arcToPoint(Offset(0, radius), radius: const Radius.circular(radius));
+
       // Left edge
       path.lineTo(0, size.height - tailHeight - radius);
-      
+
       // Bottom-left corner
       path.arcToPoint(
         Offset(radius, size.height - tailHeight),
@@ -1385,44 +1382,44 @@ class SpeechBubblePainter extends CustomPainter {
       // Create speech bubble with tail pointing up (bubble below card) - original logic
       // Start from top-left corner (after the tail)
       path.moveTo(radius, tailHeight);
-      
+
       // Top edge (with space for tail)
       path.lineTo(tailStartX - tailWidth / 2, tailHeight);
-      
+
       // Create the tail pointing upward
       path.lineTo(tailStartX, 0); // Tip of the tail
       path.lineTo(tailStartX + tailWidth / 2, tailHeight);
-      
+
       // Continue top edge
       path.lineTo(size.width - radius, tailHeight);
-      
+
       // Top-right corner
       path.arcToPoint(
         Offset(size.width, tailHeight + radius),
         radius: const Radius.circular(radius),
       );
-      
+
       // Right edge
       path.lineTo(size.width, size.height - radius);
-      
+
       // Bottom-right corner
       path.arcToPoint(
         Offset(size.width - radius, size.height),
         radius: const Radius.circular(radius),
       );
-      
+
       // Bottom edge
       path.lineTo(radius, size.height);
-      
+
       // Bottom-left corner
       path.arcToPoint(
         Offset(0, size.height - radius),
         radius: const Radius.circular(radius),
       );
-      
+
       // Left edge
       path.lineTo(0, tailHeight + radius);
-      
+
       // Top-left corner
       path.arcToPoint(
         Offset(radius, tailHeight),
@@ -1437,7 +1434,7 @@ class SpeechBubblePainter extends CustomPainter {
 
     // Draw shadow first
     canvas.drawPath(shadowPath, shadowPaint);
-    
+
     // Draw the main bubble
     canvas.drawPath(path, paint);
   }
