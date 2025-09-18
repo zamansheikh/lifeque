@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:io';
+import '../widgets/permission_card.dart';
+import '../widgets/feature_card.dart';
+import '../widgets/progress_step.dart';
 
 class PermissionScreen extends StatefulWidget {
   final VoidCallback onPermissionsGranted;
@@ -479,8 +482,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                     ),
                     child: Row(
                       children: [
-                        // Progress circles
-                        _buildProgressStep(
+                        ProgressStep(
                           stepNumber: 1,
                           title: 'Notifications',
                           isCompleted: _notificationPermission,
@@ -498,7 +500,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                             ),
                           ),
                         ),
-                        _buildProgressStep(
+                        ProgressStep(
                           stepNumber: 2,
                           title: Platform.isAndroid ? 'Battery' : 'Ready',
                           isCompleted: _batteryOptimization,
@@ -511,7 +513,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                   const SizedBox(height: 24),
 
                   // Permission cards with clearer actions
-                  _buildPermissionCard(
+                  PermissionCard(
                     title: 'Notifications',
                     description:
                         'Get timely alerts for your tasks, medicine reminders, and important events',
@@ -527,7 +529,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
 
                   // Battery Optimization (Android only)
                   if (Platform.isAndroid) ...[
-                    _buildPermissionCard(
+                    PermissionCard(
                       title: 'Battery Optimization',
                       description:
                           'Prevent system from stopping notifications in the background\nStatus: $_batteryStatus',
@@ -601,7 +603,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                           ),
                           child: Column(
                             children: [
-                              _buildFeatureCard(
+                              FeatureCard(
                                 icon: Icons.task_alt_rounded,
                                 title: 'Smart Task Management',
                                 description:
@@ -610,7 +612,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                               ),
                               const SizedBox(height: 8),
 
-                              _buildFeatureCard(
+                              FeatureCard(
                                 icon: Icons.medical_services_rounded,
                                 title: 'Medicine Reminders',
                                 description:
@@ -619,7 +621,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                               ),
                               const SizedBox(height: 8),
 
-                              _buildFeatureCard(
+                              FeatureCard(
                                 icon: Icons.cake_rounded,
                                 title: 'Birthday Reminders',
                                 description:
@@ -628,7 +630,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                               ),
                               const SizedBox(height: 8),
 
-                              _buildFeatureCard(
+                              FeatureCard(
                                 icon: Icons.access_time_rounded,
                                 title: 'One-time Reminders',
                                 description:
@@ -637,7 +639,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                               ),
                               const SizedBox(height: 8),
 
-                              _buildFeatureCard(
+                              FeatureCard(
                                 icon: Icons.notifications_active_rounded,
                                 title: 'Smart Notifications',
                                 description:
@@ -646,7 +648,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                               ),
                               const SizedBox(height: 8),
 
-                              _buildFeatureCard(
+                              FeatureCard(
                                 icon: Icons.push_pin_rounded,
                                 title: 'Pinned Reminders',
                                 description:
@@ -797,271 +799,6 @@ class _PermissionScreenState extends State<PermissionScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildProgressStep({
-    required int stepNumber,
-    required String title,
-    required bool isCompleted,
-    required bool isActive,
-  }) {
-    return Column(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: isCompleted
-                ? Colors.green
-                : isActive
-                ? Colors.blue
-                : Colors.grey.shade300,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: isCompleted
-                ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
-                : Text(
-                    '$stepNumber',
-                    style: TextStyle(
-                      color: isActive ? Colors.white : Colors.grey.shade600,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: isCompleted
-                ? Colors.green
-                : isActive
-                ? Colors.blue
-                : Colors.grey.shade600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPermissionCard({
-    required String title,
-    required String description,
-    required IconData icon,
-    required bool isGranted,
-    required VoidCallback onTap,
-    required Color color,
-    required String actionText,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isGranted
-              ? Colors.green.shade200
-              : color.withValues(alpha: 0.3),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Main card content
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isGranted
-                        ? Colors.green.shade100
-                        : color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    isGranted ? Icons.check_circle_rounded : icon,
-                    color: isGranted ? Colors.green : color,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        description,
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Action button (only show if not granted)
-          if (!isGranted) ...[
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: color.withValues(alpha: 0.1),
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: onTap,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(16),
-                    bottomRight: Radius.circular(16),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.touch_app_rounded, color: color, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          actionText,
-                          style: TextStyle(
-                            color: color,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ] else ...[
-            // Success indicator for granted permissions
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                border: Border(
-                  top: BorderSide(color: Colors.green.shade200, width: 1),
-                ),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.check_rounded,
-                    color: Colors.green,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    actionText,
-                    style: const TextStyle(
-                      color: Colors.green,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureCard({
-    required IconData icon,
-    required String title,
-    required String description,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  description,
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 12,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
