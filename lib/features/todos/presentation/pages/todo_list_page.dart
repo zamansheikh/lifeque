@@ -186,12 +186,17 @@ class _TodoListPageState extends State<TodoListPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              _selectedCategory?.icon ?? Icons.category_outlined,
+                              _selectedCategory?.icon ??
+                                  Icons.category_outlined,
                               size: 16,
-                              color: _selectedCategory?.color ?? Colors.grey[600],
+                              color:
+                                  _selectedCategory?.color ?? Colors.grey[600],
                             ),
                             const SizedBox(width: 4),
-                            Text(_selectedCategory?.displayName ?? 'All Categories'),
+                            Text(
+                              _selectedCategory?.displayName ??
+                                  'All Categories',
+                            ),
                             const Icon(Icons.arrow_drop_down, size: 16),
                           ],
                         ),
@@ -199,7 +204,9 @@ class _TodoListPageState extends State<TodoListPage> {
                             ? _selectedCategory!.color.withValues(alpha: 0.2)
                             : Colors.white,
                         side: BorderSide(
-                          color: _selectedCategory?.color ?? Colors.grey.withValues(alpha: 0.3),
+                          color:
+                              _selectedCategory?.color ??
+                              Colors.grey.withValues(alpha: 0.3),
                         ),
                       ),
                     ),
