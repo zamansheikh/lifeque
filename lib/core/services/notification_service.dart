@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 import '../../features/tasks/domain/entities/task.dart';
@@ -21,6 +23,9 @@ class NotificationService {
 
   Timer? _progressUpdateTimer;
   List<Task> _activeTasks = [];
+
+  // Notification tracking constants
+  static const String _medicineNotificationIdsKey = 'medicine_notification_ids';
 
   // Track if app was launched by notification action
   static bool _appLaunchedByNotification = false;
@@ -1414,6 +1419,66 @@ class NotificationService {
     }
   }
 
+  // Notification ID tracking methods
+  Future<void> _saveMedicineNotificationIds(
+    String medicineId,
+    List<int> notificationIds,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final allIds = await _getAllMedicineNotificationIds();
+      allIds[medicineId] = notificationIds;
+      await prefs.setString(_medicineNotificationIdsKey, jsonEncode(allIds));
+      debugPrint(
+        '🩺 Saved ${notificationIds.length} notification IDs for medicine $medicineId',
+      );
+    } catch (e) {
+      debugPrint('🩺 Error saving notification IDs: $e');
+    }
+  }
+
+  Future<List<int>> _getMedicineNotificationIds(String medicineId) async {
+    try {
+      final allIds = await _getAllMedicineNotificationIds();
+      return allIds[medicineId] ?? [];
+    } catch (e) {
+      debugPrint('🩺 Error getting notification IDs: $e');
+      return [];
+    }
+  }
+
+  Future<Map<String, List<int>>> _getAllMedicineNotificationIds() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final idsJson = prefs.getString(_medicineNotificationIdsKey);
+      if (idsJson == null) return {};
+
+      final Map<String, dynamic> decoded = jsonDecode(idsJson);
+      final Map<String, List<int>> result = {};
+      for (final entry in decoded.entries) {
+        result[entry.key] = List<int>.from(entry.value);
+      }
+      return result;
+    } catch (e) {
+      debugPrint('🩺 Error reading notification IDs: $e');
+      return {};
+    }
+  }
+
+  Future<void> _removeMedicineNotificationIds(String medicineId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final allIds = await _getAllMedicineNotificationIds();
+      allIds.remove(medicineId);
+      await prefs.setString(_medicineNotificationIdsKey, jsonEncode(allIds));
+      debugPrint(
+        '🩺 Removed notification ID tracking for medicine $medicineId',
+      );
+    } catch (e) {
+      debugPrint('🩺 Error removing notification IDs: $e');
+    }
+  }
+
   // Medicine notification methods
   Future<void> scheduleMedicineNotifications(dynamic medicine) async {
     debugPrint('🩺 Scheduling notifications for medicine: ${medicine.name}');
@@ -1426,17 +1491,27 @@ class NotificationService {
       return;
     }
 
-    // Schedule notifications for each notification time
+    // Schedule notifications for each notification time and track their IDs
+    final List<int> scheduledIds = [];
     for (final timeString in medicine.notificationTimes) {
-      await _scheduleTimeBasedMedicineNotification(medicine, timeString);
+      final notificationId = await _scheduleTimeBasedMedicineNotification(
+        medicine,
+        timeString,
+      );
+      if (notificationId != null) {
+        scheduledIds.add(notificationId);
+      }
     }
 
+    // Save the notification IDs for this medicine
+    await _saveMedicineNotificationIds(medicine.id, scheduledIds);
+
     debugPrint(
-      '🩺 Scheduled ${medicine.notificationTimes.length} notification times for ${medicine.name}',
+      '🩺 Scheduled ${scheduledIds.length} notifications for ${medicine.name} (IDs: $scheduledIds)',
     );
   }
 
-  Future<void> _scheduleTimeBasedMedicineNotification(
+  Future<int?> _scheduleTimeBasedMedicineNotification(
     dynamic medicine,
     String timeString,
   ) async {
@@ -1469,7 +1544,7 @@ class NotificationService {
         debugPrint(
           '🩺 Notification time $timeString is after medicine end date, skipping',
         );
-        return;
+        return null;
       }
 
       final notificationId = _generateMedicineNotificationId(
@@ -1492,8 +1567,10 @@ class NotificationService {
       debugPrint(
         '🩺 Scheduled notification for ${medicine.name} at $timeString (ID: $notificationId)',
       );
+      return notificationId;
     } catch (e) {
       debugPrint('🩺 Error scheduling notification for time $timeString: $e');
+      return null;
     }
   }
 
@@ -1550,18 +1627,159 @@ class NotificationService {
   Future<void> cancelMedicineNotifications(String medicineId) async {
     debugPrint('🩺 Cancelling notifications for medicine: $medicineId');
 
-    // Get all pending notifications
-    final pendingNotifications = await _flutterLocalNotificationsPlugin
-        .pendingNotificationRequests();
+    // Get tracked notification IDs for this medicine
+    final notificationIds = await _getMedicineNotificationIds(medicineId);
 
-    // Cancel notifications that belong to this medicine
-    for (final notification in pendingNotifications) {
-      if (_isMedicineNotification(notification.id, medicineId)) {
-        await _flutterLocalNotificationsPlugin.cancel(notification.id);
+    if (notificationIds.isEmpty) {
+      debugPrint('🩺 No tracked notifications found for medicine $medicineId');
+      return;
+    }
+
+    // Cancel each tracked notification
+    for (final notificationId in notificationIds) {
+      try {
+        await _flutterLocalNotificationsPlugin.cancel(notificationId);
         debugPrint(
-          '🩺 Cancelled notification ${notification.id} for medicine $medicineId',
+          '🩺 Cancelled notification $notificationId for medicine $medicineId',
         );
+      } catch (e) {
+        debugPrint('🩺 Error cancelling notification $notificationId: $e');
       }
+    }
+
+    // Remove tracking for this medicine
+    await _removeMedicineNotificationIds(medicineId);
+
+    debugPrint(
+      '🩺 Cancelled ${notificationIds.length} notifications for medicine $medicineId',
+    );
+  }
+
+  /// Clean up orphaned medicine notifications for users who already had the bug
+  /// This should be called once on app startup to clean up any existing orphaned notifications
+  Future<void> cleanupOrphanedMedicineNotifications(
+    List<String> activeMedicineIds,
+  ) async {
+    debugPrint('🩺 Cleaning up orphaned medicine notifications...');
+
+    try {
+      // Get all pending notifications
+      final pendingNotifications = await _flutterLocalNotificationsPlugin
+          .pendingNotificationRequests();
+
+      // Get all tracked medicine notification IDs
+      final allTrackedIds = await _getAllMedicineNotificationIds();
+
+      int cancelledCount = 0;
+      final Set<String> activeMedicineIdSet = activeMedicineIds.toSet();
+
+      // Remove tracking for medicines that no longer exist
+      final List<String> medicineIdsToRemove = [];
+      for (final medicineId in allTrackedIds.keys) {
+        if (!activeMedicineIdSet.contains(medicineId)) {
+          medicineIdsToRemove.add(medicineId);
+          // Cancel all notifications for this deleted medicine
+          for (final notificationId in allTrackedIds[medicineId]!) {
+            try {
+              await _flutterLocalNotificationsPlugin.cancel(notificationId);
+              cancelledCount++;
+              debugPrint(
+                '🩺 Cancelled orphaned notification $notificationId for deleted medicine $medicineId',
+              );
+            } catch (e) {
+              debugPrint(
+                '🩺 Error cancelling orphaned notification $notificationId: $e',
+              );
+            }
+          }
+        }
+      }
+
+      // Remove tracking for deleted medicines
+      for (final medicineId in medicineIdsToRemove) {
+        await _removeMedicineNotificationIds(medicineId);
+      }
+
+      // Also check for medicine notifications that might not be tracked (old system)
+      // Look for notifications with medicine-related payloads
+      for (final notification in pendingNotifications) {
+        // Check if this looks like a medicine notification but isn't tracked
+        final String notificationTitle = notification.title ?? '';
+
+        if ((notificationTitle.contains('Medicine Reminder') ||
+                notificationTitle.contains('💊')) &&
+            !_isNotificationTracked(notification.id, allTrackedIds)) {
+          // This appears to be an untracked medicine notification - cancel it
+          try {
+            await _flutterLocalNotificationsPlugin.cancel(notification.id);
+            cancelledCount++;
+            debugPrint(
+              '🩺 Cancelled untracked medicine notification ${notification.id}: $notificationTitle',
+            );
+          } catch (e) {
+            debugPrint(
+              '🩺 Error cancelling untracked notification ${notification.id}: $e',
+            );
+          }
+        }
+      }
+
+      debugPrint(
+        '🩺 Cleanup completed: cancelled $cancelledCount orphaned notifications',
+      );
+      debugPrint(
+        '🩺 Removed tracking for ${medicineIdsToRemove.length} deleted medicines',
+      );
+    } catch (e) {
+      debugPrint('🩺 Error during orphaned notification cleanup: $e');
+    }
+  }
+
+  bool _isNotificationTracked(
+    int notificationId,
+    Map<String, List<int>> allTrackedIds,
+  ) {
+    for (final ids in allTrackedIds.values) {
+      if (ids.contains(notificationId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Verify notification cleanup by listing pending medicine notifications
+  /// This is useful for debugging and testing
+  Future<Map<String, dynamic>> getMedicineNotificationStatus() async {
+    try {
+      final pendingNotifications = await _flutterLocalNotificationsPlugin
+          .pendingNotificationRequests();
+
+      final allTrackedIds = await _getAllMedicineNotificationIds();
+
+      final medicineNotifications = pendingNotifications
+          .where(
+            (n) =>
+                (n.title?.contains('Medicine Reminder') ?? false) ||
+                (n.title?.contains('💊') ?? false),
+          )
+          .toList();
+
+      return {
+        'totalPendingNotifications': pendingNotifications.length,
+        'medicineNotifications': medicineNotifications.length,
+        'trackedMedicines': allTrackedIds.keys.length,
+        'totalTrackedNotifications': allTrackedIds.values.fold<int>(
+          0,
+          (sum, list) => sum + list.length,
+        ),
+        'medicineNotificationDetails': medicineNotifications
+            .map((n) => {'id': n.id, 'title': n.title, 'body': n.body})
+            .toList(),
+        'trackedMedicineIds': allTrackedIds.keys.toList(),
+      };
+    } catch (e) {
+      debugPrint('🩺 Error getting notification status: $e');
+      return {'error': e.toString()};
     }
   }
 
@@ -1569,13 +1787,6 @@ class NotificationService {
     // Generate unique ID combining medicine ID and time
     final combined = 'med_${medicineId}_$timeString';
     return combined.hashCode.abs() % 2147483647; // Ensure positive int32
-  }
-
-  bool _isMedicineNotification(int notificationId, String medicineId) {
-    // Check if notification ID was generated for this medicine
-    final medicineHash = medicineId.hashCode.abs();
-    final notificationHash = notificationId.toString();
-    return notificationHash.contains(medicineHash.toString().substring(0, 3));
   }
 
   Future<void> _handleMedicineNotificationAction(

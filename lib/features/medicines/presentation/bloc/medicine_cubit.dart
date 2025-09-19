@@ -57,6 +57,13 @@ class MedicineCubit extends Cubit<MedicineState> {
       (failure) => emit(MedicineError(message: _getFailureMessage(failure))),
       (medicines) async {
         emit(MedicineLoaded(medicines: medicines));
+
+        // Clean up orphaned notifications from deleted medicines
+        final activeMedicineIds = medicines.map((m) => m.id).toList();
+        await notificationService.cleanupOrphanedMedicineNotifications(
+          activeMedicineIds,
+        );
+
         // Schedule notifications for all active medicines
         for (final medicine in medicines) {
           if (medicine.isActive) {
