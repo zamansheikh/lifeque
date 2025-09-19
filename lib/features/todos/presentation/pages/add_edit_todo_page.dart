@@ -110,14 +110,25 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
         elevation: 0,
         foregroundColor: Colors.black87,
         actions: [
-          TextButton(
-            onPressed: _saveTodo,
-            child: Text(
-              'Save',
-              style: TextStyle(
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            child: ElevatedButton(
+              onPressed: _saveTodo,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: const Text(
+                'Save',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
             ),
           ),
