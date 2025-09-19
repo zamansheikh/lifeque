@@ -152,55 +152,77 @@ class _TodoListPageState extends State<TodoListPage> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                PopupMenuButton<TodoCategory?>(
-                  itemBuilder: (context) => [
-                    PopupMenuItem<TodoCategory?>(
-                      value: null,
-                      child: Row(
-                        children: [
-                          Icon(Icons.clear, color: Colors.grey[600]),
-                          const SizedBox(width: 8),
-                          const Text('All Categories'),
-                        ],
-                      ),
-                    ),
-                    ...TodoCategory.values.map(
-                      (category) => PopupMenuItem<TodoCategory?>(
-                        value: category,
-                        child: Row(
+                // Category Filter with Clear Option
+                Row(
+                  children: [
+                    PopupMenuButton<TodoCategory?>(
+                      itemBuilder: (context) => [
+                        PopupMenuItem<TodoCategory?>(
+                          value: null,
+                          child: Row(
+                            children: [
+                              Icon(Icons.clear, color: Colors.grey[600]),
+                              const SizedBox(width: 8),
+                              const Text('All Categories'),
+                            ],
+                          ),
+                        ),
+                        ...TodoCategory.values.map(
+                          (category) => PopupMenuItem<TodoCategory?>(
+                            value: category,
+                            child: Row(
+                              children: [
+                                Icon(category.icon, color: category.color),
+                                const SizedBox(width: 8),
+                                Text(category.displayName),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                      onSelected: _onCategorySelected,
+                      child: Chip(
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(category.icon, color: category.color),
-                            const SizedBox(width: 8),
-                            Text(category.displayName),
+                            Icon(
+                              _selectedCategory?.icon ?? Icons.category_outlined,
+                              size: 16,
+                              color: _selectedCategory?.color ?? Colors.grey[600],
+                            ),
+                            const SizedBox(width: 4),
+                            Text(_selectedCategory?.displayName ?? 'All Categories'),
+                            const Icon(Icons.arrow_drop_down, size: 16),
                           ],
                         ),
+                        backgroundColor: _selectedCategory != null
+                            ? _selectedCategory!.color.withValues(alpha: 0.2)
+                            : Colors.white,
+                        side: BorderSide(
+                          color: _selectedCategory?.color ?? Colors.grey.withValues(alpha: 0.3),
+                        ),
                       ),
                     ),
-                  ],
-                  onSelected: _onCategorySelected,
-                  child: Chip(
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _selectedCategory?.icon ?? Icons.category_outlined,
-                          size: 16,
-                          color: _selectedCategory?.color ?? Colors.grey[600],
+                    // Clear Filter Button (only show when category is selected)
+                    if (_selectedCategory != null) ...[
+                      const SizedBox(width: 4),
+                      GestureDetector(
+                        onTap: () => _onCategorySelected(null),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: 16,
+                            color: Colors.grey[600],
+                          ),
                         ),
-                        const SizedBox(width: 4),
-                        Text(_selectedCategory?.displayName ?? 'Category'),
-                        const Icon(Icons.arrow_drop_down, size: 16),
-                      ],
-                    ),
-                    backgroundColor: _selectedCategory != null
-                        ? _selectedCategory!.color.withValues(alpha: 0.2)
-                        : Colors.white,
-                    side: BorderSide(
-                      color:
-                          _selectedCategory?.color ??
-                          Colors.grey.withValues(alpha: 0.3),
-                    ),
-                  ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
