@@ -115,10 +115,10 @@ class TraditionalTaskDetail extends StatelessWidget {
                   ),
                 ],
               ),
-              if (task.description.isNotEmpty) ...[
+              if (task.description != null && task.description!.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(
-                  task.description,
+                  task.description!,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade700,

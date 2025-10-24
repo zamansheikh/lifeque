@@ -24,7 +24,7 @@ class _TaskListPageState extends State<TaskListPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
     _checkForUpdatesInBackground();
   }
 
@@ -145,8 +145,8 @@ class _TaskListPageState extends State<TaskListPage>
                   fontSize: 14,
                 ),
                 tabs: const [
-                  Tab(text: 'All Tasks'),
                   Tab(text: 'Active'),
+                  Tab(text: 'All Tasks'),
                   Tab(text: 'Completed'),
                 ],
                 dividerHeight: 0,
@@ -158,8 +158,8 @@ class _TaskListPageState extends State<TaskListPage>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildTaskList(),
                   _buildActiveTaskList(),
+                  _buildTaskList(),
                   _buildCompletedTaskList(),
                 ],
               ),
@@ -205,6 +205,105 @@ class _TaskListPageState extends State<TaskListPage>
           return const Center(child: CircularProgressIndicator());
         } else if (state is TaskLoaded) {
           if (state.tasks.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.task_alt_rounded,
+                      size: 48,
+                      color: Colors.blue.shade400,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'No tasks yet',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tap the + button to create your first task',
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Sort tasks by end date
+          final sortedTasks = List.from(state.tasks);
+          sortedTasks.sort((a, b) => a.endDate.compareTo(b.endDate));
+
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            itemCount: sortedTasks.length,
+            itemBuilder: (context, index) {
+              final task = sortedTasks[index];
+              return TaskCardFactory.createCard(
+                task: task,
+                onTap: () {
+                  context.push('/task-detail/${task.id}');
+                },
+                onToggleComplete: () {
+                  context.read<TaskBloc>().add(ToggleTaskCompletion(task.id));
+                },
+                onEdit: () {
+                  context.push('/edit-task/${task.id}');
+                },
+                onDelete: () {
+                  _showDeleteConfirmation(context, task.id, task.title);
+                },
+              );
+            },
+          );
+        } else if (state is TaskError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'Error: ${state.message}',
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<TaskBloc>().add(LoadTasks());
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _buildActiveTaskList() {
+    return BlocBuilder<TaskBloc, TaskState>(
+      builder: (context, state) {
+        if (state is TaskLoaded) {
+          final activeTasks = state.tasks
+              .where((task) => task.isActive)
+              .toList();
+
+          if (activeTasks.isEmpty) {
             return SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -362,105 +461,6 @@ class _TaskListPageState extends State<TaskListPage>
                   ),
 
                   const SizedBox(height: 60),
-                ],
-              ),
-            );
-          }
-
-          // Sort tasks by end date
-          final sortedTasks = List.from(state.tasks);
-          sortedTasks.sort((a, b) => a.endDate.compareTo(b.endDate));
-
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            itemCount: sortedTasks.length,
-            itemBuilder: (context, index) {
-              final task = sortedTasks[index];
-              return TaskCardFactory.createCard(
-                task: task,
-                onTap: () {
-                  context.push('/task-detail/${task.id}');
-                },
-                onToggleComplete: () {
-                  context.read<TaskBloc>().add(ToggleTaskCompletion(task.id));
-                },
-                onEdit: () {
-                  context.push('/edit-task/${task.id}');
-                },
-                onDelete: () {
-                  _showDeleteConfirmation(context, task.id, task.title);
-                },
-              );
-            },
-          );
-        } else if (state is TaskError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
-                Text(
-                  'Error: ${state.message}',
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<TaskBloc>().add(LoadTasks());
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      },
-    );
-  }
-
-  Widget _buildActiveTaskList() {
-    return BlocBuilder<TaskBloc, TaskState>(
-      builder: (context, state) {
-        if (state is TaskLoaded) {
-          final activeTasks = state.tasks
-              .where((task) => task.isActive)
-              .toList();
-
-          if (activeTasks.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.pending_actions_rounded,
-                      size: 48,
-                      color: Colors.orange.shade400,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'No active tasks!',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade700,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'All caught up! Time for a break.',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-                  ),
                 ],
               ),
             );

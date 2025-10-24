@@ -137,10 +137,10 @@ class ReminderTaskDetail extends StatelessWidget {
                   ),
                 ],
               ),
-              if (task.description.isNotEmpty) ...[
+              if (task.description != null && task.description!.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text(
-                  task.description,
+                  task.description!,
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey.shade700,

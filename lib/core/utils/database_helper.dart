@@ -4,7 +4,7 @@ import '../../../../core/error/exceptions.dart' as app_exceptions;
 
 class DatabaseHelper {
   static const String _databaseName = 'remind_me.db';
-  static const int _databaseVersion = 6; // Increased for birthday notifications
+  static const int _databaseVersion = 7; // Increased for nullable description
 
   // Public getter for database version
   static int get databaseVersion => _databaseVersion;
@@ -85,7 +85,7 @@ class DatabaseHelper {
         CREATE TABLE $tableTask (
           $columnId TEXT PRIMARY KEY,
           $columnTitle TEXT NOT NULL,
-          $columnDescription TEXT NOT NULL,
+          $columnDescription TEXT,
           $columnTaskType INTEGER NOT NULL DEFAULT 0,
           $columnStartDate INTEGER NOT NULL,
           $columnEndDate INTEGER NOT NULL,
@@ -220,6 +220,45 @@ class DatabaseHelper {
       await db.execute('''
         ALTER TABLE $tableTask ADD COLUMN $columnBirthdayNotificationSchedule TEXT
       ''');
+    }
+    if (oldVersion < 7) {
+      // Make description column nullable
+      // SQLite doesn't support ALTER COLUMN, so we need to recreate the table
+
+      // 1. Create new table with nullable description
+      await db.execute('''
+        CREATE TABLE ${tableTask}_new (
+          $columnId TEXT PRIMARY KEY,
+          $columnTitle TEXT NOT NULL,
+          $columnDescription TEXT,
+          $columnTaskType INTEGER NOT NULL DEFAULT 0,
+          $columnStartDate INTEGER NOT NULL,
+          $columnEndDate INTEGER NOT NULL,
+          $columnIsCompleted INTEGER NOT NULL DEFAULT 0,
+          $columnIsNotificationEnabled INTEGER NOT NULL DEFAULT 1,
+          $columnNotificationType INTEGER NOT NULL DEFAULT 0,
+          $columnNotificationTime INTEGER,
+          $columnDailyNotificationHour INTEGER,
+          $columnDailyNotificationMinute INTEGER,
+          $columnBeforeEndOption INTEGER,
+          $columnIsPinnedToNotification INTEGER NOT NULL DEFAULT 0,
+          $columnBirthdayNotificationSchedule TEXT,
+          $columnCreatedAt INTEGER NOT NULL,
+          $columnUpdatedAt INTEGER
+        )
+      ''');
+
+      // 2. Copy data from old table to new table
+      await db.execute('''
+        INSERT INTO ${tableTask}_new 
+        SELECT * FROM $tableTask
+      ''');
+
+      // 3. Drop old table
+      await db.execute('DROP TABLE $tableTask');
+
+      // 4. Rename new table to original name
+      await db.execute('ALTER TABLE ${tableTask}_new RENAME TO $tableTask');
     }
   }
 

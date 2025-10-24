@@ -77,7 +77,7 @@ extension BirthdayNotificationOptionExtension on BirthdayNotificationOption {
 class Task extends Equatable {
   final String id;
   final String title;
-  final String description;
+  final String? description;
   final TaskType taskType;
   final DateTime startDate;
   final DateTime endDate;
@@ -96,7 +96,7 @@ class Task extends Equatable {
   const Task({
     required this.id,
     required this.title,
-    required this.description,
+    this.description,
     this.taskType = TaskType.task,
     required this.startDate,
     required this.endDate,

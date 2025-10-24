@@ -26,10 +26,11 @@ class _ReminderTaskCardState extends BaseTaskCardState<ReminderTaskCard> {
           buildHeader(),
 
           // Description
-          if (widget.task.description.isNotEmpty) ...[
+          if (widget.task.description != null &&
+              widget.task.description!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              widget.task.description,
+              widget.task.description!,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey.shade600,

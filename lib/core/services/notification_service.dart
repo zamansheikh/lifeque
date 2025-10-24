@@ -761,8 +761,9 @@ class NotificationService {
       // Only schedule if the notification time is in the future
       if (scheduledDate.isAfter(now)) {
         String notificationTitle = 'Task Reminder: ${task.title}';
-        String notificationBody = task.description.isNotEmpty
-            ? task.description
+        String notificationBody =
+            (task.description != null && task.description!.isNotEmpty)
+            ? task.description!
             : 'You have a task to complete';
 
         // Customize notification content based on notification type

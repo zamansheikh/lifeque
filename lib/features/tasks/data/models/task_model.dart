@@ -6,7 +6,7 @@ class TaskModel extends Task {
   const TaskModel({
     required super.id,
     required super.title,
-    required super.description,
+    super.description,
     super.taskType,
     required super.startDate,
     required super.endDate,
@@ -26,7 +26,7 @@ class TaskModel extends Task {
     return TaskModel(
       id: json['id'] as String,
       title: json['title'] as String,
-      description: json['description'] as String,
+      description: json['description'] as String?,
       taskType: json['taskType'] != null
           ? TaskType.values.firstWhere(
               (e) => e.toString() == json['taskType'],

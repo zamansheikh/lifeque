@@ -53,7 +53,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       );
 
       _titleController.text = _existingTask!.title;
-      _descriptionController.text = _existingTask!.description;
+      _descriptionController.text = _existingTask!.description ?? '';
       _taskType = _existingTask!.taskType;
       _startDate = _existingTask!.startDate;
       _endDate = _existingTask!.endDate;
@@ -179,7 +179,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                 TextFormField(
                   controller: _descriptionController,
                   decoration: InputDecoration(
-                    labelText: 'Description',
+                    labelText: 'Description (Optional)',
                     hintText: 'Add more details about this task...',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -198,12 +198,6 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                     contentPadding: const EdgeInsets.all(16),
                   ),
                   maxLines: 2,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a description';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 24),
 
@@ -1510,7 +1504,9 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       final task = Task(
         id: _isEditing ? _existingTask!.id : const Uuid().v4(),
         title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
+        description: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
         taskType: _taskType,
         startDate: startDate,
         endDate: endDate,

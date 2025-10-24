@@ -229,10 +229,11 @@ class _TaskCardState extends State<TaskCard> {
                 ),
 
                 // Description
-                if (widget.task.description.isNotEmpty) ...[
+                if (widget.task.description != null &&
+                    widget.task.description!.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Text(
-                    widget.task.description,
+                    widget.task.description!,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade600,
