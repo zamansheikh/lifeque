@@ -28,6 +28,8 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
   TimeOfDay? _dailyNotificationTime;
   BeforeEndOption? _beforeEndOption;
   bool _isPinnedToNotification = false;
+  PinNotificationTiming _pinNotificationTiming =
+      PinNotificationTiming.beforeNotification;
   List<BirthdayNotificationOption> _birthdayNotificationSchedule = [
     BirthdayNotificationOption.oneDayBefore,
     BirthdayNotificationOption.exactTime,
@@ -63,6 +65,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       _dailyNotificationTime = _existingTask!.dailyNotificationTime;
       _beforeEndOption = _existingTask!.beforeEndOption;
       _isPinnedToNotification = _existingTask!.isPinnedToNotification;
+      _pinNotificationTiming = _existingTask!.pinNotificationTiming;
       _birthdayNotificationSchedule =
           _existingTask!.birthdayNotificationSchedule;
     }
@@ -1215,6 +1218,118 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                   ),
                 ),
 
+                // Pin timing selection - only shown when pin is enabled
+                if (_isPinnedToNotification) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(
+                                Icons.schedule_rounded,
+                                color: Colors.purple,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Pin Timing',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        ...PinNotificationTiming.values.map((timing) {
+                          final isSelected = _pinNotificationTiming == timing;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _pinNotificationTiming = timing;
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? Colors.purple.withValues(alpha: 0.1)
+                                      : Colors.grey.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? Colors.purple
+                                        : Colors.grey.shade300,
+                                    width: isSelected ? 2 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      isSelected
+                                          ? Icons.radio_button_checked
+                                          : Icons.radio_button_unchecked,
+                                      color: isSelected
+                                          ? Colors.purple
+                                          : Colors.grey.shade400,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            timing.displayName,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                              color: isSelected
+                                                  ? Colors.purple
+                                                  : Colors.grey.shade800,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            timing.description,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 24),
 
                 // Save button
@@ -1519,6 +1634,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
             : null,
         beforeEndOption: _beforeEndOption,
         isPinnedToNotification: _isPinnedToNotification,
+        pinNotificationTiming: _pinNotificationTiming,
         birthdayNotificationSchedule: _taskType == TaskType.birthday
             ? _birthdayNotificationSchedule
             : [],

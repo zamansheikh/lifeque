@@ -74,6 +74,31 @@ extension BirthdayNotificationOptionExtension on BirthdayNotificationOption {
   }
 }
 
+enum PinNotificationTiming {
+  beforeNotification, // Pin before notification is shown (current behavior)
+  afterNotification, // Pin after notification is shown
+}
+
+extension PinNotificationTimingExtension on PinNotificationTiming {
+  String get displayName {
+    switch (this) {
+      case PinNotificationTiming.beforeNotification:
+        return 'Pin Before Notification';
+      case PinNotificationTiming.afterNotification:
+        return 'Pin After Notification';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case PinNotificationTiming.beforeNotification:
+        return 'Keep pinned until notification time';
+      case PinNotificationTiming.afterNotification:
+        return 'Pin after notification is shown';
+    }
+  }
+}
+
 class Task extends Equatable {
   final String id;
   final String title;
@@ -88,6 +113,7 @@ class Task extends Equatable {
   final TimeOfDay? dailyNotificationTime; // For daily type
   final BeforeEndOption? beforeEndOption; // For beforeEnd type
   final bool isPinnedToNotification;
+  final PinNotificationTiming pinNotificationTiming;
   final List<BirthdayNotificationOption>
   birthdayNotificationSchedule; // For birthday multiple notifications
   final DateTime createdAt;
@@ -107,6 +133,7 @@ class Task extends Equatable {
     this.dailyNotificationTime,
     this.beforeEndOption,
     this.isPinnedToNotification = false,
+    this.pinNotificationTiming = PinNotificationTiming.beforeNotification,
     this.birthdayNotificationSchedule = const [],
     required this.createdAt,
     this.updatedAt,
@@ -213,6 +240,7 @@ class Task extends Equatable {
     TimeOfDay? dailyNotificationTime,
     BeforeEndOption? beforeEndOption,
     bool? isPinnedToNotification,
+    PinNotificationTiming? pinNotificationTiming,
     List<BirthdayNotificationOption>? birthdayNotificationSchedule,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -234,6 +262,8 @@ class Task extends Equatable {
       beforeEndOption: beforeEndOption ?? this.beforeEndOption,
       isPinnedToNotification:
           isPinnedToNotification ?? this.isPinnedToNotification,
+      pinNotificationTiming:
+          pinNotificationTiming ?? this.pinNotificationTiming,
       birthdayNotificationSchedule:
           birthdayNotificationSchedule ?? this.birthdayNotificationSchedule,
       createdAt: createdAt ?? this.createdAt,
@@ -256,6 +286,7 @@ class Task extends Equatable {
     dailyNotificationTime,
     beforeEndOption,
     isPinnedToNotification,
+    pinNotificationTiming,
     birthdayNotificationSchedule,
     createdAt,
     updatedAt,

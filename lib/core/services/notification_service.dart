@@ -850,8 +850,12 @@ class NotificationService {
     }
 
     // If task is pinned to notification, create a persistent notification
+    // Only show before notification if pinNotificationTiming is beforeNotification
     if (task.isPinnedToNotification && task.isActive && !task.isCompleted) {
-      await _showPersistentNotification(task);
+      if (task.pinNotificationTiming ==
+          PinNotificationTiming.beforeNotification) {
+        await _showPersistentNotification(task);
+      }
     }
   }
 
@@ -926,7 +930,10 @@ class NotificationService {
     }
   }
 
-  Future<void> _showPersistentNotification(Task task) async {
+  Future<void> _showPersistentNotification(
+    Task task, {
+    Duration? duration,
+  }) async {
     String title;
     String content;
     Color notificationColor;
@@ -1035,7 +1042,7 @@ class NotificationService {
               : 0,
           category: AndroidNotificationCategory.progress,
           visibility: NotificationVisibility.public,
-          timeoutAfter: null,
+          timeoutAfter: duration?.inMilliseconds,
           color: notificationColor,
           icon: '@mipmap/ic_launcher',
           // Use a custom style to make it more prominent
@@ -1197,8 +1204,29 @@ class NotificationService {
   // Refresh all persistent notifications based on current active tasks
   Future<void> _refreshPersistentNotifications() async {
     for (final task in _activeTasks) {
+      // Check if we should show persistent notification
       if (task.isPinnedToNotification && task.isActive && !task.isCompleted) {
-        await _showPersistentNotification(task);
+        // For beforeNotification: show immediately
+        if (task.pinNotificationTiming ==
+            PinNotificationTiming.beforeNotification) {
+          await _showPersistentNotification(task);
+        }
+        // For afterNotification: only show if scheduled time has passed
+        else if (task.pinNotificationTiming ==
+            PinNotificationTiming.afterNotification) {
+          final scheduledTime = task.getScheduledNotificationTime();
+          if (scheduledTime != null) {
+            final now = DateTime.now();
+            // Show persistent notification if scheduled time has passed (within last 12 hours)
+            if (now.isAfter(scheduledTime) &&
+                now.difference(scheduledTime).inHours < 12) {
+              await _showPersistentNotification(
+                task,
+                duration: const Duration(hours: 12),
+              );
+            }
+          }
+        }
       }
     }
   }

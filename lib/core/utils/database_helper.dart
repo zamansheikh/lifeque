@@ -4,7 +4,8 @@ import '../../../../core/error/exceptions.dart' as app_exceptions;
 
 class DatabaseHelper {
   static const String _databaseName = 'remind_me.db';
-  static const int _databaseVersion = 7; // Increased for nullable description
+  static const int _databaseVersion =
+      8; // Increased for pin notification timing
 
   // Public getter for database version
   static int get databaseVersion => _databaseVersion;
@@ -28,6 +29,7 @@ class DatabaseHelper {
   static const String columnDailyNotificationMinute = 'dailyNotificationMinute';
   static const String columnBeforeEndOption = 'beforeEndOption';
   static const String columnIsPinnedToNotification = 'isPinnedToNotification';
+  static const String columnPinNotificationTiming = 'pinNotificationTiming';
   static const String columnBirthdayNotificationSchedule =
       'birthdayNotificationSchedule';
   static const String columnCreatedAt = 'createdAt';
@@ -97,6 +99,7 @@ class DatabaseHelper {
           $columnDailyNotificationMinute INTEGER,
           $columnBeforeEndOption INTEGER,
           $columnIsPinnedToNotification INTEGER NOT NULL DEFAULT 0,
+          $columnPinNotificationTiming INTEGER NOT NULL DEFAULT 0,
           $columnBirthdayNotificationSchedule TEXT,
           $columnCreatedAt INTEGER NOT NULL,
           $columnUpdatedAt INTEGER
@@ -259,6 +262,12 @@ class DatabaseHelper {
 
       // 4. Rename new table to original name
       await db.execute('ALTER TABLE ${tableTask}_new RENAME TO $tableTask');
+    }
+    if (oldVersion < 8) {
+      // Add pin notification timing column
+      await db.execute('''
+        ALTER TABLE $tableTask ADD COLUMN $columnPinNotificationTiming INTEGER NOT NULL DEFAULT 0
+      ''');
     }
   }
 

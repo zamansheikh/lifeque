@@ -17,6 +17,7 @@ class TaskModel extends Task {
     super.dailyNotificationTime,
     super.beforeEndOption,
     super.isPinnedToNotification,
+    super.pinNotificationTiming,
     super.birthdayNotificationSchedule,
     required super.createdAt,
     super.updatedAt,
@@ -61,6 +62,12 @@ class TaskModel extends Task {
             )
           : null,
       isPinnedToNotification: json['isPinnedToNotification'] as bool? ?? false,
+      pinNotificationTiming: json['pinNotificationTiming'] != null
+          ? PinNotificationTiming.values.firstWhere(
+              (e) => e.toString() == json['pinNotificationTiming'],
+              orElse: () => PinNotificationTiming.beforeNotification,
+            )
+          : PinNotificationTiming.beforeNotification,
       birthdayNotificationSchedule: json['birthdayNotificationSchedule'] != null
           ? (json['birthdayNotificationSchedule'] as List)
                 .map(
@@ -94,6 +101,7 @@ class TaskModel extends Task {
       'dailyNotificationMinute': dailyNotificationTime?.minute,
       'beforeEndOption': beforeEndOption?.toString(),
       'isPinnedToNotification': isPinnedToNotification,
+      'pinNotificationTiming': pinNotificationTiming.toString(),
       'birthdayNotificationSchedule': birthdayNotificationSchedule
           .map((e) => e.toString())
           .toList(),
@@ -117,6 +125,7 @@ class TaskModel extends Task {
       dailyNotificationTime: task.dailyNotificationTime,
       beforeEndOption: task.beforeEndOption,
       isPinnedToNotification: task.isPinnedToNotification,
+      pinNotificationTiming: task.pinNotificationTiming,
       birthdayNotificationSchedule: task.birthdayNotificationSchedule,
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
@@ -140,6 +149,7 @@ class TaskModel extends Task {
       'dailyNotificationMinute': dailyNotificationTime?.minute,
       'beforeEndOption': beforeEndOption?.index,
       'isPinnedToNotification': isPinnedToNotification ? 1 : 0,
+      'pinNotificationTiming': pinNotificationTiming.index,
       DatabaseHelper.columnBirthdayNotificationSchedule:
           birthdayNotificationSchedule.map((e) => e.index).join(','),
       'createdAt': createdAt.millisecondsSinceEpoch,
@@ -177,6 +187,9 @@ class TaskModel extends Task {
           ? BeforeEndOption.values[map['beforeEndOption']]
           : null,
       isPinnedToNotification: map['isPinnedToNotification'] == 1,
+      pinNotificationTiming: map['pinNotificationTiming'] != null
+          ? PinNotificationTiming.values[map['pinNotificationTiming']]
+          : PinNotificationTiming.beforeNotification,
       birthdayNotificationSchedule:
           map[DatabaseHelper.columnBirthdayNotificationSchedule] != null &&
               map[DatabaseHelper.columnBirthdayNotificationSchedule]
@@ -210,6 +223,7 @@ class TaskModel extends Task {
     TimeOfDay? dailyNotificationTime,
     BeforeEndOption? beforeEndOption,
     bool? isPinnedToNotification,
+    PinNotificationTiming? pinNotificationTiming,
     List<BirthdayNotificationOption>? birthdayNotificationSchedule,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -231,6 +245,8 @@ class TaskModel extends Task {
       beforeEndOption: beforeEndOption ?? this.beforeEndOption,
       isPinnedToNotification:
           isPinnedToNotification ?? this.isPinnedToNotification,
+      pinNotificationTiming:
+          pinNotificationTiming ?? this.pinNotificationTiming,
       birthdayNotificationSchedule:
           birthdayNotificationSchedule ?? this.birthdayNotificationSchedule,
       createdAt: createdAt ?? this.createdAt,

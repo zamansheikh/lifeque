@@ -59,6 +59,8 @@ class _SplashScreenState extends State<SplashScreen>
       );
       // Reset the flag after use
       NotificationService.setAppLaunchedByNotification(false);
+      // Wait for the build to complete before navigating
+      await Future.delayed(const Duration(milliseconds: 100));
       // Navigate immediately to home without permission checks
       if (mounted) {
         context.go('/');
