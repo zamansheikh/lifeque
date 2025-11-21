@@ -336,6 +336,11 @@ class Task extends Equatable {
 
   // Helper method to get the actual notification DateTime based on type
   DateTime? getScheduledNotificationTime() {
+    // For reminders, the notification time is the endDate (reminder time)
+    if (taskType == TaskType.reminder) {
+      return endDate;
+    }
+
     switch (notificationType) {
       case NotificationType.specificTime:
         return notificationTime;
