@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 import '../../features/tasks/domain/entities/task.dart';
 import '../../features/tasks/presentation/bloc/task_bloc.dart';
 import '../../features/medicines/presentation/bloc/medicine_cubit.dart';
@@ -770,26 +771,31 @@ class NotificationService {
 
       // Only schedule if the notification time is in the future
       if (scheduledDate.isAfter(now)) {
-        String notificationTitle = 'Task Reminder: ${task.title}';
-        String notificationBody =
-            (task.description != null && task.description!.isNotEmpty)
-            ? task.description!
-            : 'You have a task to complete';
+        String notificationTitle;
+        String notificationBody;
 
-        // Customize notification content based on notification type
-        switch (task.notificationType) {
-          case NotificationType.daily:
-            notificationTitle = 'Daily Reminder: ${task.title}';
-            notificationBody = 'Your daily task reminder';
-            break;
-          case NotificationType.beforeEnd:
-            final timeBeforeEnd = task.beforeEndOption?.displayName ?? '';
-            notificationTitle = 'Task Due Soon: ${task.title}';
-            notificationBody = 'Task ends in $timeBeforeEnd';
-            break;
-          case NotificationType.specificTime:
-            // Use default title and body
-            break;
+        // Generate context-aware content based on task type
+        if (task.taskType == TaskType.reminder) {
+          notificationTitle = '⏰ Reminder: ${task.title}';
+          notificationBody = _getReminderNotificationBody(task);
+        } else {
+          // Regular task
+          notificationTitle = '📋 Task Reminder: ${task.title}';
+          notificationBody = _getTaskNotificationBody(task);
+
+          // Customize based on notification type
+          switch (task.notificationType) {
+            case NotificationType.daily:
+              notificationTitle = '📋 Daily Reminder: ${task.title}';
+              break;
+            case NotificationType.beforeEnd:
+              notificationTitle = '⚠️ Task Due Soon: ${task.title}';
+              // Body already has deadline info from helper
+              break;
+            case NotificationType.specificTime:
+              // Use default title
+              break;
+          }
         }
 
         DateTimeComponents? dateTimeComponents;
@@ -1846,6 +1852,8 @@ class NotificationService {
   }
 
   NotificationDetails _getMedicineNotificationDetails(dynamic medicine) {
+    final medicineBody = _getMedicineNotificationBody(medicine);
+
     return NotificationDetails(
       android: AndroidNotificationDetails(
         'medicine_reminders',
@@ -1863,9 +1871,9 @@ class NotificationService {
         visibility: NotificationVisibility.public,
         category: AndroidNotificationCategory.reminder,
         styleInformation: BigTextStyleInformation(
-          'Don\'t forget to take your ${medicine.name}. Dosage: ${medicine.dosage} ${medicine.dosageUnit}',
+          medicineBody,
           htmlFormatBigText: false,
-          contentTitle: '💊 Medicine Reminder',
+          contentTitle: '💊 ${medicine.name}',
           htmlFormatContentTitle: false,
         ),
         actions: [
@@ -2304,5 +2312,113 @@ class NotificationService {
     } catch (e) {
       debugPrint('❌ Error scheduling all medicine notifications: $e');
     }
+  }
+
+  /// Helper method to format duration in a human-readable way
+  String _formatDuration(Duration duration) {
+    if (duration.inDays > 0) {
+      return '${duration.inDays}d ${duration.inHours % 24}h';
+    } else if (duration.inHours > 0) {
+      return '${duration.inHours}h ${duration.inMinutes % 60}m';
+    } else if (duration.inMinutes > 0) {
+      return '${duration.inMinutes}m';
+    } else {
+      return '${duration.inSeconds}s';
+    }
+  }
+
+  /// Generate context-aware notification body for tasks
+  String _getTaskNotificationBody(Task task) {
+    final parts = <String>[];
+
+    // Add deadline info
+    final timeLeft = task.endDate.difference(DateTime.now());
+    if (timeLeft.inHours < 24 && timeLeft.inHours > 0) {
+      parts.add('Due in ${_formatDuration(timeLeft)}');
+    } else if (timeLeft.inMinutes < 60 && timeLeft.inMinutes > 0) {
+      parts.add('⚠️ Due in ${timeLeft.inMinutes}m');
+    } else if (timeLeft.isNegative) {
+      parts.add('⚠️ Overdue');
+    } else {
+      parts.add(
+        'Deadline: ${DateFormat('MMM dd, h:mm a').format(task.endDate)}',
+      );
+    }
+
+    // Add progress if available
+    if (task.progressPercentage > 0) {
+      parts.add('${(task.progressPercentage * 100).toInt()}% complete');
+    }
+
+    String body = parts.join(' • ');
+
+    // Add description
+    if (task.description != null && task.description!.isNotEmpty) {
+      body += '\n\n${task.description}';
+    }
+
+    return body;
+  }
+
+  /// Generate context-aware notification body for reminders
+  String _getReminderNotificationBody(Task task) {
+    final parts = <String>[];
+
+    // Add urgency indicator
+    final timeUntil = task.endDate.difference(DateTime.now());
+    if (timeUntil.inHours < 1 && timeUntil.inMinutes > 0) {
+      parts.add('⚠️ Urgent');
+    }
+
+    // Add scheduled time
+    parts.add('Scheduled for ${DateFormat('h:mm a').format(task.endDate)}');
+
+    String body = parts.join(' • ');
+
+    // Add description
+    if (task.description != null && task.description!.isNotEmpty) {
+      body += '\n\n${task.description}';
+    }
+
+    return body;
+  }
+
+  /// Generate context-aware notification body for medicines
+  String _getMedicineNotificationBody(dynamic medicine) {
+    final parts = <String>[];
+
+    // Add dosage info if available
+    try {
+      if (medicine.dosage != null && medicine.dosage.toString().isNotEmpty) {
+        parts.add('Take ${medicine.dosage}');
+      }
+    } catch (e) {
+      // Dosage field might not exist
+    }
+
+    // Add timing instruction if available
+    try {
+      if (medicine.timing != null && medicine.timing.toString().isNotEmpty) {
+        parts.add(medicine.timing.toString());
+      }
+    } catch (e) {
+      // Timing field might not exist
+    }
+
+    String body = parts.isNotEmpty
+        ? parts.join(' • ')
+        : 'Time to take your medicine';
+
+    // Add dosage amount if available
+    try {
+      if (medicine.dosageAmount != null &&
+          medicine.dosageAmount.toString().isNotEmpty) {
+        body += '\nDosage: ${medicine.dosageAmount}';
+      }
+    } catch (e) {
+      // Dosage amount field might not exist
+    }
+
+    return body;
   }
 }
