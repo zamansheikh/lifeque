@@ -10,6 +10,9 @@ import '../../features/tasks/presentation/bloc/task_bloc.dart';
 import '../../features/medicines/presentation/bloc/medicine_cubit.dart';
 import '../../features/medicines/domain/usecases/manage_doses.dart';
 import '../../core/usecases/usecase.dart';
+import '../../features/medicines/domain/repositories/medicine_repository.dart';
+import '../../features/tasks/domain/repositories/task_repository.dart';
+import 'package:dartz/dartz.dart' hide Task;
 import 'navigation_service.dart';
 import '../../injection_container.dart' as di;
 
@@ -278,20 +281,27 @@ class NotificationService {
             task = currentState.tasks.firstWhere((t) => t.id == taskId);
             debugPrint('🔔 Found task in bloc state: ${task.title}');
           } catch (e2) {
-            debugPrint('🔔 ❌ Task $taskId not found anywhere');
+            debugPrint('🔔 ❌ Task $taskId not found anywhere - likely deleted');
+            // Cancel the notification since the task doesn't exist
+            await cancelNotificationById(taskId);
+
             await _showActionFeedbackNotification(
-              '❌ Task Not Found',
-              'Task could not be found',
-              const Color(0xFFF44336), // Red
+              'ℹ️ Task Deleted',
+              'This task no longer exists',
+              const Color(0xFF9E9E9E), // Grey
             );
             return;
           }
         } else {
           debugPrint('🔔 ❌ TaskBloc not in loaded state: $currentState');
+          // If we can't find it and bloc is not loaded, it might be deleted or just not loaded yet.
+          // But since we force reloaded above, if it's not there, it's likely gone.
+          await cancelNotificationById(taskId);
+
           await _showActionFeedbackNotification(
-            '❌ Task Error',
-            'Tasks not loaded',
-            const Color(0xFFF44336), // Red
+            'ℹ️ Task Unavailable',
+            'Task could not be found',
+            const Color(0xFF9E9E9E), // Grey
           );
           return;
         }
@@ -1144,6 +1154,19 @@ class NotificationService {
     await _flutterLocalNotificationsPlugin.cancel(task.id.hashCode + 10000);
   }
 
+  /// Cancel notification by ID only (useful when task object is not available)
+  Future<void> cancelNotificationById(String taskId) async {
+    debugPrint('🔔 Cancelling notification for task ID: $taskId');
+    // Cancel main notification
+    await _flutterLocalNotificationsPlugin.cancel(taskId.hashCode);
+    // Cancel persistent notification
+    await _flutterLocalNotificationsPlugin.cancel(taskId.hashCode + 10000);
+
+    // We can't easily cancel birthday notifications without knowing the schedule length,
+    // but we can try to cancel a reasonable range if needed, or just rely on sync.
+    // For now, main and persistent are the most important.
+  }
+
   Future<void> startRealTimeUpdates(List<Task> tasks) async {
     _progressUpdateTimer?.cancel();
     _activeTasks = tasks;
@@ -1155,11 +1178,44 @@ class NotificationService {
       // Create fresh task instances with updated progress calculations
       for (final task in _activeTasks) {
         if (task.isPinnedToNotification && task.isActive && !task.isCompleted) {
-          // Ensure notification exists, recreate if dismissed
-          await _ensureNotificationExists(task);
-          // Create a fresh task instance with current time for accurate progress
-          final freshTask = task.copyWith();
-          await _showPersistentNotification(freshTask);
+          bool shouldShow = false;
+          final scheduledTime = task.getScheduledNotificationTime();
+
+          // Use timezone aware current time for comparison if scheduledTime is timezone aware
+          // But getScheduledNotificationTime returns DateTime (which might be TZDateTime)
+          // Let's use standard DateTime.now() for comparison as getScheduledNotificationTime returns DateTime
+          final now = DateTime.now();
+
+          if (task.pinNotificationTiming ==
+              PinNotificationTiming.beforeNotification) {
+            // Show only if before scheduled time
+            if (scheduledTime != null && now.isBefore(scheduledTime)) {
+              shouldShow = true;
+            } else if (scheduledTime == null) {
+              // If no scheduled time, show always (fallback)
+              shouldShow = true;
+            }
+          } else if (task.pinNotificationTiming ==
+              PinNotificationTiming.afterNotification) {
+            // Show only if after scheduled time (and within 12 hours)
+            if (scheduledTime != null &&
+                now.isAfter(scheduledTime) &&
+                now.difference(scheduledTime).inHours < 12) {
+              shouldShow = true;
+            }
+          }
+
+          if (shouldShow) {
+            // Ensure notification exists, recreate if dismissed
+            await _ensureNotificationExists(task);
+            // Create a fresh task instance with current time for accurate progress
+            final freshTask = task.copyWith();
+            await _showPersistentNotification(freshTask);
+          } else {
+            // Ensure it's cancelled if it shouldn't be shown
+            // This handles the "vanish" requirement for beforeNotification
+            await cancelPersistentNotification(task);
+          }
         }
       }
     });
@@ -1189,16 +1245,44 @@ class NotificationService {
     }
   }
 
-  void updateActiveTasks(List<Task> tasks) {
+  Future<void> updateActiveTasks(List<Task> tasks) async {
     debugPrint('🔔 📝 updateActiveTasks called with ${tasks.length} tasks');
-    for (final task in tasks) {
-      debugPrint(
-        '🔔 📝 Task: ${task.id} - ${task.title} (${task.taskType}) - Active: ${task.isActive}, Completed: ${task.isCompleted}, Pinned: ${task.isPinnedToNotification}',
-      );
-    }
     _activeTasks = tasks;
-    // Also update any existing persistent notifications to reflect current state
-    _refreshPersistentNotifications();
+
+    // 1. Garbage collect: Cancel notifications for tasks that are no longer active
+    // This ensures robust sync whenever the task list changes
+    try {
+      final activeTaskIds = tasks.map((t) => t.id).toSet();
+
+      // Check active (showing) notifications
+      final activeNotifications = await _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.getActiveNotifications();
+
+      if (activeNotifications != null) {
+        for (final notification in activeNotifications) {
+          final payload = notification.payload;
+          // Only check task notifications (exclude medicines which start with medicine_)
+          if (payload != null && !payload.startsWith('medicine_')) {
+            if (!activeTaskIds.contains(payload)) {
+              debugPrint(
+                '🔔 🗑️ Auto-sync: Cancelling orphan task notification: $payload',
+              );
+              if (notification.id != null) {
+                await _flutterLocalNotificationsPlugin.cancel(notification.id!);
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('🔔 ⚠️ Error during auto-sync garbage collection: $e');
+    }
+
+    // 2. Update existing persistent notifications
+    await _refreshPersistentNotifications();
   }
 
   // Refresh all persistent notifications based on current active tasks
@@ -1206,26 +1290,32 @@ class NotificationService {
     for (final task in _activeTasks) {
       // Check if we should show persistent notification
       if (task.isPinnedToNotification && task.isActive && !task.isCompleted) {
-        // For beforeNotification: show immediately
+        bool shouldShow = false;
+        final scheduledTime = task.getScheduledNotificationTime();
+        final now = DateTime.now();
+
         if (task.pinNotificationTiming ==
             PinNotificationTiming.beforeNotification) {
-          await _showPersistentNotification(task);
-        }
-        // For afterNotification: only show if scheduled time has passed
-        else if (task.pinNotificationTiming ==
-            PinNotificationTiming.afterNotification) {
-          final scheduledTime = task.getScheduledNotificationTime();
-          if (scheduledTime != null) {
-            final now = DateTime.now();
-            // Show persistent notification if scheduled time has passed (within last 12 hours)
-            if (now.isAfter(scheduledTime) &&
-                now.difference(scheduledTime).inHours < 12) {
-              await _showPersistentNotification(
-                task,
-                duration: const Duration(hours: 12),
-              );
-            }
+          // Show only if before scheduled time
+          if (scheduledTime != null && now.isBefore(scheduledTime)) {
+            shouldShow = true;
+          } else if (scheduledTime == null) {
+            shouldShow = true;
           }
+        } else if (task.pinNotificationTiming ==
+            PinNotificationTiming.afterNotification) {
+          // Show only if after scheduled time (and within 12 hours)
+          if (scheduledTime != null &&
+              now.isAfter(scheduledTime) &&
+              now.difference(scheduledTime).inHours < 12) {
+            shouldShow = true;
+          }
+        }
+
+        if (shouldShow) {
+          await _showPersistentNotification(task);
+        } else {
+          await cancelPersistentNotification(task);
         }
       }
     }
@@ -1509,6 +1599,158 @@ class NotificationService {
   }
 
   // Medicine notification methods
+
+  /// Synchronizes notifications with the current database state.
+  /// This handles:
+  /// 1. Cancelling "orphan" notifications (e.g. if data was cleared but notifications remain).
+  /// 2. Rescheduling notifications for all active medicines and tasks to ensure consistency.
+  Future<void> syncNotifications(
+    MedicineRepository medicineRepository,
+    TaskRepository taskRepository,
+  ) async {
+    debugPrint('🔔 🔄 Starting notification synchronization...');
+
+    try {
+      // 1. Get all pending notifications from the system
+      final pendingNotifications = await _flutterLocalNotificationsPlugin
+          .pendingNotificationRequests();
+      debugPrint(
+        '🔔 📋 Found ${pendingNotifications.length} pending notifications in system',
+      );
+
+      // 2. Get all active medicines and tasks
+      final medicineResult = await medicineRepository.getActiveMedicines();
+      final taskResult = await taskRepository.getActiveTasks();
+
+      await medicineResult.fold(
+        (failure) async =>
+            debugPrint('🔔 ❌ Failed to fetch active medicines: $failure'),
+        (activeMedicines) async {
+          await taskResult.fold(
+            (failure) async =>
+                debugPrint('🔔 ❌ Failed to fetch active tasks: $failure'),
+            (activeTasks) async {
+              debugPrint(
+                '🔔 💊 Found ${activeMedicines.length} active medicines',
+              );
+              debugPrint('🔔 📝 Found ${activeTasks.length} active tasks');
+
+              final activeMedicineIds = activeMedicines
+                  .map((m) => m.id)
+                  .toSet();
+              final activeTaskIds = activeTasks.map((t) => t.id).toSet();
+
+              // 3. Identify and cancel orphan notifications
+              int cancelledCount = 0;
+
+              // Check pending (scheduled) notifications
+              for (final notification in pendingNotifications) {
+                final payload = notification.payload;
+                if (payload != null) {
+                  if (payload.startsWith('medicine_')) {
+                    final medicineId = payload.substring(9);
+                    if (!activeMedicineIds.contains(medicineId)) {
+                      debugPrint(
+                        '🔔 🗑️ Cancelling orphan medicine notification (pending): $medicineId',
+                      );
+                      await _flutterLocalNotificationsPlugin.cancel(
+                        notification.id,
+                      );
+                      cancelledCount++;
+                    }
+                  } else {
+                    // Assume task ID
+                    if (!activeTaskIds.contains(payload)) {
+                      debugPrint(
+                        '🔔 🗑️ Cancelling orphan task notification (pending): $payload',
+                      );
+                      await _flutterLocalNotificationsPlugin.cancel(
+                        notification.id,
+                      );
+                      cancelledCount++;
+                    }
+                  }
+                }
+              }
+
+              // Check active (currently showing) notifications - crucial for pinned notifications
+              final activeNotifications = await _flutterLocalNotificationsPlugin
+                  .resolvePlatformSpecificImplementation<
+                    AndroidFlutterLocalNotificationsPlugin
+                  >()
+                  ?.getActiveNotifications();
+
+              debugPrint(
+                '🔔 📋 Found ${activeNotifications?.length ?? 0} active (showing) notifications',
+              );
+
+              if (activeNotifications != null) {
+                for (final notification in activeNotifications) {
+                  final payload = notification.payload;
+                  if (payload != null) {
+                    if (payload.startsWith('medicine_')) {
+                      final medicineId = payload.substring(9);
+                      if (!activeMedicineIds.contains(medicineId)) {
+                        if (notification.id != null) {
+                          debugPrint(
+                            '🔔 🗑️ Cancelling orphan medicine notification (active): $medicineId',
+                          );
+                          await _flutterLocalNotificationsPlugin.cancel(
+                            notification.id!,
+                          );
+                          cancelledCount++;
+                        }
+                      }
+                    } else {
+                      // Assume task ID
+                      if (!activeTaskIds.contains(payload)) {
+                        if (notification.id != null) {
+                          debugPrint(
+                            '🔔 🗑️ Cancelling orphan task notification (active): $payload',
+                          );
+                          await _flutterLocalNotificationsPlugin.cancel(
+                            notification.id!,
+                          );
+                          cancelledCount++;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              debugPrint(
+                '🔔 🗑️ Cancelled $cancelledCount orphan notifications',
+              );
+
+              // 4. Reschedule notifications for all active medicines
+              int rescheduledMedicines = 0;
+              for (final medicine in activeMedicines) {
+                await scheduleMedicineNotifications(medicine);
+                rescheduledMedicines++;
+              }
+
+              // 5. Reschedule notifications for all active tasks
+              int rescheduledTasks = 0;
+              for (final task in activeTasks) {
+                await scheduleTaskNotification(task);
+                rescheduledTasks++;
+              }
+
+              debugPrint(
+                '🔔 🔄 Rescheduled: $rescheduledMedicines medicines, $rescheduledTasks tasks',
+              );
+            },
+          );
+        },
+      );
+
+      debugPrint('🔔 ✅ Notification synchronization completed');
+    } catch (e) {
+      debugPrint('🔔 ❌ Error during notification synchronization: $e');
+    }
+  }
+
   Future<void> scheduleMedicineNotifications(dynamic medicine) async {
     debugPrint('🩺 Scheduling notifications for medicine: ${medicine.name}');
 

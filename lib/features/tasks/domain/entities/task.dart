@@ -294,15 +294,10 @@ class Task extends Equatable {
 
   // Helper method to get the actual notification DateTime based on type
   DateTime? getScheduledNotificationTime() {
-    debugPrint('🕒 getScheduledNotificationTime called for $title');
-    debugPrint('🕒 notificationType: $notificationType');
-
     switch (notificationType) {
       case NotificationType.specificTime:
-        debugPrint('🕒 specificTime - notificationTime: $notificationTime');
         return notificationTime;
       case NotificationType.daily:
-        debugPrint('🕒 daily - dailyNotificationTime: $dailyNotificationTime');
         if (dailyNotificationTime != null) {
           // Use timezone-aware current time for proper calculation
           final now = tz.TZDateTime.now(tz.local);

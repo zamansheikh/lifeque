@@ -94,15 +94,8 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   ) async {
     emit(TaskLoading());
 
-    // Get the task before deleting to cancel its notification
-    if (state is TaskLoaded) {
-      final currentState = state as TaskLoaded;
-      final task = currentState.tasks.firstWhere(
-        (task) => task.id == event.taskId,
-        orElse: () => throw Exception('Task not found'),
-      );
-      await notificationService.cancelTaskNotification(task);
-    }
+    // Cancel notification using ID directly - more robust than relying on state
+    await notificationService.cancelNotificationById(event.taskId);
 
     final result = await deleteTask(DeleteTaskParams(id: event.taskId));
     result.fold((failure) => emit(TaskError(failure.toString())), (_) {
