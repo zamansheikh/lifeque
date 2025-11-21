@@ -229,13 +229,13 @@ class BudgetCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Column(
                       children: [
@@ -244,15 +244,15 @@ class BudgetCard extends StatelessWidget {
                               ? Icons.error_outline_rounded
                               : Icons.savings_rounded,
                           color: Colors.white,
-                          size: 20,
+                          size: 18,
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Text(
                           isOverBudget
                               ? '৳${(-remaining).toStringAsFixed(2)}'
                               : '৳${remaining.toStringAsFixed(2)}',
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
@@ -260,7 +260,7 @@ class BudgetCard extends StatelessWidget {
                         Text(
                           isOverBudget ? 'Over' : 'Left',
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),

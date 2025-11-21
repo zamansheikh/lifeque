@@ -4,6 +4,7 @@ import '../../../../core/usecases/usecase.dart';
 import '../entities/expense_session.dart';
 import '../entities/expense_item.dart';
 import '../entities/monthly_budget.dart';
+import '../entities/category_budget.dart';
 import '../repositories/expense_repository.dart';
 
 // Session Use Cases
@@ -213,6 +214,58 @@ class DeleteBudget implements UseCase<void, DeleteBudgetParams> {
   }
 }
 
+// Category Budget Use Cases
+class GetAllCategoryBudgets implements UseCase<List<CategoryBudget>, NoParams> {
+  final ExpenseRepository repository;
+
+  GetAllCategoryBudgets(this.repository);
+
+  @override
+  Future<Either<Failure, List<CategoryBudget>>> call(NoParams params) async {
+    return await repository.getAllCategoryBudgets();
+  }
+}
+
+class GetCategoryBudgetsForMonth
+    implements UseCase<List<CategoryBudget>, GetCategoryBudgetsForMonthParams> {
+  final ExpenseRepository repository;
+
+  GetCategoryBudgetsForMonth(this.repository);
+
+  @override
+  Future<Either<Failure, List<CategoryBudget>>> call(
+    GetCategoryBudgetsForMonthParams params,
+  ) async {
+    return await repository.getCategoryBudgetsForMonth(
+      params.year,
+      params.month,
+    );
+  }
+}
+
+class SetCategoryBudget implements UseCase<void, SetCategoryBudgetParams> {
+  final ExpenseRepository repository;
+
+  SetCategoryBudget(this.repository);
+
+  @override
+  Future<Either<Failure, void>> call(SetCategoryBudgetParams params) async {
+    return await repository.setCategoryBudget(params.budget);
+  }
+}
+
+class DeleteCategoryBudget
+    implements UseCase<void, DeleteCategoryBudgetParams> {
+  final ExpenseRepository repository;
+
+  DeleteCategoryBudget(this.repository);
+
+  @override
+  Future<Either<Failure, void>> call(DeleteCategoryBudgetParams params) async {
+    return await repository.deleteCategoryBudget(params.id);
+  }
+}
+
 // Analytics Use Cases
 class GetYearlyExpenseSummary
     implements UseCase<Map<String, double>, GetYearlyExpenseSummaryParams> {
@@ -313,6 +366,22 @@ class SetBudgetParams {
 class DeleteBudgetParams {
   final String id;
   DeleteBudgetParams({required this.id});
+}
+
+class GetCategoryBudgetsForMonthParams {
+  final int year;
+  final int month;
+  GetCategoryBudgetsForMonthParams({required this.year, required this.month});
+}
+
+class SetCategoryBudgetParams {
+  final CategoryBudget budget;
+  SetCategoryBudgetParams({required this.budget});
+}
+
+class DeleteCategoryBudgetParams {
+  final String id;
+  DeleteCategoryBudgetParams({required this.id});
 }
 
 class GetYearlyExpenseSummaryParams {

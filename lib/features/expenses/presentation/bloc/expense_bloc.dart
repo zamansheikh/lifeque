@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 import '../../domain/entities/expense_session.dart';
 import '../../domain/entities/expense_item.dart';
 import '../../domain/entities/monthly_budget.dart';
+import '../../domain/entities/category_budget.dart';
+import '../../domain/entities/expense_category.dart';
 import '../../domain/usecases/expense_usecases.dart';
 import '../../../../core/usecases/usecase.dart';
 
@@ -27,6 +29,10 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
   final GetBudgetByMonth getBudgetByMonth;
   final SetBudget setBudget;
   final DeleteBudget deleteBudget;
+  final GetAllCategoryBudgets getAllCategoryBudgets;
+  final GetCategoryBudgetsForMonth getCategoryBudgetsForMonth;
+  final SetCategoryBudget setCategoryBudget;
+  final DeleteCategoryBudget deleteCategoryBudget;
   final GetYearlyExpenseSummary getYearlyExpenseSummary;
   final SearchSessions searchSessions;
 
@@ -48,6 +54,10 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
     required this.getBudgetByMonth,
     required this.setBudget,
     required this.deleteBudget,
+    required this.getAllCategoryBudgets,
+    required this.getCategoryBudgetsForMonth,
+    required this.setCategoryBudget,
+    required this.deleteCategoryBudget,
     required this.getYearlyExpenseSummary,
     required this.searchSessions,
   }) : super(ExpenseInitial()) {
@@ -64,6 +74,10 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
     on<LoadBudgetByMonth>(_onLoadBudgetByMonth);
     on<SetBudgetEvent>(_onSetBudget);
     on<DeleteBudgetEvent>(_onDeleteBudget);
+    on<LoadCategoryBudgets>(_onLoadCategoryBudgets);
+    on<LoadCategoryBudgetsForMonth>(_onLoadCategoryBudgetsForMonth);
+    on<SetCategoryBudgetEvent>(_onSetCategoryBudget);
+    on<DeleteCategoryBudgetEvent>(_onDeleteCategoryBudget);
     on<SearchSessionsEvent>(_onSearchSessions);
     on<LoadYearlyExpenseSummary>(_onLoadYearlyExpenseSummary);
     on<ClearSearch>(_onClearSearch);
@@ -149,17 +163,25 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
         month: selectedMonth.month,
       ),
     );
+    final categoryBudgetsResult = await getCategoryBudgetsForMonth(
+      GetCategoryBudgetsForMonthParams(
+        year: selectedMonth.year,
+        month: selectedMonth.month,
+      ),
+    );
 
     final sessions = monthlySessionsResult.getOrElse(() => []);
     final monthlyTotal = monthlyTotalResult.getOrElse(() => 0.0);
     final monthlyPurchased = monthlyPurchasedResult.getOrElse(() => 0.0);
     final monthlyMissed = monthlyMissedResult.getOrElse(() => 0.0);
     final currentBudget = budgetResult.getOrElse(() => null);
+    final categoryBudgets = categoryBudgetsResult.getOrElse(() => []);
 
     emit(
       ExpenseLoaded(
         sessions: sessions,
         budgets: allBudgets,
+        categoryBudgets: categoryBudgets,
         selectedMonth: selectedMonth,
         currentBudget: currentBudget,
         monthlyTotal: monthlyTotal,
@@ -489,5 +511,103 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
     Emitter<ExpenseState> emit,
   ) async {
     add(LoadSessionsByMonth(event.month.year, event.month.month));
+  }
+
+  // Category Budget Handlers
+  Future<void> _onLoadCategoryBudgets(
+    LoadCategoryBudgets event,
+    Emitter<ExpenseState> emit,
+  ) async {
+    final result = await getAllCategoryBudgets(NoParams());
+
+    result.fold(
+      (failure) => emit(const ExpenseError('Failed to load category budgets')),
+      (budgets) {
+        if (state is ExpenseLoaded) {
+          final currentState = state as ExpenseLoaded;
+          emit(currentState.copyWith(categoryBudgets: budgets));
+        }
+      },
+    );
+  }
+
+  Future<void> _onLoadCategoryBudgetsForMonth(
+    LoadCategoryBudgetsForMonth event,
+    Emitter<ExpenseState> emit,
+  ) async {
+    final result = await getCategoryBudgetsForMonth(
+      GetCategoryBudgetsForMonthParams(year: event.year, month: event.month),
+    );
+
+    result.fold(
+      (failure) => emit(const ExpenseError('Failed to load category budgets')),
+      (budgets) {
+        if (state is ExpenseLoaded) {
+          final currentState = state as ExpenseLoaded;
+          emit(currentState.copyWith(categoryBudgets: budgets));
+        }
+      },
+    );
+  }
+
+  Future<void> _onSetCategoryBudget(
+    SetCategoryBudgetEvent event,
+    Emitter<ExpenseState> emit,
+  ) async {
+    if (state is ExpenseLoaded) {
+      final currentState = state as ExpenseLoaded;
+
+      final result = await setCategoryBudget(
+        SetCategoryBudgetParams(budget: event.budget),
+      );
+
+      result.fold(
+        (failure) => emit(const ExpenseError('Failed to set category budget')),
+        (_) {
+          // Reload category budgets for the current month
+          add(
+            LoadCategoryBudgetsForMonth(
+              currentState.selectedMonth.year,
+              currentState.selectedMonth.month,
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  Future<void> _onDeleteCategoryBudget(
+    DeleteCategoryBudgetEvent event,
+    Emitter<ExpenseState> emit,
+  ) async {
+    if (state is ExpenseLoaded) {
+      final currentState = state as ExpenseLoaded;
+
+      final result = await deleteCategoryBudget(
+        DeleteCategoryBudgetParams(id: event.id),
+      );
+
+      await result.fold(
+        (failure) async =>
+            emit(const ExpenseError('Failed to delete category budget')),
+        (_) async {
+          // Reload category budgets for the current month
+          final budgetsResult = await getCategoryBudgetsForMonth(
+            GetCategoryBudgetsForMonthParams(
+              year: currentState.selectedMonth.year,
+              month: currentState.selectedMonth.month,
+            ),
+          );
+
+          budgetsResult.fold(
+            (failure) =>
+                emit(const ExpenseError('Failed to load category budgets')),
+            (budgets) {
+              emit(currentState.copyWith(categoryBudgets: budgets));
+            },
+          );
+        },
+      );
+    }
   }
 }

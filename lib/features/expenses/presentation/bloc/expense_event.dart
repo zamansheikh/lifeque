@@ -116,6 +116,37 @@ class DeleteBudgetEvent extends ExpenseEvent {
   List<Object> get props => [id];
 }
 
+// Category Budget Events
+class LoadCategoryBudgets extends ExpenseEvent {}
+
+class LoadCategoryBudgetsForMonth extends ExpenseEvent {
+  final int year;
+  final int month;
+
+  const LoadCategoryBudgetsForMonth(this.year, this.month);
+
+  @override
+  List<Object> get props => [year, month];
+}
+
+class SetCategoryBudgetEvent extends ExpenseEvent {
+  final CategoryBudget budget;
+
+  const SetCategoryBudgetEvent(this.budget);
+
+  @override
+  List<Object> get props => [budget];
+}
+
+class DeleteCategoryBudgetEvent extends ExpenseEvent {
+  final String id;
+
+  const DeleteCategoryBudgetEvent(this.id);
+
+  @override
+  List<Object> get props => [id];
+}
+
 class SearchSessionsEvent extends ExpenseEvent {
   final String query;
 

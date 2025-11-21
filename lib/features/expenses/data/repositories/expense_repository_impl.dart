@@ -3,10 +3,12 @@ import '../../../../core/error/failures.dart';
 import '../../domain/entities/expense_session.dart';
 import '../../domain/entities/expense_item.dart';
 import '../../domain/entities/monthly_budget.dart';
+import '../../domain/entities/category_budget.dart';
 import '../../domain/repositories/expense_repository.dart';
 import '../datasources/expense_local_data_source.dart';
 import '../models/expense_session_model.dart';
 import '../models/monthly_budget_model.dart';
+import '../models/category_budget_model.dart';
 
 class ExpenseRepositoryImpl implements ExpenseRepository {
   final ExpenseLocalDataSource localDataSource;
@@ -284,6 +286,66 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   Future<Either<Failure, void>> deleteBudget(String id) async {
     try {
       await localDataSource.deleteBudget(id);
+      return const Right(null);
+    } catch (e) {
+      return Left(CacheFailure());
+    }
+  }
+
+  // Category Budget Methods
+  @override
+  Future<Either<Failure, List<CategoryBudget>>> getAllCategoryBudgets() async {
+    try {
+      final budgets = await localDataSource.getAllCategoryBudgets();
+      return Right(budgets.map((budget) => budget.toEntity()).toList());
+    } catch (e) {
+      return Left(CacheFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CategoryBudget>>> getCategoryBudgetsForMonth(
+    int year,
+    int month,
+  ) async {
+    try {
+      final budgets = await localDataSource.getCategoryBudgetsForMonth(
+        year,
+        month,
+      );
+      return Right(budgets.map((budget) => budget.toEntity()).toList());
+    } catch (e) {
+      return Left(CacheFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, CategoryBudget?>> getCategoryBudgetById(
+    String id,
+  ) async {
+    try {
+      final budget = await localDataSource.getCategoryBudgetById(id);
+      return Right(budget?.toEntity());
+    } catch (e) {
+      return Left(CacheFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> setCategoryBudget(CategoryBudget budget) async {
+    try {
+      final budgetModel = CategoryBudgetModel.fromEntity(budget);
+      await localDataSource.saveCategoryBudget(budgetModel);
+      return const Right(null);
+    } catch (e) {
+      return Left(CacheFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteCategoryBudget(String id) async {
+    try {
+      await localDataSource.deleteCategoryBudget(id);
       return const Right(null);
     } catch (e) {
       return Left(CacheFailure());

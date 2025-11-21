@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'expense_category.dart';
 
 class ExpenseItem extends Equatable {
   final String id;
@@ -6,6 +7,7 @@ class ExpenseItem extends Equatable {
   final double amount;
   final bool isPurchased;
   final DateTime? purchasedAt;
+  final ExpenseCategory category;
 
   const ExpenseItem({
     required this.id,
@@ -13,6 +15,7 @@ class ExpenseItem extends Equatable {
     required this.amount,
     this.isPurchased = false,
     this.purchasedAt,
+    this.category = ExpenseCategory.uncategorized,
   });
 
   ExpenseItem copyWith({
@@ -21,6 +24,7 @@ class ExpenseItem extends Equatable {
     double? amount,
     bool? isPurchased,
     DateTime? purchasedAt,
+    ExpenseCategory? category,
     bool clearPurchasedAt = false,
   }) {
     return ExpenseItem(
@@ -29,9 +33,17 @@ class ExpenseItem extends Equatable {
       amount: amount ?? this.amount,
       isPurchased: isPurchased ?? this.isPurchased,
       purchasedAt: clearPurchasedAt ? null : (purchasedAt ?? this.purchasedAt),
+      category: category ?? this.category,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, amount, isPurchased, purchasedAt];
+  List<Object?> get props => [
+    id,
+    name,
+    amount,
+    isPurchased,
+    purchasedAt,
+    category,
+  ];
 }

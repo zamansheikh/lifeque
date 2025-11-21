@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/expense_item.dart';
 import '../../domain/entities/expense_session.dart';
+import '../../domain/entities/expense_category.dart';
 import '../bloc/expense_bloc.dart';
 
 class AddExpenseSessionPage extends StatefulWidget {
@@ -56,6 +57,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
         itemForm.nameController.text = item.name;
         itemForm.amountController.text = item.amount.toString();
         itemForm.isPurchased = item.isPurchased;
+        itemForm.category = item.category;
         _items.add(itemForm);
       }
     }
@@ -130,6 +132,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               amount: double.parse(itemForm.amountController.text),
               isPurchased: itemForm.isPurchased,
               purchasedAt: itemForm.isPurchased ? DateTime.now() : null,
+              category: itemForm.category,
             ),
           )
           .toList();
@@ -939,6 +942,65 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
             ],
           ),
           const SizedBox(height: 16),
+          // Category Dropdown
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+            ),
+            child: DropdownButtonFormField<ExpenseCategory>(
+              initialValue: item.category,
+              decoration: InputDecoration(
+                labelText: 'Category',
+                prefixIcon: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: item.category.color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(
+                    item.category.icon,
+                    color: item.category.color,
+                    size: 16,
+                  ),
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              items: ExpenseCategory.values
+                  .map(
+                    (category) => DropdownMenuItem(
+                      value: category,
+                      child: Row(
+                        children: [
+                          Icon(category.icon, color: category.color, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            category.displayName,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (ExpenseCategory? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    item.category = newValue;
+                  });
+                }
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -1033,6 +1095,7 @@ class ExpenseItemForm {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   bool isPurchased = false;
+  ExpenseCategory category = ExpenseCategory.uncategorized;
 
   void dispose() {
     nameController.dispose();

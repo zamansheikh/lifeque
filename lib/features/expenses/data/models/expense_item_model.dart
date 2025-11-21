@@ -1,4 +1,5 @@
 import '../../domain/entities/expense_item.dart';
+import '../../domain/entities/expense_category.dart';
 
 class ExpenseItemModel extends ExpenseItem {
   const ExpenseItemModel({
@@ -7,6 +8,7 @@ class ExpenseItemModel extends ExpenseItem {
     required super.amount,
     super.isPurchased = false,
     super.purchasedAt,
+    super.category = ExpenseCategory.uncategorized,
   });
 
   factory ExpenseItemModel.fromJson(Map<String, dynamic> json) {
@@ -18,6 +20,10 @@ class ExpenseItemModel extends ExpenseItem {
       purchasedAt: json['purchasedAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch(json['purchasedAt'] as int)
           : null,
+      // Backward compatible: default to uncategorized if category field doesn't exist
+      category: json['category'] != null
+          ? ExpenseCategory.fromString(json['category'] as String)
+          : ExpenseCategory.uncategorized,
     );
   }
 
@@ -28,6 +34,7 @@ class ExpenseItemModel extends ExpenseItem {
       'amount': amount,
       'isPurchased': isPurchased,
       'purchasedAt': purchasedAt?.millisecondsSinceEpoch,
+      'category': category.name, // Store as string
     };
   }
 
@@ -38,6 +45,7 @@ class ExpenseItemModel extends ExpenseItem {
       amount: item.amount,
       isPurchased: item.isPurchased,
       purchasedAt: item.purchasedAt,
+      category: item.category,
     );
   }
 
@@ -48,6 +56,7 @@ class ExpenseItemModel extends ExpenseItem {
       amount: amount,
       isPurchased: isPurchased,
       purchasedAt: purchasedAt,
+      category: category,
     );
   }
 
@@ -58,6 +67,7 @@ class ExpenseItemModel extends ExpenseItem {
     double? amount,
     bool? isPurchased,
     DateTime? purchasedAt,
+    ExpenseCategory? category,
     bool clearPurchasedAt = false,
   }) {
     return ExpenseItemModel(
@@ -66,6 +76,7 @@ class ExpenseItemModel extends ExpenseItem {
       amount: amount ?? this.amount,
       isPurchased: isPurchased ?? this.isPurchased,
       purchasedAt: clearPurchasedAt ? null : (purchasedAt ?? this.purchasedAt),
+      category: category ?? this.category,
     );
   }
 }

@@ -6,6 +6,7 @@ import '../bloc/expense_bloc.dart';
 import '../widgets/expense_session_card.dart';
 import '../widgets/monthly_summary_card.dart';
 import '../widgets/budget_card.dart';
+import '../widgets/category_budget_card.dart';
 
 class ExpensesDashboardPage extends StatefulWidget {
   const ExpensesDashboardPage({super.key});
@@ -106,6 +107,20 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
     );
   }
 
+  void _setCategoryBudgets() {
+    final state = context.read<ExpenseBloc>().state;
+    final existingBudgets = state is ExpenseLoaded
+        ? state.categoryBudgets
+        : <dynamic>[];
+    context.push(
+      '/expenses/category-budgets',
+      extra: {
+        'selectedMonth': _selectedMonth,
+        'existingBudgets': existingBudgets,
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,60 +183,6 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 16),
           children: [
-            const SizedBox(height: 12),
-
-            // Search Bar
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    spreadRadius: 0,
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                style: const TextStyle(fontSize: 16),
-                decoration: InputDecoration(
-                  hintText: 'Search expense sessions...',
-                  hintStyle: TextStyle(color: Colors.grey[500]),
-                  prefixIcon: Container(
-                    margin: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.search_rounded,
-                      color: Color(0xFF2563EB),
-                      size: 20,
-                    ),
-                  ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear_rounded),
-                          onPressed: () {
-                            _searchController.clear();
-                            _onSearchChanged('');
-                          },
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
-                  ),
-                ),
-              ),
-            ),
-
             const SizedBox(height: 12),
 
             // Month Selector
@@ -381,6 +342,173 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                           actualSpent: state.monthlyPurchased,
                           onSetBudget: _setBudget,
                           selectedMonth: state.selectedMonth,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Category Budgets Section
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Category Budgets',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: _setCategoryBudgets,
+                                    icon: const Icon(
+                                      Icons.settings_rounded,
+                                      color: Color(0xFF3B82F6),
+                                    ),
+                                    tooltip: 'Manage Category Budgets',
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              if (state.categoryBudgets.isEmpty)
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF1F5F9),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.category_rounded,
+                                        size: 48,
+                                        color: Colors.grey[400],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'No category budgets set',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      ElevatedButton.icon(
+                                        onPressed: _setCategoryBudgets,
+                                        icon: const Icon(Icons.add_rounded),
+                                        label: const Text(
+                                          'Set Category Budgets',
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(
+                                            0xFF3B82F6,
+                                          ),
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                ...state.categoryBudgets.map((budget) {
+                                  final spending = state.getCategorySpending();
+                                  final spent =
+                                      spending[budget.category] ?? 0.0;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: CategoryBudgetCard(
+                                      budget: budget,
+                                      actualSpent: spent,
+                                      onEdit: _setCategoryBudgets,
+                                      onDelete: () {
+                                        context.read<ExpenseBloc>().add(
+                                          DeleteCategoryBudgetEvent(budget.id),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                }),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Search Bar
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                spreadRadius: 0,
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: _onSearchChanged,
+                            style: const TextStyle(fontSize: 16),
+                            decoration: InputDecoration(
+                              hintText: 'Search expense sessions...',
+                              hintStyle: TextStyle(color: Colors.grey[500]),
+                              prefixIcon: Container(
+                                margin: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFF2563EB,
+                                  ).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.search_rounded,
+                                  color: Color(0xFF2563EB),
+                                  size: 20,
+                                ),
+                              ),
+                              suffixIcon: _searchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear_rounded),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        _onSearchChanged('');
+                                      },
+                                    )
+                                  : null,
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
+                            ),
+                          ),
                         ),
 
                         const SizedBox(height: 16),

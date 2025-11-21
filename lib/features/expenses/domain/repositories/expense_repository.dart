@@ -3,6 +3,7 @@ import '../../../../core/error/failures.dart';
 import '../entities/expense_session.dart';
 import '../entities/expense_item.dart';
 import '../entities/monthly_budget.dart';
+import '../entities/category_budget.dart';
 
 abstract class ExpenseRepository {
   // Expense Session operations
@@ -44,6 +45,16 @@ abstract class ExpenseRepository {
   Future<Either<Failure, MonthlyBudget?>> getBudgetByMonth(int year, int month);
   Future<Either<Failure, void>> setBudget(MonthlyBudget budget);
   Future<Either<Failure, void>> deleteBudget(String id);
+
+  // Category Budget operations
+  Future<Either<Failure, List<CategoryBudget>>> getAllCategoryBudgets();
+  Future<Either<Failure, List<CategoryBudget>>> getCategoryBudgetsForMonth(
+    int year,
+    int month,
+  );
+  Future<Either<Failure, CategoryBudget?>> getCategoryBudgetById(String id);
+  Future<Either<Failure, void>> setCategoryBudget(CategoryBudget budget);
+  Future<Either<Failure, void>> deleteCategoryBudget(String id);
 
   // Analytics
   Future<Either<Failure, Map<String, double>>> getYearlyExpenseSummary(

@@ -14,6 +14,7 @@ class ExpenseLoading extends ExpenseState {}
 class ExpenseLoaded extends ExpenseState {
   final List<ExpenseSession> sessions;
   final List<MonthlyBudget> budgets;
+  final List<CategoryBudget> categoryBudgets;
   final DateTime selectedMonth;
   final MonthlyBudget? currentBudget;
   final double monthlyTotal;
@@ -27,6 +28,7 @@ class ExpenseLoaded extends ExpenseState {
   const ExpenseLoaded({
     required this.sessions,
     required this.budgets,
+    this.categoryBudgets = const [],
     required this.selectedMonth,
     this.currentBudget,
     this.monthlyTotal = 0.0,
@@ -38,9 +40,34 @@ class ExpenseLoaded extends ExpenseState {
     this.isSearching = false,
   });
 
+  // Calculate spending by category for the selected month
+  Map<ExpenseCategory, double> getCategorySpending() {
+    final Map<ExpenseCategory, double> spending = {};
+
+    // Get sessions for the selected month
+    final monthSessions = sessions.where(
+      (session) =>
+          session.date.year == selectedMonth.year &&
+          session.date.month == selectedMonth.month,
+    );
+
+    // Sum up purchased items by category
+    for (final session in monthSessions) {
+      for (final item in session.items) {
+        if (item.isPurchased) {
+          spending[item.category] =
+              (spending[item.category] ?? 0.0) + item.amount;
+        }
+      }
+    }
+
+    return spending;
+  }
+
   ExpenseLoaded copyWith({
     List<ExpenseSession>? sessions,
     List<MonthlyBudget>? budgets,
+    List<CategoryBudget>? categoryBudgets,
     DateTime? selectedMonth,
     MonthlyBudget? currentBudget,
     double? monthlyTotal,
@@ -58,6 +85,7 @@ class ExpenseLoaded extends ExpenseState {
     return ExpenseLoaded(
       sessions: sessions ?? this.sessions,
       budgets: budgets ?? this.budgets,
+      categoryBudgets: categoryBudgets ?? this.categoryBudgets,
       selectedMonth: selectedMonth ?? this.selectedMonth,
       currentBudget: clearCurrentBudget
           ? null
@@ -80,6 +108,7 @@ class ExpenseLoaded extends ExpenseState {
   List<Object?> get props => [
     sessions,
     budgets,
+    categoryBudgets,
     selectedMonth,
     currentBudget,
     monthlyTotal,

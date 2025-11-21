@@ -19,7 +19,9 @@ import '../features/expenses/presentation/pages/expenses_dashboard_page.dart';
 import '../features/expenses/presentation/pages/add_expense_session_page.dart';
 import '../features/expenses/presentation/pages/expense_session_detail_page.dart';
 import '../features/expenses/presentation/pages/set_budget_page.dart';
+import '../features/expenses/presentation/pages/set_category_budgets_page.dart';
 import '../features/expenses/domain/entities/monthly_budget.dart';
+import '../features/expenses/domain/entities/category_budget.dart';
 import '../features/expenses/domain/entities/expense_session.dart';
 import '../features/prayer_times/presentation/pages/prayer_times_page.dart';
 import '../features/study/presentation/pages/study_timer_page.dart';
@@ -170,6 +172,21 @@ class AppRouter {
           // Fallback: keep backward compatibility if only DateTime was passed
           final selectedMonth = extra as DateTime;
           return SetBudgetPage(selectedMonth: selectedMonth);
+        },
+      ),
+      GoRoute(
+        path: '/expenses/category-budgets',
+        name: 'set-category-budgets',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, Object?>;
+          final selectedMonth = extra['selectedMonth'] as DateTime;
+          final existingBudgets = extra['existingBudgets'] as List<dynamic>;
+          return SetCategoryBudgetsPage(
+            selectedMonth: selectedMonth,
+            existingBudgets: existingBudgets
+                .map((e) => e as CategoryBudget)
+                .toList(),
+          );
         },
       ),
     ],

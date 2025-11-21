@@ -175,6 +175,10 @@ Future<void> init() async {
       getBudgetByMonth: sl(),
       setBudget: sl(),
       deleteBudget: sl(),
+      getAllCategoryBudgets: sl(),
+      getCategoryBudgetsForMonth: sl(),
+      setCategoryBudget: sl(),
+      deleteCategoryBudget: sl(),
       getYearlyExpenseSummary: sl(),
       searchSessions: sl(),
     ),
@@ -198,6 +202,10 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetBudgetByMonth(sl()));
   sl.registerLazySingleton(() => SetBudget(sl()));
   sl.registerLazySingleton(() => DeleteBudget(sl()));
+  sl.registerLazySingleton(() => GetAllCategoryBudgets(sl()));
+  sl.registerLazySingleton(() => GetCategoryBudgetsForMonth(sl()));
+  sl.registerLazySingleton(() => SetCategoryBudget(sl()));
+  sl.registerLazySingleton(() => DeleteCategoryBudget(sl()));
   sl.registerLazySingleton(() => GetYearlyExpenseSummary(sl()));
   sl.registerLazySingleton(() => SearchSessions(sl()));
 
