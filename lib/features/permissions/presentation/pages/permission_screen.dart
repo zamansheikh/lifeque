@@ -125,6 +125,15 @@ class _PermissionScreenState extends State<PermissionScreen>
 
     if (_notificationPermission && _batteryOptimization) {
       widget.onPermissionsGranted();
+    } else if (_notificationPermission && !_batteryOptimization) {
+      // If notification granted but battery not, move to next step
+      _hideTutorialOverlay();
+      // Wait for hide animation then show next overlay
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (mounted) {
+          _showTutorialOverlay();
+        }
+      });
     }
   }
 

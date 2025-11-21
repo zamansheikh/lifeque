@@ -620,6 +620,67 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
     }
   }
 
+  String _getProjectedTime() {
+    try {
+      final calculator = SalahTimeCalculator(
+        latitude: 23.8103,
+        longitude: 90.4125,
+        date: DateTime.now(),
+        method: CalculationMethod.karachi,
+      );
+      final prayerTimes = calculator.getPrayerTimesMap();
+      DateTime? targetTime;
+
+      if (_selectedType == PrayerAlarmType.beforePrayerEnd) {
+        DateTime? prayerEndTime;
+        switch (widget.prayer) {
+          case 'Fajr':
+            prayerEndTime = prayerTimes['Sunrise'];
+            break;
+          case 'Dhuhr':
+            prayerEndTime = prayerTimes['Asr'];
+            break;
+          case 'Asr':
+            prayerEndTime = prayerTimes['Maghrib'];
+            break;
+          case 'Maghrib':
+            prayerEndTime = prayerTimes['Isha'];
+            break;
+          case 'Isha':
+            final nextDay = DateTime.now().add(const Duration(days: 1));
+            final nextCalc = SalahTimeCalculator(
+              latitude: 23.8103,
+              longitude: 90.4125,
+              date: nextDay,
+              method: CalculationMethod.karachi,
+            );
+            prayerEndTime = nextCalc.getPrayerTimesMap()['Fajr'];
+            break;
+        }
+
+        if (prayerEndTime != null) {
+          targetTime = prayerEndTime.subtract(
+            Duration(minutes: _minutesBeforeEnd),
+          );
+        }
+      } else if (_selectedType == PrayerAlarmType.afterPrayerStart) {
+        final prayerStartTime = prayerTimes[widget.prayer];
+        if (prayerStartTime != null) {
+          targetTime = prayerStartTime.add(
+            Duration(minutes: _minutesAfterStart),
+          );
+        }
+      }
+
+      if (targetTime != null) {
+        return DateFormat('h:mm a').format(targetTime);
+      }
+    } catch (e) {
+      return '--:--';
+    }
+    return '--:--';
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -770,7 +831,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'পরবর্তী নিয়মিত: 4:45 AM',
+                              'পরবর্তী নিয়মিত: ${_getProjectedTime()}',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: colorScheme.onSurfaceVariant,
@@ -780,7 +841,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                             Row(
                               children: [
                                 Text(
-                                  '-৳০',
+                                  '-0 min',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: colorScheme.onSurfaceVariant,
@@ -801,7 +862,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                                   ),
                                 ),
                                 Text(
-                                  '+৳০',
+                                  '-60 min',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: colorScheme.onSurfaceVariant,
@@ -816,7 +877,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                         PrayerAlarmType.afterPrayerStart) ...[
                       _buildConfigSection(
                         context,
-                        'আলার্ম টেন',
+                        'এলার্ম সেট করুন',
                         Column(
                           children: [
                             const SizedBox(height: 8),
@@ -838,7 +899,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'পরবর্তী নিয়মিত: 4:45 AM',
+                              'পরবর্তী নিয়মিত: ${_getProjectedTime()}',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: colorScheme.onSurfaceVariant,
@@ -848,7 +909,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                             Row(
                               children: [
                                 Text(
-                                  '-৳০',
+                                  '+0 min',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: colorScheme.onSurfaceVariant,
@@ -869,7 +930,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                                   ),
                                 ),
                                 Text(
-                                  '+৳০',
+                                  '+60 min',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: colorScheme.onSurfaceVariant,

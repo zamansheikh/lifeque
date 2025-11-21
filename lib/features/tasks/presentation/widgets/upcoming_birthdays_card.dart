@@ -77,17 +77,13 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.purple.shade400, Colors.pink.shade400],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -107,12 +103,12 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: Colors.pink.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
                         Icons.cake_rounded,
-                        color: Colors.white,
+                        color: Colors.pink,
                         size: 24,
                       ),
                     ),
@@ -126,7 +122,7 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
                                 ? '1 Birthday This Month'
                                 : '${widget.birthdays.length} Birthdays This Month',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Colors.black87,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -135,7 +131,7 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
                           Text(
                             _isExpanded ? 'Tap to collapse' : 'Tap to view all',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.9),
+                              color: Colors.grey.shade600,
                               fontSize: 12,
                             ),
                           ),
@@ -147,7 +143,7 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
                       duration: const Duration(milliseconds: 300),
                       child: Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: Colors.white,
+                        color: Colors.grey.shade600,
                         size: 28,
                       ),
                     ),
@@ -160,7 +156,7 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
                   child: Column(
                     children: [
                       const SizedBox(height: 16),
-                      const Divider(color: Colors.white38, thickness: 1),
+                      Divider(color: Colors.grey.shade200, thickness: 1),
                       const SizedBox(height: 12),
                       ...sortedBirthdays.map((birthday) {
                         final daysUntil = _getDaysUntilBirthday(birthday);
@@ -181,12 +177,9 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.grey.shade200, width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -203,7 +196,7 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: Colors.pink.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -220,7 +213,7 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
                       Text(
                         birthday.title,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Colors.black87,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -229,7 +222,7 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
                       Text(
                         DateFormat('MMMM dd').format(birthday.nextOccurrence),
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.8),
+                          color: Colors.grey.shade600,
                           fontSize: 12,
                         ),
                       ),
@@ -244,8 +237,8 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
                   ),
                   decoration: BoxDecoration(
                     color: daysUntil == 0
-                        ? Colors.pink.shade300
-                        : Colors.white.withValues(alpha: 0.2),
+                        ? Colors.pink.shade100
+                        : Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -254,8 +247,10 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
                         : daysUntil == 1
                         ? 'Tomorrow'
                         : '$daysUntil days',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: daysUntil == 0
+                          ? Colors.pink
+                          : Colors.grey.shade700,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),

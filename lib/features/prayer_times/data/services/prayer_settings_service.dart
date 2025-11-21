@@ -8,6 +8,10 @@ class PrayerSettingsService {
   static const String _calculationMethodKey = 'prayer_calculation_method';
   static const String _madhabKey = 'prayer_madhab';
   static const String _isLocationFromGpsKey = 'prayer_is_location_from_gps';
+  static const String _mosqueTimeFajrKey = 'mosque_time_fajr';
+  static const String _mosqueTimeDhuhrKey = 'mosque_time_dhuhr';
+  static const String _mosqueTimeAsrKey = 'mosque_time_asr';
+  static const String _mosqueTimeIshaKey = 'mosque_time_isha';
 
   static PrayerSettingsService? _instance;
   SharedPreferences? _prefs;
@@ -131,6 +135,40 @@ class PrayerSettingsService {
         return CalculationMethod.north_america;
       default:
         return CalculationMethod.karachi;
+    }
+  }
+
+  Future<void> saveMosqueTime(String prayer, String time) async {
+    await init();
+    switch (prayer.toLowerCase()) {
+      case 'fajr':
+        await _prefs!.setString(_mosqueTimeFajrKey, time);
+        break;
+      case 'dhuhr':
+        await _prefs!.setString(_mosqueTimeDhuhrKey, time);
+        break;
+      case 'asr':
+        await _prefs!.setString(_mosqueTimeAsrKey, time);
+        break;
+      case 'isha':
+        await _prefs!.setString(_mosqueTimeIshaKey, time);
+        break;
+    }
+  }
+
+  Future<String?> getMosqueTime(String prayer) async {
+    await init();
+    switch (prayer.toLowerCase()) {
+      case 'fajr':
+        return _prefs!.getString(_mosqueTimeFajrKey);
+      case 'dhuhr':
+        return _prefs!.getString(_mosqueTimeDhuhrKey);
+      case 'asr':
+        return _prefs!.getString(_mosqueTimeAsrKey);
+      case 'isha':
+        return _prefs!.getString(_mosqueTimeIshaKey);
+      default:
+        return null;
     }
   }
 }

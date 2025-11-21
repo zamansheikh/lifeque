@@ -9,6 +9,7 @@ import '../widgets/prayer_time_card.dart';
 import '../widgets/next_prayer_card.dart';
 import '../widgets/qibla_card.dart';
 import '../widgets/restricted_times_card.dart';
+import '../widgets/mosque_times_tab.dart';
 import 'prayer_alarm_page.dart';
 
 class PrayerTimesPage extends StatefulWidget {
@@ -706,122 +707,150 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Prayer Times',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.notifications,
-                size: 20,
-                color: colorScheme.primary,
-              ),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: const Text(
+            'Prayer Times',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
             ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PrayerAlarmPage(),
+          ),
+          bottom: TabBar(
+            labelColor: colorScheme.primary,
+            unselectedLabelColor: Colors.grey.shade600,
+            indicatorColor: colorScheme.primary,
+            tabs: const [
+              Tab(text: 'Waqt Time'),
+              Tab(text: 'Mosque Time'),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              );
-            },
-            tooltip: 'Prayer Alarms',
-          ),
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                child: Icon(
+                  Icons.notifications,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
               ),
-              child: Icon(Icons.settings, size: 20, color: colorScheme.primary),
-            ),
-            onPressed: _showSettingsBottomSheet,
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Colors.grey.shade400,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PrayerAlarmPage(),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _error!,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _isLoading = true;
-                        _error = null;
-                      });
-                      _updatePrayerTimes();
-                    },
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: () async {
-                _updatePrayerTimes();
+                );
               },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
+              tooltip: 'Prayer Alarms',
+            ),
+            IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.settings,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+              ),
+              onPressed: _showSettingsBottomSheet,
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+            ? Center(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Date selector
-                    _buildDateSelector(),
-                    const SizedBox(height: 20),
-
-                    // Next Prayer Card
-                    NextPrayerCard(calculator: _calculator!),
-                    const SizedBox(height: 20),
-
-                    // Prayer Times
-                    _buildPrayerTimesList(),
-                    const SizedBox(height: 20),
-
-                    // Restricted Times (Makruh)
-                    RestrictedTimesCard(calculator: _calculator!),
-                    const SizedBox(height: 20),
-
-                    // Qibla Direction
-                    QiblaCard(calculator: _calculator!),
-                    const SizedBox(height: 20),
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _isLoading = true;
+                          _error = null;
+                        });
+                        _updatePrayerTimes();
+                      },
+                      child: const Text('Retry'),
+                    ),
                   ],
                 ),
+              )
+            : TabBarView(
+                children: [
+                  _buildWaqtTab(),
+                  MosqueTimesTab(calculator: _calculator),
+                ],
               ),
-            ),
+      ),
+    );
+  }
+
+  Widget _buildWaqtTab() {
+    return RefreshIndicator(
+      onRefresh: () async {
+        _updatePrayerTimes();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Date selector
+            _buildDateSelector(),
+            const SizedBox(height: 20),
+
+            // Next Prayer Card
+            NextPrayerCard(calculator: _calculator!),
+            const SizedBox(height: 20),
+
+            // Prayer Times
+            _buildPrayerTimesList(),
+            const SizedBox(height: 20),
+
+            // Restricted Times (Makruh)
+            RestrictedTimesCard(calculator: _calculator!),
+            const SizedBox(height: 20),
+
+            // Qibla Direction
+            QiblaCard(calculator: _calculator!),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
     );
   }
 

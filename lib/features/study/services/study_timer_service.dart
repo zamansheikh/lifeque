@@ -108,6 +108,7 @@ class StudyTimerService {
     _phaseController.add(_currentPhase);
     _cycleController.add(_completedCycles);
     _updateRunningState();
+    await _saveSessionState();
   }
 
   Future<void> _startShortBreak() async {
@@ -125,6 +126,7 @@ class StudyTimerService {
     _startTimer();
     _phaseController.add(_currentPhase);
     _updateRunningState();
+    await _saveSessionState();
   }
 
   Future<void> _startLongBreak() async {
@@ -142,6 +144,7 @@ class StudyTimerService {
     _startTimer();
     _phaseController.add(_currentPhase);
     _updateRunningState();
+    await _saveSessionState();
   }
 
   // Track if alarm is currently set
@@ -163,6 +166,14 @@ class StudyTimerService {
 
     final alarmTime = DateTime.now().add(duration);
 
+    // Format time for notification
+    final hour = alarmTime.hour > 12
+        ? alarmTime.hour - 12
+        : (alarmTime.hour == 0 ? 12 : alarmTime.hour);
+    final minute = alarmTime.minute.toString().padLeft(2, '0');
+    final amPm = alarmTime.hour >= 12 ? 'PM' : 'AM';
+    final timeString = '$hour:$minute $amPm';
+
     final alarmSettings = AlarmSettings(
       id: _studyAlarmId,
       dateTime: alarmTime,
@@ -178,7 +189,7 @@ class StudyTimerService {
       ),
       notificationSettings: NotificationSettings(
         title: title,
-        body: body,
+        body: '$body\nEnds at $timeString',
         stopButton: 'Stop',
         icon: 'notification_icon',
       ),
@@ -279,11 +290,8 @@ class StudyTimerService {
     _isPaused = false;
 
     if (_currentSession != null && _currentPhase != StudyPhase.stopped) {
-      // Recalculate remaining time
-      final elapsed = DateTime.now().difference(_phaseStartTime!);
-      final phaseDuration = _getPhaseDuration(_currentPhase);
-      _currentPhaseTimeLeft = (phaseDuration.inSeconds - elapsed.inSeconds)
-          .clamp(0, phaseDuration.inSeconds);
+      // When resuming, we don't recalculate from start time because that would include the paused duration.
+      // Instead, we just use the stored _currentPhaseTimeLeft which was saved when paused.
 
       if (_currentPhaseTimeLeft > 0) {
         await _setAlarm(
@@ -297,19 +305,6 @@ class StudyTimerService {
       } else {
         await _onPhaseComplete();
       }
-    }
-  }
-
-  Duration _getPhaseDuration(StudyPhase phase) {
-    switch (phase) {
-      case StudyPhase.focus:
-        return Duration(minutes: _currentSession!.focusDuration);
-      case StudyPhase.shortBreak:
-        return Duration(minutes: _currentSession!.shortBreakDuration);
-      case StudyPhase.longBreak:
-        return Duration(minutes: _currentSession!.longBreakDuration);
-      case StudyPhase.stopped:
-        return Duration.zero;
     }
   }
 
@@ -357,9 +352,12 @@ class StudyTimerService {
     final sessionData = prefs.getString('study_session');
     if (sessionData != null) {
       _decodeSession(sessionData);
-      if (_currentSession != null) {
-        await resumeSession();
-      }
+
+      // Notify UI of the loaded state
+      _phaseController.add(_currentPhase);
+      _timeController.add(_currentPhaseTimeLeft);
+      _cycleController.add(_completedCycles);
+      _updateRunningState();
     }
   }
 
@@ -372,7 +370,9 @@ class StudyTimerService {
         '${_currentSession!.cyclesBeforeLongBreak}|'
         '${_currentPhase.index}|'
         '$_completedCycles|'
-        '${_phaseStartTime?.millisecondsSinceEpoch ?? 0}';
+        '${_phaseStartTime?.millisecondsSinceEpoch ?? 0}|'
+        '$_currentPhaseTimeLeft|'
+        '$_isPaused';
   }
 
   void _decodeSession(String data) {
@@ -391,6 +391,11 @@ class StudyTimerService {
       _phaseStartTime = phaseStartMs > 0
           ? DateTime.fromMillisecondsSinceEpoch(phaseStartMs)
           : null;
+
+      if (parts.length >= 10) {
+        _currentPhaseTimeLeft = int.parse(parts[8]);
+        _isPaused = parts[9] == 'true';
+      }
     }
   }
 

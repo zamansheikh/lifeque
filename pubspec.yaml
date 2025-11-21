@@ -2,7 +2,7 @@ name: lifeque
 description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.1.6+1
+version: 1.1.7+1
 
 environment:
   sdk: ^3.9.0
@@ -17,11 +17,11 @@ dependencies:
   flutter_bloc: ^9.1.1
   
   # Routing
-  go_router: ^16.2.1
+  go_router: ^17.0.0
   
   # Dependency Injection
-  get_it: ^8.2.0
-  injectable: ^2.5.1
+  get_it: ^9.1.0
+  injectable: ^2.6.0
   
   # Local Storage
   sqflite: ^2.4.2
@@ -29,28 +29,28 @@ dependencies:
   shared_preferences: ^2.5.3
   
   # Background Tasks & Notifications
-  flutter_local_notifications: ^19.4.2
+  flutter_local_notifications: ^19.5.0
   permission_handler: ^12.0.1
-  device_info_plus: ^12.1.0
+  device_info_plus: ^12.2.0
   alarm: ^5.1.5
   
   # Location Services  
-  geolocator: ^14.0.2
+  geolocator: ^14.0.1
   
   # Compass and Sensors
   flutter_compass: ^0.8.1
   
   # App Info
-  package_info_plus: ^8.3.1
+  package_info_plus: ^9.0.0
 
   # URL Launcher
   url_launcher: ^6.3.2
   
   # HTTP requests
-  http: ^1.5.0
+  http: ^1.6.0
 
   # In-App Updates
-  in_app_update: ^4.2.4
+  in_app_update: ^4.2.5
   
   # Date & Time
   intl: ^0.20.2
@@ -61,7 +61,7 @@ dependencies:
   equatable: ^2.0.7
   
   # Utils
-  uuid: ^4.5.1
+  uuid: ^4.5.2
   dartz: ^0.10.1
 
   # Charts and Calendar
@@ -80,9 +80,9 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   
   # Code Generation
-  build_runner: ^2.7.1
-  injectable_generator: ^2.8.1
-  json_serializable: ^6.11.1
+  build_runner: ^2.10.4
+  injectable_generator: ^2.9.1
+  json_serializable: ^6.11.2
 
 flutter:
 
