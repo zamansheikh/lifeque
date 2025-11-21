@@ -748,48 +748,136 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                     if (_selectedType == PrayerAlarmType.beforePrayerEnd) ...[
                       _buildConfigSection(
                         context,
-                        'Minutes before prayer ends',
-                        DropdownButtonFormField<int>(
-                          value: _minutesBeforeEnd,
-                          decoration: _getInputDecoration(
-                            context,
-                            'Select minutes',
-                          ),
-                          items: [5, 10, 15, 20, 25, 30, 35, 40].map((minutes) {
-                            return DropdownMenuItem(
-                              value: minutes,
-                              child: Text('$minutes minutes'),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _minutesBeforeEnd = value!;
-                            });
-                          },
+                        'নামাজের আগে : ফজর',
+                        Column(
+                          children: [
+                            const SizedBox(height: 8),
+                            Text(
+                              'আজকে শুরু হবে $_minutesBeforeEnd মিনিট আগে',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            Text(
+                              '-$_minutesBeforeEnd মিনিট',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'পরবর্তী নিয়মিত: 4:45 AM',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Text(
+                                  '-৳০',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Slider(
+                                    value: _minutesBeforeEnd.toDouble(),
+                                    min: 0,
+                                    max: 60,
+                                    divisions: 12,
+                                    label: '-$_minutesBeforeEnd মিনিট',
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _minutesBeforeEnd = value.toInt();
+                                      });
+                                    },
+                                  ),
+                                ),
+                                Text(
+                                  '+৳০',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ] else if (_selectedType ==
                         PrayerAlarmType.afterPrayerStart) ...[
                       _buildConfigSection(
                         context,
-                        'Minutes after prayer starts',
-                        DropdownButtonFormField<int>(
-                          value: _minutesAfterStart,
-                          decoration: _getInputDecoration(
-                            context,
-                            'Select minutes',
-                          ),
-                          items: [5, 10, 15, 20, 25, 30, 35, 40].map((minutes) {
-                            return DropdownMenuItem(
-                              value: minutes,
-                              child: Text('$minutes minutes'),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _minutesAfterStart = value!;
-                            });
-                          },
+                        'আলার্ম টেন',
+                        Column(
+                          children: [
+                            const SizedBox(height: 8),
+                            Text(
+                              'আজকে শুরু হবে $_minutesAfterStart মিনিট পরে',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            Text(
+                              '+$_minutesAfterStart মিনিট',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'পরবর্তী নিয়মিত: 4:45 AM',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Text(
+                                  '-৳০',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Slider(
+                                    value: _minutesAfterStart.toDouble(),
+                                    min: 0,
+                                    max: 60,
+                                    divisions: 12,
+                                    label: '+$_minutesAfterStart মিনিট',
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _minutesAfterStart = value.toInt();
+                                      });
+                                    },
+                                  ),
+                                ),
+                                Text(
+                                  '+৳০',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ] else ...[
