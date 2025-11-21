@@ -19,6 +19,10 @@ class ReminderTaskCard extends BaseTaskCard {
 class _ReminderTaskCardState extends BaseTaskCardState<ReminderTaskCard> {
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final reminderTime = widget.task.startDate;
+    final isPast = reminderTime.isBefore(now);
+
     return buildContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,6 +46,12 @@ class _ReminderTaskCardState extends BaseTaskCardState<ReminderTaskCard> {
           ],
 
           const SizedBox(height: 16),
+
+          // Countdown Timer (if reminder is upcoming)
+          if (!isPast && !widget.task.isCompleted) ...[
+            _buildCountdownTimer(),
+            const SizedBox(height: 12),
+          ],
 
           // Reminder time info
           buildReminderTimeInfo(),
@@ -256,6 +266,170 @@ class _ReminderTaskCardState extends BaseTaskCardState<ReminderTaskCard> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCountdownTimer() {
+    final now = DateTime.now();
+    final reminderTime = widget.task.startDate;
+    final difference = reminderTime.difference(now);
+
+    final daysUntil = difference.inDays;
+    final hoursUntil = difference.inHours % 24;
+    final minutesUntil = difference.inMinutes % 60;
+    final secondsUntil = difference.inSeconds % 60;
+
+    // Determine color based on urgency
+    Color countdownColor;
+    if (difference.inHours < 1) {
+      countdownColor = Colors.red.shade600;
+    } else if (difference.inHours < 6) {
+      countdownColor = Colors.orange.shade600;
+    } else if (difference.inHours < 24) {
+      countdownColor = Colors.amber.shade600;
+    } else if (difference.inDays < 3) {
+      countdownColor = Colors.blue.shade600;
+    } else {
+      countdownColor = Colors.indigo.shade600;
+    }
+
+    final isUrgent = difference.inHours < 1;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            countdownColor.withValues(alpha: 0.15),
+            countdownColor.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: countdownColor.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: countdownColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.alarm_rounded,
+                  size: 16,
+                  color: countdownColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Time Remaining',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: countdownColor,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const Spacer(),
+              if (isUrgent)
+                TweenAnimationBuilder(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 800),
+                  builder: (context, double value, child) {
+                    return Opacity(
+                      opacity: 0.5 + (value * 0.5),
+                      child: Icon(
+                        Icons.warning_rounded,
+                        size: 18,
+                        color: Colors.red.shade600,
+                      ),
+                    );
+                  },
+                  onEnd: () {
+                    if (mounted) setState(() {});
+                  },
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              if (daysUntil > 0) ...[
+                _buildTimeUnit(daysUntil, 'Days', countdownColor, isUrgent),
+                _buildTimeUnit(hoursUntil, 'Hours', countdownColor, isUrgent),
+              ] else if (hoursUntil > 0) ...[
+                _buildTimeUnit(hoursUntil, 'Hours', countdownColor, isUrgent),
+                _buildTimeUnit(minutesUntil, 'Mins', countdownColor, isUrgent),
+              ] else ...[
+                _buildTimeUnit(minutesUntil, 'Mins', countdownColor, isUrgent),
+                _buildTimeUnit(secondsUntil, 'Secs', countdownColor, isUrgent),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeUnit(int value, String label, Color color, bool animate) {
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: 0.95, end: 1.0),
+      duration: Duration(milliseconds: animate ? 500 : 0),
+      builder: (context, double scale, child) {
+        return Transform.scale(
+          scale: animate ? scale : 1.0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Text(
+                  value.toString().padLeft(2, '0'),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: color.withValues(alpha: 0.7),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      onEnd: () {
+        if (mounted && animate) setState(() {});
+      },
     );
   }
 }

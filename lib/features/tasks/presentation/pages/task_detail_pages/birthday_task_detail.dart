@@ -1,32 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 import '../../../domain/entities/task.dart';
 import '../../bloc/task_bloc.dart';
 
-class BirthdayTaskDetail extends StatelessWidget {
+class BirthdayTaskDetail extends StatefulWidget {
   final Task task;
 
   const BirthdayTaskDetail({super.key, required this.task});
+
+  @override
+  State<BirthdayTaskDetail> createState() => _BirthdayTaskDetailState();
+}
+
+class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Update every second for real-time countdown
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final birthdayThisYear = DateTime(
       now.year,
-      task.endDate.month,
-      task.endDate.day,
+      widget.task.endDate.month,
+      widget.task.endDate.day,
     );
     final birthdayNextYear = DateTime(
       now.year + 1,
-      task.endDate.month,
-      task.endDate.day,
+      widget.task.endDate.month,
+      widget.task.endDate.day,
     );
     final nextBirthday = now.isAfter(birthdayThisYear)
         ? birthdayNextYear
         : birthdayThisYear;
     final daysUntilBirthday = nextBirthday.difference(now).inDays;
-    final currentAge = now.year - task.endDate.year;
+    final currentAge = now.year - widget.task.endDate.year;
     final ageOnNextBirthday =
         currentAge + (now.isAfter(birthdayThisYear) ? 1 : 0);
 
@@ -39,15 +62,19 @@ class BirthdayTaskDetail extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                task.isCompleted ? Colors.green.shade50 : Colors.pink.shade50,
-                task.isCompleted ? Colors.green.shade100 : Colors.pink.shade100,
+                widget.task.isCompleted
+                    ? Colors.green.shade50
+                    : Colors.pink.shade50,
+                widget.task.isCompleted
+                    ? Colors.green.shade100
+                    : Colors.pink.shade100,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: task.isCompleted
+              color: widget.task.isCompleted
                   ? Colors.green.shade200
                   : Colors.pink.shade200,
             ),
@@ -60,16 +87,18 @@ class BirthdayTaskDetail extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: task.isCompleted
+                      color: widget.task.isCompleted
                           ? Colors.green.shade100
                           : Colors.pink.shade100,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
-                      task.isCompleted
+                      widget.task.isCompleted
                           ? Icons.check_circle
                           : Icons.cake_rounded,
-                      color: task.isCompleted ? Colors.green : Colors.pink,
+                      color: widget.task.isCompleted
+                          ? Colors.green
+                          : Colors.pink,
                       size: 28,
                     ),
                   ),
@@ -83,17 +112,17 @@ class BirthdayTaskDetail extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: task.isCompleted
+                            color: widget.task.isCompleted
                                 ? Colors.green.shade700
                                 : Colors.pink.shade700,
                           ),
                         ),
                         Text(
-                          task.title,
+                          widget.task.title,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            decoration: task.isCompleted
+                            decoration: widget.task.isCompleted
                                 ? TextDecoration.lineThrough
                                 : null,
                             color: Colors.grey.shade800,
@@ -105,7 +134,7 @@ class BirthdayTaskDetail extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       context.read<TaskBloc>().add(
-                        ToggleTaskCompletion(task.id),
+                        ToggleTaskCompletion(widget.task.id),
                       );
                     },
                     child: Container(
@@ -113,9 +142,13 @@ class BirthdayTaskDetail extends StatelessWidget {
                       height: 44,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: task.isCompleted ? Colors.green : Colors.white,
+                        color: widget.task.isCompleted
+                            ? Colors.green
+                            : Colors.white,
                         border: Border.all(
-                          color: task.isCompleted ? Colors.green : Colors.pink,
+                          color: widget.task.isCompleted
+                              ? Colors.green
+                              : Colors.pink,
                           width: 2,
                         ),
                         boxShadow: [
@@ -126,7 +159,7 @@ class BirthdayTaskDetail extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: task.isCompleted
+                      child: widget.task.isCompleted
                           ? const Icon(
                               Icons.check_rounded,
                               color: Colors.white,
@@ -141,10 +174,11 @@ class BirthdayTaskDetail extends StatelessWidget {
                   ),
                 ],
               ),
-              if (task.description != null && task.description!.isNotEmpty) ...[
+              if (widget.task.description != null &&
+                  widget.task.description!.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text(
-                  task.description!,
+                  widget.task.description!,
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey.shade700,
@@ -157,8 +191,14 @@ class BirthdayTaskDetail extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
+        // Live Countdown Timer
+        if (!widget.task.isCompleted && daysUntilBirthday <= 30) ...[
+          _buildLiveCountdown(nextBirthday, daysUntilBirthday),
+          const SizedBox(height: 20),
+        ],
+
         // Age and countdown info
-        if (!task.isCompleted) ...[
+        if (!widget.task.isCompleted) ...[
           Row(
             children: [
               // Current age card
@@ -309,7 +349,7 @@ class BirthdayTaskDetail extends StatelessWidget {
               const SizedBox(height: 16),
               _buildDetailRow(
                 'Birth Date',
-                DateFormat('MMMM dd, yyyy').format(task.endDate),
+                DateFormat('MMMM dd, yyyy').format(widget.task.endDate),
                 Icons.calendar_today_rounded,
                 Colors.blue,
               ),
@@ -330,7 +370,7 @@ class BirthdayTaskDetail extends StatelessWidget {
               const SizedBox(height: 12),
               _buildDetailRow(
                 'Zodiac Sign',
-                _getZodiacSign(task.endDate),
+                _getZodiacSign(widget.task.endDate),
                 Icons.auto_awesome_rounded,
                 Colors.purple,
               ),
@@ -340,7 +380,7 @@ class BirthdayTaskDetail extends StatelessWidget {
         const SizedBox(height: 20),
 
         // Celebration suggestions (if birthday is soon)
-        if (daysUntilBirthday <= 30 && !task.isCompleted) ...[
+        if (daysUntilBirthday <= 30 && !widget.task.isCompleted) ...[
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -451,7 +491,7 @@ class BirthdayTaskDetail extends StatelessWidget {
                 Icons.notifications_active_rounded,
                 Colors.green,
               ),
-              if (task.isPinnedToNotification) ...[
+              if (widget.task.isPinnedToNotification) ...[
                 const SizedBox(height: 8),
                 _buildDetailRow(
                   'Pinned',
@@ -463,15 +503,15 @@ class BirthdayTaskDetail extends StatelessWidget {
               const SizedBox(height: 8),
               _buildDetailRow(
                 'Created',
-                DateFormat('MMM dd, yyyy').format(task.createdAt),
+                DateFormat('MMM dd, yyyy').format(widget.task.createdAt),
                 Icons.add_circle_outline_rounded,
                 Colors.green,
               ),
-              if (task.updatedAt != null) ...[
+              if (widget.task.updatedAt != null) ...[
                 const SizedBox(height: 8),
                 _buildDetailRow(
                   'Updated',
-                  DateFormat('MMM dd, yyyy').format(task.updatedAt!),
+                  DateFormat('MMM dd, yyyy').format(widget.task.updatedAt!),
                   Icons.edit_rounded,
                   Colors.blue,
                 ),
@@ -547,5 +587,142 @@ class BirthdayTaskDetail extends StatelessWidget {
     }
 
     return 'Unknown';
+  }
+
+  Widget _buildLiveCountdown(DateTime nextBirthday, int daysUntil) {
+    final now = DateTime.now();
+    final difference = nextBirthday.difference(now);
+    final hours = difference.inHours % 24;
+    final minutes = difference.inMinutes % 60;
+    final seconds = difference.inSeconds % 60;
+
+    // Determine color based on urgency
+    Color countdownColor;
+    if (daysUntil == 0) {
+      countdownColor = Colors.pink.shade600;
+    } else if (daysUntil <= 3) {
+      countdownColor = Colors.purple.shade600;
+    } else if (daysUntil <= 7) {
+      countdownColor = Colors.orange.shade600;
+    } else {
+      countdownColor = Colors.blue.shade600;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            countdownColor.withValues(alpha: 0.15),
+            countdownColor.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: countdownColor.withValues(alpha: 0.3),
+          width: 2,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                daysUntil == 0 ? Icons.cake_rounded : Icons.celebration_rounded,
+                color: countdownColor,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                daysUntil == 0 ? '🎉 Birthday Today!' : 'Birthday Countdown',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: countdownColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              if (daysUntil > 0) ...[
+                _buildCountdownUnit(
+                  daysUntil.toString(),
+                  'Days',
+                  countdownColor,
+                ),
+                _buildCountdownUnit(
+                  hours.toString().padLeft(2, '0'),
+                  'Hours',
+                  countdownColor,
+                ),
+              ] else ...[
+                _buildCountdownUnit(
+                  hours.toString().padLeft(2, '0'),
+                  'Hours',
+                  countdownColor,
+                ),
+                _buildCountdownUnit(
+                  minutes.toString().padLeft(2, '0'),
+                  'Minutes',
+                  countdownColor,
+                ),
+                _buildCountdownUnit(
+                  seconds.toString().padLeft(2, '0'),
+                  'Seconds',
+                  countdownColor,
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCountdownUnit(String value, String label, Color color) {
+    return Column(
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: color.withValues(alpha: 0.8),
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -44,6 +44,12 @@ class _BirthdayReminderCardState
 
           const SizedBox(height: 16),
 
+          // Countdown Timer (if birthday is within 30 days)
+          if (_getDaysUntilBirthday() <= 30 && !widget.task.isCompleted) ...[
+            _buildCountdownTimer(),
+            const SizedBox(height: 12),
+          ],
+
           // Birthday info
           buildBirthdayInfo(),
 
@@ -323,6 +329,226 @@ class _BirthdayReminderCardState
           ),
         ),
       ],
+    );
+  }
+
+  int _getDaysUntilBirthday() {
+    final birthdayDate = widget.task.startDate;
+    final now = DateTime.now();
+    final currentYear = now.year;
+
+    final thisYearBirthday = DateTime(
+      currentYear,
+      birthdayDate.month,
+      birthdayDate.day,
+    );
+    final nextYearBirthday = DateTime(
+      currentYear + 1,
+      birthdayDate.month,
+      birthdayDate.day,
+    );
+
+    final nextBirthday = thisYearBirthday.isAfter(now)
+        ? thisYearBirthday
+        : nextYearBirthday;
+    return nextBirthday.difference(now).inDays;
+  }
+
+  Widget _buildCountdownTimer() {
+    final birthdayDate = widget.task.startDate;
+    final now = DateTime.now();
+    final currentYear = now.year;
+
+    final thisYearBirthday = DateTime(
+      currentYear,
+      birthdayDate.month,
+      birthdayDate.day,
+    );
+    final nextYearBirthday = DateTime(
+      currentYear + 1,
+      birthdayDate.month,
+      birthdayDate.day,
+    );
+
+    final nextBirthday = thisYearBirthday.isAfter(now)
+        ? thisYearBirthday
+        : nextYearBirthday;
+    final difference = nextBirthday.difference(now);
+    final daysUntil = difference.inDays;
+    final hoursUntil = difference.inHours % 24;
+    final minutesUntil = difference.inMinutes % 60;
+    final secondsUntil = difference.inSeconds % 60;
+
+    // Determine color based on urgency
+    Color countdownColor;
+    if (daysUntil == 0) {
+      countdownColor = Colors.pink.shade600;
+    } else if (daysUntil <= 3) {
+      countdownColor = Colors.purple.shade600;
+    } else if (daysUntil <= 7) {
+      countdownColor = Colors.orange.shade600;
+    } else if (daysUntil <= 14) {
+      countdownColor = Colors.blue.shade600;
+    } else {
+      countdownColor = Colors.indigo.shade600;
+    }
+
+    final isVeryClose = daysUntil <= 3;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            countdownColor.withValues(alpha: 0.15),
+            countdownColor.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: countdownColor.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: countdownColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  daysUntil == 0
+                      ? Icons.cake_rounded
+                      : Icons.celebration_rounded,
+                  size: 16,
+                  color: countdownColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                daysUntil == 0 ? '🎉 Birthday Today!' : 'Birthday Countdown',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: countdownColor,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const Spacer(),
+              if (isVeryClose)
+                TweenAnimationBuilder(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 800),
+                  builder: (context, double value, child) {
+                    return Transform.scale(
+                      scale: 0.8 + (value * 0.2),
+                      child: Text(
+                        daysUntil == 0 ? '🎂' : '🎈',
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    );
+                  },
+                  onEnd: () {
+                    if (mounted) setState(() {});
+                  },
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              if (daysUntil > 0) ...[
+                _buildTimeUnit(daysUntil, 'Days', countdownColor, isVeryClose),
+                _buildTimeUnit(
+                  hoursUntil,
+                  'Hours',
+                  countdownColor,
+                  isVeryClose,
+                ),
+              ] else ...[
+                _buildTimeUnit(
+                  hoursUntil,
+                  'Hours',
+                  countdownColor,
+                  isVeryClose,
+                ),
+                _buildTimeUnit(
+                  minutesUntil,
+                  'Mins',
+                  countdownColor,
+                  isVeryClose,
+                ),
+                _buildTimeUnit(
+                  secondsUntil,
+                  'Secs',
+                  countdownColor,
+                  isVeryClose,
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeUnit(int value, String label, Color color, bool animate) {
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: 0.95, end: 1.0),
+      duration: Duration(milliseconds: animate ? 500 : 0),
+      builder: (context, double scale, child) {
+        return Transform.scale(
+          scale: animate ? scale : 1.0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Text(
+                  value.toString().padLeft(2, '0'),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: color.withValues(alpha: 0.7),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      onEnd: () {
+        if (mounted && animate) setState(() {});
+      },
     );
   }
 }
