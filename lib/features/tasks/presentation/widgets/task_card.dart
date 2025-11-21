@@ -251,6 +251,12 @@ class _TaskCardState extends State<TaskCard> {
 
                 // Progress section
                 if (!widget.task.isCompleted) ...[
+                  // Countdown Timer Section
+                  if (widget.task.isActive && !widget.task.isOverdue) ...[
+                    _buildCountdownTimer(),
+                    const SizedBox(height: 12),
+                  ],
+
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -451,6 +457,225 @@ class _TaskCardState extends State<TaskCard> {
           ),
         ),
       ),
+    );
+  }
+
+  // Countdown timer helpers
+  Map<String, int> _getCountdownValues() {
+    final now = DateTime.now();
+    final endDate = widget.task.endDate;
+    final difference = endDate.difference(now);
+
+    if (difference.isNegative) {
+      return {'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 0};
+    }
+
+    return {
+      'days': difference.inDays,
+      'hours': difference.inHours % 24,
+      'minutes': difference.inMinutes % 60,
+      'seconds': difference.inSeconds % 60,
+    };
+  }
+
+  Color _getCountdownColor() {
+    final now = DateTime.now();
+    final endDate = widget.task.endDate;
+    final difference = endDate.difference(now);
+
+    if (difference.inMinutes < 5) {
+      return Colors.red.shade600;
+    } else if (difference.inHours < 1) {
+      return Colors.orange.shade600;
+    } else if (difference.inHours < 24) {
+      return Colors.amber.shade600;
+    } else if (difference.inDays < 3) {
+      return Colors.blue.shade600;
+    } else {
+      return Colors.green.shade600;
+    }
+  }
+
+  Widget _buildCountdownTimer() {
+    final countdown = _getCountdownValues();
+    final countdownColor = _getCountdownColor();
+    final now = DateTime.now();
+    final difference = widget.task.endDate.difference(now);
+    final isUrgent = difference.inMinutes < 5;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            countdownColor.withValues(alpha: 0.1),
+            countdownColor.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: countdownColor.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: countdownColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.timer_outlined,
+                  size: 16,
+                  color: countdownColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Time Remaining',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: countdownColor,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const Spacer(),
+              if (isUrgent)
+                TweenAnimationBuilder(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 800),
+                  builder: (context, double value, child) {
+                    return Opacity(
+                      opacity: 0.5 + (value * 0.5),
+                      child: Icon(
+                        Icons.warning_rounded,
+                        size: 18,
+                        color: Colors.red.shade600,
+                      ),
+                    );
+                  },
+                  onEnd: () {
+                    if (mounted) setState(() {});
+                  },
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Show different time units based on time remaining
+              if (difference.inDays > 0) ...[
+                _buildTimeUnit(
+                  countdown['days']!,
+                  'Days',
+                  countdownColor,
+                  isUrgent,
+                ),
+                _buildTimeUnit(
+                  countdown['hours']!,
+                  'Hours',
+                  countdownColor,
+                  isUrgent,
+                ),
+              ] else if (difference.inHours > 0) ...[
+                _buildTimeUnit(
+                  countdown['hours']!,
+                  'Hours',
+                  countdownColor,
+                  isUrgent,
+                ),
+                _buildTimeUnit(
+                  countdown['minutes']!,
+                  'Mins',
+                  countdownColor,
+                  isUrgent,
+                ),
+              ] else if (difference.inMinutes > 0) ...[
+                _buildTimeUnit(
+                  countdown['minutes']!,
+                  'Mins',
+                  countdownColor,
+                  isUrgent,
+                ),
+                _buildTimeUnit(
+                  countdown['seconds']!,
+                  'Secs',
+                  countdownColor,
+                  isUrgent,
+                ),
+              ] else ...[
+                _buildTimeUnit(
+                  countdown['seconds']!,
+                  'Seconds',
+                  countdownColor,
+                  isUrgent,
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeUnit(int value, String label, Color color, bool isUrgent) {
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: 0.95, end: 1.0),
+      duration: Duration(milliseconds: isUrgent ? 500 : 0),
+      builder: (context, double scale, child) {
+        return Transform.scale(
+          scale: isUrgent ? scale : 1.0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Text(
+                  value.toString().padLeft(2, '0'),
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: color.withValues(alpha: 0.7),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      onEnd: () {
+        if (mounted && isUrgent) setState(() {});
+      },
     );
   }
 
