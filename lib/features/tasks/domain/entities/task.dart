@@ -213,9 +213,16 @@ class Task extends Equatable {
   bool get isActive {
     final now = tz.TZDateTime.now(tz.local);
 
-    // For reminders and birthdays, they are active when not completed
+    // For birthdays, check if the next birthday occurrence is in the future
+    if (taskType == TaskType.birthday) {
+      // Birthdays are always active unless completed
+      // (they recur yearly, so there's always a "next" birthday)
+      return !isCompleted;
+    }
+
+    // For reminders, they are active when not completed
     // and the notification time hasn't passed yet
-    if (taskType == TaskType.reminder || taskType == TaskType.birthday) {
+    if (taskType == TaskType.reminder) {
       final endDateTz = tz.TZDateTime.from(endDate, tz.local);
       return !isCompleted && now.isBefore(endDateTz);
     }
@@ -224,6 +231,41 @@ class Task extends Equatable {
     final startDateTz = tz.TZDateTime.from(startDate, tz.local);
     final endDateTz = tz.TZDateTime.from(endDate, tz.local);
     return now.isAfter(startDateTz) && now.isBefore(endDateTz) && !isCompleted;
+  }
+
+  /// Get the next occurrence date for sorting purposes
+  /// - For tasks: returns end date (deadline)
+  /// - For birthdays: returns next birthday date
+  /// - For reminders: returns notification time or end date
+  DateTime get nextOccurrence {
+    final now = DateTime.now();
+
+    if (taskType == TaskType.birthday) {
+      // Calculate next birthday
+      final birthdayDate = endDate; // Birth date stored in endDate
+      final currentYear = now.year;
+
+      // This year's birthday
+      final thisYearBirthday = DateTime(
+        currentYear,
+        birthdayDate.month,
+        birthdayDate.day,
+      );
+
+      // If this year's birthday has passed, return next year's
+      if (now.isAfter(thisYearBirthday)) {
+        return DateTime(currentYear + 1, birthdayDate.month, birthdayDate.day);
+      }
+      return thisYearBirthday;
+    }
+
+    if (taskType == TaskType.reminder) {
+      // For reminders, use notification time if available, otherwise end date
+      return notificationTime ?? endDate;
+    }
+
+    // For traditional tasks, use end date
+    return endDate;
   }
 
   Task copyWith({

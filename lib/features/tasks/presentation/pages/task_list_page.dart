@@ -241,9 +241,11 @@ class _TaskListPageState extends State<TaskListPage>
             );
           }
 
-          // Sort tasks by end date
+          // Sort tasks by next occurrence (most urgent first)
           final sortedTasks = List.from(state.tasks);
-          sortedTasks.sort((a, b) => a.endDate.compareTo(b.endDate));
+          sortedTasks.sort(
+            (a, b) => a.nextOccurrence.compareTo(b.nextOccurrence),
+          );
 
           return ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -302,6 +304,11 @@ class _TaskListPageState extends State<TaskListPage>
           final activeTasks = state.tasks
               .where((task) => task.isActive)
               .toList();
+
+          // Sort by next occurrence (most urgent first)
+          activeTasks.sort(
+            (a, b) => a.nextOccurrence.compareTo(b.nextOccurrence),
+          );
 
           if (activeTasks.isEmpty) {
             return SingleChildScrollView(
