@@ -52,6 +52,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
     );
 
     if (date != null) {
+      if (!mounted) return;
       final time = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(_selectedDueDate ?? DateTime.now()),

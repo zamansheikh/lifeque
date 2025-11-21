@@ -16,8 +16,8 @@ class TodayDosesWidget extends StatefulWidget {
 class _TodayDosesWidgetState extends State<TodayDosesWidget> {
   List<Medicine> _activeMedicines = [];
   // Pending doses list to determine next dose times (only pending considered)
-  List<String> _pendingDoseIds = [];
-  Map<String, List<DateTime>> _pendingDoseTimesByMedicine = {};
+  final List<String> _pendingDoseIds = [];
+  final Map<String, List<DateTime>> _pendingDoseTimesByMedicine = {};
 
   @override
   void initState() {

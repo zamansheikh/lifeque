@@ -221,10 +221,16 @@ class MedicineRepositoryImpl implements MedicineRepository {
 
       final stats = <String, dynamic>{
         'total': doses.length,
-        'taken': doses.where((dose) => dose.status == 'taken').length,
-        'skipped': doses.where((dose) => dose.status == 'skipped').length,
-        'missed': doses.where((dose) => dose.status == 'missed').length,
-        'pending': doses.where((dose) => dose.status == 'pending').length,
+        'taken': doses.where((dose) => dose.status == DoseStatus.taken).length,
+        'skipped': doses
+            .where((dose) => dose.status == DoseStatus.skipped)
+            .length,
+        'missed': doses
+            .where((dose) => dose.status == DoseStatus.missed)
+            .length,
+        'pending': doses
+            .where((dose) => dose.status == DoseStatus.pending)
+            .length,
       };
 
       return Right(stats);
@@ -249,16 +255,20 @@ class MedicineRepositoryImpl implements MedicineRepository {
       final stats = <String, dynamic>{
         'totalMedicines': allMedicines.length,
         'activeMedicines': allMedicines
-            .where((m) => m.status == 'active')
+            .where((m) => m.status == MedicineStatus.active)
             .length,
         'totalDoses': allDoses.length,
-        'takenDoses': allDoses.where((dose) => dose.status == 'taken').length,
-        'skippedDoses': allDoses
-            .where((dose) => dose.status == 'skipped')
+        'takenDoses': allDoses
+            .where((dose) => dose.status == DoseStatus.taken)
             .length,
-        'missedDoses': allDoses.where((dose) => dose.status == 'missed').length,
+        'skippedDoses': allDoses
+            .where((dose) => dose.status == DoseStatus.skipped)
+            .length,
+        'missedDoses': allDoses
+            .where((dose) => dose.status == DoseStatus.missed)
+            .length,
         'pendingDoses': allDoses
-            .where((dose) => dose.status == 'pending')
+            .where((dose) => dose.status == DoseStatus.pending)
             .length,
       };
 
@@ -288,7 +298,7 @@ class MedicineRepositoryImpl implements MedicineRepository {
             .toList();
 
         final taken = medicineDoses
-            .where((dose) => dose.status == 'taken')
+            .where((dose) => dose.status == DoseStatus.taken)
             .length;
         final total = medicineDoses.length;
         final adherenceRate = total > 0 ? (taken / total) * 100 : 0.0;

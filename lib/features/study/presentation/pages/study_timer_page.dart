@@ -447,6 +447,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
 
   Future<void> _pauseSession() async {
     await _studyService.pauseSession();
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('⏸️ Session paused. Tap play to resume.'),
@@ -457,6 +458,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
 
   Future<void> _resumeSession() async {
     await _studyService.resumeSession();
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('▶️ Session resumed!'),

@@ -344,9 +344,15 @@ class _PermissionScreenState extends State<PermissionScreen>
                   center: Alignment.center,
                   radius: 1.5 * _overlayAnimation.value,
                   colors: [
-                    Colors.black.withOpacity(0.4 * _overlayAnimation.value),
-                    Colors.black.withOpacity(0.8 * _overlayAnimation.value),
-                    Colors.black.withOpacity(0.95 * _overlayAnimation.value),
+                    Colors.black.withValues(
+                      alpha: 0.4 * _overlayAnimation.value,
+                    ),
+                    Colors.black.withValues(
+                      alpha: 0.8 * _overlayAnimation.value,
+                    ),
+                    Colors.black.withValues(
+                      alpha: 0.95 * _overlayAnimation.value,
+                    ),
                   ],
                 ),
               ),
@@ -394,14 +400,14 @@ class _PermissionScreenState extends State<PermissionScreen>
                   height: 4 + (random % 3),
                   decoration: BoxDecoration(
                     color: _currentOverlayType == 'notification'
-                        ? Colors.blue.withOpacity(0.6)
-                        : Colors.green.withOpacity(0.6),
+                        ? Colors.blue.withValues(alpha: 0.6)
+                        : Colors.green.withValues(alpha: 0.6),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color: _currentOverlayType == 'notification'
-                            ? Colors.blue.withOpacity(0.3)
-                            : Colors.green.withOpacity(0.3),
+                            ? Colors.blue.withValues(alpha: 0.3)
+                            : Colors.green.withValues(alpha: 0.3),
                         blurRadius: 10,
                         spreadRadius: 2,
                       ),
@@ -1147,12 +1153,12 @@ class SpotlightPainter extends CustomPainter {
     // Draw the darkened area (everything except the spotlight)
     canvas.drawPath(
       combinedPath,
-      Paint()..color = Colors.black.withOpacity(0.7 * animation),
+      Paint()..color = Colors.black.withValues(alpha: 0.7 * animation),
     );
 
     // Add a subtle glow around the spotlight
     final glowPaint = Paint()
-      ..color = Colors.blue.withOpacity(0.3 * animation)
+      ..color = Colors.blue.withValues(alpha: 0.3 * animation)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
     canvas.drawRRect(
@@ -1212,9 +1218,9 @@ class EnhancedSpotlightPainter extends CustomPainter {
       center: Alignment.center,
       radius: 1.5,
       colors: [
-        Colors.black.withOpacity(0.3 * animation),
-        Colors.black.withOpacity(0.7 * animation),
-        Colors.black.withOpacity(0.95 * animation),
+        Colors.black.withValues(alpha: 0.3 * animation),
+        Colors.black.withValues(alpha: 0.7 * animation),
+        Colors.black.withValues(alpha: 0.95 * animation),
       ],
     );
 
@@ -1229,7 +1235,7 @@ class EnhancedSpotlightPainter extends CustomPainter {
     // Multiple glow layers for enhanced effect
     for (int i = 3; i >= 1; i--) {
       final glowPaint = Paint()
-        ..color = color.withOpacity((0.4 * animation) / i)
+        ..color = color.withValues(alpha: (0.4 * animation) / i)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, 15.0 * i);
 
       canvas.drawRRect(
@@ -1243,7 +1249,7 @@ class EnhancedSpotlightPainter extends CustomPainter {
 
     // Inner highlight ring
     final highlightPaint = Paint()
-      ..color = color.withOpacity(0.6 * animation)
+      ..color = color.withValues(alpha: 0.6 * animation)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
 
@@ -1275,7 +1281,7 @@ class PatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(0.05 * animation)
+      ..color = color.withValues(alpha: 0.05 * animation)
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
 
@@ -1318,11 +1324,11 @@ class SpeechBubblePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(0.95)
+      ..color = color.withValues(alpha: 0.95)
       ..style = PaintingStyle.fill;
 
     final shadowPaint = Paint()
-      ..color = color.withOpacity(0.3)
+      ..color = color.withValues(alpha: 0.3)
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 

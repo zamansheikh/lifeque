@@ -903,6 +903,7 @@ class _MedicineProgressCard extends StatelessWidget {
                             ),
                           );
                           if (confirm == true) {
+                            if (!context.mounted) return;
                             Navigator.pop(ctx);
                             context.read<MedicineCubit>().deleteMedicine(
                               medicine.id,

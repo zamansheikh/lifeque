@@ -862,10 +862,8 @@ class _TaskListPageState extends State<TaskListPage>
     bool isUpdateAvailable,
   ) async {
     final packageInfo = await PackageInfo.fromPlatform();
-    final colorScheme = Theme.of(context).colorScheme;
-
     if (!context.mounted) return;
-
+    final colorScheme = Theme.of(context).colorScheme;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1060,7 +1058,7 @@ class _TaskListPageState extends State<TaskListPage>
               await launchUrl(uri, mode: LaunchMode.externalApplication);
             } else {
               // Show error message if URL can't be launched
-              if (context.mounted) {
+              if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Could not open $label'),
@@ -1071,7 +1069,7 @@ class _TaskListPageState extends State<TaskListPage>
             }
           } catch (e) {
             // Handle any errors
-            if (context.mounted) {
+            if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Error opening $label: $e'),
@@ -1217,7 +1215,7 @@ class _TaskListPageState extends State<TaskListPage>
 
       debugPrint('🔍 Update check completed: $updateInfo');
 
-      if (!context.mounted) {
+      if (!mounted) {
         debugPrint('🔍 Widget context not mounted, returning');
         return;
       }
@@ -1241,7 +1239,7 @@ class _TaskListPageState extends State<TaskListPage>
     } catch (e) {
       debugPrint('❌ Update check failed: $e');
 
-      if (!context.mounted) {
+      if (!mounted) {
         debugPrint('🔍 Widget context not mounted in catch block');
         return;
       }

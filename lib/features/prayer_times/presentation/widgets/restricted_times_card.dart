@@ -347,7 +347,7 @@ class RestrictedTimesCard extends StatelessWidget {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),

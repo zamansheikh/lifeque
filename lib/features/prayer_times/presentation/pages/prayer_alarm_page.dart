@@ -27,7 +27,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: const Text('Prayer Alarms'),
         backgroundColor: colorScheme.surface,
@@ -50,7 +50,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                   onChanged: (value) {
                     _alarmService.toggleGlobalAlarms(value);
                   },
-                  activeColor: colorScheme.primary,
+                  activeThumbColor: colorScheme.primary,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               );
@@ -272,7 +272,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                       }
                     }
                   : null,
-              activeColor: colorScheme.primary,
+              activeThumbColor: colorScheme.primary,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
@@ -936,7 +936,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                       context,
                       'Alarm Sound',
                       DropdownButtonFormField<String>(
-                        value: _selectedSoundPath,
+                        initialValue: _selectedSoundPath,
                         decoration: _getInputDecoration(
                           context,
                           'Select sound',
@@ -967,7 +967,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                       context,
                       'Alarm Duration',
                       DropdownButtonFormField<int>(
-                        value: _alarmDurationMinutes,
+                        initialValue: _alarmDurationMinutes,
                         decoration: _getInputDecoration(
                           context,
                           'Select duration',
@@ -1002,7 +1002,9 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(24),
                   bottomRight: Radius.circular(24),
@@ -1109,7 +1111,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? colorScheme.primary
-                    : colorScheme.surfaceVariant,
+                    : colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(

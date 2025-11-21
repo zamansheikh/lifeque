@@ -140,8 +140,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       // Get current position with timeout
       try {
         Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-          timeLimit: const Duration(seconds: 15),
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 15),
+          ),
         );
 
         // Check if location has changed significantly (>100m)
@@ -225,8 +227,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       // Get current position
       try {
         Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-          timeLimit: const Duration(seconds: 10),
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 10),
+          ),
         );
 
         // Save GPS location
@@ -553,6 +557,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
     if (_isLocationFromGps) {
       _updatePrayerTimes();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('✅ Location updated from GPS'),
@@ -562,6 +567,18 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       );
     } else {
       // If GPS failed, keep using saved location
+      if (_latitude == 23.8103 && _longitude == 90.4125) {
+        // Still default location
+        setState(() {
+          _error =
+              'Could not get GPS location. Using default location (Dhaka, Bangladesh).';
+        });
+      } else {
+        setState(() {
+          _error = 'Could not get GPS location. Using saved location.';
+        });
+      }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('❌ Could not get GPS location. Using saved location.'),
