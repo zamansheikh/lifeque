@@ -10,6 +10,10 @@ class PrayerWidgetUI extends StatelessWidget {
   final PrayerTimes prayerTimes;
   final Prayer nextPrayer;
   final String locationName;
+  final String? endTimeStr;
+  final String? nextPrayerName;
+  final String? nextPrayerTimeStr;
+  final String? activeProhibited; // e.g. "Sunrise 6:15-6:30" or null
 
   const PrayerWidgetUI({
     super.key,
@@ -20,10 +24,16 @@ class PrayerWidgetUI extends StatelessWidget {
     required this.prayerTimes,
     required this.nextPrayer,
     required this.locationName,
+    this.endTimeStr,
+    this.nextPrayerName,
+    this.nextPrayerTimeStr,
+    this.activeProhibited,
   });
 
   @override
   Widget build(BuildContext context) {
+    final tf = DateFormat('h:mm a');
+
     return Container(
       width: 380,
       height: 180,
@@ -45,7 +55,7 @@ class PrayerWidgetUI extends StatelessWidget {
               right: 0,
               bottom: -2,
               child: CustomPaint(
-                size: const Size(380, 50),
+                size: const Size(380, 45),
                 painter: _MosqueSilhouettePainter(),
               ),
             ),
@@ -57,13 +67,13 @@ class PrayerWidgetUI extends StatelessWidget {
               child: Icon(
                 Icons.nightlight_round,
                 size: 38,
-                color: Colors.white.withValues(alpha: 0.15),
+                color: Colors.white.withValues(alpha: 0.10),
               ),
             ),
 
             // Main content
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -88,16 +98,16 @@ class PrayerWidgetUI extends StatelessWidget {
                                   child: const Icon(
                                     Icons.mosque,
                                     color: Color(0xFF90EE90),
-                                    size: 14,
+                                    size: 13,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 6),
                                 Flexible(
                                   child: Text(
                                     hijriDate,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 13,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: 0.2,
                                     ),
@@ -106,14 +116,14 @@ class PrayerWidgetUI extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 1),
                             Padding(
-                              padding: const EdgeInsets.only(left: 28),
+                              padding: const EdgeInsets.only(left: 26),
                               child: Text(
                                 gregorianDate,
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  fontSize: 11,
+                                  color: Colors.white.withValues(alpha: 0.65),
+                                  fontSize: 10,
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
@@ -121,14 +131,14 @@ class PrayerWidgetUI extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // Right: Updated time (leave space for native refresh button)
+                      // Right: Updated time
                       Padding(
                         padding: const EdgeInsets.only(right: 24),
                         child: Text(
-                          'Updated: ${DateFormat('hh:mm a').format(DateTime.now())}',
+                          'Updated: ${tf.format(DateTime.now())}',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.5),
-                            fontSize: 9,
+                            color: Colors.white.withValues(alpha: 0.45),
+                            fontSize: 8,
                             fontWeight: FontWeight.w400,
                           ),
                         ),
@@ -136,14 +146,15 @@ class PrayerWidgetUI extends StatelessWidget {
                     ],
                   ),
 
-                  const Spacer(),
+                  const SizedBox(height: 4),
 
-                  // ── Bottom row: Prayer name + times list ──
+                  // ── Middle: Current prayer + end time | Next prayer ──
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      // Left side: Current prayer + time range
+                      // Left: Current prayer name + time range + end time
                       Expanded(
+                        flex: 3,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
@@ -152,40 +163,136 @@ class PrayerWidgetUI extends StatelessWidget {
                               currentPrayerName,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 32,
+                                fontSize: 28,
                                 fontWeight: FontWeight.w800,
                                 height: 1.1,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 1),
                             Text(
                               timeRange,
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.85),
-                                fontSize: 13,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
+                            if (endTimeStr != null) ...[
+                              const SizedBox(height: 1),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.timer_outlined,
+                                    size: 10,
+                                    color: Colors.orange.shade300,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    'Ends: $endTimeStr',
+                                    style: TextStyle(
+                                      color: Colors.orange.shade300,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
 
-                      // Right side: Sunrise / Sunset / Sahri / Iftar
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildInfoRow('Sunrise', prayerTimes.sunrise),
-                          const SizedBox(height: 3),
-                          _buildInfoRow('Sunset', prayerTimes.maghrib),
-                          const SizedBox(height: 3),
-                          _buildInfoRow('Sahri', prayerTimes.fajr),
-                          const SizedBox(height: 3),
-                          _buildInfoRow('Iftar', prayerTimes.maghrib),
-                        ],
+                      // Right: Info column
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Next prayer
+                            if (nextPrayerName != null &&
+                                nextPrayerTimeStr != null) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.skip_next_rounded,
+                                      size: 12,
+                                      color: const Color(0xFF90EE90),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      '$nextPrayerName $nextPrayerTimeStr',
+                                      style: const TextStyle(
+                                        color: Color(0xFF90EE90),
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                            ],
+                            // Sunrise / Sunset
+                            _buildInfoRow('Sunrise', prayerTimes.sunrise),
+                            const SizedBox(height: 2),
+                            _buildInfoRow('Sunset', prayerTimes.maghrib),
+                            const SizedBox(height: 2),
+                            _buildInfoRow('Sahri', prayerTimes.fajr),
+                            const SizedBox(height: 2),
+                            _buildInfoRow('Iftar', prayerTimes.maghrib),
+                          ],
+                        ),
                       ),
                     ],
                   ),
+
+                  const Spacer(),
+
+                  // ── Bottom: Prohibited time indicator ──
+                  if (activeProhibited != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade900.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.block,
+                            size: 10,
+                            color: Colors.red.shade200,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '🚫 $activeProhibited',
+                            style: TextStyle(
+                              color: Colors.red.shade200,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -203,16 +310,16 @@ class PrayerWidgetUI extends StatelessWidget {
         Text(
           '$label: ',
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.6),
-            fontSize: 11,
+            color: Colors.white.withValues(alpha: 0.55),
+            fontSize: 10,
             fontWeight: FontWeight.w400,
           ),
         ),
         Text(
-          DateFormat('hh:mm').format(time),
+          DateFormat('h:mm a').format(time),
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.w700,
           ),
         ),

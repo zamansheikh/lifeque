@@ -94,6 +94,42 @@ class HomeWidgetService {
         }
       }
 
+      // ── End Time ──
+      final startTimes = calculator.getStartTimes();
+      final endTimes = calculator.getEndTimes(startTimes);
+      String? endTimeStr;
+      if (currentPrayer != Prayer.none) {
+        final endTime = endTimes[currentPrayerName];
+        if (endTime != null) {
+          endTimeStr = DateFormat('h:mm a').format(endTime);
+        }
+      }
+
+      // ── Next Prayer ──
+      String? nextPrayerNameStr;
+      String? nextPrayerTimeStr;
+      if (nextPrayer != Prayer.none) {
+        nextPrayerNameStr = nextPrayer.displayName;
+        final nextTime = prayerTimes.timeForPrayer(nextPrayer);
+        if (nextTime != null) {
+          nextPrayerTimeStr = DateFormat('h:mm a').format(nextTime);
+        }
+      }
+
+      // ── Prohibited Time ──
+      String? activeProhibited;
+      final restrictedTimes = calculator.getRestrictedTimes();
+      final now = DateTime.now();
+      for (final entry in restrictedTimes.entries) {
+        final start = entry.value['start'] as DateTime;
+        final end = entry.value['end'] as DateTime;
+        if (now.isAfter(start) && now.isBefore(end)) {
+          activeProhibited =
+              '${entry.key}: ${DateFormat('h:mm').format(start)} - ${DateFormat('h:mm a').format(end)}';
+          break;
+        }
+      }
+
       // ── Render Prayer Times Widget ──
       await HomeWidget.renderFlutterWidget(
         PrayerWidgetUI(
@@ -104,6 +140,10 @@ class HomeWidgetService {
           prayerTimes: prayerTimes,
           nextPrayer: nextPrayer,
           locationName: locationData.locationName,
+          endTimeStr: endTimeStr,
+          nextPrayerName: nextPrayerNameStr,
+          nextPrayerTimeStr: nextPrayerTimeStr,
+          activeProhibited: activeProhibited,
         ),
         key: 'prayer_widget_image',
         logicalSize: _widgetSize,
