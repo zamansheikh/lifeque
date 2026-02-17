@@ -33,12 +33,15 @@ Future<void> homeWidgetBackgroundCallback(Uri? uri) async {
   // Check both host and scheme to be sure, or just proceed if it's our URI
   if (uri?.host == 'refreshwidget' ||
       uri.toString().contains('refreshwidget')) {
-    debugPrint('🕌 Widget refresh triggered by tap');
+    debugPrint('🕌 Widget refresh triggered by tap - URI: $uri');
     try {
       // Create a fresh instance of the service
       final service = HomeWidgetService();
+      debugPrint(
+        '🕌 Created HomeWidgetService instance, calling updateWidget()...',
+      );
       await service.updateWidget();
-      debugPrint('✅ Widget refreshed via background callback');
+      debugPrint('✅ Widget refreshed via background callback successfully');
     } catch (e, stack) {
       debugPrint('❌ Widget background refresh failed: $e');
       debugPrint('Stack: $stack');

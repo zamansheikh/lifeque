@@ -19,6 +19,9 @@ class HomeWidgetService {
       await settings.init();
 
       final locationData = await settings.getSavedLocation();
+      debugPrint(
+        '🕌 Background Service: Saved Location: ${locationData?.locationName}, Lat: ${locationData?.latitude}',
+      );
 
       if (locationData == null) {
         // Render placeholder widget when location is not set
@@ -27,6 +30,7 @@ class HomeWidgetService {
           const PrayerWidgetPlaceholder(),
           key: 'prayer_widget_image',
           logicalSize: _widgetSize,
+          pixelRatio: 3.0,
         );
         await HomeWidget.updateWidget(qualifiedAndroidName: _qualifiedName);
         debugPrint('✅ Placeholder widget rendered');
@@ -86,6 +90,7 @@ class HomeWidgetService {
         ),
         key: 'prayer_widget_image',
         logicalSize: _widgetSize,
+        pixelRatio: 3.0,
       );
 
       await HomeWidget.updateWidget(qualifiedAndroidName: _qualifiedName);
