@@ -88,30 +88,22 @@ class SalahTimeCalculator {
     // Calculate proper prayer end times based on Islamic jurisprudence
     final prayerTimes = getPrayerTimes();
 
-    // Calculate Islamic midnight for Isha end time
-    // Islamic midnight = halfway between Maghrib and next day's Fajr
+    // Get tomorrow's Fajr for Isha end time
     final tomorrowCalculator = SalahTimeCalculator(
       latitude: coordinates.latitude,
       longitude: coordinates.longitude,
       date: date.add(const Duration(days: 1)),
-      method: method, // Use the stored method
+      method: method,
       madhab: params.madhab,
     );
     final tomorrowFajr = tomorrowCalculator.getPrayerTimes().fajr;
-
-    // Calculate Islamic midnight (midpoint between Maghrib and next Fajr)
-    final maghribTime = prayerTimes.maghrib.millisecondsSinceEpoch;
-    final nextFajrTime = tomorrowFajr.millisecondsSinceEpoch;
-    final midnightTime =
-        maghribTime + ((nextFajrTime - maghribTime) / 2).round();
-    final islamicMidnight = DateTime.fromMillisecondsSinceEpoch(midnightTime);
 
     return {
       'Fajr': prayerTimes.sunrise, // Fajr ends at sunrise
       'Dhuhr': prayerTimes.asr, // Dhuhr ends at Asr time
       'Asr': prayerTimes.maghrib, // Asr ends at Maghrib time
       'Maghrib': prayerTimes.isha, // Maghrib ends at Isha time
-      'Isha': islamicMidnight, // Isha ends at Islamic midnight
+      'Isha': tomorrowFajr, // Isha ends at next day's Fajr
     };
   }
 

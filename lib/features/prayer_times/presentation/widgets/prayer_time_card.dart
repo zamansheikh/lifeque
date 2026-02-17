@@ -5,6 +5,7 @@ class PrayerTimeCard extends StatelessWidget {
   final String name;
   final DateTime time;
   final DateTime? endTime;
+  final DateTime? midnightTime;
   final bool isActive;
 
   const PrayerTimeCard({
@@ -12,6 +13,7 @@ class PrayerTimeCard extends StatelessWidget {
     required this.name,
     required this.time,
     this.endTime,
+    this.midnightTime,
     this.isActive = false,
   });
 
@@ -75,12 +77,7 @@ class PrayerTimeCard extends StatelessWidget {
                 ),
                 Text(
                   _getArabicName(),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                    fontFamily:
-                        'Arabic', // You might want to add an Arabic font
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
               ],
             ),
@@ -98,6 +95,15 @@ class PrayerTimeCard extends StatelessWidget {
                   color: isActive ? colorScheme.primary : Colors.black87,
                 ),
               ),
+              if (midnightTime != null)
+                Text(
+                  'Midnight: ${DateFormat('h:mm a').format(midnightTime!)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.orange.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               if (endTime != null)
                 Text(
                   'Ends: ${DateFormat('h:mm a').format(endTime!)}',
@@ -109,6 +115,7 @@ class PrayerTimeCard extends StatelessWidget {
                 ),
               if (isActive)
                 Container(
+                  margin: const EdgeInsets.only(top: 2),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 2,

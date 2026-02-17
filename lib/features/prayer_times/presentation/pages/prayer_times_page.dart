@@ -944,12 +944,19 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           final isActive = currentPrayer == prayer;
           final endTime = endTimes[entry.key];
 
+          // Get midnight time for Isha
+          DateTime? midnightTime;
+          if (entry.key == 'Isha') {
+            midnightTime = _calculator!.getIslamicMidnight();
+          }
+
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: PrayerTimeCard(
               name: entry.key,
               time: entry.value,
               endTime: endTime,
+              midnightTime: midnightTime,
               isActive: isActive,
             ),
           );
