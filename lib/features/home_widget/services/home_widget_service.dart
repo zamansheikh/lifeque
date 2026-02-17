@@ -2,23 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:lifeque/core/utils/salah_time_calculator.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_ui.dart';
+import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_placeholder.dart';
 import 'package:lifeque/features/prayer_times/data/services/prayer_settings_service.dart';
 import 'package:adhan/adhan.dart';
 import 'package:intl/intl.dart';
 import 'package:hijri/hijri_calendar.dart';
 
 class HomeWidgetService {
-  static const String appGroupId = 'group.lifeque.prayer_widget';
+  static const String _qualifiedName =
+      'com.programmernexus.lifeque.PrayerTimesWidgetProvider';
+  static const Size _widgetSize = Size(380, 180);
 
   Future<void> updateWidget() async {
     try {
-      // Use PrayerSettingsService to read the same keys the app writes to
       final settings = PrayerSettingsService.instance;
       await settings.init();
 
       final locationData = await settings.getSavedLocation();
+
       if (locationData == null) {
-        debugPrint('🕌 Location not set, cannot update widget');
+        // Render placeholder widget when location is not set
+        debugPrint('🕌 Location not set — rendering placeholder widget');
+        await HomeWidget.renderFlutterWidget(
+          const PrayerWidgetPlaceholder(),
+          key: 'prayer_widget_image',
+          logicalSize: _widgetSize,
+        );
+        await HomeWidget.updateWidget(qualifiedAndroidName: _qualifiedName);
+        debugPrint('✅ Placeholder widget rendered');
         return;
       }
 
@@ -63,11 +74,6 @@ class HomeWidgetService {
       }
 
       // Render Widget
-      await HomeWidget.saveWidgetData<String>(
-        'location_name',
-        locationData.locationName,
-      );
-
       await HomeWidget.renderFlutterWidget(
         PrayerWidgetUI(
           hijriDate: hijriString,
@@ -79,14 +85,10 @@ class HomeWidgetService {
           locationName: locationData.locationName,
         ),
         key: 'prayer_widget_image',
-        logicalSize: const Size(380, 180),
+        logicalSize: _widgetSize,
       );
 
-      await HomeWidget.updateWidget(
-        qualifiedAndroidName:
-            'com.programmernexus.lifeque.PrayerTimesWidgetProvider',
-      );
-
+      await HomeWidget.updateWidget(qualifiedAndroidName: _qualifiedName);
       debugPrint('✅ Home widget updated successfully');
     } catch (e, stack) {
       debugPrint('❌ Error updating home widget: $e');

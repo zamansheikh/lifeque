@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF0D4F4F"
-    android:padding="0dp">
+    android:background="#FF0D4F4F">
 
+    <!-- Main widget image — tapping this opens the app -->
     <ImageView
         android:id="@+id/prayer_widget_image"
         android:layout_width="match_parent"
@@ -12,4 +12,19 @@
         android:scaleType="fitXY"
         android:contentDescription="Prayer Times Widget" />
 
-</RelativeLayout>
+    <!-- Refresh button overlay in top-right corner — separate click target -->
+    <ImageView
+        android:id="@+id/refresh_button"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="6dp"
+        android:padding="6dp"
+        android:src="@android:drawable/ic_popup_sync"
+        android:contentDescription="Refresh Widget"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?android:attr/selectableItemBackgroundBorderless" />
+
+</FrameLayout>

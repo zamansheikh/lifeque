@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as timezone;
 import 'package:alarm/alarm.dart';
@@ -10,6 +11,42 @@ import 'features/medicines/domain/repositories/medicine_repository.dart';
 import 'features/tasks/domain/repositories/task_repository.dart';
 import 'injection_container.dart' as di;
 import 'features/home_widget/services/home_widget_service.dart';
+
+/// Top-level background callback for home_widget tap-to-refresh.
+/// This runs in an isolate when the user taps the widget.
+@pragma('vm:entry-point')
+Future<void> homeWidgetBackgroundCallback(Uri? uri) async {
+  // Ensure Flutter binding is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
+  debugPrint('🚀 Widget background callback started with URI: $uri');
+
+  // Initialize timezone (needed for prayer time calculations)
+  try {
+    tz.initializeTimeZones();
+    timezone.setLocalLocation(timezone.getLocation('Asia/Dhaka'));
+  } catch (e) {
+    debugPrint('⚠️ Timezone init warning in background: $e');
+  }
+
+  // Handle refresh action
+  // Check both host and scheme to be sure, or just proceed if it's our URI
+  if (uri?.host == 'refreshwidget' ||
+      uri.toString().contains('refreshwidget')) {
+    debugPrint('🕌 Widget refresh triggered by tap');
+    try {
+      // Create a fresh instance of the service
+      final service = HomeWidgetService();
+      await service.updateWidget();
+      debugPrint('✅ Widget refreshed via background callback');
+    } catch (e, stack) {
+      debugPrint('❌ Widget background refresh failed: $e');
+      debugPrint('Stack: $stack');
+    }
+  } else {
+    debugPrint('❓ Unknown URI in widget callback: $uri');
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,6 +91,9 @@ void main() async {
 
   // Note: Permissions will be handled by splash screen / permission screen
   debugPrint('🔔 Permission requests moved to dedicated permission flow');
+
+  // Register home widget background callback for tap-to-refresh
+  HomeWidget.registerInteractivityCallback(homeWidgetBackgroundCallback);
 
   // Check for app updates in background
   _checkForUpdatesInBackground();

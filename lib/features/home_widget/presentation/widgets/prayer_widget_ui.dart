@@ -121,13 +121,16 @@ class PrayerWidgetUI extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // Right: Updated time
-                      Text(
-                        'Updated: ${DateFormat('hh:mm a').format(DateTime.now())}',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w400,
+                      // Right: Updated time (leave space for native refresh button)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 24),
+                        child: Text(
+                          'Updated: ${DateFormat('hh:mm a').format(DateTime.now())}',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
                       ),
                     ],
