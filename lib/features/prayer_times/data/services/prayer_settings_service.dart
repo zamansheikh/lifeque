@@ -25,6 +25,8 @@ class PrayerSettingsService {
 
   Future<void> init() async {
     _prefs ??= await SharedPreferences.getInstance();
+    // Always reload from disk to pick up changes from other isolates (e.g. background widget refresh)
+    await _prefs!.reload();
   }
 
   // Location methods
