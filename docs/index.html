@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,33 +16,39 @@
             align-items: center;
             justify-content: center;
         }
+
         .container {
             text-align: center;
             background: white;
             padding: 2rem;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             max-width: 500px;
             margin: 20px;
         }
+
         .logo {
             font-size: 3rem;
             margin-bottom: 1rem;
         }
+
         h1 {
             color: #2c3e50;
             margin-bottom: 1rem;
         }
+
         .description {
             color: #666;
             margin-bottom: 2rem;
             line-height: 1.6;
         }
+
         .links {
             display: flex;
             flex-direction: column;
             gap: 1rem;
         }
+
         .btn {
             display: inline-block;
             padding: 12px 24px;
@@ -52,14 +59,17 @@
             transition: transform 0.2s;
             font-weight: 500;
         }
+
         .btn:hover {
             transform: translateY(-2px);
         }
+
         .btn-secondary {
             background: #f8f9fa;
             color: #333;
             border: 2px solid #dee2e6;
         }
+
         .footer {
             margin-top: 2rem;
             padding-top: 1rem;
@@ -69,26 +79,37 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="logo">🕌📱</div>
         <h1>LifeQue</h1>
         <p class="description">
-            Comprehensive Islamic & Productivity App built with Flutter. 
+            Comprehensive Islamic & Productivity App built with Flutter.
             Features prayer times, Qibla compass, study timer, task management, and more.
         </p>
-        
+
+        <div class="highlight"
+            style="background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 0.9em;">
+            <strong>New in v1.1.8+1:</strong><br>
+            • <strong>Home Screen Widgets:</strong> View Prayer Times & Mosque Jamaat times instantly.<br>
+            • <strong>Enhanced Info:</strong> Shows Sunrise, Sunset, Sahri, Iftar & Prohibited times.<br>
+            • <strong>Next Prayer Indicator:</strong> Always know what's coming up next.
+        </div>
+
         <div class="links">
             <a href="privacy-policy.html" class="btn">Privacy Policy</a>
-            <a href="https://play.google.com/store/apps/details?id=com.programmernexus.lifeque&hl=en" class="btn">Download from Play Store</a>
+            <a href="https://play.google.com/store/apps/details?id=com.programmernexus.lifeque&hl=en"
+                class="btn">Download from Play Store</a>
             <a href="https://github.com/zamansheikh/lifeque" class="btn btn-secondary">View on GitHub</a>
             <a href="https://github.com/zamansheikh/lifeque/releases" class="btn btn-secondary">Download APK</a>
         </div>
-        
+
         <div class="footer">
             <p>Made with ❤️ for the Muslim community worldwide</p>
             <p>© 2025 Programmer Nexus</p>
         </div>
     </div>
 </body>
+
 </html>
