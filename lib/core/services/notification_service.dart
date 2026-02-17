@@ -90,7 +90,7 @@ class NotificationService {
         );
 
     await _flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
@@ -482,7 +482,7 @@ class NotificationService {
     );
 
     // Cancel current notification
-    await _flutterLocalNotificationsPlugin.cancel(taskId.hashCode);
+    await _flutterLocalNotificationsPlugin.cancel(id: taskId.hashCode);
 
     // Reschedule for later with original task details
     final snoozeTime = tz.TZDateTime.now(
@@ -508,11 +508,11 @@ class NotificationService {
     }
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
-      taskId.hashCode,
-      title,
-      body,
-      snoozeTime,
-      _getNotificationDetails(task.taskType, taskId),
+      id: taskId.hashCode,
+      title: title,
+      body: body,
+      scheduledDate: snoozeTime,
+      notificationDetails: _getNotificationDetails(task.taskType, taskId),
       payload: taskId, // Add task ID as payload
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
@@ -528,10 +528,10 @@ class NotificationService {
     debugPrint('🔔 Showing action feedback: $title - $message');
 
     await _flutterLocalNotificationsPlugin.show(
-      DateTime.now().millisecondsSinceEpoch % 100000, // Unique ID
-      title,
-      message,
-      NotificationDetails(
+      id: DateTime.now().millisecondsSinceEpoch % 100000, // Unique ID
+      title: title,
+      body: message,
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'task_reminders',
           'Task Reminders',
@@ -804,11 +804,11 @@ class NotificationService {
         }
 
         await _flutterLocalNotificationsPlugin.zonedSchedule(
-          task.id.hashCode,
-          notificationTitle,
-          notificationBody,
-          scheduledDate,
-          _getNotificationDetails(task.taskType, task.id),
+          id: task.id.hashCode,
+          title: notificationTitle,
+          body: notificationBody,
+          scheduledDate: scheduledDate,
+          notificationDetails: _getNotificationDetails(task.taskType, task.id),
           payload: task.id, // Add task ID as payload
           matchDateTimeComponents: dateTimeComponents,
           androidScheduleMode: AndroidScheduleMode
@@ -836,11 +836,11 @@ class NotificationService {
             tz.local,
           ).add(const Duration(seconds: 10));
           await _flutterLocalNotificationsPlugin.zonedSchedule(
-            (task.id.hashCode + 999),
-            '🧪 Test Notification',
-            'This is a test to verify notifications work',
-            testTime,
-            const NotificationDetails(
+            id: (task.id.hashCode + 999),
+            title: '🧪 Test Notification',
+            body: 'This is a test to verify notifications work',
+            scheduledDate: testTime,
+            notificationDetails: const NotificationDetails(
               android: AndroidNotificationDetails(
                 'task_reminders',
                 'Task Reminders',
@@ -922,11 +922,11 @@ class NotificationService {
         final notificationId = task.id.hashCode + (i * 1000);
 
         await _flutterLocalNotificationsPlugin.zonedSchedule(
-          notificationId,
-          title,
-          body,
-          scheduledDate,
-          _getNotificationDetails(task.taskType, task.id),
+          id: notificationId,
+          title: title,
+          body: body,
+          scheduledDate: scheduledDate,
+          notificationDetails: _getNotificationDetails(task.taskType, task.id),
           payload: task.id,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         );
@@ -1034,10 +1034,10 @@ class NotificationService {
     }
 
     await _flutterLocalNotificationsPlugin.show(
-      task.id.hashCode + 10000, // Different ID for persistent notification
-      title,
-      content,
-      NotificationDetails(
+      id: task.id.hashCode + 10000, // Different ID for persistent notification
+      title: title,
+      body: content,
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'persistent_tasks',
           'Persistent Tasks',
@@ -1140,14 +1140,14 @@ class NotificationService {
 
   Future<void> cancelTaskNotification(Task task) async {
     // Cancel the main notification
-    await _flutterLocalNotificationsPlugin.cancel(task.id.hashCode);
+    await _flutterLocalNotificationsPlugin.cancel(id: task.id.hashCode);
 
     // For birthday tasks, cancel all multiple notifications
     if (task.taskType == TaskType.birthday &&
         task.birthdayNotificationSchedule.isNotEmpty) {
       for (int i = 0; i < task.birthdayNotificationSchedule.length; i++) {
         final notificationId = task.id.hashCode + (i * 1000);
-        await _flutterLocalNotificationsPlugin.cancel(notificationId);
+        await _flutterLocalNotificationsPlugin.cancel(id: notificationId);
         debugPrint('🎂 Cancelled birthday notification ID: $notificationId');
       }
     }
@@ -1156,16 +1156,16 @@ class NotificationService {
   }
 
   Future<void> cancelPersistentNotification(Task task) async {
-    await _flutterLocalNotificationsPlugin.cancel(task.id.hashCode + 10000);
+    await _flutterLocalNotificationsPlugin.cancel(id: task.id.hashCode + 10000);
   }
 
   /// Cancel notification by ID only (useful when task object is not available)
   Future<void> cancelNotificationById(String taskId) async {
     debugPrint('🔔 Cancelling notification for task ID: $taskId');
     // Cancel main notification
-    await _flutterLocalNotificationsPlugin.cancel(taskId.hashCode);
+    await _flutterLocalNotificationsPlugin.cancel(id: taskId.hashCode);
     // Cancel persistent notification
-    await _flutterLocalNotificationsPlugin.cancel(taskId.hashCode + 10000);
+    await _flutterLocalNotificationsPlugin.cancel(id: taskId.hashCode + 10000);
 
     // We can't easily cancel birthday notifications without knowing the schedule length,
     // but we can try to cancel a reasonable range if needed, or just rely on sync.
@@ -1276,7 +1276,9 @@ class NotificationService {
                 '🔔 🗑️ Auto-sync: Cancelling orphan task notification: $payload',
               );
               if (notification.id != null) {
-                await _flutterLocalNotificationsPlugin.cancel(notification.id!);
+                await _flutterLocalNotificationsPlugin.cancel(
+                  id: notification.id!,
+                );
               }
             }
           }
@@ -1407,10 +1409,10 @@ class NotificationService {
   Future<void> showTestNotification() async {
     debugPrint('🧪 Showing immediate test notification');
     await _flutterLocalNotificationsPlugin.show(
-      999999,
-      '🧪 Test Notification',
-      'This is an immediate test notification to verify the system works',
-      const NotificationDetails(
+      id: 999999,
+      title: '🧪 Test Notification',
+      body: 'This is an immediate test notification to verify the system works',
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'task_reminders',
           'Task Reminders',
@@ -1446,10 +1448,10 @@ class NotificationService {
   Future<void> showTestNotificationForTask(Task task) async {
     debugPrint('🧪 Showing test notification for real task: ${task.title}');
     await _flutterLocalNotificationsPlugin.show(
-      task.id.hashCode + 50000, // Unique test ID
-      '🧪 Test: ${task.title}',
-      'Test notification for real task - try the action buttons!',
-      _getNotificationDetails(task.taskType, task.id),
+      id: task.id.hashCode + 50000, // Unique test ID
+      title: '🧪 Test: ${task.title}',
+      body: 'Test notification for real task - try the action buttons!',
+      notificationDetails: _getNotificationDetails(task.taskType, task.id),
       payload: task.id,
     );
     debugPrint('🧪 Test notification for real task sent');
@@ -1467,11 +1469,12 @@ class NotificationService {
     debugPrint('🧪 ⏰ Scheduled time: $scheduledTime');
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
-      999998,
-      '🧪 Scheduled Test Notification',
-      'This test notification was scheduled 10 seconds ago - if you see this, scheduled notifications work!',
-      scheduledTime,
-      const NotificationDetails(
+      id: 999998,
+      title: '🧪 Scheduled Test Notification',
+      body:
+          'This test notification was scheduled 10 seconds ago - if you see this, scheduled notifications work!',
+      scheduledDate: scheduledTime,
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'task_reminders',
           'Task Reminders',
@@ -1515,11 +1518,11 @@ class NotificationService {
 
     try {
       await _flutterLocalNotificationsPlugin.zonedSchedule(
-        123456, // Simple test ID
-        '🧪 Simple Test',
-        'This is a simple test notification scheduled for 10 seconds',
-        scheduledTime,
-        const NotificationDetails(
+        id: 123456, // Simple test ID
+        title: '🧪 Simple Test',
+        body: 'This is a simple test notification scheduled for 10 seconds',
+        scheduledDate: scheduledTime,
+        notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             'task_reminders',
             'Task Reminders',
@@ -1659,7 +1662,7 @@ class NotificationService {
                         '🔔 🗑️ Cancelling orphan medicine notification (pending): $medicineId',
                       );
                       await _flutterLocalNotificationsPlugin.cancel(
-                        notification.id,
+                        id: notification.id,
                       );
                       cancelledCount++;
                     }
@@ -1670,7 +1673,7 @@ class NotificationService {
                         '🔔 🗑️ Cancelling orphan task notification (pending): $payload',
                       );
                       await _flutterLocalNotificationsPlugin.cancel(
-                        notification.id,
+                        id: notification.id,
                       );
                       cancelledCount++;
                     }
@@ -1701,7 +1704,7 @@ class NotificationService {
                             '🔔 🗑️ Cancelling orphan medicine notification (active): $medicineId',
                           );
                           await _flutterLocalNotificationsPlugin.cancel(
-                            notification.id!,
+                            id: notification.id!,
                           );
                           cancelledCount++;
                         }
@@ -1714,7 +1717,7 @@ class NotificationService {
                             '🔔 🗑️ Cancelling orphan task notification (active): $payload',
                           );
                           await _flutterLocalNotificationsPlugin.cancel(
-                            notification.id!,
+                            id: notification.id!,
                           );
                           cancelledCount++;
                         }
@@ -1829,11 +1832,12 @@ class NotificationService {
       );
 
       await _flutterLocalNotificationsPlugin.zonedSchedule(
-        notificationId,
-        '💊 Medicine Reminder',
-        'Time to take ${medicine.name} (${medicine.dosage} ${medicine.dosageUnit})',
-        tz.TZDateTime.from(notificationDate, tz.local),
-        _getMedicineNotificationDetails(medicine),
+        id: notificationId,
+        title: '💊 Medicine Reminder',
+        body:
+            'Time to take ${medicine.name} (${medicine.dosage} ${medicine.dosageUnit})',
+        scheduledDate: tz.TZDateTime.from(notificationDate, tz.local),
+        notificationDetails: _getMedicineNotificationDetails(medicine),
         payload: 'medicine_${medicine.id}',
         matchDateTimeComponents:
             DateTimeComponents.time, // Repeat daily at same time
@@ -1916,7 +1920,7 @@ class NotificationService {
     // Cancel each tracked notification
     for (final notificationId in notificationIds) {
       try {
-        await _flutterLocalNotificationsPlugin.cancel(notificationId);
+        await _flutterLocalNotificationsPlugin.cancel(id: notificationId);
         debugPrint(
           '🩺 Cancelled notification $notificationId for medicine $medicineId',
         );
@@ -1959,7 +1963,7 @@ class NotificationService {
           // Cancel all notifications for this deleted medicine
           for (final notificationId in allTrackedIds[medicineId]!) {
             try {
-              await _flutterLocalNotificationsPlugin.cancel(notificationId);
+              await _flutterLocalNotificationsPlugin.cancel(id: notificationId);
               cancelledCount++;
               debugPrint(
                 '🩺 Cancelled orphaned notification $notificationId for deleted medicine $medicineId',
@@ -1989,7 +1993,7 @@ class NotificationService {
             !_isNotificationTracked(notification.id, allTrackedIds)) {
           // This appears to be an untracked medicine notification - cancel it
           try {
-            await _flutterLocalNotificationsPlugin.cancel(notification.id);
+            await _flutterLocalNotificationsPlugin.cancel(id: notification.id);
             cancelledCount++;
             debugPrint(
               '🩺 Cancelled untracked medicine notification ${notification.id}: $notificationTitle',
@@ -2279,12 +2283,13 @@ class NotificationService {
     ).add(Duration(minutes: minutes));
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
-      DateTime.now().millisecondsSinceEpoch %
+      id:
+          DateTime.now().millisecondsSinceEpoch %
           100000, // Unique ID for snoozed notification
-      '💊 Medicine Reminder (Snoozed)',
-      'Don\'t forget to take your medicine - this reminder was snoozed',
-      snoozeTime,
-      const NotificationDetails(
+      title: '💊 Medicine Reminder (Snoozed)',
+      body: 'Don\'t forget to take your medicine - this reminder was snoozed',
+      scheduledDate: snoozeTime,
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'medicine_reminders',
           'Medicine Reminders',

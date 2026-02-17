@@ -17,25 +17,25 @@ dependencies:
   flutter_bloc: ^9.1.1
   
   # Routing
-  go_router: ^17.0.0
+  go_router: ^17.1.0
   
   # Dependency Injection
-  get_it: ^9.1.0
-  injectable: ^2.6.0
+  get_it: ^9.2.0
+  injectable: ^2.7.1+4
   
   # Local Storage
   sqflite: ^2.4.2
   path: ^1.9.1
-  shared_preferences: ^2.5.3
+  shared_preferences: ^2.5.4
   
   # Background Tasks & Notifications
-  flutter_local_notifications: ^19.5.0
+  flutter_local_notifications: ^21.0.0-dev.1
   permission_handler: ^12.0.1
-  device_info_plus: ^12.2.0
-  alarm: ^5.1.5
+  device_info_plus: ^12.3.0
+  alarm: ^5.2.1
   
   # Location Services  
-  geolocator: ^14.0.1
+  geolocator: ^14.0.2
   
   # Compass and Sensors
   flutter_compass: ^0.8.1
@@ -54,11 +54,11 @@ dependencies:
   
   # Date & Time
   intl: ^0.20.2
-  timezone: ^0.10.1
+  timezone: ^0.11.0
   
   # Models & JSON
-  json_annotation: ^4.9.0
-  equatable: ^2.0.7
+  json_annotation: ^4.10.0
+  equatable: ^2.0.8
   
   # Utils
   uuid: ^4.5.2
@@ -80,9 +80,9 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   
   # Code Generation
-  build_runner: ^2.10.4
-  injectable_generator: ^2.9.1
-  json_serializable: ^6.11.2
+  build_runner: ^2.11.1
+  injectable_generator: ^2.12.0
+  json_serializable: ^6.12.0
 
 flutter:
 

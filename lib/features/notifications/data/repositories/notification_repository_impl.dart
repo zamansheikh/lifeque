@@ -30,7 +30,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
           );
 
       await _flutterLocalNotificationsPlugin.initialize(
-        initializationSettings,
+        settings: initializationSettings,
         onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse,
       );
 
@@ -79,11 +79,11 @@ class NotificationRepositoryImpl implements NotificationRepository {
       );
 
       await _flutterLocalNotificationsPlugin.zonedSchedule(
-        taskId.hashCode,
-        title,
-        description,
-        tz.TZDateTime.from(scheduledTime, tz.local),
-        platformChannelSpecifics,
+        id: taskId.hashCode,
+        title: title,
+        body: description,
+        scheduledDate: tz.TZDateTime.from(scheduledTime, tz.local),
+        notificationDetails: platformChannelSpecifics,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: taskId,
       );
@@ -95,7 +95,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
   @override
   Future<void> cancelTaskNotification(String taskId) async {
     try {
-      await _flutterLocalNotificationsPlugin.cancel(taskId.hashCode);
+      await _flutterLocalNotificationsPlugin.cancel(id: taskId.hashCode);
     } catch (e) {
       throw NotificationException('Failed to cancel notification: $e');
     }
@@ -130,10 +130,10 @@ class NotificationRepositoryImpl implements NotificationRepository {
       );
 
       await _flutterLocalNotificationsPlugin.show(
-        0,
-        title,
-        body,
-        platformChannelSpecifics,
+        id: 0,
+        title: title,
+        body: body,
+        notificationDetails: platformChannelSpecifics,
         payload: payload,
       );
     } catch (e) {
