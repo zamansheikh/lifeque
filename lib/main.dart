@@ -9,6 +9,7 @@ import 'core/services/in_app_update_service.dart';
 import 'features/medicines/domain/repositories/medicine_repository.dart';
 import 'features/tasks/domain/repositories/task_repository.dart';
 import 'injection_container.dart' as di;
+import 'features/home_widget/services/home_widget_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,6 +58,9 @@ void main() async {
   // Check for app updates in background
   _checkForUpdatesInBackground();
 
+  // Update home screen widget with latest prayer times
+  _updateHomeWidget();
+
   debugPrint('🎯 Running app...');
   runApp(const MyApp());
 }
@@ -76,6 +80,18 @@ void _checkForUpdatesInBackground() {
       }
     } catch (e) {
       debugPrint('❌ Background update check failed: $e');
+    }
+  });
+}
+
+/// Update home screen widget with latest prayer times in background
+void _updateHomeWidget() {
+  Future.delayed(const Duration(seconds: 5), () async {
+    try {
+      debugPrint('🕌 Updating home screen widget...');
+      await HomeWidgetService().updateWidget();
+    } catch (e) {
+      debugPrint('❌ Home widget update failed: $e');
     }
   });
 }

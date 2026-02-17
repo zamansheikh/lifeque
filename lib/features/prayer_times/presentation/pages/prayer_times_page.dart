@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:adhan/adhan.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../../../core/utils/salah_time_calculator.dart';
+import 'package:lifeque/core/utils/salah_time_calculator.dart';
+import 'package:lifeque/features/home_widget/services/home_widget_service.dart';
 import '../../data/services/prayer_settings_service.dart';
 import '../widgets/prayer_time_card.dart';
 import '../widgets/next_prayer_card.dart';
@@ -272,6 +273,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         _isLoading = false;
         _error = null;
       });
+      // Update Home Widget
+      HomeWidgetService().updateWidget();
     } catch (e) {
       setState(() {
         _error = 'Error calculating prayer times: $e';
@@ -554,7 +557,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
     await _requestLocationPermission();
 
-    setState(() => _isLocationUpdating = false);
+    if (mounted) {
+      setState(() => _isLocationUpdating = false);
+    }
 
     if (_isLocationFromGps) {
       _updatePrayerTimes();
