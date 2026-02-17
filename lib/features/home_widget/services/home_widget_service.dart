@@ -161,6 +161,7 @@ class HomeWidgetService {
         gregorianString: gregorianString,
         currentPrayerName: currentPrayerName,
         prayerTimes: prayerTimes,
+        activeProhibited: activeProhibited,
       );
     } catch (e, stack) {
       debugPrint('❌ Error updating home widget: $e');
@@ -175,6 +176,7 @@ class HomeWidgetService {
     required String gregorianString,
     required String currentPrayerName,
     required PrayerTimes prayerTimes,
+    String? activeProhibited,
   }) async {
     try {
       // Load mosque times from settings
@@ -199,6 +201,11 @@ class HomeWidgetService {
           locationName: '',
           mosqueTimes: mosqueTimes,
           currentPrayer: currentPrayerName,
+          sunrise: prayerTimes.sunrise,
+          sunset: prayerTimes.maghrib,
+          sahri: prayerTimes.fajr,
+          iftar: prayerTimes.maghrib,
+          activeProhibited: activeProhibited,
         ),
         key: 'mosque_widget_image',
         logicalSize: _widgetSize,

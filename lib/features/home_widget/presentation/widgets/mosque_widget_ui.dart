@@ -5,9 +5,13 @@ class MosqueWidgetUI extends StatelessWidget {
   final String hijriDate;
   final String gregorianDate;
   final String locationName;
-  final Map<String, String>
-  mosqueTimes; // {Fajr: "5:00 AM", Dhuhr: "1:30 PM", ...}
+  final Map<String, String> mosqueTimes;
   final String? currentPrayer;
+  final DateTime? sunrise;
+  final DateTime? sunset;
+  final DateTime? sahri;
+  final DateTime? iftar;
+  final String? activeProhibited;
 
   const MosqueWidgetUI({
     super.key,
@@ -16,10 +20,17 @@ class MosqueWidgetUI extends StatelessWidget {
     required this.locationName,
     required this.mosqueTimes,
     this.currentPrayer,
+    this.sunrise,
+    this.sunset,
+    this.sahri,
+    this.iftar,
+    this.activeProhibited,
   });
 
   @override
   Widget build(BuildContext context) {
+    final tf = DateFormat('h:mm a');
+
     return Container(
       width: 380,
       height: 180,
@@ -41,88 +52,108 @@ class MosqueWidgetUI extends StatelessWidget {
               right: 0,
               bottom: -2,
               child: CustomPaint(
-                size: const Size(380, 45),
+                size: const Size(380, 40),
                 painter: _MosqueSilhouettePainter(),
-              ),
-            ),
-
-            // Decorative crescent
-            Positioned(
-              right: 14,
-              top: 10,
-              child: Icon(
-                Icons.mosque,
-                size: 28,
-                color: Colors.white.withValues(alpha: 0.12),
               ),
             ),
 
             // Main content
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Top row: Title + Updated time ──
+                  // ── Top row: Title + Info badges ──
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Left: Mosque Jamaat label
-                      Row(
+                      // Left: Title + date
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Icon(
+                                    Icons.access_time_filled,
+                                    color: Color(0xFFFFD54F),
+                                    size: 12,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Text(
+                                  'Mosque Jamaat',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 1),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 24),
+                              child: Text(
+                                '$hijriDate  •  $gregorianDate',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.55),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Right: Updated + info
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Icon(
-                              Icons.access_time_filled,
-                              color: Color(0xFFFFD54F),
-                              size: 13,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            'Mosque Jamaat',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.2,
+                          Padding(
+                            padding: const EdgeInsets.only(right: 24),
+                            child: Text(
+                              'Updated: ${tf.format(DateTime.now())}',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.45),
+                                fontSize: 8,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
                           ),
                         ],
-                      ),
-                      // Right: Updated time
-                      Padding(
-                        padding: const EdgeInsets.only(right: 24),
-                        child: Text(
-                          'Updated: ${DateFormat('hh:mm a').format(DateTime.now())}',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.5),
-                            fontSize: 9,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 4),
 
-                  // ── Hijri + Gregorian date ──
-                  Padding(
-                    padding: const EdgeInsets.only(left: 24),
-                    child: Text(
-                      '$hijriDate  •  $gregorianDate',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                  // ── Middle: Sunrise / Sunset / Sahri / Iftar row ──
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (sunrise != null)
+                        _buildInfoChip('☀️', 'Sunrise', tf.format(sunrise!)),
+                      if (sunset != null) ...[
+                        const SizedBox(width: 6),
+                        _buildInfoChip('🌅', 'Sunset', tf.format(sunset!)),
+                      ],
+                      if (sahri != null) ...[
+                        const SizedBox(width: 6),
+                        _buildInfoChip('🍽', 'Sahri', tf.format(sahri!)),
+                      ],
+                      if (iftar != null) ...[
+                        const SizedBox(width: 6),
+                        _buildInfoChip('🌙', 'Iftar', tf.format(iftar!)),
+                      ],
+                    ],
                   ),
 
                   const Spacer(),
@@ -163,12 +194,87 @@ class MosqueWidgetUI extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 2),
+
+                  // ── Prohibited time banner ──
+                  if (activeProhibited != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade900.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.block,
+                            size: 9,
+                            color: Colors.red.shade200,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            '🚫 $activeProhibited',
+                            style: TextStyle(
+                              color: Colors.red.shade200,
+                              fontSize: 8,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  if (activeProhibited == null) const SizedBox(height: 4),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(String emoji, String label, String time) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 9)),
+          const SizedBox(width: 3),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  fontSize: 7,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              Text(
+                time,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -185,13 +291,13 @@ class MosqueWidgetUI extends StatelessWidget {
             color: isCurrent
                 ? const Color(0xFFFFD54F)
                 : Colors.white.withValues(alpha: 0.6),
-            fontSize: 10,
+            fontSize: 9,
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 3),
+        const SizedBox(height: 2),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
           decoration: isCurrent
               ? BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
@@ -202,7 +308,7 @@ class MosqueWidgetUI extends StatelessWidget {
             time,
             style: TextStyle(
               color: isCurrent ? const Color(0xFFFFD54F) : Colors.white,
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w700,
             ),
           ),
@@ -214,7 +320,7 @@ class MosqueWidgetUI extends StatelessWidget {
   Widget _buildDivider() {
     return Container(
       width: 1,
-      height: 30,
+      height: 26,
       color: Colors.white.withValues(alpha: 0.15),
     );
   }
@@ -230,11 +336,9 @@ class _MosqueSilhouettePainter extends CustomPainter {
 
     final path = Path();
 
-    // Ground line
     path.moveTo(0, size.height);
     path.lineTo(0, size.height * 0.6);
 
-    // Left small dome
     path.lineTo(size.width * 0.05, size.height * 0.6);
     path.quadraticBezierTo(
       size.width * 0.08,
@@ -243,14 +347,12 @@ class _MosqueSilhouettePainter extends CustomPainter {
       size.height * 0.6,
     );
 
-    // Left minaret
     path.lineTo(size.width * 0.14, size.height * 0.6);
     path.lineTo(size.width * 0.145, size.height * 0.15);
     path.lineTo(size.width * 0.155, size.height * 0.05);
     path.lineTo(size.width * 0.165, size.height * 0.15);
     path.lineTo(size.width * 0.17, size.height * 0.6);
 
-    // Center large dome
     path.lineTo(size.width * 0.22, size.height * 0.6);
     path.quadraticBezierTo(
       size.width * 0.30,
@@ -259,14 +361,12 @@ class _MosqueSilhouettePainter extends CustomPainter {
       size.height * 0.6,
     );
 
-    // Right minaret
     path.lineTo(size.width * 0.41, size.height * 0.6);
     path.lineTo(size.width * 0.415, size.height * 0.15);
     path.lineTo(size.width * 0.425, size.height * 0.05);
     path.lineTo(size.width * 0.435, size.height * 0.15);
     path.lineTo(size.width * 0.44, size.height * 0.6);
 
-    // Right small dome
     path.lineTo(size.width * 0.47, size.height * 0.6);
     path.quadraticBezierTo(
       size.width * 0.50,
@@ -275,7 +375,6 @@ class _MosqueSilhouettePainter extends CustomPainter {
       size.height * 0.6,
     );
 
-    // Flat ground to end
     path.lineTo(size.width, size.height * 0.6);
     path.lineTo(size.width, size.height);
     path.close();
