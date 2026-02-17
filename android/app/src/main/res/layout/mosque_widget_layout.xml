@@ -2,11 +2,11 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF0D4F4F">
+    android:background="#FF1A237E">
 
     <!-- Default content shown before Flutter renders the image -->
     <LinearLayout
-        android:id="@+id/prayer_widget_default"
+        android:id="@+id/mosque_widget_default"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -22,7 +22,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Prayer Times"
+            android:text="Mosque Jamaat"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -31,7 +31,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Open app to load prayer times"
+            android:text="Open app to load jamaat times"
             android:textColor="#99FFFFFF"
             android:textSize="12sp"
             android:layout_marginTop="4dp" />
@@ -39,16 +39,16 @@
 
     <!-- Main widget image — tapping this opens the app -->
     <ImageView
-        android:id="@+id/prayer_widget_image"
+        android:id="@+id/mosque_widget_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitXY"
         android:visibility="gone"
-        android:contentDescription="Prayer Times Widget" />
+        android:contentDescription="Mosque Times Widget" />
 
     <!-- Refresh button overlay in top-right corner — separate click target -->
     <ImageView
-        android:id="@+id/refresh_button"
+        android:id="@+id/mosque_refresh_button"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_gravity="top|end"

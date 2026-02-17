@@ -3,14 +3,17 @@ import 'package:home_widget/home_widget.dart';
 import 'package:lifeque/core/utils/salah_time_calculator.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_ui.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_placeholder.dart';
+import 'package:lifeque/features/home_widget/presentation/widgets/mosque_widget_ui.dart';
 import 'package:lifeque/features/prayer_times/data/services/prayer_settings_service.dart';
 import 'package:adhan/adhan.dart';
 import 'package:intl/intl.dart';
 import 'package:hijri/hijri_calendar.dart';
 
 class HomeWidgetService {
-  static const String _qualifiedName =
+  static const String _prayerQualifiedName =
       'com.programmernexus.lifeque.PrayerTimesWidgetProvider';
+  static const String _mosqueQualifiedName =
+      'com.programmernexus.lifeque.MosqueTimesWidgetProvider';
   static const Size _widgetSize = Size(380, 180);
 
   Future<void> updateWidget() async {
@@ -32,8 +35,22 @@ class HomeWidgetService {
           logicalSize: _widgetSize,
           pixelRatio: 3.0,
         );
-        await HomeWidget.updateWidget(qualifiedAndroidName: _qualifiedName);
-        debugPrint('✅ Placeholder widget rendered');
+        await HomeWidget.updateWidget(
+          qualifiedAndroidName: _prayerQualifiedName,
+        );
+
+        // Also render placeholder for mosque widget
+        await HomeWidget.renderFlutterWidget(
+          const PrayerWidgetPlaceholder(),
+          key: 'mosque_widget_image',
+          logicalSize: _widgetSize,
+          pixelRatio: 3.0,
+        );
+        await HomeWidget.updateWidget(
+          qualifiedAndroidName: _mosqueQualifiedName,
+        );
+
+        debugPrint('✅ Placeholder widgets rendered');
         return;
       }
 
@@ -77,7 +94,7 @@ class HomeWidgetService {
         }
       }
 
-      // Render Widget
+      // ── Render Prayer Times Widget ──
       await HomeWidget.renderFlutterWidget(
         PrayerWidgetUI(
           hijriDate: hijriString,
@@ -93,11 +110,80 @@ class HomeWidgetService {
         pixelRatio: 3.0,
       );
 
-      await HomeWidget.updateWidget(qualifiedAndroidName: _qualifiedName);
-      debugPrint('✅ Home widget updated successfully');
+      await HomeWidget.updateWidget(qualifiedAndroidName: _prayerQualifiedName);
+      debugPrint('✅ Prayer widget updated successfully');
+
+      // ── Render Mosque Times Widget ──
+      await _updateMosqueWidget(
+        settings: settings,
+        calculator: calculator,
+        hijriString: hijriString,
+        gregorianString: gregorianString,
+        currentPrayerName: currentPrayerName,
+        prayerTimes: prayerTimes,
+      );
     } catch (e, stack) {
       debugPrint('❌ Error updating home widget: $e');
       debugPrint('Stack: $stack');
+    }
+  }
+
+  Future<void> _updateMosqueWidget({
+    required PrayerSettingsService settings,
+    required SalahTimeCalculator calculator,
+    required String hijriString,
+    required String gregorianString,
+    required String currentPrayerName,
+    required PrayerTimes prayerTimes,
+  }) async {
+    try {
+      // Load mosque times from settings
+      final fajrStr = await settings.getMosqueTime('fajr');
+      final dhuhrStr = await settings.getMosqueTime('dhuhr');
+      final asrStr = await settings.getMosqueTime('asr');
+      final ishaStr = await settings.getMosqueTime('isha');
+
+      // Format mosque times for display
+      final Map<String, String> mosqueTimes = {
+        'Fajr': _formatMosqueTime(fajrStr) ?? '5:00 AM',
+        'Dhuhr': _formatMosqueTime(dhuhrStr) ?? '1:30 PM',
+        'Asr': _formatMosqueTime(asrStr) ?? '4:30 PM',
+        'Maghrib': DateFormat('h:mm a').format(prayerTimes.maghrib),
+        'Isha': _formatMosqueTime(ishaStr) ?? '8:00 PM',
+      };
+
+      await HomeWidget.renderFlutterWidget(
+        MosqueWidgetUI(
+          hijriDate: hijriString,
+          gregorianDate: gregorianString,
+          locationName: '',
+          mosqueTimes: mosqueTimes,
+          currentPrayer: currentPrayerName,
+        ),
+        key: 'mosque_widget_image',
+        logicalSize: _widgetSize,
+        pixelRatio: 3.0,
+      );
+
+      await HomeWidget.updateWidget(qualifiedAndroidName: _mosqueQualifiedName);
+      debugPrint('✅ Mosque widget updated successfully');
+    } catch (e, stack) {
+      debugPrint('❌ Error updating mosque widget: $e');
+      debugPrint('Stack: $stack');
+    }
+  }
+
+  String? _formatMosqueTime(String? timeStr) {
+    if (timeStr == null) return null;
+    try {
+      final parts = timeStr.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      final now = DateTime.now();
+      final dt = DateTime(now.year, now.month, now.day, hour, minute);
+      return DateFormat('h:mm a').format(dt);
+    } catch (e) {
+      return null;
     }
   }
 }
