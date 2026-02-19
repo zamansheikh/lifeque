@@ -201,7 +201,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     } catch (e) {
       debugPrint('❌ Background: Error updating location: $e');
     } finally {
-      setState(() => _isLocationUpdating = false);
+      if (mounted) {
+        setState(() => _isLocationUpdating = false);
+      }
     }
   }
 

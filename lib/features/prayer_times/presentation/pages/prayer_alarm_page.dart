@@ -449,42 +449,38 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
     if (alarm == null) return 'No alarm set';
     if (!alarm.isEnabled) return 'Disabled';
 
-    if (alarm.type == PrayerAlarmType.beforePrayerEnd) {
-      final actualTime = _calculateActualAlarmTime(alarm.prayerName, alarm);
-      if (actualTime != null) {
-        return _formatTimeWithAMPM(actualTime);
-      }
-      return '${alarm.minutesBeforeEnd} min before end';
-    } else if (alarm.type == PrayerAlarmType.afterPrayerStart) {
-      final actualTime = _calculateActualAlarmTime(alarm.prayerName, alarm);
-      if (actualTime != null) {
-        return _formatTimeWithAMPM(actualTime);
-      }
-      return '${alarm.minutesAfterStart} min after start';
-    } else {
+    if (alarm.type == PrayerAlarmType.fixedTime) {
       return _formatTimeWithAMPM(alarm.fixedTime!);
     }
+    final actualTime = _calculateActualAlarmTime(alarm.prayerName, alarm);
+    if (actualTime != null) {
+      return _formatTimeWithAMPM(actualTime);
+    }
+    // Fallback label
+    if (alarm.type == PrayerAlarmType.beforePrayerEnd) {
+      return '${alarm.minutesBeforeEnd} min before end';
+    }
+    final mins = alarm.minutesAfterStart;
+    if (mins == 0) return 'Exact prayer time';
+    if (mins < 0) return '${mins.abs()} min before start';
+    return '$mins min after start';
   }
 
   String _getAlarmDetailsText(PrayerAlarmConfig alarm) {
-    if (alarm.type == PrayerAlarmType.beforePrayerEnd) {
-      final actualTime = _calculateActualAlarmTime(alarm.prayerName, alarm);
-      if (actualTime != null) {
-        return '${alarm.minutesBeforeEnd} minutes before prayer ends (${_formatTimeWithAMPM(actualTime)})';
-      }
-      return '${alarm.minutesBeforeEnd} minutes before prayer ends';
-    } else if (alarm.type == PrayerAlarmType.afterPrayerStart) {
-      final actualTime = _calculateActualAlarmTime(alarm.prayerName, alarm);
-      if (actualTime != null) {
-        return '${alarm.minutesAfterStart} minutes after prayer starts (${_formatTimeWithAMPM(actualTime)})';
-      }
-      return '${alarm.minutesAfterStart} minutes after prayer starts';
-    } else if (alarm.type == PrayerAlarmType.fixedTime &&
-        alarm.fixedTime != null) {
+    if (alarm.type == PrayerAlarmType.fixedTime && alarm.fixedTime != null) {
       return 'Fixed time: ${_formatTimeWithAMPM(alarm.fixedTime!)}';
-    } else {
-      return 'Invalid alarm configuration';
     }
+    final actualTime = _calculateActualAlarmTime(alarm.prayerName, alarm);
+    final timeStr = actualTime != null
+        ? ' (${_formatTimeWithAMPM(actualTime)})'
+        : '';
+    if (alarm.type == PrayerAlarmType.beforePrayerEnd) {
+      return '${alarm.minutesBeforeEnd} minutes before prayer ends$timeStr';
+    }
+    final mins = alarm.minutesAfterStart;
+    if (mins == 0) return 'Exact prayer time$timeStr';
+    if (mins < 0) return '${mins.abs()} minutes before prayer starts$timeStr';
+    return '$mins minutes after prayer starts$timeStr';
   }
 
   String _formatTimeWithAMPM(DateTime time) {
@@ -590,9 +586,11 @@ class _AlarmConfigDialog extends StatefulWidget {
 }
 
 class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
-  late PrayerAlarmType _selectedType;
-  late int _minutesBeforeEnd;
-  late int _minutesAfterStart;
+  /// true = relative slider (-60..+60 from prayer start), false = fixed time
+  late bool _isRelative;
+
+  /// -60 = 60 min before prayer start, 0 = exact prayer time, +60 = 60 min after
+  late int _relativeMinutes;
   late TimeOfDay _fixedTime;
   late String _selectedSoundPath;
   late int _alarmDurationMinutes;
@@ -602,20 +600,29 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
     super.initState();
 
     if (widget.existingAlarm != null) {
-      _selectedType = widget.existingAlarm!.type;
-      _minutesBeforeEnd = widget.existingAlarm!.minutesBeforeEnd;
-      _minutesAfterStart = widget.existingAlarm!.minutesAfterStart;
-      _selectedSoundPath = widget.existingAlarm!.soundPath;
-      _alarmDurationMinutes = widget.existingAlarm!.alarmDurationMinutes;
-      _fixedTime = widget.existingAlarm!.fixedTime != null
-          ? TimeOfDay.fromDateTime(widget.existingAlarm!.fixedTime!)
+      final alarm = widget.existingAlarm!;
+      _selectedSoundPath = alarm.soundPath;
+      _alarmDurationMinutes = alarm.alarmDurationMinutes;
+      _fixedTime = alarm.fixedTime != null
+          ? TimeOfDay.fromDateTime(alarm.fixedTime!)
           : const TimeOfDay(hour: 9, minute: 0);
+      if (alarm.type == PrayerAlarmType.fixedTime) {
+        _isRelative = false;
+        _relativeMinutes = 0;
+      } else if (alarm.type == PrayerAlarmType.beforePrayerEnd) {
+        // Legacy: convert "X min before end" to approximately negative from start
+        _isRelative = true;
+        _relativeMinutes = -alarm.minutesBeforeEnd;
+      } else {
+        // afterPrayerStart — minutesAfterStart may already be negative (stored by new UI)
+        _isRelative = true;
+        _relativeMinutes = alarm.minutesAfterStart.clamp(-60, 60);
+      }
     } else {
-      _selectedType = PrayerAlarmType.beforePrayerEnd;
-      _minutesBeforeEnd = 5;
-      _minutesAfterStart = 5;
+      _isRelative = true;
+      _relativeMinutes = 0; // Default: exact prayer time
       _selectedSoundPath = AlarmSoundUtils.availableAlarmSounds[0]['path']!;
-      _alarmDurationMinutes = 2; // Default 2 minutes
+      _alarmDurationMinutes = 2;
       _fixedTime = const TimeOfDay(hour: 9, minute: 0);
     }
   }
@@ -629,50 +636,11 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
         method: CalculationMethod.karachi,
       );
       final prayerTimes = calculator.getPrayerTimesMap();
-      DateTime? targetTime;
-
-      if (_selectedType == PrayerAlarmType.beforePrayerEnd) {
-        DateTime? prayerEndTime;
-        switch (widget.prayer) {
-          case 'Fajr':
-            prayerEndTime = prayerTimes['Sunrise'];
-            break;
-          case 'Dhuhr':
-            prayerEndTime = prayerTimes['Asr'];
-            break;
-          case 'Asr':
-            prayerEndTime = prayerTimes['Maghrib'];
-            break;
-          case 'Maghrib':
-            prayerEndTime = prayerTimes['Isha'];
-            break;
-          case 'Isha':
-            final nextDay = DateTime.now().add(const Duration(days: 1));
-            final nextCalc = SalahTimeCalculator(
-              latitude: 23.8103,
-              longitude: 90.4125,
-              date: nextDay,
-              method: CalculationMethod.karachi,
-            );
-            prayerEndTime = nextCalc.getPrayerTimesMap()['Fajr'];
-            break;
-        }
-
-        if (prayerEndTime != null) {
-          targetTime = prayerEndTime.subtract(
-            Duration(minutes: _minutesBeforeEnd),
-          );
-        }
-      } else if (_selectedType == PrayerAlarmType.afterPrayerStart) {
-        final prayerStartTime = prayerTimes[widget.prayer];
-        if (prayerStartTime != null) {
-          targetTime = prayerStartTime.add(
-            Duration(minutes: _minutesAfterStart),
-          );
-        }
-      }
-
-      if (targetTime != null) {
+      final prayerStartTime = prayerTimes[widget.prayer];
+      if (prayerStartTime != null) {
+        final targetTime = prayerStartTime.add(
+          Duration(minutes: _relativeMinutes),
+        );
         return DateFormat('h:mm a').format(targetTime);
       }
     } catch (e) {
@@ -778,165 +746,145 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Radio tiles with modern design
-                    _buildModernRadioTile(
-                      context,
-                      'Before prayer ends',
-                      'Alert X minutes before prayer time ends',
-                      Icons.schedule,
-                      PrayerAlarmType.beforePrayerEnd,
-                    ),
+                    // Radio tiles — 2 options
+                    _buildRelativeRadioTile(context),
                     const SizedBox(height: 8),
-                    _buildModernRadioTile(
-                      context,
-                      'After prayer starts',
-                      'Alert X minutes after prayer time begins',
-                      Icons.play_circle_outline,
-                      PrayerAlarmType.afterPrayerStart,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildModernRadioTile(
-                      context,
-                      'Fixed time',
-                      'Alert at a specific time',
-                      Icons.access_time,
-                      PrayerAlarmType.fixedTime,
-                    ),
+                    _buildFixedRadioTile(context),
 
                     const SizedBox(height: 24),
 
                     // Dynamic configuration based on type
-                    if (_selectedType == PrayerAlarmType.beforePrayerEnd) ...[
+                    if (_isRelative) ...[
                       _buildConfigSection(
                         context,
-                        'নামাজের আগে : ফজর',
+                        'নামাজের সময়',
                         Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             const SizedBox(height: 8),
+                            // Big label showing the selected offset
                             Text(
-                              'আজকে শুরু হবে $_minutesBeforeEnd মিনিট আগে',
+                              _relativeMinutes == 0
+                                  ? 'ঠিক নামাজের সময়'
+                                  : _relativeMinutes < 0
+                                  ? '${_relativeMinutes.abs()} মিনিট আগে'
+                                  : '$_relativeMinutes মিনিট পরে',
                               style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            Text(
-                              '-$_minutesBeforeEnd মিনিট',
-                              style: TextStyle(
-                                fontSize: 28,
+                                fontSize: 22,
                                 fontWeight: FontWeight.w700,
                                 color: colorScheme.primary,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'পরবর্তী নিয়মিত: ${_getProjectedTime()}',
+                              'আনুমানিক সময়: ${_getProjectedTime()}',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Text(
-                                  '-0 min',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                            const SizedBox(height: 24),
+                            // Bidirectional slider
+                            SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                activeTrackColor: colorScheme.primary,
+                                inactiveTrackColor:
+                                    colorScheme.surfaceContainerHighest,
+                                thumbColor: colorScheme.primary,
+                                overlayColor: colorScheme.primary.withValues(
+                                  alpha: 0.12,
                                 ),
-                                Expanded(
-                                  child: Slider(
-                                    value: _minutesBeforeEnd.toDouble(),
-                                    min: 0,
-                                    max: 60,
-                                    divisions: 12,
-                                    label: '-$_minutesBeforeEnd মিনিট',
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _minutesBeforeEnd = value.toInt();
-                                      });
-                                    },
-                                  ),
+                                valueIndicatorColor: colorScheme.primary,
+                                valueIndicatorTextStyle: TextStyle(
+                                  color: colorScheme.onPrimary,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                Text(
-                                  '-60 min',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ] else if (_selectedType ==
-                        PrayerAlarmType.afterPrayerStart) ...[
-                      _buildConfigSection(
-                        context,
-                        'এলার্ম সেট করুন',
-                        Column(
-                          children: [
-                            const SizedBox(height: 8),
-                            Text(
-                              'আজকে শুরু হবে $_minutesAfterStart মিনিট পরে',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: colorScheme.onSurface,
+                              ),
+                              child: Slider(
+                                value: _relativeMinutes.toDouble(),
+                                min: -60,
+                                max: 60,
+                                divisions: 24,
+                                label: _relativeMinutes == 0
+                                    ? 'ঠিক সময়'
+                                    : _relativeMinutes < 0
+                                    ? '${_relativeMinutes.abs()} min আগে'
+                                    : '$_relativeMinutes min পরে',
+                                onChanged: (value) {
+                                  setState(() {
+                                    _relativeMinutes = value.toInt();
+                                  });
+                                },
                               ),
                             ),
-                            Text(
-                              '+$_minutesAfterStart মিনিট',
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                color: colorScheme.primary,
+                            // Axis labels
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'পরবর্তী নিয়মিত: ${_getProjectedTime()}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurfaceVariant,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '← আগে',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                      Text(
+                                        '-60 min',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Column(
+                                    children: [
+                                      Icon(
+                                        Icons.radio_button_checked,
+                                        size: 12,
+                                        color: colorScheme.primary,
+                                      ),
+                                      Text(
+                                        'ঠিক সময়',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: colorScheme.primary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        'পরে →',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                      Text(
+                                        '+60 min',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Text(
-                                  '+0 min',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Slider(
-                                    value: _minutesAfterStart.toDouble(),
-                                    min: 0,
-                                    max: 60,
-                                    divisions: 12,
-                                    label: '+$_minutesAfterStart মিনিট',
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _minutesAfterStart = value.toInt();
-                                      });
-                                    },
-                                  ),
-                                ),
-                                Text(
-                                  '+60 min',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
                             ),
                           ],
                         ),
@@ -944,7 +892,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                     ] else ...[
                       _buildConfigSection(
                         context,
-                        'Fixed time',
+                        'নির্দিষ্ট সময়',
                         InkWell(
                           onTap: () async {
                             final time = await showTimePicker(
@@ -1133,23 +1081,13 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
     );
   }
 
-  Widget _buildModernRadioTile(
-    BuildContext context,
-    String title,
-    String subtitle,
-    IconData icon,
-    PrayerAlarmType value,
-  ) {
+  Widget _buildRelativeRadioTile(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final isSelected = _selectedType == value;
+    final isSelected = _isRelative;
 
     return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedType = value;
-        });
-      },
+      onTap: () => setState(() => _isRelative = true),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -1176,7 +1114,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
-                icon,
+                Icons.tune,
                 size: 20,
                 color: isSelected
                     ? colorScheme.onPrimary
@@ -1189,7 +1127,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    'নামাজের সময় অনুযায়ী',
                     style: textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: isSelected
@@ -1199,7 +1137,81 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    subtitle,
+                    'আগে, পরে বা ঠিক নামাজের সময়ে',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: isSelected ? colorScheme.primary : colorScheme.outline,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFixedRadioTile(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isSelected = !_isRelative;
+
+    return InkWell(
+      onTap: () => setState(() => _isRelative = false),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorScheme.primary.withValues(alpha: 0.1)
+              : colorScheme.surface,
+          border: Border.all(
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outline.withValues(alpha: 0.3),
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.access_time,
+                size: 20,
+                color: isSelected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'নির্দিষ্ট সময়',
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'একটি নির্দিষ্ট সময়ে এলার্ম দিন',
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -1276,10 +1288,12 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
   void _saveAlarm() {
     final config = PrayerAlarmConfig(
       prayerName: widget.prayer,
-      type: _selectedType,
-      minutesBeforeEnd: _minutesBeforeEnd,
-      minutesAfterStart: _minutesAfterStart,
-      fixedTime: _selectedType == PrayerAlarmType.fixedTime
+      type: _isRelative
+          ? PrayerAlarmType.afterPrayerStart
+          : PrayerAlarmType.fixedTime,
+      minutesBeforeEnd: 0,
+      minutesAfterStart: _isRelative ? _relativeMinutes : 0,
+      fixedTime: !_isRelative
           ? DateTime(
               DateTime.now().year,
               DateTime.now().month,

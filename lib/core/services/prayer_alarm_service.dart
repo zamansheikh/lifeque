@@ -87,6 +87,7 @@ class PrayerAlarmService {
   List<PrayerAlarmConfig> _alarms = [];
   bool _isEnabled = true;
   Timer? _refreshTimer;
+  StreamSubscription<AlarmSettings>? _ringSubscription;
 
   // Base alarm IDs for prayers (to avoid conflicts with study timer)
   static const Map<String, int> _prayerAlarmIds = {
@@ -112,9 +113,54 @@ class PrayerAlarmService {
     await _loadSettings();
     await _loadAlarms();
     _startRefreshTimer();
+
+    // Listen for alarm fires and automatically reschedule for the next day.
+    // This ensures alarms repeat daily even if the midnight timer was missed.
+    _ringSubscription?.cancel();
+    _ringSubscription = Alarm.ringStream.stream.listen(_onAlarmRang);
+
+    // Reschedule all alarms on startup so that any alarms missed while the
+    // app was closed (e.g. after a device restart) are correctly re-queued.
+    if (_isEnabled) {
+      await _scheduleAllAlarms();
+    }
+
     developer.log(
       'PrayerAlarmService: Initialized with ${_alarms.length} alarms',
     );
+  }
+
+  /// Called whenever an alarm starts ringing. Reschedules the prayer alarm
+  /// for tomorrow so it fires again on the next calendar day.
+  Future<void> _onAlarmRang(AlarmSettings settings) async {
+    developer.log('PrayerAlarmService: Alarm rang id=${settings.id}');
+
+    // Find which prayer this alarm belongs to.
+    String? prayerName;
+    for (final entry in _prayerAlarmIds.entries) {
+      if (entry.value == settings.id) {
+        prayerName = entry.key;
+        break;
+      }
+    }
+    if (prayerName == null) return;
+
+    // Find the stored config.
+    PrayerAlarmConfig? config;
+    try {
+      config = _alarms.firstWhere((a) => a.prayerName == prayerName);
+    } catch (_) {
+      return; // No config saved – nothing to reschedule.
+    }
+
+    if (!config.isEnabled || !_isEnabled) return;
+
+    // Schedule for tomorrow's prayer time.
+    final tomorrow = DateTime.now().add(const Duration(days: 1));
+    developer.log(
+      'PrayerAlarmService: Rescheduling ${config.prayerName} for tomorrow',
+    );
+    await _scheduleAlarmForDate(config, tomorrow);
   }
 
   Future<void> _loadSettings() async {
@@ -254,7 +300,17 @@ class PrayerAlarmService {
     }
   }
 
+  /// Schedule an alarm for the next upcoming occurrence (today or tomorrow).
   Future<void> _scheduleAlarm(PrayerAlarmConfig config) async {
+    await _scheduleAlarmForDate(config, DateTime.now());
+  }
+
+  /// Schedule an alarm using [startDate] as the reference date for prayer
+  /// time calculation. If the resulting time is in the past, tomorrow is used.
+  Future<void> _scheduleAlarmForDate(
+    PrayerAlarmConfig config,
+    DateTime startDate,
+  ) async {
     final alarmId = _prayerAlarmIds[config.prayerName];
     if (alarmId == null) return;
 
@@ -266,11 +322,13 @@ class PrayerAlarmService {
       alarmTime = await _calculateBeforePrayerEndTime(
         config.prayerName,
         config.minutesBeforeEnd,
+        referenceDate: startDate,
       );
     } else if (config.type == PrayerAlarmType.afterPrayerStart) {
       alarmTime = await _calculateAfterPrayerStartTime(
         config.prayerName,
         config.minutesAfterStart,
+        referenceDate: startDate,
       );
     }
 
@@ -329,14 +387,18 @@ class PrayerAlarmService {
 
   Future<DateTime?> _calculateBeforePrayerEndTime(
     String prayerName,
-    int minutesBefore,
-  ) async {
+    int minutesBefore, {
+    DateTime? referenceDate,
+  }) async {
     try {
-      // Get next occurrence of this prayer
+      final now = DateTime.now();
+      final date = referenceDate ?? now;
+
+      // Get prayer times for the reference date.
       final calculator = SalahTimeCalculator(
         latitude: 23.8103, // Default to Dhaka, should get from saved location
         longitude: 90.4125,
-        date: DateTime.now(),
+        date: date,
         method: CalculationMethod.karachi,
       );
 
@@ -345,15 +407,14 @@ class PrayerAlarmService {
 
       if (prayerTime == null) return null;
 
-      // If prayer time has passed today, calculate for tomorrow
-      final now = DateTime.now();
+      // If prayer time has passed, calculate for the next day.
       DateTime targetPrayerTime = prayerTime;
 
       if (prayerTime.isBefore(now)) {
         final tomorrowCalculator = SalahTimeCalculator(
           latitude: 23.8103,
           longitude: 90.4125,
-          date: now.add(const Duration(days: 1)),
+          date: date.add(const Duration(days: 1)),
           method: CalculationMethod.karachi,
         );
         final tomorrowTimes = tomorrowCalculator.getPrayerTimesMap();
@@ -394,14 +455,18 @@ class PrayerAlarmService {
 
   Future<DateTime?> _calculateAfterPrayerStartTime(
     String prayerName,
-    int minutesAfter,
-  ) async {
+    int minutesAfter, {
+    DateTime? referenceDate,
+  }) async {
     try {
-      // Get next occurrence of this prayer
+      final now = DateTime.now();
+      final date = referenceDate ?? now;
+
+      // Get prayer times for the reference date.
       final calculator = SalahTimeCalculator(
         latitude: 23.8103, // Default to Dhaka, should get from saved location
         longitude: 90.4125,
-        date: DateTime.now(),
+        date: date,
         method: CalculationMethod.karachi,
       );
 
@@ -410,28 +475,29 @@ class PrayerAlarmService {
 
       if (prayerTime == null) return null;
 
-      // If prayer time has passed today, calculate for tomorrow
-      final now = DateTime.now();
-      DateTime targetPrayerTime = prayerTime;
+      // Alarm fires at prayer start ± offset minutes.
+      // minutesAfter can be negative (before start) or 0 (exact) or positive.
+      DateTime alarmTime = prayerTime.add(Duration(minutes: minutesAfter));
 
-      if (prayerTime.isBefore(now)) {
+      // If the computed alarm time has already passed, shift to the next day.
+      if (alarmTime.isBefore(now)) {
         final tomorrowCalculator = SalahTimeCalculator(
           latitude: 23.8103,
           longitude: 90.4125,
-          date: now.add(const Duration(days: 1)),
+          date: date.add(const Duration(days: 1)),
           method: CalculationMethod.karachi,
         );
         final tomorrowTimes = tomorrowCalculator.getPrayerTimesMap();
-        targetPrayerTime = tomorrowTimes[prayerName] ?? prayerTime;
+        final tomorrowPrayer = tomorrowTimes[prayerName];
+        if (tomorrowPrayer != null) {
+          alarmTime = tomorrowPrayer.add(Duration(minutes: minutesAfter));
+        }
       }
-
-      // Calculate alarm time as prayer start time + minutes after
-      final alarmTime = targetPrayerTime.add(Duration(minutes: minutesAfter));
 
       return alarmTime;
     } catch (e) {
       developer.log(
-        'PrayerAlarmService: Error calculating after prayer start time: $e',
+        'PrayerAlarmService: Error calculating prayer start time: $e',
       );
       return null;
     }
@@ -443,7 +509,14 @@ class PrayerAlarmService {
     } else if (config.type == PrayerAlarmType.beforePrayerEnd) {
       return '${config.minutesBeforeEnd} minutes left for ${config.prayerName}';
     } else if (config.type == PrayerAlarmType.afterPrayerStart) {
-      return '${config.prayerName} prayer started ${config.minutesAfterStart} minutes ago';
+      final mins = config.minutesAfterStart;
+      if (mins == 0) {
+        return 'Time for ${config.prayerName} prayer';
+      } else if (mins < 0) {
+        return '${mins.abs()} minutes until ${config.prayerName} prayer';
+      } else {
+        return '${config.prayerName} prayer started $mins minutes ago';
+      }
     }
     return '${config.prayerName} prayer time reminder';
   }
@@ -485,6 +558,7 @@ class PrayerAlarmService {
 
   void dispose() {
     _refreshTimer?.cancel();
+    _ringSubscription?.cancel();
     _alarmsController.close();
     _enabledController.close();
   }
