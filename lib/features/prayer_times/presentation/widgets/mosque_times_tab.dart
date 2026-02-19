@@ -99,8 +99,6 @@ class _MosqueTimesTabState extends State<MosqueTimesTab> {
         final fTime = fajrWaqt.add(const Duration(minutes: 15));
         fajrDisplay = TimeOfDay.fromDateTime(fTime);
         fajrSubtitle = 'Auto: Waqt + 15m';
-        isEditable:
-        false; // Typo in plan, will fix in code
         isFajrEditable = false;
       }
 
@@ -124,7 +122,9 @@ class _MosqueTimesTabState extends State<MosqueTimesTab> {
         Card(
           elevation: 0,
           color: _isRamadanMode
-              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2)
+              ? Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withValues(alpha: 0.2)
               : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -193,7 +193,7 @@ class _MosqueTimesTabState extends State<MosqueTimesTab> {
           arabicName: 'مغرب',
           icon: Icons.wb_twilight,
           time: maghribDisplay,
-          isEditable: false,
+
           subtitle: maghribSubtitle,
         ),
         const SizedBox(height: 12),

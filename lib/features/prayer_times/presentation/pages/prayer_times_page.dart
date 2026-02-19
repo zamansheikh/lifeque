@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:lifeque/core/utils/salah_time_calculator.dart';
 import 'package:lifeque/features/home_widget/services/home_widget_service.dart';
+import '../../../islamic_resources/presentation/pages/islamic_resources_page.dart';
 import '../../data/services/prayer_settings_service.dart';
 import '../widgets/prayer_time_card.dart';
 import '../widgets/next_prayer_card.dart';
@@ -774,6 +775,29 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                 ),
               ),
               onPressed: _showSettingsBottomSheet,
+            ),
+            IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.menu_book, // Icon for Islamic Resources
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const IslamicResourcesPage(),
+                  ),
+                );
+              },
+              tooltip: 'Islamic Resources',
             ),
             const SizedBox(width: 8),
           ],
