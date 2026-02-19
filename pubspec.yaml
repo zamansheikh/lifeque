@@ -1,8 +1,8 @@
 name: lifeque
 description: "A new Flutter project."
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.1.8+1
+version: 1.1.9+1
 
 environment:
   sdk: ^3.9.0
@@ -12,54 +12,54 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  
+
   # State Management
   flutter_bloc: ^9.1.1
-  
+
   # Routing
   go_router: ^17.1.0
-  
+
   # Dependency Injection
   get_it: ^9.2.0
   injectable: ^2.7.1+4
-  
+
   # Local Storage
   sqflite: ^2.4.2
   path: ^1.9.1
   shared_preferences: ^2.5.4
-  
+
   # Background Tasks & Notifications
   flutter_local_notifications: ^21.0.0-dev.1
   permission_handler: ^12.0.1
   device_info_plus: ^12.3.0
   alarm: ^5.2.1
-  
-  # Location Services  
+
+  # Location Services
   geolocator: ^14.0.2
-  
+
   # Compass and Sensors
   flutter_compass: ^0.8.1
-  
+
   # App Info
   package_info_plus: ^9.0.0
 
   # URL Launcher
   url_launcher: ^6.3.2
-  
+
   # HTTP requests
   http: ^1.6.0
 
   # In-App Updates
   in_app_update: ^4.2.5
-  
+
   # Date & Time
   intl: ^0.20.2
   timezone: ^0.11.0
-  
+
   # Models & JSON
   json_annotation: ^4.10.0
   equatable: ^2.0.8
-  
+
   # Utils
   uuid: ^4.5.2
   dartz: ^0.10.1
@@ -82,14 +82,13 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  
+
   # Code Generation
   build_runner: ^2.11.1
   injectable_generator: ^2.12.0
   json_serializable: ^6.12.0
 
 flutter:
-
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
