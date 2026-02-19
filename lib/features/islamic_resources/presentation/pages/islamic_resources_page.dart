@@ -141,7 +141,7 @@ class IslamicResourcesPage extends StatelessWidget {
                 height: 180,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.06),
+                  color: Colors.white.withValues(alpha: 0.06),
                 ),
               ),
             ),
@@ -153,7 +153,7 @@ class IslamicResourcesPage extends StatelessWidget {
                 height: 110,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.08),
+                  color: Colors.white.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -167,13 +167,13 @@ class IslamicResourcesPage extends StatelessWidget {
                   Icon(
                     Icons.mosque_rounded,
                     size: 56,
-                    color: Colors.white.withOpacity(0.28),
+                    color: Colors.white.withValues(alpha: 0.28),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'بِسْمِ اللّٰهِ',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withValues(alpha: 0.5),
                       fontSize: 15,
                     ),
                   ),

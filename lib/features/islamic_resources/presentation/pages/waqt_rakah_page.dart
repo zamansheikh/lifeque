@@ -156,7 +156,7 @@ class WaqtRakahPage extends StatelessWidget {
                 child: Icon(
                   Icons.access_time_rounded,
                   size: 50,
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                 ),
               ),
             ),
@@ -196,7 +196,7 @@ class WaqtRakahPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: IslamicColors.lightGold,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: IslamicColors.gold.withOpacity(0.4)),
+        border: Border.all(color: IslamicColors.gold.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
@@ -238,7 +238,7 @@ class _RakahTable extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withValues(alpha: 0.06),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -400,7 +400,7 @@ class _PrayerTimeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -413,7 +413,7 @@ class _PrayerTimeCard extends StatelessWidget {
               width: 6,
               height: 70,
               decoration: BoxDecoration(
-                color: prayer.rowColor.withOpacity(2),
+                color: prayer.rowColor.withValues(alpha: 2),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(14),
                   bottomLeft: Radius.circular(14),
@@ -527,7 +527,7 @@ class _WuduNotesCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

@@ -468,7 +468,7 @@ class SalahInfoPage extends StatelessWidget {
                         Text(
                           'دَلِيلُ الصَّلَاة',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
+                            color: Colors.white.withValues(alpha: 0.7),
                             fontSize: 14,
                           ),
                         ),
@@ -476,7 +476,7 @@ class SalahInfoPage extends StatelessWidget {
                         Text(
                           '${salahSteps.length} steps of prayer',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 13,
                           ),
                         ),
@@ -486,7 +486,7 @@ class SalahInfoPage extends StatelessWidget {
                   Icon(
                     Icons.self_improvement_rounded,
                     size: 44,
-                    color: Colors.white.withOpacity(0.25),
+                    color: Colors.white.withValues(alpha: 0.25),
                   ),
                 ],
               ),
@@ -526,7 +526,7 @@ class _PhaseSection extends StatelessWidget {
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -546,7 +546,7 @@ class _PhaseSection extends StatelessWidget {
                     arabicLabel,
                     style: TextStyle(
                       fontSize: 12,
-                      color: color.withOpacity(0.8),
+                      color: color.withValues(alpha: 0.8),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -567,7 +567,7 @@ class _PhaseSection extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -617,7 +617,7 @@ class _StepCard extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       elevation: 1,
-      shadowColor: Colors.black.withOpacity(0.06),
+      shadowColor: Colors.black.withValues(alpha: 0.06),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () => Navigator.push(
@@ -633,7 +633,7 @@ class _StepCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.1),
+                  color: accentColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -678,7 +678,7 @@ class _StepCard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 14,
-                color: accentColor.withOpacity(0.6),
+                color: accentColor.withValues(alpha: 0.6),
               ),
             ],
           ),
@@ -807,7 +807,7 @@ class SalahStepDetailPage extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.9), color],
+              colors: [color.withValues(alpha: 0.9), color],
             ),
           ),
           child: SafeArea(
@@ -818,7 +818,7 @@ class SalahStepDetailPage extends StatelessWidget {
                 child: Icon(
                   step.icon,
                   size: 50,
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                 ),
               ),
             ),
@@ -836,10 +836,13 @@ class SalahStepDetailPage extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color.withOpacity(0.08), color.withOpacity(0.03)],
+          colors: [
+            color.withValues(alpha: 0.08),
+            color.withValues(alpha: 0.03),
+          ],
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withOpacity(0.15)),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
       ),
       child: Column(
         children: [
@@ -881,7 +884,7 @@ class SalahStepDetailPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -895,7 +898,7 @@ class SalahStepDetailPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, size: 16, color: color),
@@ -927,7 +930,7 @@ class SalahStepDetailPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: IslamicColors.lightGold,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: IslamicColors.gold.withOpacity(0.4)),
+        border: Border.all(color: IslamicColors.gold.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -937,7 +940,7 @@ class SalahStepDetailPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: IslamicColors.gold.withOpacity(0.2),
+                  color: IslamicColors.gold.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(

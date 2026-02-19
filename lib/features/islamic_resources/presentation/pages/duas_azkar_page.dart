@@ -293,7 +293,7 @@ class DuasAzkarPage extends StatelessWidget {
                 child: Icon(
                   Icons.volunteer_activism_rounded,
                   size: 50,
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                 ),
               ),
             ),
@@ -321,7 +321,7 @@ class _DuaCategorySection extends StatelessWidget {
           decoration: BoxDecoration(
             color: category.bgColor,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: category.color.withOpacity(0.25)),
+            border: Border.all(color: category.color.withValues(alpha: 0.25)),
           ),
           child: Row(
             children: [
@@ -335,7 +335,7 @@ class _DuaCategorySection extends StatelessWidget {
                       category.arabicLabel,
                       style: TextStyle(
                         fontSize: 11,
-                        color: category.color.withOpacity(0.7),
+                        color: category.color.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -356,7 +356,7 @@ class _DuaCategorySection extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: category.color.withOpacity(0.1),
+                  color: category.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -404,7 +404,7 @@ class _DuaCardState extends State<_DuaCard> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -429,7 +429,7 @@ class _DuaCardState extends State<_DuaCard> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: widget.accentColor.withOpacity(0.1),
+                      color: widget.accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
@@ -505,7 +505,7 @@ class _DuaCardState extends State<_DuaCard> {
                       color: IslamicColors.lightGold,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: IslamicColors.gold.withOpacity(0.3),
+                        color: IslamicColors.gold.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Text(
@@ -531,7 +531,7 @@ class _DuaCardState extends State<_DuaCard> {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: widget.accentColor.withOpacity(0.1),
+                          color: widget.accentColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(

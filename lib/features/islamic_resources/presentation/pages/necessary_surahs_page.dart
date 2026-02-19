@@ -217,7 +217,7 @@ class NecessarySurahsPage extends StatelessWidget {
                 child: Icon(
                   Icons.menu_book_rounded,
                   size: 50,
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                 ),
               ),
             ),
@@ -258,7 +258,7 @@ class _SurahGroup extends StatelessWidget {
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.25)),
+            border: Border.all(color: color.withValues(alpha: 0.25)),
           ),
           child: Row(
             children: [
@@ -275,7 +275,10 @@ class _SurahGroup extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 '· $arabicLabel',
-                style: TextStyle(fontSize: 12, color: color.withOpacity(0.7)),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color.withValues(alpha: 0.7),
+                ),
               ),
               const Spacer(),
               Text(
@@ -322,7 +325,7 @@ class _SurahCardState extends State<_SurahCard> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -348,7 +351,7 @@ class _SurahCardState extends State<_SurahCard> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: widget.accentColor.withOpacity(0.1),
+                      color: widget.accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
