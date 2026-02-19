@@ -11,6 +11,7 @@ import 'features/medicines/domain/repositories/medicine_repository.dart';
 import 'features/tasks/domain/repositories/task_repository.dart';
 import 'injection_container.dart' as di;
 import 'features/home_widget/services/home_widget_service.dart';
+import 'core/services/background_service.dart';
 
 /// Top-level background callback for home_widget tap-to-refresh.
 /// This runs in an isolate when the user taps the widget.
@@ -100,6 +101,9 @@ void main() async {
 
   // Check for app updates in background
   _checkForUpdatesInBackground();
+
+  // Initialize background service for periodic widget updates
+  await BackgroundService().initialize();
 
   // Update home screen widget with latest prayer times
   _updateHomeWidget();
