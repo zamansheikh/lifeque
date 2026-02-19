@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/utils/salah_time_calculator.dart';
+import '../../../home_widget/services/home_widget_service.dart';
 import '../../data/services/prayer_settings_service.dart';
 
 class MosqueTimesTab extends StatefulWidget {
@@ -16,6 +17,7 @@ class MosqueTimesTab extends StatefulWidget {
 class _MosqueTimesTabState extends State<MosqueTimesTab> {
   final PrayerSettingsService _settingsService = PrayerSettingsService.instance;
   Map<String, TimeOfDay> _mosqueTimes = {};
+  bool _isRamadanMode = false;
   bool _isLoading = true;
 
   @override
@@ -25,12 +27,14 @@ class _MosqueTimesTabState extends State<MosqueTimesTab> {
   }
 
   Future<void> _loadMosqueTimes() async {
+    final ramadanMode = await _settingsService.getRamadanMode();
     final fajrStr = await _settingsService.getMosqueTime('fajr');
     final dhuhrStr = await _settingsService.getMosqueTime('dhuhr');
     final asrStr = await _settingsService.getMosqueTime('asr');
     final ishaStr = await _settingsService.getMosqueTime('isha');
 
     setState(() {
+      _isRamadanMode = ramadanMode;
       _mosqueTimes = {
         'Fajr': _parseTime(fajrStr) ?? const TimeOfDay(hour: 5, minute: 0),
         'Dhuhr': _parseTime(dhuhrStr) ?? const TimeOfDay(hour: 13, minute: 30),
@@ -76,12 +80,79 @@ class _MosqueTimesTabState extends State<MosqueTimesTab> {
     }
 
     final prayerTimes = widget.calculator?.getPrayerTimesMap();
-    final maghribTime = prayerTimes?['Maghrib'];
+    final fajrWaqt = prayerTimes?['Fajr'];
+    final maghribWaqt = prayerTimes?['Maghrib'];
+
+    // Calculation for Ramadan Mode
+    TimeOfDay? fajrDisplay = _mosqueTimes['Fajr'];
+    TimeOfDay? maghribDisplay = maghribWaqt != null
+        ? TimeOfDay.fromDateTime(maghribWaqt)
+        : null;
+
+    String? fajrSubtitle = 'فجر';
+    String? maghribSubtitle = 'At Sunset';
+    bool isFajrEditable = true;
+
+    if (_isRamadanMode) {
+      // Fajr: Waqt + 15m
+      if (fajrWaqt != null) {
+        final fTime = fajrWaqt.add(const Duration(minutes: 15));
+        fajrDisplay = TimeOfDay.fromDateTime(fTime);
+        fajrSubtitle = 'Auto: Waqt + 15m';
+        isEditable:
+        false; // Typo in plan, will fix in code
+        isFajrEditable = false;
+      }
+
+      // Maghrib: Waqt + 15m
+      if (maghribWaqt != null) {
+        final mTime = maghribWaqt.add(const Duration(minutes: 15));
+        maghribDisplay = TimeOfDay.fromDateTime(mTime);
+        maghribSubtitle = 'Auto: Waqt + 15m';
+      }
+    } else {
+      // Normal mode: Maghrib is at sunset (Waqt)
+      maghribSubtitle = 'At Sunset';
+    }
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         _buildInfoCard(context),
+        const SizedBox(height: 12),
+        // Ramadan Mode Toggle
+        Card(
+          elevation: 0,
+          color: _isRamadanMode
+              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2)
+              : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.grey.shade200),
+          ),
+          child: SwitchListTile(
+            title: const Text(
+              'Enable Ramadan Mode',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: const Text(
+              'Sets Fajr & Maghrib to Waqt + 15m automatically',
+            ),
+            value: _isRamadanMode,
+            onChanged: (val) async {
+              await _settingsService.saveRamadanMode(val);
+              setState(() {
+                _isRamadanMode = val;
+                // Also update home widget immediately
+                HomeWidgetService().updateWidget();
+              });
+            },
+            secondary: Icon(
+              Icons.star,
+              color: _isRamadanMode ? Colors.orange : Colors.grey,
+            ),
+          ),
+        ),
         const SizedBox(height: 20),
         const Text(
           'Mosque Times',
@@ -93,8 +164,9 @@ class _MosqueTimesTabState extends State<MosqueTimesTab> {
           name: 'Fajr',
           arabicName: 'فجر',
           icon: Icons.wb_twilight,
-          time: _mosqueTimes['Fajr'],
-          isEditable: true,
+          time: fajrDisplay,
+          isEditable: isFajrEditable,
+          subtitle: fajrSubtitle,
         ),
         const SizedBox(height: 12),
         _buildMosqueTimeCard(
@@ -120,11 +192,9 @@ class _MosqueTimesTabState extends State<MosqueTimesTab> {
           name: 'Maghrib',
           arabicName: 'مغرب',
           icon: Icons.wb_twilight,
-          time: maghribTime != null
-              ? TimeOfDay.fromDateTime(maghribTime)
-              : null,
+          time: maghribDisplay,
           isEditable: false,
-          subtitle: 'At Sunset',
+          subtitle: maghribSubtitle,
         ),
         const SizedBox(height: 12),
         _buildMosqueTimeCard(

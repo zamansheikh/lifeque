@@ -186,11 +186,30 @@ class HomeWidgetService {
       final ishaStr = await settings.getMosqueTime('isha');
 
       // Format mosque times for display
+      final isRamadan = await settings.getRamadanMode();
+
+      // Format mosque times
+      String fajrDisplay;
+      if (isRamadan) {
+        final fTime = prayerTimes.fajr.add(const Duration(minutes: 15));
+        fajrDisplay = DateFormat('h:mm a').format(fTime);
+      } else {
+        fajrDisplay = _formatMosqueTime(fajrStr) ?? '5:00 AM';
+      }
+
+      String maghribDisplay;
+      if (isRamadan) {
+        final mTime = prayerTimes.maghrib.add(const Duration(minutes: 15));
+        maghribDisplay = DateFormat('h:mm a').format(mTime);
+      } else {
+        maghribDisplay = DateFormat('h:mm a').format(prayerTimes.maghrib);
+      }
+
       final Map<String, String> mosqueTimes = {
-        'Fajr': _formatMosqueTime(fajrStr) ?? '5:00 AM',
+        'Fajr': fajrDisplay,
         'Dhuhr': _formatMosqueTime(dhuhrStr) ?? '1:30 PM',
         'Asr': _formatMosqueTime(asrStr) ?? '4:30 PM',
-        'Maghrib': DateFormat('h:mm a').format(prayerTimes.maghrib),
+        'Maghrib': maghribDisplay,
         'Isha': _formatMosqueTime(ishaStr) ?? '8:00 PM',
       };
 

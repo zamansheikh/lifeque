@@ -12,6 +12,7 @@ class PrayerSettingsService {
   static const String _mosqueTimeDhuhrKey = 'mosque_time_dhuhr';
   static const String _mosqueTimeAsrKey = 'mosque_time_asr';
   static const String _mosqueTimeIshaKey = 'mosque_time_isha';
+  static const String _isRamadanModeKey = 'is_ramadan_mode';
 
   static PrayerSettingsService? _instance;
   SharedPreferences? _prefs;
@@ -172,6 +173,16 @@ class PrayerSettingsService {
       default:
         return null;
     }
+  }
+
+  Future<void> saveRamadanMode(bool value) async {
+    await init();
+    await _prefs!.setBool(_isRamadanModeKey, value);
+  }
+
+  Future<bool> getRamadanMode() async {
+    await init();
+    return _prefs!.getBool(_isRamadanModeKey) ?? false;
   }
 }
 
