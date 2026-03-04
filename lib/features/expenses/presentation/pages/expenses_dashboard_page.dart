@@ -103,12 +103,16 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
     final existingCategoryBudgets = state is ExpenseLoaded
         ? state.categoryBudgets
         : <CategoryBudget>[];
+    final categorySpending = state is ExpenseLoaded
+        ? state.getCategorySpending()
+        : <ExpenseCategory, double>{};
     context.push(
       '/expenses/budget',
       extra: {
         'selectedMonth': _selectedMonth,
         'existingBudget': existingBudget,
         'existingCategoryBudgets': existingCategoryBudgets,
+        'categorySpending': categorySpending,
       },
     );
   }

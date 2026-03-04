@@ -30,8 +30,6 @@ class _SetCategoryBudgetsPageState extends State<SetCategoryBudgetsPage> {
 
     // Initialize controllers for all categories
     for (final category in ExpenseCategory.values) {
-      if (category == ExpenseCategory.uncategorized) continue;
-
       _controllers[category] = TextEditingController();
 
       // Check if budget exists for this category
@@ -325,9 +323,9 @@ class _SetCategoryBudgetsPageState extends State<SetCategoryBudgetsPage> {
             ),
 
             // Category budget cards
-            ...ExpenseCategory.values
-                .where((c) => c != ExpenseCategory.uncategorized)
-                .map((category) => _buildCategoryBudgetCard(category)),
+            ...ExpenseCategory.values.map(
+              (category) => _buildCategoryBudgetCard(category),
+            ),
           ],
         ),
       ),

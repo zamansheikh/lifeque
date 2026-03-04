@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../data/services/custom_category_service.dart';
 import '../../domain/entities/category_budget.dart';
+import '../../domain/entities/custom_category.dart';
 import '../../domain/entities/expense_category.dart';
 import '../../domain/entities/monthly_budget.dart';
+import '../../../../injection_container.dart' as di;
 import '../bloc/expense_bloc.dart';
 
 class SetBudgetPage extends StatefulWidget {
   final DateTime selectedMonth;
   final MonthlyBudget? existingBudget;
   final List<CategoryBudget> existingCategoryBudgets;
+  final Map<ExpenseCategory, double> categorySpending;
 
   const SetBudgetPage({
     super.key,
     required this.selectedMonth,
     this.existingBudget,
     this.existingCategoryBudgets = const [],
+    this.categorySpending = const {},
   });
 
   @override
@@ -28,14 +33,25 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
   final Map<ExpenseCategory, TextEditingController> _categoryControllers = {};
   final Map<ExpenseCategory, bool> _enabledCategories = {};
 
+  // Custom category tracking
+  List<CustomCategory> _customCategories = [];
+  final Map<String, TextEditingController> _customCategoryControllers = {};
+  final Map<String, bool> _enabledCustomCategories = {};
+
   double get _totalBudget => double.tryParse(_amountController.text) ?? 0.0;
 
   double get _totalAllocated {
     double total = 0;
     for (final cat in ExpenseCategory.values) {
-      if (cat == ExpenseCategory.uncategorized) continue;
       if (_enabledCategories[cat] == true) {
         total += double.tryParse(_categoryControllers[cat]?.text ?? '') ?? 0.0;
+      }
+    }
+    for (final cc in _customCategories) {
+      if (_enabledCustomCategories[cc.name] == true) {
+        total +=
+            double.tryParse(_customCategoryControllers[cc.name]?.text ?? '') ??
+            0.0;
       }
     }
     return total;
@@ -51,10 +67,9 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     _amountController.addListener(() => setState(() {}));
 
     for (final cat in ExpenseCategory.values) {
-      if (cat == ExpenseCategory.uncategorized) continue;
       final ctrl = TextEditingController();
       final existing = widget.existingCategoryBudgets.where(
-        (b) => b.category == cat,
+        (b) => b.category == cat && b.customCategoryName == null,
       );
       if (existing.isNotEmpty && existing.first.budgetAmount > 0) {
         ctrl.text = existing.first.budgetAmount.toStringAsFixed(0);
@@ -65,12 +80,32 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
       ctrl.addListener(() => setState(() {}));
       _categoryControllers[cat] = ctrl;
     }
+
+    // Load custom categories + populate controllers from existing budgets
+    _customCategories = di.sl<CustomCategoryService>().getAll();
+    for (final cc in _customCategories) {
+      final ctrl = TextEditingController();
+      final existing = widget.existingCategoryBudgets.where(
+        (b) => b.customCategoryName == cc.name,
+      );
+      if (existing.isNotEmpty && existing.first.budgetAmount > 0) {
+        ctrl.text = existing.first.budgetAmount.toStringAsFixed(0);
+        _enabledCustomCategories[cc.name] = true;
+      } else {
+        _enabledCustomCategories[cc.name] = false;
+      }
+      ctrl.addListener(() => setState(() {}));
+      _customCategoryControllers[cc.name] = ctrl;
+    }
   }
 
   @override
   void dispose() {
     _amountController.dispose();
     for (final c in _categoryControllers.values) {
+      c.dispose();
+    }
+    for (final c in _customCategoryControllers.values) {
       c.dispose();
     }
     super.dispose();
@@ -112,15 +147,31 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     );
     context.read<ExpenseBloc>().add(SetBudgetEvent(budget));
 
+    // Auto-assign unallocated budget to "Other" category
+    final unallocated = amount - _totalAllocated;
+    if (unallocated > 0) {
+      // If Other is not enabled or has 0, auto-create/update Other budget
+      final otherCurrent =
+          double.tryParse(
+            _categoryControllers[ExpenseCategory.other]?.text ?? '',
+          ) ??
+          0.0;
+      if (!(_enabledCategories[ExpenseCategory.other] == true) ||
+          otherCurrent == 0) {
+        _enabledCategories[ExpenseCategory.other] = true;
+        _categoryControllers[ExpenseCategory.other]?.text =
+            (otherCurrent + unallocated).toStringAsFixed(0);
+      }
+    }
+
     // Save each enabled category budget
     for (final cat in ExpenseCategory.values) {
-      if (cat == ExpenseCategory.uncategorized) continue;
       if (_enabledCategories[cat] == true) {
         final catAmount =
             double.tryParse(_categoryControllers[cat]?.text ?? '') ?? 0.0;
         if (catAmount > 0) {
           final existing = widget.existingCategoryBudgets.where(
-            (b) => b.category == cat,
+            (b) => b.category == cat && b.customCategoryName == null,
           );
           final catBudget = CategoryBudget(
             id: existing.isNotEmpty && existing.first.id.isNotEmpty
@@ -134,6 +185,35 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 ? existing.first.createdAt
                 : DateTime.now(),
             updatedAt: DateTime.now(),
+          );
+          context.read<ExpenseBloc>().add(SetCategoryBudgetEvent(catBudget));
+        }
+      }
+    }
+
+    // Save each enabled custom category budget
+    for (final cc in _customCategories) {
+      if (_enabledCustomCategories[cc.name] == true) {
+        final catAmount =
+            double.tryParse(_customCategoryControllers[cc.name]?.text ?? '') ??
+            0.0;
+        if (catAmount > 0) {
+          final existing = widget.existingCategoryBudgets.where(
+            (b) => b.customCategoryName == cc.name,
+          );
+          final catBudget = CategoryBudget(
+            id: existing.isNotEmpty && existing.first.id.isNotEmpty
+                ? existing.first.id
+                : '${DateTime.now().millisecondsSinceEpoch}custom_${cc.name}',
+            year: widget.selectedMonth.year,
+            month: widget.selectedMonth.month,
+            category: ExpenseCategory.other,
+            budgetAmount: catAmount,
+            createdAt: existing.isNotEmpty
+                ? existing.first.createdAt
+                : DateTime.now(),
+            updatedAt: DateTime.now(),
+            customCategoryName: cc.name,
           );
           context.read<ExpenseBloc>().add(SetCategoryBudgetEvent(catBudget));
         }
@@ -544,7 +624,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 ),
               ),
               Text(
-                '${_enabledCategories.values.where((e) => e).length} active',
+                '${_enabledCategories.values.where((e) => e).length + _enabledCustomCategories.values.where((e) => e).length} active',
                 style: const TextStyle(
                   fontSize: 12,
                   color: Color(0xFF8B5CF6),
@@ -651,9 +731,48 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
           ],
 
           // Category rows
-          ...ExpenseCategory.values
-              .where((c) => c != ExpenseCategory.uncategorized)
-              .map((cat) => _buildCategoryRow(cat, remaining)),
+          ...ExpenseCategory.values.map(
+            (cat) => _buildCategoryRow(cat, remaining),
+          ),
+
+          // Custom category rows
+          if (_customCategories.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            const Divider(height: 1, color: Color(0xFFF1F5F9)),
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 4, left: 4),
+              child: Text(
+                'CUSTOM CATEGORIES',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey[500],
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+            ..._customCategories.map(
+              (cc) => _buildCustomCategoryRow(cc, remaining),
+            ),
+          ],
+
+          // Add Custom Category button
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _showAddCustomCategoryDialog,
+            icon: const Icon(Icons.add_rounded, size: 18),
+            label: const Text('Add Custom Category'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF8B5CF6),
+              side: BorderSide(
+                color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
+          ),
         ],
       ),
     );
@@ -665,6 +784,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
         double.tryParse(_categoryControllers[cat]?.text ?? '') ?? 0.0;
     // available = free budget + what this cat already uses
     final availableForThis = globalRemaining + (isEnabled ? currentValue : 0.0);
+    final spent = widget.categorySpending[cat] ?? 0.0;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -723,6 +843,15 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                     style: TextStyle(
                       fontSize: 11,
                       color: cat.color,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                if (spent > 0)
+                  Text(
+                    '৳${spent.toStringAsFixed(0)} spent this month',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.orange[700],
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -803,6 +932,328 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  // ── Custom Category Row ───────────────────────────────────────────────────
+  Widget _buildCustomCategoryRow(CustomCategory cc, double globalRemaining) {
+    final isEnabled = _enabledCustomCategories[cc.name] == true;
+    final currentValue =
+        double.tryParse(_customCategoryControllers[cc.name]?.text ?? '') ?? 0.0;
+    final availableForThis = globalRemaining + (isEnabled ? currentValue : 0.0);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: isEnabled
+            ? cc.color.withValues(alpha: 0.06)
+            : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isEnabled
+              ? cc.color.withValues(alpha: 0.3)
+              : const Color(0xFFE2E8F0),
+          width: isEnabled ? 1.5 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: isEnabled
+                  ? cc.color.withValues(alpha: 0.15)
+                  : const Color(0xFFE2E8F0),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              cc.icon,
+              color: isEnabled ? cc.color : const Color(0xFF94A3B8),
+              size: 17,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  cc.displayName,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isEnabled
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFF94A3B8),
+                  ),
+                ),
+                if (isEnabled && _totalBudget > 0)
+                  Text(
+                    'Max ৳${availableForThis.toStringAsFixed(0)} available',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: cc.color,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (isEnabled) ...[
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 95,
+              child: TextFormField(
+                controller: _customCategoryControllers[cc.name],
+                keyboardType: TextInputType.number,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: cc.color,
+                ),
+                decoration: InputDecoration(
+                  hintText: '0',
+                  prefixText: '৳',
+                  prefixStyle: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: cc.color,
+                  ),
+                  isDense: true,
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: cc.color.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: cc.color.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: cc.color, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
+                ),
+                validator: (value) {
+                  if (_enabledCustomCategories[cc.name] != true) return null;
+                  if (value == null || value.isEmpty) return 'Enter amount';
+                  final amt = double.tryParse(value);
+                  if (amt == null || amt <= 0) return 'Invalid';
+                  if (_totalBudget > 0 && amt > availableForThis + 0.01) {
+                    return 'Too high';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            const SizedBox(width: 6),
+          ],
+          Switch(
+            value: isEnabled,
+            activeThumbColor: cc.color,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            onChanged: (val) {
+              setState(() {
+                _enabledCustomCategories[cc.name] = val;
+                if (!val) _customCategoryControllers[cc.name]?.clear();
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Add Custom Category Dialog ────────────────────────────────────────────
+  void _showAddCustomCategoryDialog() {
+    final nameCtrl = TextEditingController();
+    int selectedIconIndex = 0;
+    int selectedColorIndex = 0;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final icon = CustomCategory.availableIcons[selectedIconIndex];
+          final color = CustomCategory.availableColors[selectedColorIndex];
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text(
+              'Create Custom Category',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(icon, color: color, size: 28),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: nameCtrl,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(
+                      labelText: 'Category Name',
+                      hintText: 'e.g. Rent, Gym, Pet',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      isDense: true,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Icon',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: List.generate(
+                      CustomCategory.availableIcons.length,
+                      (i) => GestureDetector(
+                        onTap: () =>
+                            setDialogState(() => selectedIconIndex = i),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: selectedIconIndex == i
+                                ? color.withValues(alpha: 0.15)
+                                : Colors.grey.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                            border: selectedIconIndex == i
+                                ? Border.all(color: color, width: 2)
+                                : null,
+                          ),
+                          child: Icon(
+                            CustomCategory.availableIcons[i],
+                            size: 18,
+                            color: selectedIconIndex == i
+                                ? color
+                                : Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Color',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: List.generate(
+                      CustomCategory.availableColors.length,
+                      (i) => GestureDetector(
+                        onTap: () =>
+                            setDialogState(() => selectedColorIndex = i),
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: CustomCategory.availableColors[i],
+                            shape: BoxShape.circle,
+                            border: selectedColorIndex == i
+                                ? Border.all(color: Colors.white, width: 3)
+                                : null,
+                            boxShadow: selectedColorIndex == i
+                                ? [
+                                    BoxShadow(
+                                      color: CustomCategory.availableColors[i]
+                                          .withValues(alpha: 0.5),
+                                      blurRadius: 8,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: selectedColorIndex == i
+                              ? const Icon(
+                                  Icons.check_rounded,
+                                  size: 16,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  final name = nameCtrl.text.trim();
+                  if (name.isEmpty) return;
+                  final custom = CustomCategory(
+                    name: name,
+                    iconCodePoint: CustomCategory
+                        .availableIcons[selectedIconIndex]
+                        .codePoint,
+                    colorValue: CustomCategory
+                        .availableColors[selectedColorIndex]
+                        .value,
+                  );
+                  final added = await di.sl<CustomCategoryService>().add(
+                    custom,
+                  );
+                  if (!added && ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(
+                        content: Text('Category name already exists'),
+                      ),
+                    );
+                    return;
+                  }
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  // Add to local state + create controller
+                  setState(() {
+                    _customCategories = di.sl<CustomCategoryService>().getAll();
+                    final ctrl = TextEditingController();
+                    ctrl.addListener(() => setState(() {}));
+                    _customCategoryControllers[name] = ctrl;
+                    _enabledCustomCategories[name] = true;
+                  });
+                },
+                child: const Text('Create'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

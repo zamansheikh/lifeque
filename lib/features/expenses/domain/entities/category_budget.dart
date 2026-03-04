@@ -9,6 +9,7 @@ class CategoryBudget extends Equatable {
   final double budgetAmount;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? customCategoryName;
 
   const CategoryBudget({
     required this.id,
@@ -18,7 +19,12 @@ class CategoryBudget extends Equatable {
     required this.budgetAmount,
     required this.createdAt,
     required this.updatedAt,
+    this.customCategoryName,
   });
+
+  /// Effective category key for spending/budget matching.
+  String get effectiveCategoryKey =>
+      customCategoryName != null ? 'custom:$customCategoryName' : category.name;
 
   CategoryBudget copyWith({
     String? id,
@@ -28,6 +34,8 @@ class CategoryBudget extends Equatable {
     double? budgetAmount,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? customCategoryName,
+    bool clearCustomCategory = false,
   }) {
     return CategoryBudget(
       id: id ?? this.id,
@@ -37,6 +45,9 @@ class CategoryBudget extends Equatable {
       budgetAmount: budgetAmount ?? this.budgetAmount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      customCategoryName: clearCustomCategory
+          ? null
+          : (customCategoryName ?? this.customCategoryName),
     );
   }
 
@@ -82,7 +93,8 @@ class CategoryBudget extends Equatable {
       'November',
       'December',
     ];
-    return '${category.displayName} - ${months[month - 1]} $year';
+    final catName = customCategoryName ?? category.displayName;
+    return '$catName - ${months[month - 1]} $year';
   }
 
   @override
@@ -94,5 +106,6 @@ class CategoryBudget extends Equatable {
     budgetAmount,
     createdAt,
     updatedAt,
+    customCategoryName,
   ];
 }

@@ -222,12 +222,13 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
     // First try by ID
     int index = budgets.indexWhere((b) => b.id == budget.id);
     if (index == -1) {
-      // If ID not found, try to find by (year, month, category) to avoid duplicates
+      // If ID not found, try to find by (year, month, category, customCategoryName) to avoid duplicates
       index = budgets.indexWhere(
         (b) =>
             b.year == budget.year &&
             b.month == budget.month &&
-            b.category == budget.category,
+            b.category == budget.category &&
+            b.customCategoryName == budget.customCategoryName,
       );
       if (index != -1) {
         // Preserve original id and createdAt when updating existing entry
@@ -240,6 +241,7 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
           budgetAmount: budget.budgetAmount,
           createdAt: existing.createdAt,
           updatedAt: budget.updatedAt,
+          customCategoryName: budget.customCategoryName,
         );
       } else {
         budgets.add(budget);

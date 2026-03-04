@@ -8,7 +8,8 @@ class ExpenseItemModel extends ExpenseItem {
     required super.amount,
     super.isPurchased = false,
     super.purchasedAt,
-    super.category = ExpenseCategory.uncategorized,
+    super.category = ExpenseCategory.other,
+    super.customCategoryName,
   });
 
   factory ExpenseItemModel.fromJson(Map<String, dynamic> json) {
@@ -20,10 +21,11 @@ class ExpenseItemModel extends ExpenseItem {
       purchasedAt: json['purchasedAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch(json['purchasedAt'] as int)
           : null,
-      // Backward compatible: default to uncategorized if category field doesn't exist
+      // Backward compatible: default to 'other' if category field doesn't exist
       category: json['category'] != null
           ? ExpenseCategory.fromString(json['category'] as String)
-          : ExpenseCategory.uncategorized,
+          : ExpenseCategory.other,
+      customCategoryName: json['customCategoryName'] as String?,
     );
   }
 
@@ -35,6 +37,7 @@ class ExpenseItemModel extends ExpenseItem {
       'isPurchased': isPurchased,
       'purchasedAt': purchasedAt?.millisecondsSinceEpoch,
       'category': category.name, // Store as string
+      'customCategoryName': customCategoryName,
     };
   }
 
@@ -46,6 +49,7 @@ class ExpenseItemModel extends ExpenseItem {
       isPurchased: item.isPurchased,
       purchasedAt: item.purchasedAt,
       category: item.category,
+      customCategoryName: item.customCategoryName,
     );
   }
 
@@ -57,6 +61,7 @@ class ExpenseItemModel extends ExpenseItem {
       isPurchased: isPurchased,
       purchasedAt: purchasedAt,
       category: category,
+      customCategoryName: customCategoryName,
     );
   }
 
@@ -68,7 +73,9 @@ class ExpenseItemModel extends ExpenseItem {
     bool? isPurchased,
     DateTime? purchasedAt,
     ExpenseCategory? category,
+    String? customCategoryName,
     bool clearPurchasedAt = false,
+    bool clearCustomCategory = false,
   }) {
     return ExpenseItemModel(
       id: id ?? this.id,
@@ -77,6 +84,9 @@ class ExpenseItemModel extends ExpenseItem {
       isPurchased: isPurchased ?? this.isPurchased,
       purchasedAt: clearPurchasedAt ? null : (purchasedAt ?? this.purchasedAt),
       category: category ?? this.category,
+      customCategoryName: clearCustomCategory
+          ? null
+          : (customCategoryName ?? this.customCategoryName),
     );
   }
 }

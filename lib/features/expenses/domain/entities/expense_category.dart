@@ -10,8 +10,7 @@ enum ExpenseCategory {
   shopping,
   groceries,
   bills,
-  other,
-  uncategorized;
+  other;
 
   String get displayName {
     switch (this) {
@@ -35,8 +34,6 @@ enum ExpenseCategory {
         return 'Bills';
       case ExpenseCategory.other:
         return 'Other';
-      case ExpenseCategory.uncategorized:
-        return 'Uncategorized';
     }
   }
 
@@ -62,8 +59,6 @@ enum ExpenseCategory {
         return Icons.receipt_long_rounded;
       case ExpenseCategory.other:
         return Icons.more_horiz_rounded;
-      case ExpenseCategory.uncategorized:
-        return Icons.category_rounded;
     }
   }
 
@@ -89,19 +84,18 @@ enum ExpenseCategory {
         return const Color(0xFF78909C); // Blue Grey
       case ExpenseCategory.other:
         return const Color(0xFF9E9E9E); // Grey
-      case ExpenseCategory.uncategorized:
-        return const Color(0xFFBDBDBD); // Light Grey
     }
   }
 
   // Convert from string (for JSON deserialization)
+  // 'uncategorized' from old data maps to 'other' for backward compatibility
   static ExpenseCategory fromString(String value) {
+    final lower = value.toLowerCase();
+    if (lower == 'uncategorized') return ExpenseCategory.other;
     try {
-      return ExpenseCategory.values.firstWhere(
-        (e) => e.name == value.toLowerCase(),
-      );
+      return ExpenseCategory.values.firstWhere((e) => e.name == lower);
     } catch (e) {
-      return ExpenseCategory.uncategorized;
+      return ExpenseCategory.other;
     }
   }
 }

@@ -10,6 +10,7 @@ class CategoryBudgetModel extends CategoryBudget {
     required super.budgetAmount,
     required super.createdAt,
     required super.updatedAt,
+    super.customCategoryName,
   });
 
   factory CategoryBudgetModel.fromJson(Map<String, dynamic> json) {
@@ -21,6 +22,7 @@ class CategoryBudgetModel extends CategoryBudget {
       budgetAmount: (json['budgetAmount'] as num).toDouble(),
       createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(json['updatedAt'] as int),
+      customCategoryName: json['customCategoryName'] as String?,
     );
   }
 
@@ -33,6 +35,7 @@ class CategoryBudgetModel extends CategoryBudget {
       'budgetAmount': budgetAmount,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'updatedAt': updatedAt.millisecondsSinceEpoch,
+      'customCategoryName': customCategoryName,
     };
   }
 
@@ -45,6 +48,7 @@ class CategoryBudgetModel extends CategoryBudget {
       budgetAmount: budget.budgetAmount,
       createdAt: budget.createdAt,
       updatedAt: budget.updatedAt,
+      customCategoryName: budget.customCategoryName,
     );
   }
 
@@ -57,6 +61,7 @@ class CategoryBudgetModel extends CategoryBudget {
       budgetAmount: budgetAmount,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      customCategoryName: customCategoryName,
     );
   }
 
@@ -69,6 +74,8 @@ class CategoryBudgetModel extends CategoryBudget {
     double? budgetAmount,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? customCategoryName,
+    bool clearCustomCategory = false,
   }) {
     return CategoryBudgetModel(
       id: id ?? this.id,
@@ -78,6 +85,9 @@ class CategoryBudgetModel extends CategoryBudget {
       budgetAmount: budgetAmount ?? this.budgetAmount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      customCategoryName: clearCustomCategory
+          ? null
+          : (customCategoryName ?? this.customCategoryName),
     );
   }
 }

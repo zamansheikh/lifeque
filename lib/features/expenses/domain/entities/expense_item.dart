@@ -8,6 +8,7 @@ class ExpenseItem extends Equatable {
   final bool isPurchased;
   final DateTime? purchasedAt;
   final ExpenseCategory category;
+  final String? customCategoryName;
 
   const ExpenseItem({
     required this.id,
@@ -15,8 +16,14 @@ class ExpenseItem extends Equatable {
     required this.amount,
     this.isPurchased = false,
     this.purchasedAt,
-    this.category = ExpenseCategory.uncategorized,
+    this.category = ExpenseCategory.other,
+    this.customCategoryName,
   });
+
+  /// Effective category key for spending/budget matching.
+  /// Built-in: enum name (e.g. 'food'). Custom: 'custom:MyCategory'.
+  String get effectiveCategoryKey =>
+      customCategoryName != null ? 'custom:$customCategoryName' : category.name;
 
   ExpenseItem copyWith({
     String? id,
@@ -25,7 +32,9 @@ class ExpenseItem extends Equatable {
     bool? isPurchased,
     DateTime? purchasedAt,
     ExpenseCategory? category,
+    String? customCategoryName,
     bool clearPurchasedAt = false,
+    bool clearCustomCategory = false,
   }) {
     return ExpenseItem(
       id: id ?? this.id,
@@ -34,6 +43,9 @@ class ExpenseItem extends Equatable {
       isPurchased: isPurchased ?? this.isPurchased,
       purchasedAt: clearPurchasedAt ? null : (purchasedAt ?? this.purchasedAt),
       category: category ?? this.category,
+      customCategoryName: clearCustomCategory
+          ? null
+          : (customCategoryName ?? this.customCategoryName),
     );
   }
 
@@ -45,5 +57,6 @@ class ExpenseItem extends Equatable {
     isPurchased,
     purchasedAt,
     category,
+    customCategoryName,
   ];
 }

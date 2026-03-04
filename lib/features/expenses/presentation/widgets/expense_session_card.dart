@@ -52,7 +52,6 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
     final purchasedItems = widget.session.items
         .where((item) => item.isPurchased)
         .length;
-    final missedAmount = widget.session.missedAmount;
     final completion = totalItems > 0 ? purchasedItems / totalItems : 0.0;
 
     return ScaleTransition(
@@ -65,43 +64,40 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
           widget.onTap?.call();
         },
         child: Container(
-          // margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── Header row ──
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: completion == 1.0
                             ? const [Color(0xFF10B981), Color(0xFF059669)]
                             : const [Color(0xFF3B82F6), Color(0xFF2563EB)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       completion == 1.0
                           ? Icons.check_circle_rounded
                           : Icons.shopping_bag,
                       color: Colors.white,
-                      size: 20,
+                      size: 17,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -109,67 +105,46 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                widget.session.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1E293B),
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              _formatDateTime(widget.session.createdAt),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
+                        Text(
+                          widget.session.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1E293B),
+                          ),
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.inventory_2_rounded,
-                              size: 14,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${widget.session.items.length} items',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Icon(
-                              Icons.check_circle,
-                              size: 14,
-                              color: Colors.green[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '$purchasedItems bought',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 2),
+                        Text(
+                          '$totalItems items · $purchasedItems bought · ${_formatDateTime(widget.session.createdAt)}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  // Amounts
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '৳${widget.session.purchasedAmount.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.green[700],
+                        ),
+                      ),
+                      Text(
+                        'of ৳${widget.session.totalAmount.toStringAsFixed(0)}',
+                        style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 2),
                   PopupMenuButton<String>(
                     onSelected: (value) {
                       switch (value) {
@@ -183,40 +158,46 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                     },
                     icon: Icon(
                       Icons.more_vert_rounded,
-                      color: Colors.grey[600],
-                      size: 20,
+                      color: Colors.grey[400],
+                      size: 18,
                     ),
+                    padding: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     itemBuilder: (context) => const [
                       PopupMenuItem(
                         value: 'edit',
+                        height: 38,
                         child: Row(
                           children: [
                             Icon(
                               Icons.edit_rounded,
-                              size: 18,
+                              size: 16,
                               color: Color(0xFF3B82F6),
                             ),
-                            SizedBox(width: 12),
-                            Text('Edit'),
+                            SizedBox(width: 10),
+                            Text('Edit', style: TextStyle(fontSize: 13)),
                           ],
                         ),
                       ),
                       PopupMenuItem(
                         value: 'delete',
+                        height: 38,
                         child: Row(
                           children: [
                             Icon(
                               Icons.delete_rounded,
-                              size: 18,
+                              size: 16,
                               color: Color(0xFFEF4444),
                             ),
-                            SizedBox(width: 12),
+                            SizedBox(width: 10),
                             Text(
                               'Delete',
-                              style: TextStyle(color: Color(0xFFEF4444)),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFFEF4444),
+                              ),
                             ),
                           ],
                         ),
@@ -226,86 +207,26 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                 ],
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
 
-              // Progress + Amounts
-              Row(
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: LinearProgressIndicator(
-                        value: completion,
-                        minHeight: 8,
-                        backgroundColor: Colors.grey.withValues(alpha: 0.15),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          completion == 1.0
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFF3B82F6),
-                        ),
-                      ),
-                    ),
+              // ── Progress bar ──
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: completion,
+                  minHeight: 5,
+                  backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    completion == 1.0
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFF3B82F6),
                   ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '৳${widget.session.purchasedAmount.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.green[700],
-                        ),
-                      ),
-                      Text(
-                        'of ৳${widget.session.totalAmount.toStringAsFixed(0)}',
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
 
-              const SizedBox(height: 10),
-
-              // Amount Summary (compact)
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildAmountCard(
-                      'Total',
-                      '৳${widget.session.totalAmount.toStringAsFixed(0)}',
-                      const Color(0xFF3B82F6),
-                      Icons.account_balance_wallet_rounded,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildAmountCard(
-                      'Purchased',
-                      '৳${widget.session.purchasedAmount.toStringAsFixed(0)}',
-                      const Color(0xFF10B981),
-                      Icons.shopping_bag_rounded,
-                    ),
-                  ),
-                  if (missedAmount > 0) ...[
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildAmountCard(
-                        'Missed',
-                        '৳${missedAmount.toStringAsFixed(0)}',
-                        const Color(0xFFF59E0B),
-                        Icons.error_outline_rounded,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-
-              // Items preview
+              // ── Items preview ──
               if (widget.session.items.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 AnimatedCrossFade(
                   firstChild: _buildItemsPreview(maxItems: 2),
                   secondChild: _buildItemsPreview(maxItems: 6),
@@ -317,31 +238,32 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                 if (widget.session.items.length > 2)
                   Align(
                     alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: () =>
-                          setState(() => _isExpanded = !_isExpanded),
-                      icon: Icon(
-                        _isExpanded
-                            ? Icons.expand_less_rounded
-                            : Icons.expand_more_rounded,
-                        size: 16,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      label: Text(
-                        _isExpanded ? 'Show less' : 'Show more',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.w600,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _isExpanded = !_isExpanded),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _isExpanded
+                                  ? 'Less'
+                                  : '${widget.session.items.length - 2} more',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Icon(
+                              _isExpanded
+                                  ? Icons.expand_less_rounded
+                                  : Icons.expand_more_rounded,
+                              size: 15,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ],
                         ),
-                      ),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        minimumSize: const Size(0, 0),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
                   ),
@@ -362,132 +284,66 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
     );
   }
 
-  Widget _buildAmountCard(
-    String label,
-    String amount,
-    Color color,
-    IconData icon,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(height: 3),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: color.withValues(alpha: 0.8),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 1),
-          Text(
-            amount,
-            style: TextStyle(
-              fontSize: 13,
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildItemRow(ExpenseItem item, BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => widget.onToggleItem?.call(item.id),
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: item.isPurchased
-                  ? const Color(0xFF10B981).withValues(alpha: 0.08)
-                  : Colors.grey.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: item.isPurchased
-                    ? const Color(0xFF10B981).withValues(alpha: 0.2)
-                    : Colors.grey.withValues(alpha: 0.15),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => widget.onToggleItem?.call(item.id),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+          child: Row(
+            children: [
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: item.isPurchased
+                      ? const Color(0xFF10B981)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(
                     color: item.isPurchased
                         ? const Color(0xFF10B981)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: item.isPurchased
-                          ? const Color(0xFF10B981)
-                          : Colors.grey[400]!,
-                      width: 2,
-                    ),
-                  ),
-                  child: item.isPurchased
-                      ? const Icon(
-                          Icons.check_rounded,
-                          size: 16,
-                          color: Colors.white,
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    item.name,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      decoration: item.isPurchased
-                          ? TextDecoration.lineThrough
-                          : null,
-                      color: item.isPurchased
-                          ? Colors.grey[600]
-                          : const Color(0xFF1E293B),
-                    ),
+                        : Colors.grey[350]!,
+                    width: 1.5,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
+                child: item.isPurchased
+                    ? const Icon(
+                        Icons.check_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  item.name,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    decoration: item.isPurchased
+                        ? TextDecoration.lineThrough
+                        : null,
                     color: item.isPurchased
-                        ? const Color(0xFF10B981).withValues(alpha: 0.15)
-                        : Colors.grey.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '৳${item.amount.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: item.isPurchased
-                          ? const Color(0xFF10B981)
-                          : Colors.grey[700],
-                    ),
+                        ? Colors.grey[500]
+                        : const Color(0xFF1E293B),
                   ),
                 ),
-              ],
-            ),
+              ),
+              Text(
+                '৳${item.amount.toStringAsFixed(0)}',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: item.isPurchased
+                      ? const Color(0xFF10B981)
+                      : Colors.grey[600],
+                ),
+              ),
+            ],
           ),
         ),
       ),

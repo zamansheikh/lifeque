@@ -9,9 +9,7 @@ import '../../../../injection_container.dart' as di;
 // ─── Brand palette (matches the app's blue seed) ─────────────────────────────
 const _kPrimary = Color(0xFF2563EB);
 const _kPrimaryLight = Color(0xFF60A5FA);
-const _kPrimaryDark = Color(0xFF1D4ED8);
 const _kAccent = Color(0xFF06B6D4);
-const _kBg = Color(0xFFF8FAFC);
 
 // ─── Slide data ──────────────────────────────────────────────────────────────
 

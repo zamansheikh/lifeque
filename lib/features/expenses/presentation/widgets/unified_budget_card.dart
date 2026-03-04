@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../data/services/custom_category_service.dart';
 import '../../domain/entities/category_budget.dart';
 import '../../domain/entities/expense_category.dart';
 import '../../domain/entities/monthly_budget.dart';
+import '../../../../injection_container.dart' as di;
 
 class UnifiedBudgetCard extends StatefulWidget {
   final MonthlyBudget? budget;
@@ -33,6 +35,28 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
   int? _activeTip;
   late AnimationController _controller;
   late Animation<double> _expandAnimation;
+
+  /// Helper: resolve display properties for a CategoryBudget.
+  /// Returns (icon, color, displayName) accounting for custom categories.
+  ({IconData icon, Color color, String name}) _budgetDisplay(CategoryBudget b) {
+    if (b.customCategoryName != null) {
+      final cc = di.sl<CustomCategoryService>().findByName(
+        b.customCategoryName!,
+      );
+      if (cc != null)
+        return (icon: cc.icon, color: cc.color, name: cc.displayName);
+      return (
+        icon: Icons.label_rounded,
+        color: const Color(0xFF7C3AED),
+        name: b.customCategoryName!,
+      );
+    }
+    return (
+      icon: b.category.icon,
+      color: b.category.color,
+      name: b.category.displayName,
+    );
+  }
 
   @override
   void initState() {
@@ -103,7 +127,13 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
       accentColor = const Color(0xFF10B981);
     }
 
-    final hasCats = widget.categoryBudgets.isNotEmpty;
+    // Categories with spending but no explicit budget
+    final budgetedCats = widget.categoryBudgets.map((b) => b.category).toSet();
+    final unbudgetedSpending = widget.categorySpending.entries
+        .where((e) => !budgetedCats.contains(e.key) && e.value > 0)
+        .toList();
+    final hasCats =
+        widget.categoryBudgets.isNotEmpty || unbudgetedSpending.isNotEmpty;
 
     return Container(
       decoration: BoxDecoration(
@@ -305,7 +335,23 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                   children: [
                     for (int i = 0; i < widget.categoryBudgets.length; i++) ...[
                       _buildCompactCategoryRow(widget.categoryBudgets[i]),
-                      if (i < widget.categoryBudgets.length - 1)
+                      if (i < widget.categoryBudgets.length - 1 ||
+                          unbudgetedSpending.isNotEmpty)
+                        const Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: Color(0xFFF1F5F9),
+                          indent: 52,
+                          endIndent: 16,
+                        ),
+                    ],
+                    // Unbudgeted categories that have spending
+                    for (int i = 0; i < unbudgetedSpending.length; i++) ...[
+                      _buildUnbudgetedCategoryRow(
+                        unbudgetedSpending[i].key,
+                        unbudgetedSpending[i].value,
+                      ),
+                      if (i < unbudgetedSpending.length - 1)
                         const Divider(
                           height: 1,
                           thickness: 1,
@@ -436,7 +482,8 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
       final pct = tb.budgetAmount > 0
           ? (spent / tb.budgetAmount).clamp(0.0, 1.0)
           : 0.0;
-      final segColor = isOver ? Colors.red[400]! : tb.category.color;
+      final tbDisp = _budgetDisplay(tb);
+      final segColor = isOver ? Colors.red[400]! : tbDisp.color;
 
       tip = Container(
         margin: const EdgeInsets.only(top: 8),
@@ -464,12 +511,12 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                     color: segColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(7),
                   ),
-                  child: Icon(tb.category.icon, color: segColor, size: 14),
+                  child: Icon(tbDisp.icon, color: segColor, size: 14),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    tb.category.displayName,
+                    tbDisp.name,
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -603,6 +650,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
           children: widget.categoryBudgets.map((b) {
             final spent = widget.categorySpending[b.category] ?? 0.0;
             final isOver = spent > b.budgetAmount;
+            final bDisp = _budgetDisplay(b);
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -610,13 +658,13 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: isOver ? Colors.red[400] : b.category.color,
+                    color: isOver ? Colors.red[400] : bDisp.color,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  b.category.displayName,
+                  bDisp.name,
                   style: TextStyle(
                     fontSize: 10,
                     color: Colors.white.withValues(alpha: 0.85),
@@ -665,7 +713,8 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
         : 0.0;
     final isOver = spent > budget.budgetAmount;
     final remaining = budget.budgetAmount - spent;
-    final barColor = isOver ? Colors.red[400]! : budget.category.color;
+    final bDisp = _budgetDisplay(budget);
+    final barColor = isOver ? Colors.red[400]! : bDisp.color;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -678,7 +727,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
               color: barColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(budget.category.icon, color: barColor, size: 16),
+            child: Icon(bDisp.icon, color: barColor, size: 16),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -690,7 +739,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                   children: [
                     Expanded(
                       child: Text(
-                        budget.category.displayName,
+                        bDisp.name,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -778,6 +827,81 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════
+  //  Unbudgeted category row (spending without budget)
+  // ══════════════════════════════════════════════
+  Widget _buildUnbudgetedCategoryRow(ExpenseCategory category, double spent) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: category.color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(category.icon, color: category.color, size: 16),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        category.displayName,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(
+                      '৳${spent.toStringAsFixed(0)} spent',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: category.color,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'No budget set',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.orange[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            icon: Icon(
+              Icons.add_circle_outline_rounded,
+              color: category.color,
+              size: 20,
+            ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            onPressed: widget.onSetBudget,
+            tooltip: 'Set budget',
           ),
         ],
       ),

@@ -21,6 +21,7 @@ import '../features/expenses/presentation/pages/expense_session_detail_page.dart
 import '../features/expenses/presentation/pages/set_budget_page.dart';
 import '../features/expenses/domain/entities/monthly_budget.dart';
 import '../features/expenses/domain/entities/category_budget.dart';
+import '../features/expenses/domain/entities/expense_category.dart';
 import '../features/expenses/domain/entities/expense_session.dart';
 import '../features/prayer_times/presentation/pages/prayer_times_page.dart';
 import '../features/study/presentation/pages/study_timer_page.dart';
@@ -183,10 +184,14 @@ class AppRouter {
                 (extra['existingCategoryBudgets'] as List<dynamic>? ?? [])
                     .map((e) => e as CategoryBudget)
                     .toList();
+            final categorySpending =
+                (extra['categorySpending'] as Map<ExpenseCategory, double>?) ??
+                {};
             return SetBudgetPage(
               selectedMonth: selectedMonth,
               existingBudget: existingBudget,
               existingCategoryBudgets: existingCategoryBudgets,
+              categorySpending: categorySpending,
             );
           }
           final selectedMonth = extra as DateTime;

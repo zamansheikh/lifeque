@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../data/services/custom_category_service.dart';
+import '../../domain/entities/custom_category.dart';
 import '../../domain/entities/expense_item.dart';
 import '../../domain/entities/expense_session.dart';
 import '../../domain/entities/expense_category.dart';
 import '../bloc/expense_bloc.dart';
+import '../../../../injection_container.dart' as di;
 
 class AddExpenseSessionPage extends StatefulWidget {
   final ExpenseSession? session; // For editing existing session
@@ -59,6 +62,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
         itemForm.amountController.text = item.amount.toString();
         itemForm.isPurchased = item.isPurchased;
         itemForm.category = item.category;
+        itemForm.customCategoryName = item.customCategoryName;
         _items.add(itemForm);
       }
       // Expand the last one for easy editing
@@ -149,6 +153,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               isPurchased: itemForm.isPurchased,
               purchasedAt: itemForm.isPurchased ? DateTime.now() : null,
               category: itemForm.category,
+              customCategoryName: itemForm.customCategoryName,
             ),
           )
           .toList();
@@ -1189,60 +1194,8 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
 
           const SizedBox(height: 10),
 
-          // Category Dropdown
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-            ),
-            child: DropdownButtonFormField<ExpenseCategory>(
-              initialValue: item.category,
-              decoration: InputDecoration(
-                labelText: 'Category',
-                prefixIcon: Container(
-                  margin: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: item.category.color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Icon(
-                    item.category.icon,
-                    color: item.category.color,
-                    size: 16,
-                  ),
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-              items: ExpenseCategory.values
-                  .map(
-                    (category) => DropdownMenuItem(
-                      value: category,
-                      child: Row(
-                        children: [
-                          Icon(category.icon, color: category.color, size: 17),
-                          const SizedBox(width: 8),
-                          Text(
-                            category.displayName,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (ExpenseCategory? newValue) {
-                if (newValue != null) setState(() => item.category = newValue);
-              },
-            ),
-          ),
+          // Category Picker
+          _buildCategoryPicker(item),
 
           const SizedBox(height: 10),
 
@@ -1305,6 +1258,426 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Builds a tappable category picker that opens a bottom sheet
+  /// with built-in categories + custom categories + create new option.
+  Widget _buildCategoryPicker(ExpenseItemForm item) {
+    final customCats = di.sl<CustomCategoryService>().getAll();
+    final isCustom = item.customCategoryName != null;
+    final displayColor = isCustom
+        ? (customCats
+                  .where((c) => c.name == item.customCategoryName)
+                  .firstOrNull
+                  ?.color ??
+              const Color(0xFF7C3AED))
+        : item.category.color;
+    final displayIcon = isCustom
+        ? (customCats
+                  .where((c) => c.name == item.customCategoryName)
+                  .firstOrNull
+                  ?.icon ??
+              Icons.label_rounded)
+        : item.category.icon;
+    final displayName = item.effectiveDisplayName;
+
+    return GestureDetector(
+      onTap: () => _showCategoryPickerSheet(item),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: displayColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(7),
+              ),
+              child: Icon(displayIcon, color: displayColor, size: 16),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Category',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                  ),
+                  Text(
+                    displayName,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: displayColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_drop_down_rounded,
+              color: Colors.grey[400],
+              size: 24,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCategoryPickerSheet(ExpenseItemForm item) {
+    final customCats = di.sl<CustomCategoryService>().getAll();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(ctx).size.height * 0.65,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Row(
+                children: [
+                  const Text(
+                    'Select Category',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showCreateCustomCategoryDialog(item);
+                    },
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                    label: const Text(
+                      'New',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Flexible(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                shrinkWrap: true,
+                children: [
+                  // Built-in categories
+                  ...ExpenseCategory.values.map((cat) {
+                    final isSelected =
+                        item.category == cat && item.customCategoryName == null;
+                    return ListTile(
+                      dense: true,
+                      leading: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: cat.color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(cat.icon, color: cat.color, size: 18),
+                      ),
+                      title: Text(
+                        cat.displayName,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? cat.color
+                              : const Color(0xFF1E293B),
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? Icon(
+                              Icons.check_circle_rounded,
+                              color: cat.color,
+                              size: 20,
+                            )
+                          : null,
+                      onTap: () {
+                        setState(() {
+                          item.category = cat;
+                          item.customCategoryName = null;
+                        });
+                        Navigator.pop(ctx);
+                      },
+                    );
+                  }),
+
+                  // Custom categories
+                  if (customCats.isNotEmpty) ...[
+                    const Divider(height: 1),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      child: Text(
+                        'CUSTOM',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.grey[500],
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ),
+                    ...customCats.map((cc) {
+                      final isSelected = item.customCategoryName == cc.name;
+                      return ListTile(
+                        dense: true,
+                        leading: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: cc.color.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(cc.icon, color: cc.color, size: 18),
+                        ),
+                        title: Text(
+                          cc.displayName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: isSelected
+                                ? cc.color
+                                : const Color(0xFF1E293B),
+                          ),
+                        ),
+                        trailing: isSelected
+                            ? Icon(
+                                Icons.check_circle_rounded,
+                                color: cc.color,
+                                size: 20,
+                              )
+                            : null,
+                        onTap: () {
+                          setState(() {
+                            item.category = ExpenseCategory.other;
+                            item.customCategoryName = cc.name;
+                          });
+                          Navigator.pop(ctx);
+                        },
+                      );
+                    }),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCreateCustomCategoryDialog(ExpenseItemForm item) {
+    final nameCtrl = TextEditingController();
+    int selectedIconIndex = 0;
+    int selectedColorIndex = 0;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final icon = CustomCategory.availableIcons[selectedIconIndex];
+          final color = CustomCategory.availableColors[selectedColorIndex];
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text(
+              'Create Custom Category',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Preview
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(icon, color: color, size: 28),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Name
+                  TextField(
+                    controller: nameCtrl,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(
+                      labelText: 'Category Name',
+                      hintText: 'e.g. Rent, Gym, Pet',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      isDense: true,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Icons
+                  const Text(
+                    'Icon',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: List.generate(
+                      CustomCategory.availableIcons.length,
+                      (i) => GestureDetector(
+                        onTap: () =>
+                            setDialogState(() => selectedIconIndex = i),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: selectedIconIndex == i
+                                ? color.withValues(alpha: 0.15)
+                                : Colors.grey.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                            border: selectedIconIndex == i
+                                ? Border.all(color: color, width: 2)
+                                : null,
+                          ),
+                          child: Icon(
+                            CustomCategory.availableIcons[i],
+                            size: 18,
+                            color: selectedIconIndex == i
+                                ? color
+                                : Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Colors
+                  const Text(
+                    'Color',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: List.generate(
+                      CustomCategory.availableColors.length,
+                      (i) => GestureDetector(
+                        onTap: () =>
+                            setDialogState(() => selectedColorIndex = i),
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: CustomCategory.availableColors[i],
+                            shape: BoxShape.circle,
+                            border: selectedColorIndex == i
+                                ? Border.all(color: Colors.white, width: 3)
+                                : null,
+                            boxShadow: selectedColorIndex == i
+                                ? [
+                                    BoxShadow(
+                                      color: CustomCategory.availableColors[i]
+                                          .withValues(alpha: 0.5),
+                                      blurRadius: 8,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: selectedColorIndex == i
+                              ? const Icon(
+                                  Icons.check_rounded,
+                                  size: 16,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  final name = nameCtrl.text.trim();
+                  if (name.isEmpty) return;
+                  final custom = CustomCategory(
+                    name: name,
+                    iconCodePoint: CustomCategory
+                        .availableIcons[selectedIconIndex]
+                        .codePoint,
+                    colorValue: CustomCategory
+                        .availableColors[selectedColorIndex]
+                        .value,
+                  );
+                  final added = await di.sl<CustomCategoryService>().add(
+                    custom,
+                  );
+                  if (!added && ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(
+                        content: Text('Category name already exists'),
+                      ),
+                    );
+                    return;
+                  }
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  setState(() {
+                    item.category = ExpenseCategory.other;
+                    item.customCategoryName = name;
+                  });
+                },
+                child: const Text('Create'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -1486,7 +1859,14 @@ class ExpenseItemForm {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   bool isPurchased = false;
-  ExpenseCategory category = ExpenseCategory.uncategorized;
+  ExpenseCategory category = ExpenseCategory.other;
+  String? customCategoryName;
+
+  /// Display name for the effective category.
+  String get effectiveDisplayName {
+    if (customCategoryName != null) return customCategoryName!;
+    return category.displayName;
+  }
 
   void dispose() {
     nameController.dispose();
