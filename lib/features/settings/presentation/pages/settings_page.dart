@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/services/in_app_update_service.dart';
 import '../../../../core/services/navigation_preferences_service.dart';
 import '../../../../injection_container.dart' as di;
 
@@ -16,7 +17,11 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late NavigationPreferencesService _svc;
   late List<NavItem> _items;
-  bool _saved = false;
+
+  static const _privacyPolicyUrl =
+      'https://zamansheikh.github.io/lifeque/privacy-policy.html';
+  static const _termsUrl =
+      'https://zamansheikh.github.io/lifeque/privacy-policy.html';
 
   @override
   void initState() {
@@ -25,19 +30,333 @@ class _SettingsPageState extends State<SettingsPage> {
     _items = _svc.getOrderedItems();
   }
 
-  Future<void> _save() async {
-    await _svc.saveOrder(_items);
-    if (!mounted) return;
-    setState(() => _saved = true);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Settings saved'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  // ── Navigation Order Bottom Sheet ──────────────────────────────
+  void _showNavigationOrderSheet() {
+    // Work on a copy so we can discard on cancel
+    var tempItems = List<NavItem>.from(_items);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final colorScheme = Theme.of(ctx).colorScheme;
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Container(
+              height: MediaQuery.of(ctx).size.height * 0.72,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  // Handle bar
+                  Container(
+                    margin: const EdgeInsets.only(top: 12),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.swap_vert_rounded,
+                            color: colorScheme.primary,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Navigation Order',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                'Drag to reorder. First item = home page.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Home chip
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: colorScheme.primary.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.home_rounded,
+                            size: 16,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Home page:  ${tempItems.first.label}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Reorderable list
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: ReorderableListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: tempItems.length,
+                        onReorder: (oldIndex, newIndex) {
+                          setSheetState(() {
+                            if (newIndex > oldIndex) newIndex--;
+                            final item = tempItems.removeAt(oldIndex);
+                            tempItems.insert(newIndex, item);
+                          });
+                        },
+                        proxyDecorator: (child, index, animation) => Material(
+                          elevation: 4,
+                          borderRadius: BorderRadius.circular(12),
+                          color: colorScheme.primary.withValues(alpha: 0.05),
+                          child: child,
+                        ),
+                        itemBuilder: (context, index) {
+                          final item = tempItems[index];
+                          final isFirst = index == 0;
+                          return _OrderTile(
+                            key: ValueKey(item.route),
+                            item: item,
+                            isFirst: isFirst,
+                            colorScheme: colorScheme,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  // Action buttons
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              side: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            child: const Text('Cancel'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: FilledButton.icon(
+                            onPressed: () async {
+                              // Apply order
+                              setState(() => _items = tempItems);
+                              await _svc.saveOrder(_items);
+                              if (!context.mounted) return;
+                              Navigator.pop(ctx);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('Navigation order saved'),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.check_rounded, size: 18),
+                            label: const Text('Save Order'),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ── Check for Updates ──────────────────────────────────────────
+  Future<void> _checkForUpdates() async {
+    try {
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Checking for updates...',
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      final updateInfo = await InAppUpdateService.checkForUpdates();
+      if (!mounted) return;
+      Navigator.of(context).pop(); // close loading
+
+      if (updateInfo == null) {
+        _showUpToDateDialog();
+      } else {
+        await InAppUpdateService.showUpdateDialog(context, updateInfo);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      _showUpdateErrorDialog();
+    }
+  }
+
+  void _showUpToDateDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.green,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text("You're Up to Date!"),
+          ],
+        ),
+        content: Text(
+          'You have the latest version of LifeQue.',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey.shade700,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
 
+  void _showUpdateErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                color: Colors.red,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Update Check Failed'),
+          ],
+        ),
+        content: Text(
+          'Unable to check for updates. Please ensure you have an active internet connection and try again.',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey.shade700,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── About Dialog ───────────────────────────────────────────────
   Future<void> _showAboutSheet(BuildContext ctx) async {
     final packageInfo = await PackageInfo.fromPlatform();
     if (!mounted) return;
@@ -224,6 +543,15 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  // ── URL Launcher Helper ────────────────────────────────────────
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  // ── Build ──────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -242,246 +570,218 @@ class _SettingsPageState extends State<SettingsPage> {
           'Settings',
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
         ),
-        actions: [
-          TextButton.icon(
-            onPressed: _save,
-            icon: const Icon(Icons.check_rounded, size: 18),
-            label: const Text('Save'),
-            style: TextButton.styleFrom(
-              foregroundColor: colorScheme.primary,
-              textStyle: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
-          // ── Nav Order ────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Navigation Order',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.primary,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Drag to reorder. The first item becomes your home page.',
-                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ),
-          // Info chip showing current home
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: colorScheme.primary.withValues(alpha: 0.2),
-                  width: 1,
-                ),
+          // ── General section ─────────────────────────────────────
+          _SectionHeader(label: 'General', color: colorScheme.primary),
+          _SettingsGroup(
+            children: [
+              _SettingsTile(
+                icon: Icons.swap_vert_rounded,
+                iconColor: colorScheme.primary,
+                iconBgColor: colorScheme.primary.withValues(alpha: 0.1),
+                title: 'Navigation Order',
+                subtitle: 'Home: ${_items.first.label}',
+                onTap: _showNavigationOrderSheet,
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.home_rounded,
-                    size: 16,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Home page:  ${_items.first.label}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ],
+              _SettingsTile(
+                icon: Icons.play_lesson_rounded,
+                iconColor: Colors.purple.shade600,
+                iconBgColor: Colors.purple.withValues(alpha: 0.1),
+                title: 'View Onboarding',
+                subtitle: 'See the app introduction slides',
+                onTap: () => context.push('/onboarding'),
               ),
-            ),
-          ),
-          // Reorderable list
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: ReorderableListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _items.length,
-                onReorder: (oldIndex, newIndex) {
-                  setState(() {
-                    if (newIndex > oldIndex) newIndex--;
-                    final item = _items.removeAt(oldIndex);
-                    _items.insert(newIndex, item);
-                    _saved = false;
-                  });
-                },
-                proxyDecorator: (child, index, animation) => Material(
-                  elevation: 4,
-                  borderRadius: BorderRadius.circular(12),
-                  color: colorScheme.primary.withValues(alpha: 0.05),
-                  child: child,
-                ),
-                itemBuilder: (context, index) {
-                  final item = _items[index];
-                  final isFirst = index == 0;
-                  return _OrderTile(
-                    key: ValueKey(item.route),
-                    item: item,
-                    isFirst: isFirst,
-                    colorScheme: colorScheme,
-                  );
-                },
-              ),
-            ),
+            ],
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
 
-          // ── Other options ─────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Text(
-              'Other',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: colorScheme.primary,
-                letterSpacing: 0.5,
+          // ── App section ─────────────────────────────────────────
+          _SectionHeader(label: 'App', color: colorScheme.primary),
+          _SettingsGroup(
+            children: [
+              _SettingsTile(
+                icon: Icons.system_update_rounded,
+                iconColor: Colors.teal.shade600,
+                iconBgColor: Colors.teal.withValues(alpha: 0.1),
+                title: 'Check for Updates',
+                subtitle: 'See if a newer version is available',
+                onTap: _checkForUpdates,
               ),
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ListTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+              _SettingsTile(
+                icon: Icons.info_outline_rounded,
+                iconColor: colorScheme.primary,
+                iconBgColor: colorScheme.primary.withValues(alpha: 0.1),
+                title: 'About LifeQue',
+                subtitle: 'Version info, developer & links',
+                onTap: () => _showAboutSheet(context),
               ),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.purple.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.play_lesson_rounded,
-                  color: Colors.purple.shade600,
-                  size: 20,
-                ),
-              ),
-              title: const Text(
-                'View Onboarding Again',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-              ),
-              subtitle: const Text(
-                'See the app introduction slides',
-                style: TextStyle(fontSize: 13),
-              ),
-              trailing: Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.grey.shade400,
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/onboarding');
-              },
-            ),
+            ],
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 24),
 
-          // About tile
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ListTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+          // ── Legal section ───────────────────────────────────────
+          _SectionHeader(label: 'Legal', color: colorScheme.primary),
+          _SettingsGroup(
+            children: [
+              _SettingsTile(
+                icon: Icons.privacy_tip_outlined,
+                iconColor: Colors.indigo.shade600,
+                iconBgColor: Colors.indigo.withValues(alpha: 0.1),
+                title: 'Privacy Policy',
+                subtitle: 'How we handle your data',
+                onTap: () => _launchUrl(_privacyPolicyUrl),
+                isExternal: true,
               ),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.info_outline_rounded,
-                  color: colorScheme.primary,
-                  size: 20,
-                ),
+              _SettingsTile(
+                icon: Icons.description_outlined,
+                iconColor: Colors.orange.shade700,
+                iconBgColor: Colors.orange.withValues(alpha: 0.1),
+                title: 'Terms & Conditions',
+                subtitle: 'Usage terms of the app',
+                onTap: () => _launchUrl(_termsUrl),
+                isExternal: true,
               ),
-              title: const Text(
-                'About LifeQue',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-              ),
-              subtitle: const Text(
-                'Version info, developer & links',
-                style: TextStyle(fontSize: 13),
-              ),
-              trailing: Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.grey.shade400,
-              ),
-              onTap: () => _showAboutSheet(context),
-            ),
+            ],
           ),
 
           const SizedBox(height: 40),
+
+          // ── Footer ──────────────────────────────────────────────
+          Center(
+            child: Text(
+              'Made with ❤️ by Zaman Sheikh',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade400,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// Reusable settings widgets
+// ═════════════════════════════════════════════════════════════════════
+
+class _SectionHeader extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _SectionHeader({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: color,
+          letterSpacing: 1.0,
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsGroup extends StatelessWidget {
+  final List<_SettingsTile> children;
+  const _SettingsGroup({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          children: List.generate(children.length, (i) {
+            return Column(
+              children: [
+                children[i],
+                if (i < children.length - 1)
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    indent: 60,
+                    color: Colors.grey.shade100,
+                  ),
+              ],
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBgColor;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool isExternal;
+
+  const _SettingsTile({
+    required this.icon,
+    required this.iconColor,
+    required this.iconBgColor,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.isExternal = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: iconBgColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: iconColor, size: 20),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+      ),
+      trailing: Icon(
+        isExternal ? Icons.open_in_new_rounded : Icons.chevron_right_rounded,
+        color: Colors.grey.shade400,
+        size: 20,
+      ),
+      onTap: onTap,
     );
   }
 }
