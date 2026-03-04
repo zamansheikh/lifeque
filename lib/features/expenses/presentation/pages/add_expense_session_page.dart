@@ -22,6 +22,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
   final _notesController = TextEditingController();
   final List<ExpenseItemForm> _items = [];
   DateTime _selectedDate = DateTime.now();
+  int? _expandedIndex; // which item is currently expanded
   bool get _isEditing => widget.session != null;
 
   late AnimationController _animationController;
@@ -51,7 +52,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
       _notesController.text = widget.session!.notes ?? '';
       _selectedDate = widget.session!.date;
 
-      // Load existing items
+      // Load existing items — all collapsed in edit mode
       for (final item in widget.session!.items) {
         final itemForm = ExpenseItemForm();
         itemForm.nameController.text = item.name;
@@ -60,6 +61,8 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
         itemForm.category = item.category;
         _items.add(itemForm);
       }
+      // Expand the last one for easy editing
+      if (_items.isNotEmpty) _expandedIndex = _items.length - 1;
     }
 
     _animationController.forward();
@@ -79,6 +82,19 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
   void _addItem() {
     setState(() {
       _items.add(ExpenseItemForm());
+      _expandedIndex = _items.length - 1; // expand the new item
+    });
+  }
+
+  void _confirmItem(int index) {
+    // Validate the item inline, then collapse it
+    final item = _items[index];
+    if (item.nameController.text.trim().isEmpty ||
+        double.tryParse(item.amountController.text) == null) {
+      return; // don't collapse if incomplete
+    }
+    setState(() {
+      _expandedIndex = null;
     });
   }
 
@@ -560,13 +576,17 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                           ),
                         ] else ...[
                           ...List.generate(_items.length, (index) {
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              child: _buildEnhancedItemForm(index),
+                            final isExpanded = _expandedIndex == index;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: isExpanded
+                                  ? _buildExpandedItemForm(index)
+                                  : _buildCollapsedItemRow(index),
                             );
                           }),
-                          // Add Item button placed after all items
-                          const SizedBox(height: 8),
+                          // Add Another Item button
+                          const SizedBox(height: 6),
                           Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
@@ -576,7 +596,13 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: ElevatedButton.icon(
-                              onPressed: _addItem,
+                              onPressed: () {
+                                // Confirm current expanded item before adding new
+                                if (_expandedIndex != null) {
+                                  _confirmItem(_expandedIndex!);
+                                }
+                                _addItem();
+                              },
                               icon: const Icon(Icons.add_rounded, size: 18),
                               label: const Text('Add Another Item'),
                               style: ElevatedButton.styleFrom(
@@ -777,24 +803,146 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
     );
   }
 
-  Widget _buildEnhancedItemForm(int index) {
+  // ── Collapsed compact row ────────────────────────────────────────────────
+  Widget _buildCollapsedItemRow(int index) {
     final item = _items[index];
+    final hasName = item.nameController.text.trim().isNotEmpty;
+    final amount = double.tryParse(item.amountController.text);
+
+    return GestureDetector(
+      onTap: () => setState(() => _expandedIndex = index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: item.isPurchased
+                ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                : Colors.grey.withValues(alpha: 0.2),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Category icon bubble
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: item.category.color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                item.category.icon,
+                color: item.category.color,
+                size: 17,
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            // Name + category label
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hasName ? item.nameController.text.trim() : 'Untitled item',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: hasName
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFF94A3B8),
+                      decoration: item.isPurchased
+                          ? TextDecoration.lineThrough
+                          : null,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    item.category.displayName,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: item.category.color,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Amount
+            Text(
+              amount != null ? '৳${amount.toStringAsFixed(0)}' : '৳—',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: amount != null
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFF94A3B8),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Purchased check
+            if (item.isPurchased)
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF10B981),
+                size: 18,
+              ),
+
+            // Expand arrow
+            const Icon(
+              Icons.expand_more_rounded,
+              color: Color(0xFF94A3B8),
+              size: 18,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Expanded item form with category suggestions ─────────────────────────
+  Widget _buildExpandedItemForm(int index) {
+    final item = _items[index];
+    final suggested = _suggestCategoriesForName(item.nameController.text);
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Item header row
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                  horizontal: 10,
+                  vertical: 5,
                 ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
@@ -812,6 +960,25 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                 ),
               ),
               const Spacer(),
+              // Confirm / collapse button
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: IconButton(
+                  onPressed: () => _confirmItem(index),
+                  icon: const Icon(
+                    Icons.check_rounded,
+                    color: Color(0xFF10B981),
+                    size: 18,
+                  ),
+                  tooltip: 'Confirm item',
+                  constraints: const BoxConstraints(),
+                  padding: const EdgeInsets.all(8),
+                ),
+              ),
+              const SizedBox(width: 6),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.red[50],
@@ -822,7 +989,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                   icon: Icon(
                     Icons.delete_rounded,
                     color: Colors.red[600],
-                    size: 20,
+                    size: 18,
                   ),
                   constraints: const BoxConstraints(),
                   padding: const EdgeInsets.all(8),
@@ -830,8 +997,11 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+
+          // Name + Amount row
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 flex: 3,
@@ -849,9 +1019,10 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
+                    onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       labelText: 'Item Name',
-                      hintText: 'e.g., Rice, Bread',
+                      hintText: 'e.g., Rice, Bus fare',
                       hintStyle: TextStyle(
                         color: Colors.grey[400],
                         fontWeight: FontWeight.w400,
@@ -883,7 +1054,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 flex: 2,
                 child: Container(
@@ -901,9 +1072,10 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
+                    onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       labelText: 'Amount',
-                      hintText: '0.00',
+                      hintText: '0',
                       hintStyle: TextStyle(
                         color: Colors.grey[400],
                         fontWeight: FontWeight.w400,
@@ -932,7 +1104,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                       }
                       if (double.tryParse(value) == null ||
                           double.parse(value) <= 0) {
-                        return 'Invalid amount';
+                        return 'Invalid';
                       }
                       return null;
                     },
@@ -941,7 +1113,94 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               ),
             ],
           ),
-          const SizedBox(height: 16),
+
+          // ── Category Suggestion Chips ──────────────────────────────────
+          if (suggested.isNotEmpty &&
+              item.nameController.text.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(
+                  Icons.auto_awesome_rounded,
+                  size: 13,
+                  color: Color(0xFFF59E0B),
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  'Suggested:',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: suggested.map((cat) {
+                        final isSelected = item.category == cat;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: GestureDetector(
+                            onTap: () => setState(() => item.category = cat),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? cat.color.withValues(alpha: 0.15)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? cat.color
+                                      : cat.color.withValues(alpha: 0.4),
+                                  width: isSelected ? 1.5 : 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(cat.icon, size: 12, color: cat.color),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    cat.displayName,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: cat.color,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                    ),
+                                  ),
+                                  if (isSelected) ...[
+                                    const SizedBox(width: 3),
+                                    Icon(
+                                      Icons.check_rounded,
+                                      size: 11,
+                                      color: cat.color,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          const SizedBox(height: 10),
+
           // Category Dropdown
           Container(
             decoration: BoxDecoration(
@@ -977,7 +1236,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                       value: category,
                       child: Row(
                         children: [
-                          Icon(category.icon, color: category.color, size: 18),
+                          Icon(category.icon, color: category.color, size: 17),
                           const SizedBox(width: 8),
                           Text(
                             category.displayName,
@@ -992,77 +1251,221 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                   )
                   .toList(),
               onChanged: (ExpenseCategory? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    item.category = newValue;
-                  });
-                }
+                if (newValue != null) setState(() => item.category = newValue);
               },
             ),
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: item.isPurchased
-                  ? const Color(0xFF10B981).withValues(alpha: 0.1)
-                  : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
+
+          const SizedBox(height: 10),
+
+          // Purchased toggle
+          GestureDetector(
+            onTap: () => setState(() => item.isPurchased = !item.isPurchased),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
                 color: item.isPurchased
-                    ? const Color(0xFF10B981).withValues(alpha: 0.3)
-                    : Colors.grey.withValues(alpha: 0.2),
+                    ? const Color(0xFF10B981).withValues(alpha: 0.08)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: item.isPurchased
+                      ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                      : Colors.grey.withValues(alpha: 0.2),
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: item.isPurchased
-                        ? const Color(0xFF10B981)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
+              child: Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
                       color: item.isPurchased
                           ? const Color(0xFF10B981)
-                          : Colors.grey[400]!,
-                      width: 2,
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: item.isPurchased
+                            ? const Color(0xFF10B981)
+                            : Colors.grey[400]!,
+                        width: 2,
+                      ),
                     ),
+                    child: item.isPurchased
+                        ? const Icon(
+                            Icons.check_rounded,
+                            size: 14,
+                            color: Colors.white,
+                          )
+                        : null,
                   ),
-                  child: item.isPurchased
-                      ? const Icon(
-                          Icons.check_rounded,
-                          size: 16,
-                          color: Colors.white,
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      item.isPurchased = !item.isPurchased;
-                    });
-                  },
-                  child: Text(
+                  const SizedBox(width: 10),
+                  Text(
                     'Already purchased',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: item.isPurchased
                           ? const Color(0xFF10B981)
                           : const Color(0xFF64748B),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// Returns up to 3 suggested categories based on the item name keywords.
+  List<ExpenseCategory> _suggestCategoriesForName(String name) {
+    final lower = name.toLowerCase();
+    if (lower.isEmpty) return [];
+    final scores = <ExpenseCategory, int>{};
+
+    void score(ExpenseCategory cat, List<String> keywords) {
+      for (final kw in keywords) {
+        if (lower.contains(kw)) scores[cat] = (scores[cat] ?? 0) + 1;
+      }
+    }
+
+    score(ExpenseCategory.groceries, [
+      'rice',
+      'bread',
+      'flour',
+      'oil',
+      'milk',
+      'egg',
+      'fish',
+      'meat',
+      'chicken',
+      'vegetable',
+      'salt',
+      'sugar',
+      'lentil',
+      'dal',
+      'potato',
+      'onion',
+      'garlic',
+      'ginger',
+      'spice',
+      'maida',
+      'atta',
+      'mustard',
+    ]);
+    score(ExpenseCategory.food, [
+      'restaurant',
+      'food',
+      'dinner',
+      'lunch',
+      'breakfast',
+      'coffee',
+      'tea',
+      'snack',
+      'burger',
+      'pizza',
+      'biryani',
+      'cake',
+      'juice',
+      'ice cream',
+    ]);
+    score(ExpenseCategory.transport, [
+      'bus',
+      'rickshaw',
+      'cng',
+      'taxi',
+      'uber',
+      'fare',
+      'fuel',
+      'petrol',
+      'train',
+      'auto',
+      'travel',
+      'ferry',
+      'bike',
+    ]);
+    score(ExpenseCategory.utilities, [
+      'electricity',
+      'water',
+      'gas',
+      'internet',
+      'wifi',
+      'phone',
+      'mobile',
+      'bill',
+      'recharge',
+      'sim',
+      'data',
+    ]);
+    score(ExpenseCategory.entertainment, [
+      'movie',
+      'game',
+      'book',
+      'ticket',
+      'concert',
+      'netflix',
+      'youtube',
+      'cinema',
+      'subscription',
+      'club',
+      'show',
+    ]);
+    score(ExpenseCategory.healthcare, [
+      'medicine',
+      'doctor',
+      'clinic',
+      'hospital',
+      'health',
+      'pharmacy',
+      'drug',
+      'capsule',
+      'tablet',
+      'syrup',
+      'test',
+      'checkup',
+    ]);
+    score(ExpenseCategory.education, [
+      'tuition',
+      'school',
+      'college',
+      'university',
+      'course',
+      'pen',
+      'notebook',
+      'pencil',
+      'fees',
+      'class',
+      'stationary',
+    ]);
+    score(ExpenseCategory.shopping, [
+      'shirt',
+      'pants',
+      'shoes',
+      'dress',
+      'clothes',
+      'clothing',
+      'fashion',
+      'bag',
+      'watch',
+      'accessories',
+    ]);
+    score(ExpenseCategory.bills, [
+      'rent',
+      'emi',
+      'loan',
+      'mortgage',
+      'insurance',
+      'tax',
+    ]);
+
+    final sorted = scores.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return sorted.where((e) => e.value > 0).take(3).map((e) => e.key).toList();
   }
 
   String _formatDate(DateTime date) {

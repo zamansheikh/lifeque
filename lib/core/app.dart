@@ -159,17 +159,20 @@ class AppRouter {
         path: '/expenses/budget',
         name: 'set-budget',
         builder: (context, state) {
-          // Expecting a map: { 'selectedMonth': DateTime, 'existingBudget': MonthlyBudget? }
           final extra = state.extra;
           if (extra is Map<String, Object?>) {
             final selectedMonth = extra['selectedMonth'] as DateTime;
             final existingBudget = extra['existingBudget'] as MonthlyBudget?;
+            final existingCategoryBudgets =
+                (extra['existingCategoryBudgets'] as List<dynamic>? ?? [])
+                    .map((e) => e as CategoryBudget)
+                    .toList();
             return SetBudgetPage(
               selectedMonth: selectedMonth,
               existingBudget: existingBudget,
+              existingCategoryBudgets: existingCategoryBudgets,
             );
           }
-          // Fallback: keep backward compatibility if only DateTime was passed
           final selectedMonth = extra as DateTime;
           return SetBudgetPage(selectedMonth: selectedMonth);
         },

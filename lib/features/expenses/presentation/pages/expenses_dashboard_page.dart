@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../domain/entities/category_budget.dart';
 import '../../domain/entities/expense_session.dart';
 import '../bloc/expense_bloc.dart';
 import '../widgets/expense_session_card.dart';
@@ -98,25 +99,15 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
   void _setBudget() {
     final state = context.read<ExpenseBloc>().state;
     final existingBudget = state is ExpenseLoaded ? state.currentBudget : null;
+    final existingCategoryBudgets = state is ExpenseLoaded
+        ? state.categoryBudgets
+        : <CategoryBudget>[];
     context.push(
       '/expenses/budget',
       extra: {
         'selectedMonth': _selectedMonth,
         'existingBudget': existingBudget,
-      },
-    );
-  }
-
-  void _setCategoryBudgets() {
-    final state = context.read<ExpenseBloc>().state;
-    final existingBudgets = state is ExpenseLoaded
-        ? state.categoryBudgets
-        : <dynamic>[];
-    context.push(
-      '/expenses/category-budgets',
-      extra: {
-        'selectedMonth': _selectedMonth,
-        'existingBudgets': existingBudgets,
+        'existingCategoryBudgets': existingCategoryBudgets,
       },
     );
   }
@@ -376,7 +367,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                                     ),
                                   ),
                                   IconButton(
-                                    onPressed: _setCategoryBudgets,
+                                    onPressed: _setBudget,
                                     icon: const Icon(
                                       Icons.settings_rounded,
                                       color: Color(0xFF3B82F6),
@@ -413,7 +404,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                                       ),
                                       const SizedBox(height: 8),
                                       ElevatedButton.icon(
-                                        onPressed: _setCategoryBudgets,
+                                        onPressed: _setBudget,
                                         icon: const Icon(Icons.add_rounded),
                                         label: const Text(
                                           'Set Category Budgets',
@@ -443,7 +434,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                                     child: CategoryBudgetCard(
                                       budget: budget,
                                       actualSpent: spent,
-                                      onEdit: _setCategoryBudgets,
+                                      onEdit: _setBudget,
                                       onDelete: () {
                                         context.read<ExpenseBloc>().add(
                                           DeleteCategoryBudgetEvent(budget.id),
