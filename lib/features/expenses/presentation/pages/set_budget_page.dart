@@ -1221,9 +1221,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                   if (name.isEmpty) return;
                   final custom = CustomCategory(
                     name: name,
-                    iconCodePoint: CustomCategory
-                        .availableIcons[selectedIconIndex]
-                        .codePoint,
+                    iconIndex: selectedIconIndex,
                     colorValue: CustomCategory
                         .availableColors[selectedColorIndex]
                         .value,

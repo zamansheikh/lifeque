@@ -3,16 +3,21 @@ import 'package:flutter/material.dart';
 /// Represents a user-created custom expense category.
 class CustomCategory {
   final String name;
-  final int iconCodePoint;
+
+  /// Index into [availableIcons]. Using an index (not a codePoint) keeps the
+  /// reference to a compile-time constant so Flutter's icon tree-shaker works.
+  final int iconIndex;
   final int colorValue;
 
   const CustomCategory({
     required this.name,
-    this.iconCodePoint = 0xe25a, // Icons.label_rounded
+    this.iconIndex = 0, // Icons.label_rounded
     this.colorValue = 0xFF7C3AED, // Purple default
   });
 
-  IconData get icon => IconData(iconCodePoint, fontFamily: 'MaterialIcons');
+  /// Returns the corresponding constant [IconData] from [availableIcons].
+  IconData get icon =>
+      availableIcons[iconIndex.clamp(0, availableIcons.length - 1)];
   Color get color => Color(colorValue);
   String get displayName => name;
 
@@ -21,14 +26,23 @@ class CustomCategory {
 
   Map<String, dynamic> toJson() => {
     'name': name,
-    'iconCodePoint': iconCodePoint,
+    'iconIndex': iconIndex,
     'colorValue': colorValue,
   };
 
   factory CustomCategory.fromJson(Map<String, dynamic> json) {
+    // Determine icon index, with backward-compat for old data that stored iconCodePoint.
+    int resolvedIndex = 0;
+    if (json['iconIndex'] != null) {
+      resolvedIndex = json['iconIndex'] as int;
+    } else if (json['iconCodePoint'] != null) {
+      final cp = json['iconCodePoint'] as int;
+      final found = availableIcons.indexWhere((ic) => ic.codePoint == cp);
+      resolvedIndex = found >= 0 ? found : 0;
+    }
     return CustomCategory(
       name: json['name'] as String,
-      iconCodePoint: json['iconCodePoint'] as int? ?? 0xe25a,
+      iconIndex: resolvedIndex,
       colorValue: json['colorValue'] as int? ?? 0xFF7C3AED,
     );
   }
