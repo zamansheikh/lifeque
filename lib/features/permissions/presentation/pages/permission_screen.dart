@@ -1,15 +1,75 @@
-import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:io';
 import 'dart:math' as math;
-import '../widgets/permission_card.dart';
-import '../widgets/feature_card.dart';
-import '../widgets/progress_step.dart';
+
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+// ─── Brand palette (matches onboarding) ────────────────────────────────────
+const _kPrimary = Color(0xFF2563EB);
+const _kPrimaryLight = Color(0xFF60A5FA);
+const _kAccent = Color(0xFF06B6D4);
+
+// ─── Step data ──────────────────────────────────────────────────────────────
+
+class _PermStep {
+  final String title;
+  final String subtitle;
+  final IconData heroIcon;
+  final Color heroColor;
+  final List<_Benefit> benefits;
+  final String ctaLabel;
+
+  const _PermStep({
+    required this.title,
+    required this.subtitle,
+    required this.heroIcon,
+    required this.heroColor,
+    required this.benefits,
+    required this.ctaLabel,
+  });
+}
+
+class _Benefit {
+  final IconData icon;
+  final String text;
+  const _Benefit(this.icon, this.text);
+}
+
+const _notificationStep = _PermStep(
+  title: 'Never Miss a\nReminder',
+  subtitle:
+      'LifeQue keeps you on track with timely alerts\nfor tasks, medicines, prayers & more.',
+  heroIcon: Icons.notifications_active_rounded,
+  heroColor: _kPrimary,
+  benefits: [
+    _Benefit(Icons.alarm_rounded, 'Task & deadline reminders'),
+    _Benefit(Icons.medication_rounded, 'Medicine schedules on time'),
+    _Benefit(Icons.mosque_rounded, 'Prayer time notifications'),
+    _Benefit(Icons.cake_rounded, 'Birthday & event alerts'),
+  ],
+  ctaLabel: 'Enable Notifications',
+);
+
+const _batteryStep = _PermStep(
+  title: 'Keep Reminders\nAlive',
+  subtitle:
+      'Android may stop background apps to save battery.\nAllow LifeQue to run so nothing slips through.',
+  heroIcon: Icons.battery_charging_full_rounded,
+  heroColor: Color(0xFF16A34A),
+  benefits: [
+    _Benefit(Icons.timer_off_rounded, 'Prevent missed reminders'),
+    _Benefit(Icons.sync_rounded, 'Syncs prayer times silently'),
+    _Benefit(Icons.bolt_rounded, 'Minimal battery impact'),
+    _Benefit(Icons.verified_rounded, 'Recommended by Android'),
+  ],
+  ctaLabel: 'Allow Background Activity',
+);
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 class PermissionScreen extends StatefulWidget {
   final VoidCallback onPermissionsGranted;
-
   const PermissionScreen({super.key, required this.onPermissionsGranted});
 
   @override
@@ -18,160 +78,156 @@ class PermissionScreen extends StatefulWidget {
 
 class _PermissionScreenState extends State<PermissionScreen>
     with TickerProviderStateMixin {
-  bool _notificationPermission = false;
-  bool _batteryOptimization = false;
-  bool _isLoading = false;
-  String _batteryStatus = 'Unknown';
+  final PageController _pageController = PageController();
+  int _page = 0;
+  bool _notificationGranted = false;
+  bool _batteryGranted = false;
+  bool _loading = true;
+  bool _needsBattery = true;
 
-  // Overlay tutorial state variables
-  bool _showOverlay = false;
-  bool _hasShownOverlay = false;
-  bool _hasShownBatteryOverlay = false;
-  String _currentOverlayType = ''; // 'notification' or 'battery'
-  late AnimationController _overlayController;
-  late Animation<double> _overlayAnimation;
-  final GlobalKey _notificationCardKey = GlobalKey();
-  final GlobalKey _batteryCardKey = GlobalKey();
+  late final AnimationController _bgController;
+  late final AnimationController _heroController;
 
   @override
   void initState() {
     super.initState();
-
-    // Initialize animation controller for overlay
-    _overlayController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+    _bgController = AnimationController(
       vsync: this,
-    );
-    _overlayAnimation = CurvedAnimation(
-      parent: _overlayController,
+      duration: const Duration(seconds: 20),
+    )..repeat();
+    _heroController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..forward();
+    _init();
+  }
+
+  Future<void> _init() async {
+    final notif = await Permission.notification.status;
+    _notificationGranted = notif.isGranted;
+
+    if (Platform.isAndroid) {
+      try {
+        final info = await DeviceInfoPlugin().androidInfo;
+        if (info.version.sdkInt >= 23) {
+          final bat = await Permission.ignoreBatteryOptimizations.status;
+          _batteryGranted = bat.isGranted;
+        } else {
+          _batteryGranted = true;
+          _needsBattery = false;
+        }
+      } catch (_) {
+        _batteryGranted = false;
+      }
+    } else {
+      _batteryGranted = true;
+      _needsBattery = false;
+    }
+
+    setState(() => _loading = false);
+
+    if (_allGranted) {
+      widget.onPermissionsGranted();
+      return;
+    }
+
+    // Skip to battery step if notification already granted
+    if (_notificationGranted && _needsBattery && !_batteryGranted) {
+      _goToPage(1);
+    }
+  }
+
+  bool get _allGranted =>
+      _notificationGranted && (_batteryGranted || !_needsBattery);
+
+  int get _totalSteps => _needsBattery ? 3 : 2;
+
+  void _goToPage(int p) {
+    _pageController.animateToPage(
+      p,
+      duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,
     );
-
-    _checkPermissions();
   }
 
-  @override
-  void dispose() {
-    _overlayController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _checkPermissions() async {
-    setState(() => _isLoading = true);
-
-    try {
-      // Check notification permission
-      final notificationStatus = await Permission.notification.status;
-      _notificationPermission = notificationStatus.isGranted;
-
-      // Check battery optimization (Android only)
-      if (Platform.isAndroid) {
-        final deviceInfo = DeviceInfoPlugin();
-        final androidInfo = await deviceInfo.androidInfo;
-
-        // For Android 6.0 and above, check battery optimization
-        if (androidInfo.version.sdkInt >= 23) {
-          // Try to check if battery optimization is actually disabled
-          // This is a best-effort approach as direct detection is limited
-          final status = await Permission.ignoreBatteryOptimizations.status;
-          if (status.isGranted) {
-            _batteryOptimization = true;
-            _batteryStatus = 'Disabled (Good!)';
-          } else {
-            _batteryOptimization = false;
-            _batteryStatus = 'Enabled (Needs Action)';
-          }
-        } else {
-          _batteryOptimization = true; // Not applicable for older versions
-          _batteryStatus = 'Not Required';
-        }
-      } else {
-        _batteryOptimization = true; // Not applicable for iOS
-        _batteryStatus = 'Not Required';
-      }
-    } catch (e) {
-      debugPrint('Error checking permissions: $e');
-      if (Platform.isAndroid) {
-        _batteryStatus = 'Check Manually';
-      }
-    }
-
-    setState(() => _isLoading = false);
-
-    // If all permissions are granted after manual check, proceed
-    if (_notificationPermission && _batteryOptimization) {
-      widget.onPermissionsGranted();
-    }
-
-    // Show tutorial overlay if notification permission is not granted and hasn't been shown yet
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showTutorialOverlay();
-    });
-  }
-
-  Future<void> _requestNotificationPermission() async {
-    final currentStatus = await Permission.notification.status;
-
-    if (currentStatus.isPermanentlyDenied) {
-      // Show dialog to open app settings
-      _showSettingsDialog();
+  Future<void> _requestNotification() async {
+    final current = await Permission.notification.status;
+    if (current.isPermanentlyDenied) {
+      _showOpenSettingsDialog(
+        'Notification permission was denied. Please enable notifications in your device settings.',
+      );
       return;
     }
 
     final status = await Permission.notification.request();
-    setState(() {
-      _notificationPermission = status.isGranted;
-    });
+    setState(() => _notificationGranted = status.isGranted);
 
-    if (_notificationPermission && _batteryOptimization) {
-      widget.onPermissionsGranted();
-    } else if (_notificationPermission && !_batteryOptimization) {
-      // If notification granted but battery not, move to next step
-      _hideTutorialOverlay();
-      // Wait for hide animation then show next overlay
-      Future.delayed(const Duration(milliseconds: 600), () {
-        if (mounted) {
-          _showTutorialOverlay();
-        }
-      });
+    if (_notificationGranted) {
+      if (_needsBattery && !_batteryGranted) {
+        _goToPage(1);
+      } else {
+        _goToPage(_totalSteps - 1);
+      }
     }
   }
 
-  void _showSettingsDialog() {
+  Future<void> _requestBattery() async {
+    try {
+      final status = await Permission.ignoreBatteryOptimizations.request();
+      if (status.isGranted) {
+        setState(() => _batteryGranted = true);
+        _goToPage(_totalSteps - 1);
+        return;
+      }
+      _showBatteryDialog();
+    } catch (_) {
+      _showBatteryDialog();
+    }
+  }
+
+  void _skipStep() {
+    if (_page == 0 && _needsBattery) {
+      _goToPage(1);
+    } else {
+      _goToPage(_totalSteps - 1);
+    }
+  }
+
+  void _showOpenSettingsDialog(String msg) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blue.shade100,
+                color: _kPrimary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.settings, color: Colors.blue, size: 20),
+              child: const Icon(
+                Icons.settings_rounded,
+                color: _kPrimary,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             const Text('Open Settings'),
           ],
         ),
-        content: const Text(
-          'Notification permission was denied. Please enable notifications in your device settings to receive task reminders.',
-          style: TextStyle(height: 1.4),
-        ),
+        content: Text(msg, style: const TextStyle(height: 1.5)),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              Navigator.pop(context);
               await openAppSettings();
-              // Re-check permissions when user comes back
               await Future.delayed(const Duration(seconds: 1));
-              _checkPermissions();
+              if (mounted) _recheckAll();
             },
             child: const Text('Open Settings'),
           ),
@@ -180,37 +236,10 @@ class _PermissionScreenState extends State<PermissionScreen>
     );
   }
 
-  Future<void> _requestBatteryOptimization() async {
-    if (Platform.isAndroid) {
-      try {
-        // Try to request battery optimization permission first
-        final status = await Permission.ignoreBatteryOptimizations.request();
-
-        if (status.isGranted) {
-          setState(() {
-            _batteryOptimization = true;
-            _batteryStatus = 'Disabled (Good!)';
-          });
-
-          if (_notificationPermission && _batteryOptimization) {
-            widget.onPermissionsGranted();
-          }
-          return;
-        }
-
-        // If not granted, show guidance dialog
-        _showBatteryOptimizationDialog();
-      } catch (e) {
-        debugPrint('Error with battery optimization: $e');
-        _showBatteryOptimizationDialog();
-      }
-    }
-  }
-
-  void _showBatteryOptimizationDialog() {
+  void _showBatteryDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
@@ -221,46 +250,34 @@ class _PermissionScreenState extends State<PermissionScreen>
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
-                Icons.battery_saver,
+                Icons.battery_saver_rounded,
                 color: Colors.orange,
                 size: 20,
               ),
             ),
             const SizedBox(width: 12),
-            const Text('Battery Optimization'),
+            const Expanded(child: Text('Battery Optimization')),
           ],
         ),
         content: const Text(
-          'For reliable notifications, LifeQue needs to run in the background:\n\n'
-          '1. Find "LifeQue" in the app list\n'
-          '2. Select "Don\'t optimize" or "Allow"\n'
+          'For reliable reminders:\n\n'
+          '1. Find "LifeQue" in the list\n'
+          '2. Select "Don\'t optimize"\n'
           '3. Confirm your choice\n\n'
-          'This ensures you never miss important reminders!',
-          style: TextStyle(height: 1.4),
+          'This uses minimal battery.',
+          style: TextStyle(height: 1.5),
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () async {
-              Navigator.of(context).pop();
-
-              // Try to open battery optimization settings
-              try {
-                await openAppSettings();
-              } catch (e) {
-                debugPrint('Could not open app settings: $e');
-              }
-
-              // Show confirmation dialog after delay
+              Navigator.pop(context);
+              await openAppSettings();
               await Future.delayed(const Duration(seconds: 2));
-              if (mounted) {
-                _showBatteryOptimizationConfirmation();
-              }
+              if (mounted) _recheckAll();
             },
             child: const Text('Open Settings'),
           ),
@@ -269,1193 +286,721 @@ class _PermissionScreenState extends State<PermissionScreen>
     );
   }
 
-  void _showBatteryOptimizationConfirmation() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Did you disable battery optimization?'),
-        content: const Text(
-          'Have you disabled battery optimization for LifeQue in your device settings?',
-          style: TextStyle(height: 1.4),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Don't change the state, keep showing as not optimized
-            },
-            child: const Text('Not Yet'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Recheck permissions to get updated status
-              _checkPermissions();
-            },
-            child: const Text('Yes, Done'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Tutorial overlay methods
-  void _showTutorialOverlay() {
-    // Show notification overlay first if not granted and not shown
-    if (!_hasShownOverlay && !_notificationPermission) {
-      setState(() {
-        _showOverlay = true;
-        _hasShownOverlay = true;
-        _currentOverlayType = 'notification';
-      });
-      _overlayController.forward();
+  Future<void> _recheckAll() async {
+    final notif = await Permission.notification.status;
+    _notificationGranted = notif.isGranted;
+    if (Platform.isAndroid && _needsBattery) {
+      final bat = await Permission.ignoreBatteryOptimizations.status;
+      _batteryGranted = bat.isGranted;
     }
-    // Show battery overlay if notification is granted but battery isn't
-    else if (!_hasShownBatteryOverlay &&
-        _notificationPermission &&
-        !_batteryOptimization) {
-      setState(() {
-        _showOverlay = true;
-        _hasShownBatteryOverlay = true;
-        _currentOverlayType = 'battery';
-      });
-      _overlayController.forward();
-    }
-  }
-
-  void _hideTutorialOverlay() {
-    _overlayController.stop();
-    setState(() {
-      _showOverlay = false;
-    });
-
-    // Check if we should show the next overlay
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (_currentOverlayType == 'notification' &&
-          !_hasShownBatteryOverlay &&
-          !_batteryOptimization) {
-        _showTutorialOverlay(); // This will show battery overlay
-      }
-    });
-  }
-
-  Widget _buildTutorialOverlay() {
-    return AnimatedBuilder(
-      animation: _overlayAnimation,
-      builder: (context, child) {
-        return Stack(
-          children: [
-            // Animated gradient background with particles effect
-            Container(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment.center,
-                  radius: 1.5 * _overlayAnimation.value,
-                  colors: [
-                    Colors.black.withValues(
-                      alpha: 0.4 * _overlayAnimation.value,
-                    ),
-                    Colors.black.withValues(
-                      alpha: 0.8 * _overlayAnimation.value,
-                    ),
-                    Colors.black.withValues(
-                      alpha: 0.95 * _overlayAnimation.value,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Floating particles effect
-            ..._buildFloatingParticles(),
-
-            // Enhanced spotlight effect with integrated instructions
-            _buildEnhancedSpotlight(),
-          ],
-        );
-      },
-    );
-  }
-
-  List<Widget> _buildFloatingParticles() {
-    return List.generate(20, (index) {
-      final random = (index * 17) % 100;
-      final x = (random / 100) * MediaQuery.of(context).size.width;
-      final y =
-          (((index * 23) % 100) / 100) * MediaQuery.of(context).size.height;
-      final delay = (index * 0.1) % 1.0;
-
-      return Positioned(
-        left: x,
-        top: y,
-        child: AnimatedBuilder(
-          animation: _overlayAnimation,
-          builder: (context, child) {
-            final animationValue = (_overlayAnimation.value + delay) % 1.0;
-            return Transform.translate(
-              offset: Offset(
-                math.sin(animationValue * 2 * math.pi) * 20,
-                animationValue * -50,
-              ),
-              child: Opacity(
-                opacity:
-                    (0.3 *
-                            _overlayAnimation.value *
-                            math.sin(animationValue * math.pi))
-                        .abs(),
-                child: Container(
-                  width: 4 + (random % 3),
-                  height: 4 + (random % 3),
-                  decoration: BoxDecoration(
-                    color: _currentOverlayType == 'notification'
-                        ? Colors.blue.withValues(alpha: 0.6)
-                        : Colors.green.withValues(alpha: 0.6),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: _currentOverlayType == 'notification'
-                            ? Colors.blue.withValues(alpha: 0.3)
-                            : Colors.green.withValues(alpha: 0.3),
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      );
-    });
-  }
-
-  Widget _buildEnhancedSpotlight() {
-    // Get the target card based on overlay type
-    final GlobalKey targetKey = _currentOverlayType == 'notification'
-        ? _notificationCardKey
-        : _batteryCardKey;
-
-    final RenderBox? renderBox =
-        targetKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return const SizedBox.shrink();
-
-    final size = renderBox.size;
-    final position = renderBox.localToGlobal(Offset.zero);
-    // Use a static value instead of pulsing animation for better usability
-    final pulseValue = 1.0;
-
-    return Stack(
-      children: [
-        // Multiple layered spotlight effects
-        CustomPaint(
-          size: MediaQuery.of(context).size,
-          painter: EnhancedSpotlightPainter(
-            spotlightRect: Rect.fromLTWH(
-              position.dx - 12,
-              position.dy - 12,
-              size.width + 24,
-              size.height + 24,
-            ),
-            animation: _overlayAnimation.value,
-            pulseValue: pulseValue,
-            color: _currentOverlayType == 'notification'
-                ? Colors.blue
-                : Colors.green,
-          ),
-        ),
-
-        // Speech bubble instruction with smart positioning
-        Positioned(
-          left: position.dx + 20,
-          top: _getSpeechBubbleTop(position, size),
-          width: size.width - 40,
-          child: Column(
-            children: [
-              // Custom speech bubble with tail
-              CustomPaint(
-                painter: SpeechBubblePainter(
-                  color: _currentOverlayType == 'notification'
-                      ? Colors.blue
-                      : Colors.green,
-                  pointUp: _shouldBubblePointUp(position, size),
-                ),
-                child: Container(
-                  width: size.width - 40,
-                  padding: _shouldBubblePointUp(position, size)
-                      ? const EdgeInsets.fromLTRB(20, 20, 20, 25)
-                      : const EdgeInsets.fromLTRB(20, 25, 20, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            _currentOverlayType == 'notification'
-                                ? Icons.notifications_active
-                                : Icons.battery_saver,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _currentOverlayType == 'notification'
-                                  ? 'Enable Notifications'
-                                  : 'Battery Optimization',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: _hideTutorialOverlay,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _currentOverlayType == 'notification'
-                            ? 'To enable battery optimization need to click here, here is some extra information why need.'
-                            : 'To enable battery optimization need to click here, here is some extra information why need.',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Helper methods for smart speech bubble positioning
-  bool _shouldBubblePointUp(Offset position, Size size) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final bubbleHeight = 120.0; // Estimated height of speech bubble
-    final cardBottom = position.dy + size.height;
-
-    // If there's not enough space below the card, position bubble above
-    return (cardBottom + bubbleHeight + 50) > screenHeight;
-  }
-
-  double _getSpeechBubbleTop(Offset position, Size size) {
-    if (_shouldBubblePointUp(position, size)) {
-      // Position above the card
-      return position.dy - 135; // Bubble height + spacing
-    } else {
-      // Position below the card
-      return position.dy + size.height + 15;
+    setState(() {});
+    if (_allGranted) {
+      _goToPage(_totalSteps - 1);
     }
   }
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    _bgController.dispose();
+    _heroController.dispose();
+    super.dispose();
+  }
+
+  // ── Build ──────────────────────────────────────────────────────────────────
+  @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue.shade50, Colors.purple.shade50],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: const Center(child: CircularProgressIndicator()),
-        ),
+    if (_loading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF8FAFC),
+        body: Center(child: CircularProgressIndicator(color: _kPrimary)),
       );
     }
 
+    final mq = MediaQuery.of(context);
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue.shade50, Colors.purple.shade50],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header with App Name and Logo
-                      Row(
-                        children: [
-                          // App Logo
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.15),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.asset(
-                                'assets/icon/icon.png',
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  // Fallback icon if image fails to load
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.blue.shade400,
-                                          Colors.purple.shade400,
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: const Icon(
-                                      Icons.notifications_active_rounded,
-                                      color: Colors.white,
-                                      size: 28,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'LifeQue',
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.grey.shade800,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                Text(
-                                  'Smart Task & Reminder Manager',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: Colors.grey.shade600,
-                                    fontWeight: FontWeight.w500,
-                                    letterSpacing: 0.2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Welcome message with clearer explanation
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.blue.shade400,
-                                        Colors.purple.shade400,
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.security_rounded,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                const Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Quick Setup Required',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Just 2 simple steps',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'To ensure you never miss important reminders, LifeQue needs permission to send notifications and run in the background.',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.grey.shade700,
-                                height: 1.4,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue.shade200),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline_rounded,
-                                    color: Colors.blue.shade600,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      'Tap the buttons below to grant permissions',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.blue.shade700,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Progress indicator
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            ProgressStep(
-                              stepNumber: 1,
-                              title: 'Notifications',
-                              isCompleted: _notificationPermission,
-                              isActive: !_notificationPermission,
-                            ),
-                            Expanded(
-                              child: Container(
-                                height: 2,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _notificationPermission
-                                      ? Colors.green
-                                      : Colors.grey.shade300,
-                                  borderRadius: BorderRadius.circular(1),
-                                ),
-                              ),
-                            ),
-                            ProgressStep(
-                              stepNumber: 2,
-                              title: Platform.isAndroid ? 'Battery' : 'Ready',
-                              isCompleted: _batteryOptimization,
-                              isActive:
-                                  _notificationPermission &&
-                                  !_batteryOptimization,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Permission cards with clearer actions
-                      PermissionCard(
-                        key: _notificationCardKey,
-                        title: 'Notifications',
-                        description:
-                            'Get timely alerts for your tasks, medicine reminders, and important events',
-                        icon: Icons.notifications_rounded,
-                        isGranted: _notificationPermission,
-                        onTap: _requestNotificationPermission,
-                        color: Colors.blue,
-                        actionText: _notificationPermission
-                            ? 'Granted'
-                            : 'Enable Now',
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Battery Optimization (Android only)
-                      if (Platform.isAndroid) ...[
-                        PermissionCard(
-                          key: _batteryCardKey,
-                          title: 'Battery Optimization',
-                          description:
-                              'Prevent system from stopping notifications in the background\nStatus: $_batteryStatus',
-                          icon: Icons.battery_saver_rounded,
-                          isGranted: _batteryOptimization,
-                          onTap: _requestBatteryOptimization,
-                          color: Colors.orange,
-                          actionText: _batteryOptimization
-                              ? 'Optimized'
-                              : 'Fix Now',
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // App Features Showcase
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.purple.shade400,
-                                          Colors.pink.shade400,
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.star_rounded,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Text(
-                                    'What LifeQue Can Do',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 16,
-                                right: 16,
-                                bottom: 16,
-                              ),
-                              child: Column(
-                                children: [
-                                  FeatureCard(
-                                    icon: Icons.task_alt_rounded,
-                                    title: 'Smart Task Management',
-                                    description:
-                                        'Create, organize, and track your daily tasks with intelligent reminders',
-                                    color: Colors.blue,
-                                  ),
-                                  const SizedBox(height: 8),
-
-                                  FeatureCard(
-                                    icon: Icons.medical_services_rounded,
-                                    title: 'Medicine Reminders',
-                                    description:
-                                        'Never miss a dose with customizable medication schedules and tracking',
-                                    color: Colors.green,
-                                  ),
-                                  const SizedBox(height: 8),
-
-                                  FeatureCard(
-                                    icon: Icons.cake_rounded,
-                                    title: 'Birthday Reminders',
-                                    description:
-                                        'Remember important dates and celebrate with your loved ones',
-                                    color: Colors.pink,
-                                  ),
-                                  const SizedBox(height: 8),
-
-                                  FeatureCard(
-                                    icon: Icons.access_time_rounded,
-                                    title: 'One-time Reminders',
-                                    description:
-                                        'Set quick reminders for appointments, calls, or any important events',
-                                    color: Colors.orange,
-                                  ),
-                                  const SizedBox(height: 8),
-
-                                  FeatureCard(
-                                    icon: Icons.notifications_active_rounded,
-                                    title: 'Smart Notifications',
-                                    description:
-                                        'Interactive notifications with actions - complete, snooze, or view details',
-                                    color: Colors.purple,
-                                  ),
-                                  const SizedBox(height: 8),
-
-                                  FeatureCard(
-                                    icon: Icons.push_pin_rounded,
-                                    title: 'Pinned Reminders',
-                                    description:
-                                        'Keep important tasks always visible in your notification panel',
-                                    color: Colors.indigo,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Success message and continue button
-                      if (_notificationPermission && _batteryOptimization) ...[
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.green.shade50,
-                                Colors.green.shade100,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.green.shade200),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.green.withValues(alpha: 0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green,
-                                      borderRadius: BorderRadius.circular(50),
-                                    ),
-                                    child: const Icon(
-                                      Icons.check_rounded,
-                                      color: Colors.white,
-                                      size: 24,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  const Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Perfect! You\'re All Set',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.green,
-                                          ),
-                                        ),
-                                        Text(
-                                          'LifeQue is ready to help you stay organized',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.green,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: widget.onPermissionsGranted,
-                                  style:
-                                      ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 16,
-                                        ),
-                                        backgroundColor: Colors.transparent,
-                                        shadowColor: Colors.transparent,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                        ),
-                                      ).copyWith(
-                                        backgroundColor:
-                                            WidgetStateProperty.all(
-                                              Colors.transparent,
-                                            ),
-                                      ),
-                                  child: Ink(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.blue.shade400,
-                                          Colors.purple.shade400,
-                                        ],
-                                        begin: Alignment.centerLeft,
-                                        end: Alignment.centerRight,
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.arrow_forward_rounded,
-                                            color: Colors.white,
-                                            size: 20,
-                                          ),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            'Start Using LifeQue',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 32), // Bottom padding
+          // ── Animated gradient BG (matches onboarding) ──
+          AnimatedBuilder(
+            animation: _bgController,
+            builder: (_, __) {
+              final t = _bgController.value;
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment(
+                      math.cos(t * 2 * math.pi) * 0.6,
+                      math.sin(t * 2 * math.pi) * 0.6,
+                    ),
+                    end: Alignment(
+                      math.cos((t + 0.5) * 2 * math.pi) * 0.6,
+                      math.sin((t + 0.5) * 2 * math.pi) * 0.6,
+                    ),
+                    colors: const [
+                      Color(0xFFE0EFFE),
+                      Color(0xFFF0F4FF),
+                      Color(0xFFE8F4FD),
+                      Color(0xFFF8FAFC),
                     ],
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // ── Decorative blobs ──
+          Positioned(
+            top: -60,
+            right: -40,
+            child: _GlowCircle(
+              size: 220,
+              color: _kPrimaryLight.withValues(alpha: 0.12),
+            ),
+          ),
+          Positioned(
+            bottom: 80,
+            left: -60,
+            child: _GlowCircle(
+              size: 180,
+              color: _kAccent.withValues(alpha: 0.10),
+            ),
+          ),
+
+          // ── Pages ──
+          PageView(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(),
+            onPageChanged: (i) {
+              setState(() => _page = i);
+              _heroController
+                ..reset()
+                ..forward();
+            },
+            children: [
+              _PermStepView(
+                step: _notificationStep,
+                heroAnimation: _heroController,
+                isGranted: _notificationGranted,
+                onRequest: _requestNotification,
+                onSkip: _skipStep,
+              ),
+              if (_needsBattery)
+                _PermStepView(
+                  step: _batteryStep,
+                  heroAnimation: _heroController,
+                  isGranted: _batteryGranted,
+                  onRequest: _requestBattery,
+                  onSkip: _skipStep,
+                ),
+              _CelebrationView(
+                heroAnimation: _heroController,
+                allGranted: _allGranted,
+                onContinue: widget.onPermissionsGranted,
+              ),
+            ],
+          ),
+
+          // ── Bottom dots ──
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: EdgeInsets.fromLTRB(24, 16, 24, mq.padding.bottom + 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFFF8FAFC).withValues(alpha: 0),
+                    const Color(0xFFF8FAFC).withValues(alpha: 0.9),
+                    const Color(0xFFF8FAFC),
+                  ],
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  _totalSteps,
+                  (i) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 350),
+                    curve: Curves.easeOut,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: _page == i ? 28 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: _page == i
+                          ? _kPrimary
+                          : _kPrimary.withValues(alpha: 0.2),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-          // Tutorial overlay
-          if (_showOverlay) _buildTutorialOverlay(),
         ],
       ),
     );
   }
 }
 
-// Custom painter for creating spotlight effect
-class SpotlightPainter extends CustomPainter {
-  final Rect spotlightRect;
-  final double animation;
+// ═════════════════════════════════════════════════════════════════════════════
+// ── Step view ────────────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
 
-  SpotlightPainter({required this.spotlightRect, required this.animation});
+class _PermStepView extends StatelessWidget {
+  final _PermStep step;
+  final AnimationController heroAnimation;
+  final bool isGranted;
+  final VoidCallback onRequest;
+  final VoidCallback onSkip;
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Create a path for the entire screen
-    final screenPath = Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-
-    // Create a path for the spotlight area (rounded rectangle)
-    final spotlightPath = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(spotlightRect, const Radius.circular(16)),
-      );
-
-    // Subtract the spotlight area from the screen
-    final combinedPath = Path.combine(
-      PathOperation.difference,
-      screenPath,
-      spotlightPath,
-    );
-
-    // Draw the darkened area (everything except the spotlight)
-    canvas.drawPath(
-      combinedPath,
-      Paint()..color = Colors.black.withValues(alpha: 0.7 * animation),
-    );
-
-    // Add a subtle glow around the spotlight
-    final glowPaint = Paint()
-      ..color = Colors.blue.withValues(alpha: 0.3 * animation)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        spotlightRect.inflate(4),
-        const Radius.circular(20),
-      ),
-      glowPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(SpotlightPainter oldDelegate) {
-    return oldDelegate.spotlightRect != spotlightRect ||
-        oldDelegate.animation != animation;
-  }
-}
-
-// Enhanced spotlight painter with pulsing effects
-class EnhancedSpotlightPainter extends CustomPainter {
-  final Rect spotlightRect;
-  final double animation;
-  final double pulseValue;
-  final Color color;
-
-  EnhancedSpotlightPainter({
-    required this.spotlightRect,
-    required this.animation,
-    required this.pulseValue,
-    required this.color,
+  const _PermStepView({
+    required this.step,
+    required this.heroAnimation,
+    required this.isGranted,
+    required this.onRequest,
+    required this.onSkip,
   });
 
   @override
-  void paint(Canvas canvas, Size size) {
-    // Create a path for the entire screen
-    final screenPath = Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(28, 16, 28, 80),
+        child: Column(
+          children: [
+            const Spacer(flex: 1),
 
-    // Create animated spotlight area with pulsing effect
-    final spotlightPath = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          spotlightRect.inflate(pulseValue * 5),
-          const Radius.circular(20),
+            // ── Hero bubble ──
+            AnimatedBuilder(
+              animation: heroAnimation,
+              builder: (_, __) {
+                final slide = CurvedAnimation(
+                  parent: heroAnimation,
+                  curve: Curves.easeOutBack,
+                ).value;
+                return Transform.translate(
+                  offset: Offset(0, 30 * (1 - slide)),
+                  child: Opacity(
+                    opacity: slide.clamp(0.0, 1.0),
+                    child: _HeroBubble(
+                      icon: step.heroIcon,
+                      color: step.heroColor,
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 32),
+
+            // ── Title ──
+            AnimatedBuilder(
+              animation: heroAnimation,
+              builder: (_, __) {
+                final t = CurvedAnimation(
+                  parent: heroAnimation,
+                  curve: const Interval(0.15, 0.7, curve: Curves.easeOut),
+                ).value;
+                return Transform.translate(
+                  offset: Offset(0, 24 * (1 - t)),
+                  child: Opacity(
+                    opacity: t.clamp(0.0, 1.0),
+                    child: Text(
+                      step.title,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1E293B),
+                        height: 1.2,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+
+            // ── Subtitle ──
+            AnimatedBuilder(
+              animation: heroAnimation,
+              builder: (_, __) {
+                final t = CurvedAnimation(
+                  parent: heroAnimation,
+                  curve: const Interval(0.25, 0.8, curve: Curves.easeOut),
+                ).value;
+                return Opacity(
+                  opacity: t.clamp(0.0, 1.0),
+                  child: Text(
+                    step.subtitle,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade600,
+                      height: 1.5,
+                      letterSpacing: 0.1,
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 28),
+
+            // ── Benefit rows ──
+            AnimatedBuilder(
+              animation: heroAnimation,
+              builder: (_, __) {
+                final t = CurvedAnimation(
+                  parent: heroAnimation,
+                  curve: const Interval(0.35, 0.9, curve: Curves.easeOut),
+                ).value;
+                return Opacity(
+                  opacity: t.clamp(0.0, 1.0),
+                  child: Transform.translate(
+                    offset: Offset(0, 16 * (1 - t)),
+                    child: Column(
+                      children: step.benefits
+                          .map(
+                            (b) =>
+                                _BenefitRow(benefit: b, color: step.heroColor),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            const Spacer(flex: 2),
+
+            // ── CTA ──
+            AnimatedBuilder(
+              animation: heroAnimation,
+              builder: (_, __) {
+                final t = CurvedAnimation(
+                  parent: heroAnimation,
+                  curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+                ).value;
+                return Opacity(
+                  opacity: t.clamp(0.0, 1.0),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: isGranted
+                            ? const _GrantedButton()
+                            : FilledButton.icon(
+                                onPressed: onRequest,
+                                icon: Icon(step.heroIcon, size: 20),
+                                label: Text(
+                                  step.ctaLabel,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: step.heroColor,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                      ),
+                      if (!isGranted) ...[
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: onSkip,
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.grey.shade500,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 10,
+                            ),
+                          ),
+                          child: const Text(
+                            'Maybe later',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
         ),
-      );
-
-    // Subtract the spotlight area from the screen
-    final combinedPath = Path.combine(
-      PathOperation.difference,
-      screenPath,
-      spotlightPath,
+      ),
     );
+  }
+}
 
-    // Draw the darkened area with animated gradient
-    final gradient = RadialGradient(
-      center: Alignment.center,
-      radius: 1.5,
-      colors: [
-        Colors.black.withValues(alpha: 0.3 * animation),
-        Colors.black.withValues(alpha: 0.7 * animation),
-        Colors.black.withValues(alpha: 0.95 * animation),
+// ═════════════════════════════════════════════════════════════════════════════
+// ── Celebration view ─────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+
+class _CelebrationView extends StatelessWidget {
+  final AnimationController heroAnimation;
+  final bool allGranted;
+  final VoidCallback onContinue;
+
+  const _CelebrationView({
+    required this.heroAnimation,
+    required this.allGranted,
+    required this.onContinue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(28, 16, 28, 80),
+        child: Column(
+          children: [
+            const Spacer(flex: 2),
+
+            // ── Hero check ──
+            AnimatedBuilder(
+              animation: heroAnimation,
+              builder: (_, __) {
+                final scale = CurvedAnimation(
+                  parent: heroAnimation,
+                  curve: Curves.elasticOut,
+                ).value;
+                return Transform.scale(
+                  scale: 0.5 + (scale * 0.5),
+                  child: Opacity(
+                    opacity: scale.clamp(0.0, 1.0),
+                    child: Container(
+                      width: 130,
+                      height: 130,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF22C55E,
+                            ).withValues(alpha: 0.35),
+                            blurRadius: 40,
+                            spreadRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 64,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 36),
+
+            // ── Title + subtitle ──
+            AnimatedBuilder(
+              animation: heroAnimation,
+              builder: (_, __) {
+                final t = CurvedAnimation(
+                  parent: heroAnimation,
+                  curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
+                ).value;
+                return Opacity(
+                  opacity: t.clamp(0.0, 1.0),
+                  child: Column(
+                    children: [
+                      Text(
+                        allGranted ? "You're All Set!" : 'Almost There!',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1E293B),
+                          height: 1.2,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        allGranted
+                            ? 'LifeQue is ready to help you stay\norganised and never miss a thing.'
+                            : 'You can always enable missing\npermissions later in Settings.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey.shade600,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 32),
+
+            // ── Status summary ──
+            AnimatedBuilder(
+              animation: heroAnimation,
+              builder: (_, __) {
+                final t = CurvedAnimation(
+                  parent: heroAnimation,
+                  curve: const Interval(0.4, 0.9, curve: Curves.easeOut),
+                ).value;
+                return Opacity(
+                  opacity: t.clamp(0.0, 1.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color(0xFF22C55E).withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        _StatusRow(
+                          icon: Icons.notifications_active_rounded,
+                          label: 'Notifications',
+                          granted: true,
+                        ),
+                        const SizedBox(height: 12),
+                        if (Platform.isAndroid)
+                          _StatusRow(
+                            icon: Icons.battery_charging_full_rounded,
+                            label: 'Background Activity',
+                            granted: allGranted,
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            const Spacer(flex: 3),
+
+            // ── Continue ──
+            AnimatedBuilder(
+              animation: heroAnimation,
+              builder: (_, __) {
+                final t = CurvedAnimation(
+                  parent: heroAnimation,
+                  curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+                ).value;
+                return Opacity(
+                  opacity: t.clamp(0.0, 1.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: FilledButton.icon(
+                      onPressed: onContinue,
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+                      label: const Text(
+                        'Start Using LifeQue',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _kPrimary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ── Shared small widgets ─────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+
+class _HeroBubble extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  const _HeroBubble({required this.icon, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 120,
+      height: 120,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [color, color.withValues(alpha: 0.8)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.35),
+            blurRadius: 40,
+            spreadRadius: 4,
+          ),
+        ],
+      ),
+      child: Icon(icon, size: 54, color: Colors.white),
+    );
+  }
+}
+
+class _BenefitRow extends StatelessWidget {
+  final _Benefit benefit;
+  final Color color;
+  const _BenefitRow({required this.benefit, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(benefit.icon, size: 18, color: color),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              benefit.text,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF334155),
+                letterSpacing: 0.1,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GrantedButton extends StatelessWidget {
+  const _GrantedButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        color: const Color(0xFF22C55E).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF22C55E).withValues(alpha: 0.3),
+        ),
+      ),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.check_circle_rounded, color: Color(0xFF22C55E), size: 22),
+          SizedBox(width: 10),
+          Text(
+            'Already Enabled',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF22C55E),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool granted;
+  const _StatusRow({
+    required this.icon,
+    required this.label,
+    required this.granted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 22,
+          color: granted ? const Color(0xFF22C55E) : Colors.grey.shade400,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: granted ? const Color(0xFF1E293B) : Colors.grey.shade500,
+            ),
+          ),
+        ),
+        Icon(
+          granted ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+          size: 22,
+          color: granted ? const Color(0xFF22C55E) : Colors.grey.shade300,
+        ),
       ],
     );
-
-    canvas.drawPath(
-      combinedPath,
-      Paint()
-        ..shader = gradient.createShader(
-          Rect.fromLTWH(0, 0, size.width, size.height),
-        ),
-    );
-
-    // Multiple glow layers for enhanced effect
-    for (int i = 3; i >= 1; i--) {
-      final glowPaint = Paint()
-        ..color = color.withValues(alpha: (0.4 * animation) / i)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 15.0 * i);
-
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          spotlightRect.inflate(8 + (pulseValue * 5) + (i * 3)),
-          const Radius.circular(25),
-        ),
-        glowPaint,
-      );
-    }
-
-    // Inner highlight ring
-    final highlightPaint = Paint()
-      ..color = color.withValues(alpha: 0.6 * animation)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        spotlightRect.inflate(2 + pulseValue * 2),
-        const Radius.circular(18),
-      ),
-      highlightPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(EnhancedSpotlightPainter oldDelegate) {
-    return oldDelegate.spotlightRect != spotlightRect ||
-        oldDelegate.animation != animation ||
-        oldDelegate.pulseValue != pulseValue ||
-        oldDelegate.color != color;
   }
 }
 
-// Pattern painter for animated background effects
-class PatternPainter extends CustomPainter {
-  final double animation;
+class _GlowCircle extends StatelessWidget {
+  final double size;
   final Color color;
-
-  PatternPainter({required this.animation, required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color.withValues(alpha: 0.05 * animation)
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
-
-    // Create animated geometric pattern
-    final centerX = size.width / 2;
-    final centerY = size.height / 2;
-    final maxRadius = math.max(size.width, size.height) / 2;
-
-    // Draw animated circles
-    for (int i = 1; i <= 5; i++) {
-      final radius = (maxRadius / 5 * i) * (0.5 + animation * 0.5);
-      canvas.drawCircle(Offset(centerX, centerY), radius, paint);
-    }
-
-    // Draw animated grid lines
-    final gridSize = 30.0;
-    final offset = (animation * gridSize) % gridSize;
-
-    for (double x = -offset; x < size.width + gridSize; x += gridSize) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-
-    for (double y = -offset; y < size.height + gridSize; y += gridSize) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
+  const _GlowCircle({required this.size, required this.color});
 
   @override
-  bool shouldRepaint(PatternPainter oldDelegate) {
-    return oldDelegate.animation != animation || oldDelegate.color != color;
-  }
-}
-
-class SpeechBubblePainter extends CustomPainter {
-  final Color color;
-  final bool pointUp;
-
-  SpeechBubblePainter({required this.color, this.pointUp = false});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color.withValues(alpha: 0.95)
-      ..style = PaintingStyle.fill;
-
-    final shadowPaint = Paint()
-      ..color = color.withValues(alpha: 0.3)
-      ..style = PaintingStyle.fill
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-
-    final path = Path();
-    final shadowPath = Path();
-
-    const radius = 15.0;
-    const tailHeight = 15.0;
-    const tailWidth = 25.0;
-    final tailStartX = size.width * 0.2; // Position the tail towards the left
-
-    if (pointUp) {
-      // Create speech bubble with tail pointing down (bubble above card)
-      // Start from bottom-left corner (after the tail)
-      path.moveTo(radius, size.height - tailHeight);
-
-      // Bottom edge (with space for tail)
-      path.lineTo(tailStartX - tailWidth / 2, size.height - tailHeight);
-
-      // Create the tail pointing downward
-      path.lineTo(tailStartX, size.height); // Tip of the tail
-      path.lineTo(tailStartX + tailWidth / 2, size.height - tailHeight);
-
-      // Continue bottom edge
-      path.lineTo(size.width - radius, size.height - tailHeight);
-
-      // Bottom-right corner
-      path.arcToPoint(
-        Offset(size.width, size.height - tailHeight - radius),
-        radius: const Radius.circular(radius),
-      );
-
-      // Right edge
-      path.lineTo(size.width, radius);
-
-      // Top-right corner
-      path.arcToPoint(
-        Offset(size.width - radius, 0),
-        radius: const Radius.circular(radius),
-      );
-
-      // Top edge
-      path.lineTo(radius, 0);
-
-      // Top-left corner
-      path.arcToPoint(Offset(0, radius), radius: const Radius.circular(radius));
-
-      // Left edge
-      path.lineTo(0, size.height - tailHeight - radius);
-
-      // Bottom-left corner
-      path.arcToPoint(
-        Offset(radius, size.height - tailHeight),
-        radius: const Radius.circular(radius),
-      );
-    } else {
-      // Create speech bubble with tail pointing up (bubble below card) - original logic
-      // Start from top-left corner (after the tail)
-      path.moveTo(radius, tailHeight);
-
-      // Top edge (with space for tail)
-      path.lineTo(tailStartX - tailWidth / 2, tailHeight);
-
-      // Create the tail pointing upward
-      path.lineTo(tailStartX, 0); // Tip of the tail
-      path.lineTo(tailStartX + tailWidth / 2, tailHeight);
-
-      // Continue top edge
-      path.lineTo(size.width - radius, tailHeight);
-
-      // Top-right corner
-      path.arcToPoint(
-        Offset(size.width, tailHeight + radius),
-        radius: const Radius.circular(radius),
-      );
-
-      // Right edge
-      path.lineTo(size.width, size.height - radius);
-
-      // Bottom-right corner
-      path.arcToPoint(
-        Offset(size.width - radius, size.height),
-        radius: const Radius.circular(radius),
-      );
-
-      // Bottom edge
-      path.lineTo(radius, size.height);
-
-      // Bottom-left corner
-      path.arcToPoint(
-        Offset(0, size.height - radius),
-        radius: const Radius.circular(radius),
-      );
-
-      // Left edge
-      path.lineTo(0, tailHeight + radius);
-
-      // Top-left corner
-      path.arcToPoint(
-        Offset(radius, tailHeight),
-        radius: const Radius.circular(radius),
-      );
-    }
-
-    path.close();
-
-    // Create shadow path (slightly offset)
-    shadowPath.addPath(path, const Offset(0, 3));
-
-    // Draw shadow first
-    canvas.drawPath(shadowPath, shadowPaint);
-
-    // Draw the main bubble
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(SpeechBubblePainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.pointUp != pointUp;
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+    );
   }
 }
