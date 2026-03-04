@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/app_drawer.dart';
 import 'package:adhan/adhan.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
@@ -719,6 +720,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       length: 2,
       child: Scaffold(
         backgroundColor: Colors.grey.shade50,
+        drawer: const AppDrawer(currentRoute: '/prayer-times'),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,

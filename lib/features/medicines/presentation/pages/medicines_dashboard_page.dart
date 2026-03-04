@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/widgets/app_drawer.dart';
 import '../../domain/entities/medicine.dart';
 import '../../domain/entities/medicine_dose.dart';
 import '../bloc/medicine_cubit.dart';
@@ -28,6 +29,7 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
+      drawer: const AppDrawer(currentRoute: '/medicines'),
       appBar: AppBar(
         title: const Text(
           'Medications',

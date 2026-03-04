@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/navigation_preferences_service.dart';
+import '../../../../injection_container.dart' as di;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -63,7 +66,8 @@ class _SplashScreenState extends State<SplashScreen>
       await Future.delayed(const Duration(milliseconds: 100));
       // Navigate immediately to home without permission checks
       if (mounted) {
-        context.go('/');
+        final svc = NavigationPreferencesService(di.sl<SharedPreferences>());
+        context.go(svc.getHomeRoute());
       }
       return;
     }
@@ -77,9 +81,13 @@ class _SplashScreenState extends State<SplashScreen>
       bool allPermissionsGranted = await _checkAllPermissions();
 
       if (mounted) {
-        if (allPermissionsGranted) {
+        final svc = NavigationPreferencesService(di.sl<SharedPreferences>());
+        if (!svc.isOnboardingDone()) {
+          debugPrint('📖 First launch — showing onboarding');
+          context.go('/onboarding');
+        } else if (allPermissionsGranted) {
           debugPrint('✅ All permissions granted, navigating to home');
-          context.go('/');
+          context.go(svc.getHomeRoute());
         } else {
           debugPrint('⚠️ Permissions needed, navigating to permission screen');
           context.go('/permissions');

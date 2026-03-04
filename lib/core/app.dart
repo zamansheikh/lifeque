@@ -26,7 +26,11 @@ import '../features/prayer_times/presentation/pages/prayer_times_page.dart';
 import '../features/study/presentation/pages/study_timer_page.dart';
 import '../features/permissions/presentation/pages/permission_screen.dart';
 import '../features/splash/presentation/pages/splash_screen.dart';
+import '../features/settings/presentation/pages/settings_page.dart';
+import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import 'services/navigation_service.dart';
+import 'services/navigation_preferences_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../injection_container.dart' as di;
 
 class AppRouter {
@@ -40,11 +44,24 @@ class AppRouter {
         builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
+        path: '/onboarding',
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingPage(),
+      ),
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (context, state) => const SettingsPage(),
+      ),
+      GoRoute(
         path: '/permissions',
         name: 'permissions',
         builder: (context, state) => PermissionScreen(
           onPermissionsGranted: () {
-            context.go('/');
+            final svc = NavigationPreferencesService(
+              di.sl<SharedPreferences>(),
+            );
+            context.go(svc.getHomeRoute());
           },
         ),
       ),

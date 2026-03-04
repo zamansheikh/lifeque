@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/widgets/app_drawer.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/category_budget.dart';
 import '../../domain/entities/expense_category.dart';
@@ -116,6 +117,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
+      drawer: const AppDrawer(currentRoute: '/expenses'),
       appBar: AppBar(
         title: const Text(
           'Expense Tracker',
@@ -129,18 +131,10 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
         elevation: 0,
         shadowColor: Colors.black12,
         surfaceTintColor: Colors.transparent,
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: Color(0xFF64748B),
-            ),
-            onPressed: () => Navigator.of(context).pop(),
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: Color(0xFF64748B)),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
         actions: [

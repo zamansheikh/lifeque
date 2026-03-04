@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/app_drawer.dart';
 import '../../services/study_timer_service.dart';
 
 extension StudyPhaseUI on StudyPhase {
@@ -568,6 +569,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
+      drawer: const AppDrawer(currentRoute: '/study-timer'),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
