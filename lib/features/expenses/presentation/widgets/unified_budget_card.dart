@@ -401,18 +401,25 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
     }
 
     if (hasUnalloc) {
+      final unallocIndex = widget.categoryBudgets.length;
+      final isUnallocActive = _activeTip == unallocIndex;
       children.add(
         Flexible(
           flex: unallocFlex,
-          child: Container(
-            height: barH,
-            margin: const EdgeInsets.only(left: gap),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(radius),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-                width: 1,
+          child: GestureDetector(
+            onTap: () => _tapSegment(unallocIndex),
+            child: Container(
+              height: barH,
+              margin: const EdgeInsets.only(left: gap),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(radius),
+                border: Border.all(
+                  color: isUnallocActive
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.2),
+                  width: isUnallocActive ? 1.5 : 1,
+                ),
               ),
             ),
           ),
@@ -420,7 +427,6 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
       );
     }
 
-    // Tooltip popup
     Widget? tip;
     if (_activeTip != null && _activeTip! < widget.categoryBudgets.length) {
       final tb = widget.categoryBudgets[_activeTip!];
@@ -507,6 +513,78 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                   isOver ? Colors.red : Colors.green,
                 ),
               ],
+            ),
+          ],
+        ),
+      );
+    } else if (_activeTip != null &&
+        _activeTip == widget.categoryBudgets.length &&
+        hasUnalloc) {
+      // Unallocated segment tooltip
+      final allocatedTotal = widget.categoryBudgets.fold<double>(
+        0,
+        (s, b) => s + b.budgetAmount,
+      );
+      final unallocAmount = totalBudget - allocatedTotal;
+      tip = Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(7),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+              ),
+              child: const Icon(
+                Icons.money_off_rounded,
+                size: 14,
+                color: Color(0xFF64748B),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Unallocated',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  Text(
+                    '৳${unallocAmount.toStringAsFixed(0)} not assigned to any category',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: () => setState(() => _activeTip = null),
+              child: Icon(
+                Icons.close_rounded,
+                size: 14,
+                color: Colors.grey[400],
+              ),
             ),
           ],
         ),

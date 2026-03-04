@@ -309,7 +309,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                     ],
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
                     child: Column(
                       children: [
                         Row(
@@ -317,7 +317,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(10),
+                                  padding: const EdgeInsets.all(7),
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
                                       colors: [
@@ -325,19 +325,19 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                                         Color(0xFF2563EB),
                                       ],
                                     ),
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(9),
                                   ),
                                   child: const Icon(
                                     Icons.receipt_long_rounded,
                                     color: Colors.white,
-                                    size: 22,
+                                    size: 16,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 10),
                                 const Text(
                                   'Session Details',
                                   style: TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFF1E293B),
                                   ),
@@ -346,7 +346,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 10),
 
                         // Title Field
                         _buildEnhancedTextField(
@@ -362,16 +362,19 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                           },
                         ),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
 
                         // Date Field
                         GestureDetector(
                           onTap: _selectDate,
                           child: Container(
-                            padding: const EdgeInsets.all(14),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: Colors.grey.withValues(alpha: 0.2),
                               ),
@@ -379,61 +382,46 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(6),
+                                  padding: const EdgeInsets.all(5),
                                   decoration: BoxDecoration(
                                     color: const Color(
                                       0xFF2563EB,
                                     ).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(7),
                                   ),
                                   child: const Icon(
                                     Icons.calendar_today_rounded,
                                     color: Color(0xFF2563EB),
-                                    size: 18,
+                                    size: 15,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Date',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      _formatDate(_selectedDate),
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF1E293B),
-                                      ),
-                                    ),
-                                  ],
+                                const SizedBox(width: 10),
+                                Text(
+                                  _formatDate(_selectedDate),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF1E293B),
+                                  ),
                                 ),
                                 const Spacer(),
                                 Icon(
                                   Icons.chevron_right_rounded,
                                   color: Colors.grey[400],
+                                  size: 18,
                                 ),
                               ],
                             ),
                           ),
                         ),
 
-                        const SizedBox(height: 12),
-
-                        // Notes Field
+                        const SizedBox(height: 8),
                         _buildEnhancedTextField(
                           controller: _notesController,
                           label: 'Notes (Optional)',
                           hint: 'Additional notes about this session',
                           icon: Icons.notes_rounded,
-                          maxLines: 2,
+                          maxLines: 1,
                         ),
                       ],
                     ),
