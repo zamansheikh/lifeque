@@ -20,7 +20,7 @@ dependencies:
   go_router: ^17.1.0
 
   # Dependency Injection
-  get_it: ^9.2.0
+  get_it: ^9.2.1
   injectable: ^2.7.1+4
 
   # Local Storage
@@ -57,11 +57,11 @@ dependencies:
   timezone: ^0.11.0
 
   # Models & JSON
-  json_annotation: ^4.10.0
+  json_annotation: ^4.11.0
   equatable: ^2.0.8
 
   # Utils
-  uuid: ^4.5.2
+  uuid: ^4.5.3
   dartz: ^0.10.1
 
   # Charts and Calendar
@@ -84,9 +84,9 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
   # Code Generation
-  build_runner: ^2.11.1
-  injectable_generator: ^2.12.0
-  json_serializable: ^6.12.0
+  build_runner: ^2.12.1
+  injectable_generator: ^2.12.1
+  json_serializable: ^6.13.0
 
 flutter:
   uses-material-design: true
