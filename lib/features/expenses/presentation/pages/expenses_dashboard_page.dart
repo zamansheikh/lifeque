@@ -7,7 +7,6 @@ import '../../domain/entities/expense_category.dart';
 import '../../domain/entities/expense_session.dart';
 import '../bloc/expense_bloc.dart';
 import '../widgets/expense_session_card.dart';
-import '../widgets/monthly_summary_card.dart';
 import '../widgets/unified_budget_card.dart';
 
 class ExpensesDashboardPage extends StatefulWidget {
@@ -319,6 +318,8 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                         UnifiedBudgetCard(
                           budget: state.currentBudget,
                           actualSpent: state.monthlyPurchased,
+                          monthlyTotal: state.monthlyTotal,
+                          monthlyMissed: state.monthlyMissed,
                           categoryBudgets: state.categoryBudgets,
                           categorySpending: Map<ExpenseCategory, double>.from(
                             state.getCategorySpending(),
@@ -330,16 +331,6 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                               DeleteCategoryBudgetEvent(id),
                             );
                           },
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Enhanced Summary Cards
-                        MonthlySummaryCard(
-                          monthlyTotal: state.monthlyTotal,
-                          monthlyPurchased: state.monthlyPurchased,
-                          monthlyMissed: state.monthlyMissed,
-                          selectedMonth: state.selectedMonth,
                         ),
 
                         const SizedBox(height: 16),

@@ -8,6 +8,8 @@ import '../../../../injection_container.dart' as di;
 class UnifiedBudgetCard extends StatefulWidget {
   final MonthlyBudget? budget;
   final double actualSpent;
+  final double monthlyTotal;
+  final double monthlyMissed;
   final List<CategoryBudget> categoryBudgets;
   final Map<ExpenseCategory, double> categorySpending;
   final VoidCallback onSetBudget;
@@ -18,6 +20,8 @@ class UnifiedBudgetCard extends StatefulWidget {
     super.key,
     this.budget,
     required this.actualSpent,
+    this.monthlyTotal = 0.0,
+    this.monthlyMissed = 0.0,
     required this.categoryBudgets,
     required this.categorySpending,
     required this.onSetBudget,
@@ -266,6 +270,31 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                     ),
                   ],
                 ),
+                // ── Shopping summary row ──
+                if (widget.monthlyTotal > 0) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _infoTile(
+                        icon: Icons.receipt_long_rounded,
+                        value: '৳${widget.monthlyTotal.toStringAsFixed(0)}',
+                        label: 'Listed',
+                      ),
+                      const SizedBox(width: 8),
+                      _infoTile(
+                        icon: Icons.check_circle_rounded,
+                        value: '৳${widget.actualSpent.toStringAsFixed(0)}',
+                        label: 'Purchased',
+                      ),
+                      const SizedBox(width: 8),
+                      _infoTile(
+                        icon: Icons.remove_shopping_cart_rounded,
+                        value: '৳${widget.monthlyMissed.toStringAsFixed(0)}',
+                        label: 'Missed',
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 14),
                 if (hasCats) _buildSegmentedBar(budgetAmount),
                 if (hasCats) const SizedBox(height: 4),
