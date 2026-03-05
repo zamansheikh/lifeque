@@ -1067,10 +1067,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
             child: IconButton(
               padding: EdgeInsets.zero,
               iconSize: 18,
-              icon: Icon(
-                Icons.delete_outline_rounded,
-                color: Colors.red[300],
-              ),
+              icon: Icon(Icons.delete_outline_rounded, color: Colors.red[300]),
               onPressed: () => _confirmDeleteCustomCategory(cc),
             ),
           ),
@@ -1083,9 +1080,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Delete Category',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
