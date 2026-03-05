@@ -133,7 +133,9 @@ class _PermissionScreenState extends State<PermissionScreen>
 
     // Skip to battery step if notification already granted
     if (_notificationGranted && _needsBattery && !_batteryGranted) {
-      _goToPage(1);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _goToPage(1);
+      });
     }
   }
 
@@ -596,7 +598,10 @@ class _PermStepView extends StatelessWidget {
                         width: double.infinity,
                         height: 56,
                         child: isGranted
-                            ? const _GrantedButton()
+                            ? GestureDetector(
+                                onTap: onSkip,
+                                child: const _GrantedButton(),
+                              )
                             : FilledButton.icon(
                                 onPressed: onRequest,
                                 icon: Icon(step.heroIcon, size: 20),
