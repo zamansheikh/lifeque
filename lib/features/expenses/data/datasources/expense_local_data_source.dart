@@ -262,10 +262,11 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
 
   @override
   Future<void> saveAllCategoryBudgets(List<CategoryBudgetModel> budgets) async {
-    // Deduplicate by (year, month, category), keep most recently updated
+    // Deduplicate by (year, month, category, customCategoryName), keep most recently updated
     final Map<String, CategoryBudgetModel> latestByKey = {};
     for (final b in budgets) {
-      final key = '${b.year}-${b.month}-${b.category.name}';
+      final key =
+          '${b.year}-${b.month}-${b.category.name}-${b.customCategoryName ?? ''}';
       final existing = latestByKey[key];
       if (existing == null || b.updatedAt.isAfter(existing.updatedAt)) {
         latestByKey[key] = b;

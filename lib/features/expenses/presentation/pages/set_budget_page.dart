@@ -53,9 +53,11 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     return '$pct% of budget  •  ৳${_fmt(catValue)} / ৳${_fmt(budget)}';
   }
 
+  /// Sum of all enabled categories EXCEPT "Other" (which is auto-calculated).
   double get _totalAllocated {
     double total = 0;
     for (final cat in ExpenseCategory.values) {
+      if (cat == ExpenseCategory.other) continue; // skip – auto-calculated
       if (_enabledCategories[cat] == true) {
         total += double.tryParse(_categoryControllers[cat]?.text ?? '') ?? 0.0;
       }
@@ -68,6 +70,12 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
       }
     }
     return total;
+  }
+
+  /// The "Other" category always gets whatever is left over.
+  double get _otherBudgetAmount {
+    final left = _totalBudget - _totalAllocated;
+    return left > 0 ? left : 0;
   }
 
   @override
@@ -129,12 +137,13 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
 
     final amount = double.parse(_amountController.text);
 
-    // Validate: category totals must not exceed main budget
-    if (_totalAllocated > amount) {
+    // Validate: enabled category totals (excluding Other) must not exceed budget
+    final allocatedWithoutOther = _totalAllocated;
+    if (allocatedWithoutOther > amount) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Category budgets (৳${_fmt(_totalAllocated)}) exceed total budget (৳${_fmt(amount)})',
+            'Category budgets (৳${_fmt(allocatedWithoutOther)}) exceed total budget (৳${_fmt(amount)})',
           ),
           backgroundColor: Colors.red[600],
           behavior: SnackBarBehavior.floating,
@@ -160,25 +169,9 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     );
     context.read<ExpenseBloc>().add(SetBudgetEvent(budget));
 
-    // Auto-assign unallocated budget to "Other" category
-    final unallocated = amount - _totalAllocated;
-    if (unallocated > 0) {
-      // If Other is not enabled or has 0, auto-create/update Other budget
-      final otherCurrent =
-          double.tryParse(
-            _categoryControllers[ExpenseCategory.other]?.text ?? '',
-          ) ??
-          0.0;
-      if (!(_enabledCategories[ExpenseCategory.other] == true) ||
-          otherCurrent == 0) {
-        _enabledCategories[ExpenseCategory.other] = true;
-        _categoryControllers[ExpenseCategory.other]?.text =
-            (otherCurrent + unallocated).toStringAsFixed(0);
-      }
-    }
-
-    // Save each enabled category budget
+    // Save each enabled category budget (skip Other – handled below)
     for (final cat in ExpenseCategory.values) {
+      if (cat == ExpenseCategory.other) continue;
       if (_enabledCategories[cat] == true) {
         final catAmount =
             double.tryParse(_categoryControllers[cat]?.text ?? '') ?? 0.0;
@@ -202,6 +195,29 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
           context.read<ExpenseBloc>().add(SetCategoryBudgetEvent(catBudget));
         }
       }
+    }
+
+    // Always save the auto-calculated "Other" category budget
+    {
+      final otherAmount = _otherBudgetAmount;
+      final existing = widget.existingCategoryBudgets.where(
+        (b) =>
+            b.category == ExpenseCategory.other && b.customCategoryName == null,
+      );
+      final otherBudget = CategoryBudget(
+        id: existing.isNotEmpty && existing.first.id.isNotEmpty
+            ? existing.first.id
+            : '${DateTime.now().millisecondsSinceEpoch}other',
+        year: widget.selectedMonth.year,
+        month: widget.selectedMonth.month,
+        category: ExpenseCategory.other,
+        budgetAmount: otherAmount,
+        createdAt: existing.isNotEmpty
+            ? existing.first.createdAt
+            : DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      context.read<ExpenseBloc>().add(SetCategoryBudgetEvent(otherBudget));
     }
 
     // Save each enabled custom category budget
@@ -666,7 +682,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 Text(
                   overAllocated
                       ? '৳${_fmt(-remaining)} over limit!'
-                      : '৳${_fmt(remaining)} unallocated',
+                      : '৳${_fmt(remaining)} → Other',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -774,6 +790,11 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
   }
 
   Widget _buildCategoryRow(ExpenseCategory cat, double globalRemaining) {
+    // "Other" is always auto-calculated — render a special read-only row
+    if (cat == ExpenseCategory.other) {
+      return _buildOtherCategoryRow();
+    }
+
     final isEnabled = _enabledCategories[cat] == true;
     final currentValue =
         double.tryParse(_categoryControllers[cat]?.text ?? '') ?? 0.0;
@@ -920,6 +941,133 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 if (!val) _categoryControllers[cat]?.clear();
               });
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Auto-calculated \"Other\" category row (read-only) ─────────────────────
+  Widget _buildOtherCategoryRow() {
+    const cat = ExpenseCategory.other;
+    final otherAmount = _otherBudgetAmount;
+    final hasAmount = otherAmount > 0;
+    final spent = widget.categorySpending[cat] ?? 0.0;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: hasAmount
+            ? cat.color.withValues(alpha: 0.06)
+            : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: hasAmount
+              ? cat.color.withValues(alpha: 0.3)
+              : const Color(0xFFE2E8F0),
+          width: hasAmount ? 1.5 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Icon
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: hasAmount
+                  ? cat.color.withValues(alpha: 0.15)
+                  : const Color(0xFFE2E8F0),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              cat.icon,
+              color: hasAmount ? cat.color : const Color(0xFF94A3B8),
+              size: 17,
+            ),
+          ),
+          const SizedBox(width: 10),
+
+          // Name + info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  cat.displayName,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: hasAmount
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFF94A3B8),
+                  ),
+                ),
+                Text(
+                  hasAmount
+                      ? _categoryHint(otherAmount, _totalBudget)
+                      : 'Auto-calculated from remaining budget',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: hasAmount ? cat.color : const Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (spent > 0)
+                  Text(
+                    '৳${_fmt(spent)} spent this month',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.orange[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // Read-only amount display
+          if (hasAmount) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: cat.color.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: cat.color.withValues(alpha: 0.25)),
+              ),
+              child: Text(
+                '৳${_fmt(otherAmount)}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: cat.color,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+          ],
+
+          // "Auto" badge instead of a switch
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: const Color(0xFF10B981).withValues(alpha: 0.3),
+              ),
+            ),
+            child: const Text(
+              'Auto',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF10B981),
+              ),
+            ),
           ),
         ],
       ),
