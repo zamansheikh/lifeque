@@ -128,7 +128,8 @@ class _OnboardingPageState extends State<OnboardingPage>
     final svc = NavigationPreferencesService(di.sl<SharedPreferences>());
     await svc.markOnboardingDone();
     if (!mounted) return;
-    context.go(svc.getHomeRoute());
+    // Navigate to permission screen after onboarding (not directly home)
+    context.go('/permissions');
   }
 
   void _next() {

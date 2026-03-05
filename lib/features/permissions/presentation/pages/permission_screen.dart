@@ -396,6 +396,7 @@ class _PermissionScreenState extends State<PermissionScreen>
               _CelebrationView(
                 heroAnimation: _heroController,
                 allGranted: _allGranted,
+                notificationGranted: _notificationGranted,
                 onContinue: widget.onPermissionsGranted,
               ),
             ],
@@ -655,11 +656,13 @@ class _PermStepView extends StatelessWidget {
 class _CelebrationView extends StatelessWidget {
   final AnimationController heroAnimation;
   final bool allGranted;
+  final bool notificationGranted;
   final VoidCallback onContinue;
 
   const _CelebrationView({
     required this.heroAnimation,
     required this.allGranted,
+    required this.notificationGranted,
     required this.onContinue,
   });
 
@@ -784,7 +787,7 @@ class _CelebrationView extends StatelessWidget {
                         _StatusRow(
                           icon: Icons.notifications_active_rounded,
                           label: 'Notifications',
-                          granted: true,
+                          granted: notificationGranted,
                         ),
                         const SizedBox(height: 12),
                         if (Platform.isAndroid)

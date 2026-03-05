@@ -40,6 +40,12 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
 
   double get _totalBudget => double.tryParse(_amountController.text) ?? 0.0;
 
+  /// Format currency: show decimals only when fractional part exists
+  String _fmt(double v) {
+    if (v == v.roundToDouble()) return v.toStringAsFixed(0);
+    return v.toStringAsFixed(2);
+  }
+
   double get _totalAllocated {
     double total = 0;
     for (final cat in ExpenseCategory.values) {
@@ -121,7 +127,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Category budgets (৳${_totalAllocated.toStringAsFixed(0)}) exceed total budget (৳${amount.toStringAsFixed(0)})',
+            'Category budgets (৳${_fmt(_totalAllocated)}) exceed total budget (৳${_fmt(amount)})',
           ),
           backgroundColor: Colors.red[600],
           behavior: SnackBarBehavior.floating,
@@ -641,7 +647,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Allocated: ৳${totalAllocated.toStringAsFixed(0)}',
+                  'Allocated: ৳${_fmt(totalAllocated)}',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -652,8 +658,8 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 ),
                 Text(
                   overAllocated
-                      ? '৳${(-remaining).toStringAsFixed(0)} over limit!'
-                      : '৳${remaining.toStringAsFixed(0)} unallocated',
+                      ? '৳${_fmt(-remaining)} over limit!'
+                      : '৳${_fmt(remaining)} unallocated',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -730,31 +736,13 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
             const SizedBox(height: 10),
           ],
 
-          // Category rows
+          // All category rows (native + custom merged)
           ...ExpenseCategory.values.map(
             (cat) => _buildCategoryRow(cat, remaining),
           ),
-
-          // Custom category rows
-          if (_customCategories.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            const Divider(height: 1, color: Color(0xFFF1F5F9)),
-            Padding(
-              padding: const EdgeInsets.only(top: 8, bottom: 4, left: 4),
-              child: Text(
-                'CUSTOM CATEGORIES',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey[500],
-                  letterSpacing: 1,
-                ),
-              ),
-            ),
-            ..._customCategories.map(
-              (cc) => _buildCustomCategoryRow(cc, remaining),
-            ),
-          ],
+          ..._customCategories.map(
+            (cc) => _buildCustomCategoryRow(cc, remaining),
+          ),
 
           // Add Custom Category button
           const SizedBox(height: 8),
@@ -839,7 +827,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 ),
                 if (isEnabled && _totalBudget > 0)
                   Text(
-                    'Max ৳${availableForThis.toStringAsFixed(0)} available',
+                    'Max ৳${_fmt(availableForThis)} available',
                     style: TextStyle(
                       fontSize: 11,
                       color: cat.color,
@@ -848,7 +836,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                   ),
                 if (spent > 0)
                   Text(
-                    '৳${spent.toStringAsFixed(0)} spent this month',
+                    '৳${_fmt(spent)} spent this month',
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.orange[700],
@@ -993,7 +981,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 ),
                 if (isEnabled && _totalBudget > 0)
                   Text(
-                    'Max ৳${availableForThis.toStringAsFixed(0)} available',
+                    'Max ৳${_fmt(availableForThis)} available',
                     style: TextStyle(
                       fontSize: 11,
                       color: cc.color,
@@ -1071,6 +1059,59 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 if (!val) _customCategoryControllers[cc.name]?.clear();
               });
             },
+          ),
+          // Delete custom category
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              iconSize: 18,
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: Colors.red[300],
+              ),
+              onPressed: () => _confirmDeleteCustomCategory(cc),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteCustomCategory(CustomCategory cc) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text(
+          'Delete Category',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          'Remove "${cc.displayName}" from your categories?',
+          style: const TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await di.sl<CustomCategoryService>().remove(cc.name);
+              setState(() {
+                _customCategories = di.sl<CustomCategoryService>().getAll();
+                _customCategoryControllers[cc.name]?.dispose();
+                _customCategoryControllers.remove(cc.name);
+                _enabledCustomCategories.remove(cc.name);
+              });
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red[600]),
+            child: const Text('Delete'),
           ),
         ],
       ),
