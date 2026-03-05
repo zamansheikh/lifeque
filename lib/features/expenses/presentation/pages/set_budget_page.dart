@@ -46,6 +46,13 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     return v.toStringAsFixed(2);
   }
 
+  /// Smart hint for category rows: shows % of budget allocated
+  String _categoryHint(double catValue, double budget) {
+    if (budget <= 0 || catValue <= 0) return '';
+    final pct = (catValue / budget * 100).toStringAsFixed(0);
+    return '$pct% of budget  •  ৳${_fmt(catValue)} / ৳${_fmt(budget)}';
+  }
+
   double get _totalAllocated {
     double total = 0;
     for (final cat in ExpenseCategory.values) {
@@ -770,8 +777,6 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     final isEnabled = _enabledCategories[cat] == true;
     final currentValue =
         double.tryParse(_categoryControllers[cat]?.text ?? '') ?? 0.0;
-    // available = free budget + what this cat already uses
-    final availableForThis = globalRemaining + (isEnabled ? currentValue : 0.0);
     final spent = widget.categorySpending[cat] ?? 0.0;
 
     return AnimatedContainer(
@@ -827,7 +832,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 ),
                 if (isEnabled && _totalBudget > 0)
                   Text(
-                    'Max ৳${_fmt(availableForThis)} available',
+                    _categoryHint(currentValue, _totalBudget),
                     style: TextStyle(
                       fontSize: 11,
                       color: cat.color,
@@ -897,9 +902,6 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                   if (value == null || value.isEmpty) return 'Enter amount';
                   final amt = double.tryParse(value);
                   if (amt == null || amt <= 0) return 'Invalid';
-                  if (_totalBudget > 0 && amt > availableForThis + 0.01) {
-                    return 'Too high';
-                  }
                   return null;
                 },
               ),
@@ -924,160 +926,174 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     );
   }
 
-  // ── Custom Category Row ───────────────────────────────────────────────────
+  // ── Custom Category Row (swipe-to-delete) ──────────────────────────────────
   Widget _buildCustomCategoryRow(CustomCategory cc, double globalRemaining) {
     final isEnabled = _enabledCustomCategories[cc.name] == true;
     final currentValue =
         double.tryParse(_customCategoryControllers[cc.name]?.text ?? '') ?? 0.0;
-    final availableForThis = globalRemaining + (isEnabled ? currentValue : 0.0);
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: isEnabled
-            ? cc.color.withValues(alpha: 0.06)
-            : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isEnabled
-              ? cc.color.withValues(alpha: 0.3)
-              : const Color(0xFFE2E8F0),
-          width: isEnabled ? 1.5 : 1,
+    return Dismissible(
+      key: ValueKey('custom_cat_${cc.name}'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmDeleteCustomCategory(cc),
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: Colors.red[500],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.delete_rounded, color: Colors.white, size: 20),
+            SizedBox(width: 6),
+            Text(
+              'Delete',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: isEnabled
-                  ? cc.color.withValues(alpha: 0.15)
-                  : const Color(0xFFE2E8F0),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              cc.icon,
-              color: isEnabled ? cc.color : const Color(0xFF94A3B8),
-              size: 17,
-            ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: isEnabled
+              ? cc.color.withValues(alpha: 0.06)
+              : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isEnabled
+                ? cc.color.withValues(alpha: 0.3)
+                : const Color(0xFFE2E8F0),
+            width: isEnabled ? 1.5 : 1,
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  cc.displayName,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isEnabled
-                        ? const Color(0xFF1E293B)
-                        : const Color(0xFF94A3B8),
-                  ),
-                ),
-                if (isEnabled && _totalBudget > 0)
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: isEnabled
+                    ? cc.color.withValues(alpha: 0.15)
+                    : const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                cc.icon,
+                color: isEnabled ? cc.color : const Color(0xFF94A3B8),
+                size: 17,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    'Max ৳${_fmt(availableForThis)} available',
+                    cc.displayName,
                     style: TextStyle(
-                      fontSize: 11,
-                      color: cc.color,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isEnabled
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFF94A3B8),
                     ),
                   ),
-              ],
+                  if (isEnabled && _totalBudget > 0)
+                    Text(
+                      _categoryHint(currentValue, _totalBudget),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: cc.color,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          if (isEnabled) ...[
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 95,
-              child: TextFormField(
-                controller: _customCategoryControllers[cc.name],
-                keyboardType: TextInputType.number,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: cc.color,
-                ),
-                decoration: InputDecoration(
-                  hintText: '0',
-                  prefixText: '৳',
-                  prefixStyle: TextStyle(
+            if (isEnabled) ...[
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 95,
+                child: TextFormField(
+                  controller: _customCategoryControllers[cc.name],
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: cc.color,
                   ),
-                  isDense: true,
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: cc.color.withValues(alpha: 0.4),
+                  decoration: InputDecoration(
+                    hintText: '0',
+                    prefixText: '৳',
+                    prefixStyle: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: cc.color,
+                    ),
+                    isDense: true,
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: cc.color.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: cc.color.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: cc.color, width: 2),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
                     ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: cc.color.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: cc.color, width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 8,
-                  ),
+                  validator: (value) {
+                    if (_enabledCustomCategories[cc.name] != true) return null;
+                    if (value == null || value.isEmpty) return 'Enter amount';
+                    final amt = double.tryParse(value);
+                    if (amt == null || amt <= 0) return 'Invalid';
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (_enabledCustomCategories[cc.name] != true) return null;
-                  if (value == null || value.isEmpty) return 'Enter amount';
-                  final amt = double.tryParse(value);
-                  if (amt == null || amt <= 0) return 'Invalid';
-                  if (_totalBudget > 0 && amt > availableForThis + 0.01) {
-                    return 'Too high';
-                  }
-                  return null;
-                },
               ),
+              const SizedBox(width: 6),
+            ],
+            Switch(
+              value: isEnabled,
+              activeThumbColor: cc.color,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              onChanged: (val) {
+                setState(() {
+                  _enabledCustomCategories[cc.name] = val;
+                  if (!val) _customCategoryControllers[cc.name]?.clear();
+                });
+              },
             ),
-            const SizedBox(width: 6),
           ],
-          Switch(
-            value: isEnabled,
-            activeThumbColor: cc.color,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            onChanged: (val) {
-              setState(() {
-                _enabledCustomCategories[cc.name] = val;
-                if (!val) _customCategoryControllers[cc.name]?.clear();
-              });
-            },
-          ),
-          // Delete custom category
-          SizedBox(
-            width: 32,
-            height: 32,
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              iconSize: 18,
-              icon: Icon(Icons.delete_outline_rounded, color: Colors.red[300]),
-              onPressed: () => _confirmDeleteCustomCategory(cc),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  void _confirmDeleteCustomCategory(CustomCategory cc) {
-    showDialog(
+  Future<bool> _confirmDeleteCustomCategory(CustomCategory cc) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -1091,26 +1107,28 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await di.sl<CustomCategoryService>().remove(cc.name);
-              setState(() {
-                _customCategories = di.sl<CustomCategoryService>().getAll();
-                _customCategoryControllers[cc.name]?.dispose();
-                _customCategoryControllers.remove(cc.name);
-                _enabledCustomCategories.remove(cc.name);
-              });
-            },
+            onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red[600]),
             child: const Text('Delete'),
           ),
         ],
       ),
     );
+    if (confirmed == true) {
+      await di.sl<CustomCategoryService>().remove(cc.name);
+      setState(() {
+        _customCategories = di.sl<CustomCategoryService>().getAll();
+        _customCategoryControllers[cc.name]?.dispose();
+        _customCategoryControllers.remove(cc.name);
+        _enabledCustomCategories.remove(cc.name);
+      });
+      return true;
+    }
+    return false;
   }
 
   // ── Add Custom Category Dialog ────────────────────────────────────────────

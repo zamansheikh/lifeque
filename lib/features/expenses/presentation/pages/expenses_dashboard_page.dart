@@ -316,16 +316,6 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       children: [
-                        // Enhanced Summary Cards
-                        MonthlySummaryCard(
-                          monthlyTotal: state.monthlyTotal,
-                          monthlyPurchased: state.monthlyPurchased,
-                          monthlyMissed: state.monthlyMissed,
-                          selectedMonth: state.selectedMonth,
-                        ),
-
-                        const SizedBox(height: 12),
-
                         UnifiedBudgetCard(
                           budget: state.currentBudget,
                           actualSpent: state.monthlyPurchased,
@@ -340,6 +330,16 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                               DeleteCategoryBudgetEvent(id),
                             );
                           },
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Enhanced Summary Cards
+                        MonthlySummaryCard(
+                          monthlyTotal: state.monthlyTotal,
+                          monthlyPurchased: state.monthlyPurchased,
+                          monthlyMissed: state.monthlyMissed,
+                          selectedMonth: state.selectedMonth,
                         ),
 
                         const SizedBox(height: 16),
