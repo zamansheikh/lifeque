@@ -97,6 +97,16 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
     setState(() => _activeTip = _activeTip == index ? null : index);
   }
 
+  /// Category budgets to display — hides "Other" when its amount is 0.
+  List<CategoryBudget> get _visibleCategoryBudgets => widget.categoryBudgets
+      .where(
+        (b) =>
+            !(b.category == ExpenseCategory.other &&
+                b.customCategoryName == null &&
+                b.budgetAmount <= 0),
+      )
+      .toList();
+
   String _getBudgetStatus(double percentage, bool isOverBudget) {
     if (isOverBudget) return 'Over budget!';
     if (percentage >= 0.9) return 'Almost at limit';
@@ -137,7 +147,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
         .where((e) => !budgetedCats.contains(e.key) && e.value > 0)
         .toList();
     final hasCats =
-        widget.categoryBudgets.isNotEmpty || unbudgetedSpending.isNotEmpty;
+        _visibleCategoryBudgets.isNotEmpty || unbudgetedSpending.isNotEmpty;
 
     return Container(
       decoration: BoxDecoration(
@@ -324,7 +334,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                     Text(
                       _expanded
                           ? 'Hide Category Budgets'
-                          : 'Show Category Budgets (${widget.categoryBudgets.length})',
+                          : 'Show Category Budgets (${_visibleCategoryBudgets.length})',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
@@ -362,9 +372,13 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                 ),
                 child: Column(
                   children: [
-                    for (int i = 0; i < widget.categoryBudgets.length; i++) ...[
-                      _buildCompactCategoryRow(widget.categoryBudgets[i]),
-                      if (i < widget.categoryBudgets.length - 1 ||
+                    for (
+                      int i = 0;
+                      i < _visibleCategoryBudgets.length;
+                      i++
+                    ) ...[
+                      _buildCompactCategoryRow(_visibleCategoryBudgets[i]),
+                      if (i < _visibleCategoryBudgets.length - 1 ||
                           unbudgetedSpending.isNotEmpty)
                         const Divider(
                           height: 1,
@@ -403,7 +417,8 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
   //  Segmented bar  (Flexible-based, no overflow)
   // ══════════════════════════════════════════════
   Widget _buildSegmentedBar(double totalBudget) {
-    if (totalBudget <= 0 || widget.categoryBudgets.isEmpty) {
+    final visCats = _visibleCategoryBudgets;
+    if (totalBudget <= 0 || visCats.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -413,7 +428,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
 
     double usedRatio = 0;
     final ratios = <double>[];
-    for (final b in widget.categoryBudgets) {
+    for (final b in visCats) {
       final r = (b.budgetAmount / totalBudget).clamp(0.0, 1.0);
       ratios.add(r);
       usedRatio += r;
@@ -431,8 +446,8 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
 
     final children = <Widget>[];
 
-    for (int i = 0; i < widget.categoryBudgets.length; i++) {
-      final b = widget.categoryBudgets[i];
+    for (int i = 0; i < visCats.length; i++) {
+      final b = visCats[i];
       final spent = widget.categorySpending[b.category] ?? 0.0;
       final fillRatio = b.budgetAmount > 0
           ? (spent / b.budgetAmount).clamp(0.0, 1.0)
@@ -448,9 +463,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
             onTap: () => _tapSegment(i),
             child: Container(
               height: barH,
-              margin: EdgeInsets.only(
-                right: i < widget.categoryBudgets.length - 1 ? gap : 0,
-              ),
+              margin: EdgeInsets.only(right: i < visCats.length - 1 ? gap : 0),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.22),
                 borderRadius: BorderRadius.circular(radius),
@@ -476,7 +489,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
     }
 
     if (hasUnalloc) {
-      final unallocIndex = widget.categoryBudgets.length;
+      final unallocIndex = visCats.length;
       final isUnallocActive = _activeTip == unallocIndex;
       children.add(
         Flexible(
@@ -503,8 +516,8 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
     }
 
     Widget? tip;
-    if (_activeTip != null && _activeTip! < widget.categoryBudgets.length) {
-      final tb = widget.categoryBudgets[_activeTip!];
+    if (_activeTip != null && _activeTip! < visCats.length) {
+      final tb = visCats[_activeTip!];
       final spent = widget.categorySpending[tb.category] ?? 0.0;
       final rem = tb.budgetAmount - spent;
       final isOver = spent > tb.budgetAmount;
@@ -594,10 +607,10 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
         ),
       );
     } else if (_activeTip != null &&
-        _activeTip == widget.categoryBudgets.length &&
+        _activeTip == visCats.length &&
         hasUnalloc) {
       // Unallocated segment tooltip
-      final allocatedTotal = widget.categoryBudgets.fold<double>(
+      final allocatedTotal = visCats.fold<double>(
         0,
         (s, b) => s + b.budgetAmount,
       );
@@ -676,7 +689,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
         Wrap(
           spacing: 10,
           runSpacing: 4,
-          children: widget.categoryBudgets.map((b) {
+          children: visCats.map((b) {
             final spent = widget.categorySpending[b.category] ?? 0.0;
             final isOver = spent > b.budgetAmount;
             final bDisp = _budgetDisplay(b);
