@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'salah_info_page.dart';
+import 'salah_guide/salah_types_page.dart';
 import 'waqt_rakah_page.dart';
 import 'necessary_surahs_page.dart';
 import 'duas_azkar_page.dart';
@@ -51,7 +51,7 @@ class IslamicResourcesPage extends StatelessWidget {
       icon: Icons.self_improvement_rounded,
       iconBg: Color(0xFFE8F5EE),
       iconColor: IslamicColors.deepGreen,
-      page: const SalahInfoPage(),
+      page: const SalahTypesPage(),
     ),
     _ResourceCategory(
       title: 'Waqt & Rakah Table',
