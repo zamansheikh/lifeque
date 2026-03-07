@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'islamic_resources_page.dart';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -322,8 +323,8 @@ class _RakahTable extends StatelessWidget {
                 children: [
                   Text(
                     prayer.arabic,
-                    style: const TextStyle(
-                      fontSize: 11,
+                    style: GoogleFonts.amiri(
+                      fontSize: 16,
                       color: IslamicColors.gold,
                       fontWeight: FontWeight.w600,
                     ),
@@ -432,8 +433,8 @@ class _PrayerTimeCard extends StatelessWidget {
                       children: [
                         Text(
                           prayer.arabic,
-                          style: const TextStyle(
-                            fontSize: 12,
+                          style: GoogleFonts.amiri(
+                            fontSize: 16,
                             color: IslamicColors.gold,
                             fontWeight: FontWeight.w600,
                           ),

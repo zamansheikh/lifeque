@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'islamic_resources_page.dart';
 
 // ─── Data model ───────────────────────────────────────────────────────────────
@@ -333,8 +334,8 @@ class _DuaCategorySection extends StatelessWidget {
                   children: [
                     Text(
                       category.arabicLabel,
-                      style: TextStyle(
-                        fontSize: 11,
+                      style: GoogleFonts.amiri(
+                        fontSize: 14,
                         color: category.color.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w600,
                       ),
@@ -435,8 +436,8 @@ class _DuaCardState extends State<_DuaCard> {
                     child: Center(
                       child: Text(
                         widget.dua.arabicName.split(' ').last,
-                        style: TextStyle(
-                          fontSize: 11,
+                        style: GoogleFonts.amiri(
+                          fontSize: 14,
                           color: widget.accentColor,
                           fontWeight: FontWeight.w600,
                         ),
@@ -451,8 +452,8 @@ class _DuaCardState extends State<_DuaCard> {
                       children: [
                         Text(
                           widget.dua.arabicName,
-                          style: const TextStyle(
-                            fontSize: 12,
+                          style: GoogleFonts.amiri(
+                            fontSize: 16,
                             color: IslamicColors.gold,
                             fontWeight: FontWeight.w600,
                           ),
@@ -512,9 +513,9 @@ class _DuaCardState extends State<_DuaCard> {
                       widget.dua.arabicText,
                       textAlign: TextAlign.right,
                       textDirection: TextDirection.rtl,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        height: 2.0,
+                      style: GoogleFonts.amiri(
+                        fontSize: 22,
+                        height: 2.2,
                         fontWeight: FontWeight.w600,
                         color: IslamicColors.darkText,
                       ),

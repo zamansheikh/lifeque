@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'islamic_resources_page.dart';
 
 // ─── Surah data model ─────────────────────────────────────────────────────────
@@ -275,8 +276,8 @@ class _SurahGroup extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 '· $arabicLabel',
-                style: TextStyle(
-                  fontSize: 12,
+                style: GoogleFonts.amiri(
+                  fontSize: 14,
                   color: color.withValues(alpha: 0.7),
                 ),
               ),
@@ -372,8 +373,8 @@ class _SurahCardState extends State<_SurahCard> {
                       children: [
                         Text(
                           widget.surah.arabicName,
-                          style: const TextStyle(
-                            fontSize: 12,
+                          style: GoogleFonts.amiri(
+                            fontSize: 14,
                             color: IslamicColors.gold,
                             fontWeight: FontWeight.w600,
                           ),
@@ -428,8 +429,8 @@ class _SurahCardState extends State<_SurahCard> {
                       widget.surah.arabicText,
                       textAlign: TextAlign.right,
                       textDirection: TextDirection.rtl,
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: GoogleFonts.amiri(
+                        fontSize: 22,
                         height: 2.2,
                         color: IslamicColors.darkText,
                         fontWeight: FontWeight.w600,

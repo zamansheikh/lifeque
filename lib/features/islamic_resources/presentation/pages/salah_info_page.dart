@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'islamic_resources_page.dart';
 
 // ─── Data model ──────────────────────────────────────────────────────────────
@@ -467,9 +468,9 @@ class SalahInfoPage extends StatelessWidget {
                       children: [
                         Text(
                           'دَلِيلُ الصَّلَاة',
-                          style: TextStyle(
+                          style: GoogleFonts.amiri(
                             color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: 14,
+                            fontSize: 18,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -544,8 +545,8 @@ class _PhaseSection extends StatelessWidget {
                 children: [
                   Text(
                     arabicLabel,
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: GoogleFonts.amiri(
+                      fontSize: 15,
                       color: color.withValues(alpha: 0.8),
                       fontWeight: FontWeight.w600,
                     ),
@@ -648,8 +649,8 @@ class _StepCard extends StatelessWidget {
                   children: [
                     Text(
                       step.arabicName,
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: GoogleFonts.amiri(
+                        fontSize: 16,
                         color: IslamicColors.gold,
                         fontWeight: FontWeight.w600,
                       ),
@@ -849,8 +850,8 @@ class SalahStepDetailPage extends StatelessWidget {
           Text(
             step.arabicName,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 32,
+            style: GoogleFonts.amiri(
+              fontSize: 36,
               fontWeight: FontWeight.w700,
               color: color,
               height: 1.6,
@@ -970,9 +971,9 @@ class SalahStepDetailPage extends StatelessWidget {
               step.arabicDua!,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
-              style: const TextStyle(
-                fontSize: 19,
-                height: 2.0,
+              style: GoogleFonts.amiri(
+                fontSize: 24,
+                height: 2.2,
                 fontWeight: FontWeight.w600,
                 color: IslamicColors.darkText,
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'salah_info_page.dart';
 import 'waqt_rakah_page.dart';
 import 'necessary_surahs_page.dart';
@@ -172,9 +173,9 @@ class IslamicResourcesPage extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'بِسْمِ اللّٰهِ',
-                    style: TextStyle(
+                    style: GoogleFonts.amiri(
                       color: Colors.white.withValues(alpha: 0.5),
-                      fontSize: 15,
+                      fontSize: 20,
                     ),
                   ),
                 ],
@@ -227,8 +228,8 @@ class _CategoryCard extends StatelessWidget {
                   children: [
                     Text(
                       category.arabicTitle,
-                      style: const TextStyle(
-                        fontSize: 12,
+                      style: GoogleFonts.amiri(
+                        fontSize: 15,
                         color: IslamicColors.gold,
                         fontWeight: FontWeight.w600,
                       ),
