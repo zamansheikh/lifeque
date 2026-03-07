@@ -194,6 +194,15 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
           );
           context.read<ExpenseBloc>().add(SetCategoryBudgetEvent(catBudget));
         }
+      } else {
+        final existing = widget.existingCategoryBudgets.where(
+          (b) => b.category == cat && b.customCategoryName == null,
+        );
+        if (existing.isNotEmpty && existing.first.id.isNotEmpty) {
+          context.read<ExpenseBloc>().add(
+            DeleteCategoryBudgetEvent(existing.first.id),
+          );
+        }
       }
     }
 
@@ -245,6 +254,15 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
             customCategoryName: cc.name,
           );
           context.read<ExpenseBloc>().add(SetCategoryBudgetEvent(catBudget));
+        }
+      } else {
+        final existing = widget.existingCategoryBudgets.where(
+          (b) => b.customCategoryName == cc.name,
+        );
+        if (existing.isNotEmpty && existing.first.id.isNotEmpty) {
+          context.read<ExpenseBloc>().add(
+            DeleteCategoryBudgetEvent(existing.first.id),
+          );
         }
       }
     }

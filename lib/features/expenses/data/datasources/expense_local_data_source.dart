@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense_session_model.dart';
 import '../models/monthly_budget_model.dart';
@@ -33,6 +34,26 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
   final SharedPreferences sharedPreferences;
   static const String sessionsKey = 'CACHED_EXPENSE_SESSIONS';
   static const String budgetsKey = 'CACHED_MONTHLY_BUDGETS';
+
+  // Simple async lock to prevent race conditions during concurrent category budget updates
+  Future<void>? _categoryBudgetLock;
+
+  Future<void> _runWithCategoryBudgetLock(
+    Future<void> Function() action,
+  ) async {
+    final previousLock = _categoryBudgetLock ?? Future.value();
+    final completer = Completer<void>();
+    _categoryBudgetLock = completer.future;
+
+    try {
+      await previousLock;
+      await action();
+    } catch (_) {
+      // Ignore errors for the lock propagation
+    } finally {
+      completer.complete();
+    }
+  }
 
   ExpenseLocalDataSourceImpl({required this.sharedPreferences});
 
@@ -218,46 +239,50 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
 
   @override
   Future<void> saveCategoryBudget(CategoryBudgetModel budget) async {
-    final budgets = await getAllCategoryBudgets();
-    // First try by ID
-    int index = budgets.indexWhere((b) => b.id == budget.id);
-    if (index == -1) {
-      // If ID not found, try to find by (year, month, category, customCategoryName) to avoid duplicates
-      index = budgets.indexWhere(
-        (b) =>
-            b.year == budget.year &&
-            b.month == budget.month &&
-            b.category == budget.category &&
-            b.customCategoryName == budget.customCategoryName,
-      );
-      if (index != -1) {
-        // Preserve original id and createdAt when updating existing entry
-        final existing = budgets[index];
-        budgets[index] = CategoryBudgetModel(
-          id: existing.id,
-          year: budget.year,
-          month: budget.month,
-          category: budget.category,
-          budgetAmount: budget.budgetAmount,
-          createdAt: existing.createdAt,
-          updatedAt: budget.updatedAt,
-          customCategoryName: budget.customCategoryName,
+    await _runWithCategoryBudgetLock(() async {
+      final budgets = await getAllCategoryBudgets();
+      // First try by ID
+      int index = budgets.indexWhere((b) => b.id == budget.id);
+      if (index == -1) {
+        // If ID not found, try to find by (year, month, category, customCategoryName) to avoid duplicates
+        index = budgets.indexWhere(
+          (b) =>
+              b.year == budget.year &&
+              b.month == budget.month &&
+              b.category == budget.category &&
+              b.customCategoryName == budget.customCategoryName,
         );
+        if (index != -1) {
+          // Preserve original id and createdAt when updating existing entry
+          final existing = budgets[index];
+          budgets[index] = CategoryBudgetModel(
+            id: existing.id,
+            year: budget.year,
+            month: budget.month,
+            category: budget.category,
+            budgetAmount: budget.budgetAmount,
+            createdAt: existing.createdAt,
+            updatedAt: budget.updatedAt,
+            customCategoryName: budget.customCategoryName,
+          );
+        } else {
+          budgets.add(budget);
+        }
       } else {
-        budgets.add(budget);
+        budgets[index] = budget;
       }
-    } else {
-      budgets[index] = budget;
-    }
 
-    await saveAllCategoryBudgets(budgets);
+      await saveAllCategoryBudgets(budgets);
+    });
   }
 
   @override
   Future<void> deleteCategoryBudget(String id) async {
-    final budgets = await getAllCategoryBudgets();
-    budgets.removeWhere((budget) => budget.id == id);
-    await saveAllCategoryBudgets(budgets);
+    await _runWithCategoryBudgetLock(() async {
+      final budgets = await getAllCategoryBudgets();
+      budgets.removeWhere((budget) => budget.id == id);
+      await saveAllCategoryBudgets(budgets);
+    });
   }
 
   @override
