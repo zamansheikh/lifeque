@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'salah_step_model.dart';
 
-// ─── Common/Reusable Steps ─────────────────────────────────────────────────────
-const _niyyah = SalahStep(
-  id: 'niyyah',
-  arabicName: 'نِيَّة',
-  englishName: 'Intention (Niyyah)',
+// ─── Constants for Purity/Conditions (Before Salah) ──────────────────────────
+const _conditions = SalahStep(
+  id: 'conditions',
+  arabicName: 'شُرُوطُ الصَّلَاة',
+  englishName: 'Essential Conditions (Shurut)',
   phase: 'before',
-  icon: Icons.favorite_border_rounded,
-  shortDesc: 'Make the intention in your heart',
+  icon: Icons.assignment_turned_in_outlined,
+  shortDesc: 'Ensure time, awrah, purity, qibla, and niyyah',
   detailDesc:
-      'Niyyah is the sincere intention in the heart to perform the prayer for the sake of Allah. '
-      'It does not need to be uttered aloud — it is a matter of the heart. '
-      'You should intend which prayer you are performing and that it is fard (obligatory) or sunnah.',
+      'You must fulfill these conditions before prayer begins. A deficiency in any of these renders the prayer void:\n'
+      '• Time: Ensure the prayer time has entered.\n'
+      '• Awrah: Cover your private areas appropriately.\n'
+      '• Purity: Attain ritual purity (Wudu/Ghusl) and physical purity (body, clothes, spot of prayer).\n'
+      '• Qibla: Face the Kaaba in Mecca.\n'
+      '• Niyyah: Establish the specific intention in your heart.',
   keyPoints: [
-    'Intention is in the heart, not the tongue',
-    'Specify which salah you are performing',
-    'Intend it purely for the sake of Allah',
-    'Form the intention before starting Takbir',
+    'Time must have entered properly',
+    'Cover the Awrah completely',
+    'Ensure Wudu/Ghusl is performed',
+    'Body, clothes, and prayer spot must be free of impurities',
+    'Face the Qibla (Kaaba)',
+    'Intend the specific prayer in the heart',
   ],
 );
 
@@ -32,42 +37,43 @@ const _wudu = SalahStep(
       'Wudu is the ritual purification with water that is required before performing Salah. '
       'Without wudu, the prayer is not valid.',
   keyPoints: [
-    '1. Say Bismillah and wash both hands 3 times',
-    '2. Rinse the mouth 3 times',
-    '3. Sniff water into the nose and blow it out 3 times',
-    '4. Wash the face completely 3 times',
-    '5. Wash arms up to and including elbows 3 times (right first)',
-    '6. Wipe the head once with wet hands',
-    '7. Wipe the ears inside and outside once',
-    '8. Wash feet up to and including ankles 3 times (right first)',
+    'Say Bismillah and wash hands',
+    'Rinse mouth and nose completely',
+    'Wash the face and arms up to elbows',
+    'Wipe the head and ears',
+    'Wash feet up to and including ankles',
   ],
-  arabicDua:
-      'أَشْهَدُ أَنْ لَا إِلٰهَ إِلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ',
-  transliteration:
-      'Ash-hadu alla ilaha illallahu wa ash-hadu anna Muhammadan \'abduhu wa rasoluhu',
-  translation:
-      'I testify that there is no god but Allah, and I testify that Muhammad is His slave and Messenger.',
+  duas: [
+    SalahDua(
+      arabic:
+          'أَشْهَدُ أَنْ لَا إِلٰهَ إِلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ',
+      transliteration:
+          'Ash-hadu alla ilaha illallahu wa ash-hadu anna Muhammadan \'abduhu wa rasoluhu',
+      translation:
+          'I testify that there is no god but Allah, and I testify that Muhammad is His slave and Messenger.',
+    ),
+  ],
 );
 
-const _qibla = SalahStep(
-  id: 'qibla',
-  arabicName: 'اسْتِقْبَالُ الْقِبْلَة',
-  englishName: 'Facing the Qibla',
+const _qiblaNiyyah = SalahStep(
+  id: 'qibla_niyyah',
+  arabicName: 'اسْتِقْبَالُ الْقِبْلَة وَ النِّيَّة',
+  englishName: 'Qibla & Niyyah',
   phase: 'before',
   icon: Icons.explore_outlined,
-  shortDesc: 'Face the direction of the Ka\'bah',
+  shortDesc: 'Face Ka\'bah and intend in the heart',
   detailDesc:
-      'Before beginning the prayer, you must face the direction of the Ka\'bah in Mecca. '
-      'This is done by using a compass, phone app, or the sun/stars to determine the qibla direction. '
-      'Cover your \'awrah and ensure the place of prayer is clean.',
+      'Face the direction of the Ka\'bah in Mecca. If you knowingly face another direction, your prayer is invalid '
+      'unless circumstances prevent it. Simultaneously, establish the Niyyah (intention) in your heart. '
+      'It is not a verbal script. You must know specifically which prayer you are performing.',
   keyPoints: [
-    'Face the Ka\'bah in Mecca (direction known as Qibla)',
-    'Cover the \'awrah appropriately',
-    'Ensure the ground is clean (or use a prayer mat)',
-    'Remove shoes before stepping on the prayer mat',
+    'Face the Ka\'bah in Mecca (Qibla)',
+    'Intention is in the heart, not verbalized',
+    'Specify which salah you are performing (e.g., Fard Fajr)',
   ],
 );
 
+// ─── During Salah ─────────────────────────────────────────────────────────────
 const _takbir = SalahStep(
   id: 'takbir',
   arabicName: 'تَكْبِيرَةُ الْإِحْرَام',
@@ -76,18 +82,23 @@ const _takbir = SalahStep(
   icon: Icons.record_voice_over_outlined,
   shortDesc: 'Say Allahu Akbar to enter prayer',
   detailDesc:
-      'The Takbiratul Ihram is the opening declaration of "Allahu Akbar" (Allah is the Greatest). '
-      'Once said, you have entered the sacred state of prayer and worldly speech is forbidden. '
-      'Raise both hands up to ear lobes (men) or shoulders (women) while saying the Takbir.',
+      'The Takbiratul Ihram inaugurates the prayer. '
+      'Raise hands to shoulder level with fingertips reaching the level of ears. '
+      'Place the right hand over the left hand on the chest (either placing right palm over left arm or gripping left wrist). '
+      'Command your eyes to look only at the spot of prostration.',
   keyPoints: [
-    'Raise hands to earlobes while saying Allahu Akbar',
-    'This locks you into the prayer — you cannot speak',
-    'Face the Qibla and stand upright',
-    'Place right hand over left on the chest',
+    'Say "Allahu Akbar"',
+    'Raise palms to shoulder level, fingertips to ears',
+    'Place right hand over left hand on the chest',
+    'Look strictly at the spot of prostration',
   ],
-  arabicDua: 'اللَّهُ أَكْبَر',
-  transliteration: 'Allahu Akbar',
-  translation: 'Allah is the Greatest',
+  duas: [
+    SalahDua(
+      arabic: 'اللَّهُ أَكْبَر',
+      transliteration: 'Allahu Akbar',
+      translation: 'Allah is the Greatest',
+    ),
+  ],
 );
 
 const _qiyamFirstRak = SalahStep(
@@ -98,23 +109,34 @@ const _qiyamFirstRak = SalahStep(
   icon: Icons.accessibility_new_rounded,
   shortDesc: 'Stand upright and recite Al-Fatihah + Surah',
   detailDesc:
-      'In Qiyam you stand upright, hands folded over the chest. '
-      'Begin with the opening du\'a (Istiftah), then seek refuge (Ta\'awwudh), '
-      'then recite Bismillah and Surah Al-Fatihah — which is obligatory in every rak\'ah. '
-      'Follow it with another surah or a few verses.',
+      'Stand for obligatory prayers if physically able. '
+      'Begin with Dua al-Istiftah. Then seek refuge and recite Al-Fatihah — this is a mandatory pillar. '
+      'You must move your tongue and lips. Mere mental reading invalidates the recitation. '
+      'Pause at the end of every verse. Then recite an optional Surah without pausing after Al-Fatihah.',
   keyPoints: [
-    'Recite opening du\'a silently (Subhanakallahumma wa bihamdika...)',
+    'Recite opening du\'a (Istiftah) silently',
     'Say A\'udhu billahi minash-shaytanir-rajim',
-    'Say Bismillahir-rahmanir-rahim',
-    'Recite Surah Al-Fatihah — obligatory in every rak\'ah',
-    'Recite an additional surah',
+    'Recite Surah Al-Fatihah — moving lips and pausing at every verse',
+    'Recite an additional surah directly after',
   ],
-  arabicDua:
-      'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ ۝ الرَّحْمَٰنِ الرَّحِيمِ ۝ مَالِكِ يَوْمِ الدِّينِ ۝ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ۝ اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ',
-  transliteration:
-      'Al-hamdu lillahi rabb il-\'alamin. Ar-rahman ir-rahim. Maliki yawm id-din. Iyyaka na\'budu wa iyyaka nasta\'in. Ihdinas-sirat al-mustaqim.',
-  translation:
-      'Praise be to Allah, Lord of the worlds. The Most Merciful, the Most Compassionate. Master of the Day of Judgment. It is You we worship and You alone we ask for help. Guide us to the straight path.',
+  duas: [
+    SalahDua(
+      arabic:
+          'سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ، وَتَبَارَكَ اسْمُكَ، وَتَعَالَى جَدُّكَ، وَلَا إِلَهَ غَيْرُكَ',
+      transliteration:
+          'Subhanaka Allahumma wa bihamdika, wa tabarakasmuka, wa ta\'ala jadduka, wa la ilaha ghayruka',
+      translation:
+          'Glory be to You, O Allah, and all praise is Yours. Blessed is Your name, high is Your majesty, and there is no deity besides You.',
+    ),
+    SalahDua(
+      arabic:
+          'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ ۝ الرَّحْمَٰنِ الرَّحِيمِ ۝ مَالِكِ يَوْمِ الدِّينِ ۝ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ۝ اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ',
+      transliteration:
+          'Al-hamdu lillahi rabb il-\'alamin. Ar-rahman ir-rahim...',
+      translation:
+          'Praise be to Allah, Lord of the worlds. The Most Merciful, the Most Compassionate...',
+    ),
+  ],
 );
 
 const _qiyamSubsequentRakWithSurah = SalahStep(
@@ -126,7 +148,7 @@ const _qiyamSubsequentRakWithSurah = SalahStep(
   shortDesc: 'Stand upright and recite Al-Fatihah + Surah',
   detailDesc:
       'Stand upright, hands folded over the chest. '
-      'Recite Bismillah and Surah Al-Fatihah — which is obligatory in every rak\'ah. '
+      'Recite Bismillah and Surah Al-Fatihah — mandatory in every rak\'ah (moving lips and pausing at verses). '
       'Follow it with another surah or a few verses.',
   keyPoints: [
     'Say Bismillahir-rahmanir-rahim',
@@ -143,11 +165,11 @@ const _qiyamSubsequentRakFatihahOnly = SalahStep(
   icon: Icons.accessibility_new_rounded,
   shortDesc: 'Stand upright and recite Al-Fatihah only',
   detailDesc:
-      'Stand upright, hands folded over the chest. '
-      'Recite Bismillah and Surah Al-Fatihah ONLY. Do not add another surah in the 3rd and 4th rak\'ah of obligatory (Fard) prayers.',
+      'Stand upright, hands folded over the chest on the third/fourth rak\'ah. '
+      'Recite Bismillah and Surah Al-Fatihah ONLY. Do not add another surah in the 3rd and 4th rak\'ah of Fard prayers.',
   keyPoints: [
     'Say Bismillahir-rahmanir-rahim',
-    'Recite Surah Al-Fatihah',
+    'Recite Surah Al-Fatihah (moving lips)',
     'Do not recite an additional surah (for Fard prayers)',
   ],
 );
@@ -161,20 +183,24 @@ const _qiyamWitrThirdRak = SalahStep(
   shortDesc: 'Recite Al-Fatihah, a Surah, and Du\'a Qunut',
   detailDesc:
       'Stand upright. Recite Surah Al-Fatihah and an additional Surah. '
-      'Then, raise your hands to your earlobes saying "Allahu Akbar," fold them again, and recite Du\'a Qunut. '
+      'Then, raise your hands saying "Allahu Akbar," fold them again (or raise them in supplication), and recite Du\'a Qunut. '
       'After completing the Du\'a, say "Allahu Akbar" and go into Ruku\'.',
   keyPoints: [
     'Recite Surah Al-Fatihah and an additional Surah',
-    'Say Allahu Akbar and raise hands to earlobes',
-    'Fold hands again and recite Du\'a Qunut',
+    'Say Allahu Akbar and optionally raise hands',
+    'Recite Du\'a Qunut',
     'Say Allahu Akbar to go into Ruku\'',
   ],
-  arabicDua:
-      'اللَّهُمَّ إِنَّا نَسْتَعِينُكَ وَنَسْتَغْفِرُكَ وَنُؤْمِنُ بِكَ وَنَتَوَكَّلُ عَلَيْكَ وَنُثْنِي عَلَيْكَ الْخَيْر',
-  transliteration:
-      'Allahumma inna nasta\'inuka, wa nastaghfiruka, wa nu\'minu bika, wa natawakkalu \'alayka, wa nuthni \'alaykal-khayr',
-  translation:
-      'O Allah! We seek Your help and ask for Your forgiveness, and we believe in You and have trust in You, and we praise You in the best way.',
+  duas: [
+    SalahDua(
+      arabic:
+          'اللَّهُمَّ إِنَّا نَسْتَعِينُكَ وَنَسْتَغْفِرُكَ وَنُؤْمِنُ بِكَ وَنَتَوَكَّلُ عَلَيْكَ وَنُثْنِي عَلَيْكَ الْخَيْر',
+      transliteration:
+          'Allahumma inna nasta\'inuka, wa nastaghfiruka, wa nu\'minu bika, wa natawakkalu \'alayka...',
+      translation:
+          'O Allah! We seek Your help and ask for Your forgiveness, and we believe in You and have trust in You...',
+    ),
+  ],
 );
 
 const _ruku = SalahStep(
@@ -185,17 +211,22 @@ const _ruku = SalahStep(
   icon: Icons.airline_seat_flat_angled_rounded,
   shortDesc: 'Bow with hands on knees',
   detailDesc:
-      'Bow forward with your back flat and horizontal, hands placed firmly on your knees with fingers spread. '
-      'Keep your head in line with your back. The minimum is to bow until you can touch your knees. '
-      'The Sunnah is to say the dhikr at least three times.',
+      'Say "Allahu Akbar" *while* moving (Takbir of movement). '
+      'Keep your back straight (horizontal) and head level. Place palms on knees with fingers spread wide. '
+      'Look at the spot of prostration or between the feet.',
   keyPoints: [
-    'Back flat, parallel to the ground',
-    'Hands grip the knees, fingers spread',
-    'Say tasbih at least 3 times',
+    'Say Allahu Akbar while moving down',
+    'Back straight, horizontal with the head',
+    'Palms grip knees, fingers spread wide',
+    'Say tasbih at least once (preferably 3x)',
   ],
-  arabicDua: 'سُبْحَانَ رَبِّيَ الْعَظِيم',
-  transliteration: 'Subhana Rabbiyal \'Azim',
-  translation: 'Glory be to my Lord, the Most Great',
+  duas: [
+    SalahDua(
+      arabic: 'سُبْحَانَ رَبِّيَ الْعَظِيم',
+      transliteration: 'Subhana Rabbiyal \'Azim',
+      translation: 'Glory be to my Lord, the Most Great',
+    ),
+  ],
 );
 
 const _iktidal = SalahStep(
@@ -206,17 +237,22 @@ const _iktidal = SalahStep(
   icon: Icons.height_rounded,
   shortDesc: 'Rise fully upright, praising Allah',
   detailDesc:
-      'After completing the Ruku\', rise back to a fully upright position, '
-      'saying "Sami\'Allahu liman hamidah" while rising, and then "Rabbana lakal hamd" while standing still.',
+      'Rise from Ruku\' saying "Sami\'allahu liman hamidah" while rising. '
+      'Once standing straight, say "Rabbana lakal hamd". '
+      'Returning hands to chest or leaving at sides are both acceptable scholarly views.',
   keyPoints: [
-    'Rise fully upright — this is a pillar (rukn)',
-    'Raise hands while rising and say the tasmee\'',
-    'Stand still for a moment, then say the tahmid',
+    'Say Tasmee\' while rising up',
+    'Stand fully straight',
+    'Say Tahmid once fully upright',
   ],
-  arabicDua: 'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ ۝ رَبَّنَا وَلَكَ الْحَمْد',
-  transliteration: 'Sami\'Allahu liman hamidah. Rabbana wa lakal hamd.',
-  translation:
-      'Allah hears the one who praises Him. Our Lord, to You is all praise.',
+  duas: [
+    SalahDua(
+      arabic: 'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ ۝ رَبَّنَا وَلَكَ الْحَمْد',
+      transliteration: 'Sami\'Allahu liman hamidah. Rabbana wa lakal hamd.',
+      translation:
+          'Allah hears the one who praises Him. Our Lord, to You is all praise.',
+    ),
+  ],
 );
 
 const _sujud1 = SalahStep(
@@ -225,18 +261,26 @@ const _sujud1 = SalahStep(
   englishName: 'First Sujud (Prostration)',
   phase: 'during',
   icon: Icons.person_outline_rounded,
-  shortDesc: 'Prostrate on seven body parts',
+  shortDesc: 'Prostrate on seven limbs',
   detailDesc:
-      'Prostrate with seven bones touching the ground: forehead (with nose), two palms, '
-      'two knees, and two sets of toes. The forehead should be placed firmly on the ground. '
-      'Arms should not rest on the ground (elbows up, away from the body).',
+      'Say "Allahu Akbar" while descending. '
+      'Land on hands first to avoid descending like a camel. '
+      'Seven limbs must remain touching: Forehead+Nose (as one), Two Hands (palms flat towards Qibla), '
+      'Two Knees, Two Sets of Toes (erect, facing Qibla). '
+      'Keep forearms off the floor in a "winged" position, stomach away from thighs.',
   keyPoints: [
-    'Seven body parts on ground: forehead+nose, 2 palms, 2 knees, toes',
-    'Say tasbih at least 3 times',
+    'Land on hands first',
+    'Seven limbs must touch the ground constantly',
+    'Do not rest forearms on the floor (winged arms)',
+    'Say tasbih at least once (preferably 3x)',
   ],
-  arabicDua: 'سُبْحَانَ رَبِّيَ الْأَعْلَى',
-  transliteration: 'Subhana Rabbiyal A\'la',
-  translation: 'Glory be to my Lord, the Most High',
+  duas: [
+    SalahDua(
+      arabic: 'سُبْحَانَ رَبِّيَ الْأَعْلَى',
+      transliteration: 'Subhana Rabbiyal A\'la',
+      translation: 'Glory be to my Lord, the Most High',
+    ),
+  ],
 );
 
 const _jalsa = SalahStep(
@@ -245,21 +289,30 @@ const _jalsa = SalahStep(
   englishName: 'Jalsah (Sitting Between Sujuds)',
   phase: 'during',
   icon: Icons.event_seat_rounded,
-  shortDesc: 'Sit briefly between the two prostrations',
+  shortDesc: 'Sit in Iftirash between prostrations',
   detailDesc:
-      'After the first Sujud, rise to a seated position (Jalsah) briefly. '
-      'Sit on the left foot with the right foot upright and toes pointing toward Qibla. '
-      'There is a du\'a to recite in this position.',
+      'Rise and sit on your left foot while keeping the right foot erect (Iftirash). '
+      'You must say "Rabbighfirli" in this brief sitting pause.',
   keyPoints: [
-    'Sit on the left foot, right foot upright',
-    'Recite the sitting du\'a (Rabbighfirli)',
+    'Sit on the left foot (Iftirash)',
+    'Keep right foot erect with toes pointing to Qibla',
+    'Recite the forgiveness du\'a',
   ],
-  arabicDua:
-      'رَبِّ اغْفِرْ لِي وَارْحَمْنِي وَاجْبُرْنِي وَارْفَعْنِي وَارْزُقْنِي وَاهْدِنِي وَعَافِنِي وَاعْفُ عَنِّي',
-  transliteration:
-      'Rabbighfirli war-hamni wajburni warfa\'ni warzuqni wahdinii wa\'afini wa\'fu \'anni',
-  translation:
-      'O Lord, forgive me, have mercy on me, restore me, raise me, provide for me, guide me, grant me wellbeing, and pardon me.',
+  duas: [
+    SalahDua(
+      arabic: 'رَبِّ اغْفِرْ لِي (٢x)',
+      transliteration: 'Rabbighfirli (x2)',
+      translation: 'Lord, forgive me (x2)',
+    ),
+    SalahDua(
+      arabic:
+          'رَبِّ اغْفِرْ لِي وَارْحَمْنِي وَاجْبُرْنِي وَارْفَعْنِي وَارْزُقْنِي وَاهْدِنِي وَعَافِنِي وَاعْفُ عَنِّي',
+      transliteration:
+          'Rabbighfirli war-hamni wajburni warfa\'ni warzuqni wahdinii wa\'afini wa\'fu \'anni',
+      translation:
+          'O Lord, forgive me, have mercy on me, restore me, raise me, provide for me, guide me, grant me wellbeing, and pardon me.',
+    ),
+  ],
 );
 
 const _sujud2 = SalahStep(
@@ -268,19 +321,39 @@ const _sujud2 = SalahStep(
   englishName: 'Second Sujud',
   phase: 'during',
   icon: Icons.person_outline_rounded,
-  shortDesc: 'Prostrate a second time on seven body parts',
+  shortDesc: 'Prostrate a second time on seven limbs',
   detailDesc:
-      'Perform the second prostration exactly like the first: seven body parts on the ground, '
-      'elbows up, head firm, and recite the tasbih at least three times. '
-      'After this, rise for the next rak\'ah or proceed to Tashahhud.',
+      'Perform the second prostration exactly like the first. Ensure all seven limbs remain grounded. '
+      'Lifting a foot or hand to adjust clothing invalidates the prostration.',
   keyPoints: [
-    'Same posture as the first Sujud',
-    'Say tasbih at least 3 times',
-    'After this completes the rak\'ah',
+    'Ensure all 7 limbs touch throughout',
+    'Do not rest forearms on the floor',
+    'Say tasbih 3x',
   ],
-  arabicDua: 'سُبْحَانَ رَبِّيَ الْأَعْلَى',
-  transliteration: 'Subhana Rabbiyal A\'la',
-  translation: 'Glory be to my Lord, the Most High',
+  duas: [
+    SalahDua(
+      arabic: 'سُبْحَانَ رَبِّيَ الْأَعْلَى',
+      transliteration: 'Subhana Rabbiyal A\'la',
+      translation: 'Glory be to my Lord, the Most High',
+    ),
+  ],
+);
+
+const _jalsatIstiraha = SalahStep(
+  id: 'jalsat_istiraha',
+  arabicName: 'جَلْسَةُ الِاسْتِرَاحَة',
+  englishName: 'Jalsat al-Istiraha (Pause of Rest)',
+  phase: 'during',
+  icon: Icons.hourglass_empty_rounded,
+  shortDesc: 'Brief pause before standing up',
+  detailDesc:
+      'In Rak\'ahs where you will stand up immediately after (like the 1st or 3rd Rak\'ah), '
+      'there is a Sunnah to briefly sit in the Iftirash position after the second Sujud, '
+      'just for a moment, before rising up to stand for the next Rak\'ah.',
+  keyPoints: [
+    'Brief pause sitting down after second prostration',
+    'Done before rising to the 2nd or 4th Rak\'ah',
+  ],
 );
 
 const _firstTashahhud = SalahStep(
@@ -291,44 +364,63 @@ const _firstTashahhud = SalahStep(
   icon: Icons.event_seat_outlined,
   shortDesc: 'Sit and recite At-Tahiyyat',
   detailDesc:
-      'In a 3 or 4-Rak\'ah prayer, sit after the second rak\'ah. '
-      'Recite the Tashahhud (At-Tahiyyat) only. Once completed, say "Allahu Akbar" and immediately stand up for the third rak\'ah.',
+      'In a 3 or 4-Rak\'ah prayer, sit after the second rak\'ah in Iftirash (sit on left foot). '
+      'Point the index finger toward the Qibla and move/wiggle it throughout the testimony. '
+      'Recite the At-Tahiyyat only. Then say "Allahu Akbar" and stand up.',
   keyPoints: [
-    'Raise index finger during the Shahadah phrase',
-    'Recite At-Tahiyyat only',
-    'Stand up for the next rak\'ah immediately after finishing',
+    'Sit in Iftirash',
+    'Form a circle with thumb/middle finger, or a fist',
+    'Point and wiggle index finger toward Qibla',
+    'Recite At-Tahiyyat and stand up',
   ],
-  arabicDua:
-      'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ، السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ، السَّلَامُ عَلَيْنَا وَعَلَى عِبَادِ اللَّهِ الصَّالِحِينَ، أَشْهَدُ أَنْ لَا إِلٰهَ إِلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ',
-  transliteration:
-      'At-tahiyyatu lillahi was-salawatu wat-tayyibat. As-salamu \'alayka ayyuhan-nabiyyu wa rahmatullahi wa barakatuh. As-salamu \'alayna wa \'ala \'ibadillahis-salihin. Ash-hadu alla ilaha illallah wa ash-hadu anna Muhammadan \'abduhu wa rasoluhu.',
-  translation:
-      'All greetings, prayers and good words are for Allah. Peace be upon you, O Prophet, and the mercy of Allah and His blessings. Peace be upon us and upon the righteous servants of Allah. I bear witness that there is no god but Allah and I bear witness that Muhammad is His slave and Messenger.',
+  duas: [
+    SalahDua(
+      arabic:
+          'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ، السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ، السَّلَامُ عَلَيْنَا وَعَلَى عِبَادِ اللَّهِ الصَّالِحِينَ، أَشْهَدُ أَنْ لَا إِلٰهَ إِلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ',
+      transliteration:
+          'At-tahiyyatu lillahi was-salawatu wat-tayyibat. As-salamu \'alayka ayyuhan-nabiyyu...',
+      translation:
+          'All greetings, prayers and good words are for Allah. Peace be upon you, O Prophet...',
+    ),
+  ],
 );
 
 const _finalTashahhud = SalahStep(
   id: 'tashahhud_final',
   arabicName: 'التَّشَهُّد الْأَخِير',
-  englishName: 'Final Tashahhud & Salawat',
+  englishName: 'Final Tashahhud & Protections',
   phase: 'during',
   icon: Icons.event_seat_outlined,
-  shortDesc: 'Sit and recite Tashahhud, Salawat & Du\'a',
+  shortDesc: 'Sit in Tawarruk, recite Tashahhud, Salawat & Du\'a',
   detailDesc:
-      'In the final sitting, sit in the Tawarruk position (left thigh on ground). '
-      'Recite the Tashahhud (At-Tahiyyat), followed by Salawat (Durood Ibrahim), '
-      'and end with a closing du\'a (Du\'a Masura) before giving Salam.',
+      'In the final sitting of a multi-Rakah prayer, use the Tawarruk position '
+      '(sit on left hip, tuck left foot under right leg, right foot erect). '
+      'Point and wiggle the index finger. Recite At-Tahiyyat, Salawat, and crucially: '
+      'seek refuge from the 4 trials before giving Salam.',
   keyPoints: [
-    'Raise index finger during the Shahadah',
-    'Recite At-Tahiyyat fully',
-    'Recite Salawat (Durood Ibrahim)',
-    'Recite a closing Du\'a (e.g. Rabbana Atina...)',
+    'Sit in Tawarruk position',
+    'Point and wiggle the index finger',
+    'Recite At-Tahiyyat and Salawat (Durood)',
+    'Seek refuge from Hellfire, Grave, Life/Death trials, and Dajjal',
   ],
-  arabicDua:
-      'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ',
-  transliteration:
-      'Allahumma salli \'ala Muhammadin wa \'ala ali Muhammad, kama sallayta \'ala Ibrahima wa \'ala ali Ibrahim, innaka Hamidun Majid.',
-  translation:
-      'O Allah, send prayers upon Muhammad and upon the family of Muhammad, as You sent prayers upon Ibrahim and upon the family of Ibrahim; You are indeed Worthy of Praise, Full of Glory.',
+  duas: [
+    SalahDua(
+      arabic:
+          'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ',
+      transliteration:
+          'Allahumma salli \'ala Muhammadin wa \'ala ali Muhammad, kama sallayta \'ala Ibrahima...',
+      translation:
+          'O Allah, send prayers upon Muhammad and upon the family of Muhammad, as You sent prayers upon Ibrahim...',
+    ),
+    SalahDua(
+      arabic:
+          'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ جَهَنَّمَ، وَمِنْ عَذَابِ الْقَبْرِ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ، وَمِنْ شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ',
+      transliteration:
+          'Allahumma inni a\'udhu bika min \'adhabi Jahannam, wa min \'adhabil-qabr, wa min fitnatil-mahya wal-mamat, wa min sharri fitnatil-masihid-dajjal.',
+      translation:
+          'O Allah, I seek refuge with You from the punishment of Hellfire, from the punishment of the grave, from the trials of life and death, and from the evil trial of the False Messiah (Dajjal).',
+    ),
+  ],
 );
 
 const _salam = SalahStep(
@@ -337,47 +429,76 @@ const _salam = SalahStep(
   englishName: 'Salam (Closing)',
   phase: 'during',
   icon: Icons.waving_hand_outlined,
-  shortDesc: 'End the prayer with Salam on both sides',
+  shortDesc: 'Simultaneous head turn and Salam',
   detailDesc:
-      'The prayer is concluded by turning the head to the right and saying "As-Salamu \'Alaykum wa Rahmatullah," '
-      'then turning to the left and repeating. This exits the sacred state of prayer.',
+      'Conclude by saying the Salam to the right and then the left. '
+      'Technical Requirement: The movement of the head must be simultaneous with the speech. '
+      'Do not say the phrase then turn, or turn then say the phrase. '
+      'Your cheek should be visible. Do not wave or move your hands.',
   keyPoints: [
-    'Turn head to the right first',
-    'Then to the left',
-    'This is a pillar (rukn) of salah',
+    'Turn head right simultaneously while saying Salam',
+    'Turn head left simultaneously while saying Salam',
+    'Do not move/wave hands',
   ],
-  arabicDua: 'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّه',
-  transliteration: 'As-Salamu \'Alaykum wa Rahmatullah',
-  translation: 'Peace and the mercy of Allah be upon you',
+  duas: [
+    SalahDua(
+      arabic: 'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّه',
+      transliteration: 'As-Salamu \'Alaykum wa Rahmatullah',
+      translation: 'Peace and the mercy of Allah be upon you',
+    ),
+  ],
 );
 
-const _tasbihAfter = SalahStep(
-  id: 'tasbih_after',
-  arabicName: 'الِاسْتِغْفَار وَالتَّسْبِيح',
-  englishName: 'Istighfar & Tasbih',
+// ─── Vital Warnings ───────────────────────────────────────────────────────────
+const _vitalWarnings = SalahStep(
+  id: 'vital_warnings',
+  arabicName: 'تَحْذِيرَاتٌ هَامَّة',
+  englishName: 'Vital Warnings & Common Mistakes',
   phase: 'after',
-  icon: Icons.volunteer_activism_outlined,
-  shortDesc: 'Seek forgiveness and glorify Allah',
+  icon: Icons.warning_amber_rounded,
+  shortDesc: 'Things to avoid during your prayer',
   detailDesc:
-      'Immediately after the Salam, say Astaghfirullah three times. '
-      'Count on your fingers: Subhanallah 33 times, Alhamdulillah 33 times, Allahu Akbar 34 times.',
+      '• Recitation Validity: You must move your tongue and lips. Silent mental scanning invalidates prayer.\n'
+      '• Racing the Imam: Never anticipate the Imam. Do not bend your back until his forehead touches the ground.\n'
+      '• Closing Eyes: Pray with eyes open unless avoiding an extreme distraction.\n'
+      '• Incomplete Sujud: Lifting feet or failing to touch your nose to the ground invalidates Sujud.\n'
+      '• Submissiveness (Khushu): Do not lose the spirit of worship over technical obsessions.',
   keyPoints: [
-    'Say Astaghfirullah 3 times',
-    'Subhanallah × 33, Alhamdulillah × 33, Allahu Akbar × 34',
+    'Move tongue and lips during recitation',
+    'Follow the Imam, never preempt him',
+    'Keep eyes open, looking at prostration point',
+    'Keep 7 limbs on the ground in Sujud',
   ],
-  arabicDua: 'أَسْتَغْفِرُ اللَّهَ (٣x)',
-  transliteration: 'Astaghfirullah (x3)',
-  translation: 'I seek forgiveness from Allah',
 );
 
-const _baseStartSteps = [_niyyah, _wudu, _qibla, _takbir];
-const _baseRakStepsWithSurah = [
+// ─── Base arrays ──────────────────────────────────────────────────────────────
+const _baseStartSteps = [_conditions, _wudu, _qiblaNiyyah];
+const _baseRakStepsWithSurahAndIstiraha = [
+  _takbir,
+  _qiyamFirstRak,
+  _ruku,
+  _iktidal,
+  _sujud1,
+  _jalsa,
+  _sujud2,
+  _jalsatIstiraha,
+];
+const _baseRakStepsWithSurahOnly = [
   _qiyamSubsequentRakWithSurah,
   _ruku,
   _iktidal,
   _sujud1,
   _jalsa,
   _sujud2,
+];
+const _baseRakStepsFatihahOnlyWithIstiraha = [
+  _qiyamSubsequentRakFatihahOnly,
+  _ruku,
+  _iktidal,
+  _sujud1,
+  _jalsa,
+  _sujud2,
+  _jalsatIstiraha,
 ];
 const _baseRakStepsFatihahOnly = [
   _qiyamSubsequentRakFatihahOnly,
@@ -387,7 +508,7 @@ const _baseRakStepsFatihahOnly = [
   _jalsa,
   _sujud2,
 ];
-const _baseEndSteps = [_finalTashahhud, _salam, _tasbihAfter];
+const _baseEndSteps = [_finalTashahhud, _salam, _vitalWarnings];
 
 // ─── Exported Data Arrays ──────────────────────────────────────────────────
 final List<SalahTypeData> salahTypesData = [
@@ -406,12 +527,12 @@ final List<SalahTypeData> salahTypesData = [
       const SalahSection(
         title: 'First Rak\'ah',
         arabicTitle: 'الرَّكْعَةُ الْأُولَى',
-        steps: [_qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2],
+        steps: _baseRakStepsWithSurahAndIstiraha,
       ),
       const SalahSection(
         title: 'Second Rak\'ah',
         arabicTitle: 'الرَّكْعَةُ الثَّانِيَة',
-        steps: _baseRakStepsWithSurah,
+        steps: _baseRakStepsWithSurahOnly,
       ),
       const SalahSection(
         title: 'After Salah',
@@ -435,12 +556,12 @@ final List<SalahTypeData> salahTypesData = [
       const SalahSection(
         title: 'First Rak\'ah',
         arabicTitle: 'الرَّكْعَةُ الْأُولَى',
-        steps: [_qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2],
+        steps: _baseRakStepsWithSurahAndIstiraha,
       ),
       const SalahSection(
         title: 'Second Rak\'ah',
         arabicTitle: 'الرَّكْعَةُ الثَّانِيَة',
-        steps: [..._baseRakStepsWithSurah, _firstTashahhud],
+        steps: [..._baseRakStepsWithSurahOnly, _firstTashahhud],
       ),
       const SalahSection(
         title: 'Third Rak\'ah',
@@ -469,17 +590,17 @@ final List<SalahTypeData> salahTypesData = [
       const SalahSection(
         title: 'First Rak\'ah',
         arabicTitle: 'الرَّكْعَةُ الْأُولَى',
-        steps: [_qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2],
+        steps: _baseRakStepsWithSurahAndIstiraha,
       ),
       const SalahSection(
         title: 'Second Rak\'ah',
         arabicTitle: 'الرَّكْعَةُ الثَّانِيَة',
-        steps: [..._baseRakStepsWithSurah, _firstTashahhud],
+        steps: [..._baseRakStepsWithSurahOnly, _firstTashahhud],
       ),
       const SalahSection(
         title: 'Third Rak\'ah',
         arabicTitle: 'الرَّكْعَةُ الثَّالِثَة',
-        steps: _baseRakStepsFatihahOnly,
+        steps: _baseRakStepsFatihahOnlyWithIstiraha,
       ),
       const SalahSection(
         title: 'Fourth Rak\'ah',
@@ -508,12 +629,12 @@ final List<SalahTypeData> salahTypesData = [
       const SalahSection(
         title: 'First Rak\'ah',
         arabicTitle: 'الرَّكْعَةُ الْأُولَى',
-        steps: [_qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2],
+        steps: _baseRakStepsWithSurahAndIstiraha,
       ),
       const SalahSection(
         title: 'Second Rak\'ah',
         arabicTitle: 'الرَّكْعَةُ الثَّانِيَة',
-        steps: [..._baseRakStepsWithSurah, _firstTashahhud],
+        steps: [..._baseRakStepsWithSurahOnly, _firstTashahhud],
       ),
       const SalahSection(
         title: 'Third Rak\'ah (Witr)',
@@ -542,12 +663,330 @@ final List<SalahTypeData> salahTypesData = [
       const SalahSection(
         title: 'First Rak\'ah (Witr)',
         arabicTitle: 'الرَّكْعَةُ الْأُولَى',
-        steps: [_qiyamWitrThirdRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2],
+        steps: [
+          _takbir,
+          _qiyamWitrThirdRak,
+          _ruku,
+          _iktidal,
+          _sujud1,
+          _jalsa,
+          _sujud2,
+        ],
       ),
       const SalahSection(
         title: 'After Salah',
         arabicTitle: 'بَعْدَ الصَّلَاة',
         steps: _baseEndSteps,
+      ),
+    ],
+  ),
+
+  // ─── Funeral Prayer (Janazah) ─────────────────────────────────────────
+  SalahTypeData(
+    id: 'janazah',
+    title: 'Salat al-Janazah',
+    subtitle: 'Funeral prayer — 4 Takbirs, no Ruku\' / Sujud',
+    arabicTitle: 'صلاة الجنازة',
+    icon: Icons.mosque_rounded,
+    sections: [
+      const SalahSection(
+        title: 'Before Salah',
+        arabicTitle: 'قَبْلَ الصَّلَاة',
+        steps: [_conditions, _qiblaNiyyah],
+      ),
+      SalahSection(
+        title: 'First Takbir',
+        arabicTitle: 'التَّكْبِيرَةُ الْأُولَى',
+        steps: [
+          SalahStep(
+            id: 'janazah_takbir1',
+            arabicName: 'التَّكْبِيرَةُ الْأُولَى',
+            englishName: '1st Takbir — Recite Al-Fatihah',
+            phase: 'during',
+            icon: Icons.record_voice_over_outlined,
+            shortDesc: 'Say Allahu Akbar, then recite Al-Fatihah',
+            detailDesc:
+                'Say "Allahu Akbar" raising both hands. Then recite Surah Al-Fatihah silently.',
+            keyPoints: [
+              'Say Allahu Akbar and raise hands',
+              'Recite Al-Fatihah silently',
+            ],
+          ),
+        ],
+      ),
+      SalahSection(
+        title: 'Second Takbir',
+        arabicTitle: 'التَّكْبِيرَةُ الثَّانِيَة',
+        steps: [
+          SalahStep(
+            id: 'janazah_takbir2',
+            arabicName: 'التَّكْبِيرَةُ الثَّانِيَة',
+            englishName: '2nd Takbir — Salawat upon the Prophet ﷺ',
+            phase: 'during',
+            icon: Icons.record_voice_over_outlined,
+            shortDesc: 'Say Allahu Akbar, then send Salawat',
+            detailDesc:
+                'Say "Allahu Akbar" (without raising hands). Then recite the Ibrahimi Salawat, '
+                'i.e. "Allahumma salli \'ala Muhammad..." exactly as in the last sitting of regular salah.',
+            keyPoints: ['Say Allahu Akbar', 'Recite the full Ibrahimi Salawat'],
+            duas: [
+              SalahDua(
+                arabic:
+                    'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ',
+                transliteration:
+                    'Allahumma salli \'ala Muhammadin wa \'ala ali Muhammad...',
+                translation:
+                    'O Allah, send prayers upon Muhammad and his family...',
+              ),
+            ],
+          ),
+        ],
+      ),
+      SalahSection(
+        title: 'Third Takbir',
+        arabicTitle: 'التَّكْبِيرَةُ الثَّالِثَة',
+        steps: [
+          SalahStep(
+            id: 'janazah_takbir3',
+            arabicName: 'التَّكْبِيرَةُ الثَّالِثَة',
+            englishName: '3rd Takbir — Du\'a for the Deceased',
+            phase: 'during',
+            icon: Icons.record_voice_over_outlined,
+            shortDesc: 'Say Allahu Akbar, then make du\'a',
+            detailDesc:
+                'Say "Allahu Akbar". Then make du\'a for the deceased. '
+                'There are several authentic du\'as for this.',
+            keyPoints: [
+              'Say Allahu Akbar',
+              'Recite a du\'a for the deceased sincerely',
+            ],
+            duas: [
+              SalahDua(
+                arabic:
+                    'اللَّهُمَّ اغْفِرْ لَهُ وَارْحَمْهُ وَعَافِهِ وَاعْفُ عَنْهُ، وَأَكْرِمْ نُزُلَهُ وَوَسِّعْ مُدْخَلَهُ، وَاغْسِلْهُ بِالْمَاءِ وَالثَّلْجِ وَالْبَرَدِ',
+                transliteration:
+                    'Allahummaghfir lahu warhamhu wa \'afihi wa\'fu \'anhu, wa akrim nuzulahu wa wassi\' mudkhalahu...',
+                translation:
+                    'O Allah, forgive him, have mercy on him, grant him ease and pardon him. Honour his resting place and expand his entry; wash him with water, snow and hail.',
+              ),
+              SalahDua(
+                arabic:
+                    'اللَّهُمَّ اغْفِرْ لِحَيِّنَا وَمَيِّتِنَا وَشَاهِدِنَا وَغَائِبِنَا وَصَغِيرِنَا وَكَبِيرِنَا وَذَكَرِنَا وَأُنْثَانَا',
+                transliteration:
+                    'Allahummaghfir lihayyina wa mayyitina, wa shahidina wa gha\'ibina, wa sagheerina wa kabeerina, wa dhakarina wa unthana.',
+                translation:
+                    'O Allah, forgive our living and our dead, those present among us and those absent, our young and our old, our males and our females.',
+              ),
+            ],
+          ),
+        ],
+      ),
+      SalahSection(
+        title: 'Fourth Takbir',
+        arabicTitle: 'التَّكْبِيرَةُ الرَّابِعَة',
+        steps: [
+          SalahStep(
+            id: 'janazah_takbir4',
+            arabicName: 'التَّكْبِيرَةُ الرَّابِعَة وَالتَّسْلِيم',
+            englishName: '4th Takbir & Salam',
+            phase: 'during',
+            icon: Icons.waving_hand_outlined,
+            shortDesc: 'Say Allahu Akbar, then give Salam',
+            detailDesc:
+                'Say "Allahu Akbar" once more. You may make a brief du\'a. '
+                'Then conclude with one Salam to the right.',
+            keyPoints: [
+              'Say Allahu Akbar',
+              'Optionally make a short du\'a',
+              'Give one Salam to the right',
+            ],
+            duas: [
+              SalahDua(
+                arabic: 'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّه',
+                transliteration: 'As-Salamu \'Alaykum wa Rahmatullah',
+                translation: 'Peace and the mercy of Allah be upon you.',
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  ),
+
+  // ─── Eid Prayer ──────────────────────────────────────────────────────
+  SalahTypeData(
+    id: 'eid',
+    title: 'Eid Prayer',
+    subtitle: '2 Rak\'ahs with extra Takbirs',
+    arabicTitle: 'صلاة العيد',
+    icon: Icons.celebration_rounded,
+    sections: [
+      const SalahSection(
+        title: 'Before Salah',
+        arabicTitle: 'قَبْلَ الصَّلَاة',
+        steps: _baseStartSteps,
+      ),
+      SalahSection(
+        title: 'First Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الْأُولَى',
+        steps: [
+          SalahStep(
+            id: 'eid_takbirs_1',
+            arabicName: 'تَكْبِيرَاتُ الْإِحْرَامِ وَالزَّوَائِد',
+            englishName: 'Opening Takbir + 7 Extra Takbirs',
+            phase: 'during',
+            icon: Icons.record_voice_over_outlined,
+            shortDesc: 'Say opening Takbir, followed by 7 extra Takbirs',
+            detailDesc:
+                'Say the Takbiratul Ihram, then say "Allahu Akbar" 7 additional times, '
+                'raising your hands with each one. After the extra Takbirs, seek refuge '
+                'and recite Al-Fatihah and a Surah (Surah Al-A\'la is Sunnah).',
+            keyPoints: [
+              'Opening Takbir (Takbiratul Ihram)',
+              '7 additional Takbirs with hands raised',
+              'Recite Al-Fatihah',
+              'Recite Surah Al-A\'la or another Surah',
+            ],
+          ),
+          _ruku,
+          _iktidal,
+          _sujud1,
+          _jalsa,
+          _sujud2,
+          _jalsatIstiraha,
+        ],
+      ),
+      SalahSection(
+        title: 'Second Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الثَّانِيَة',
+        steps: [
+          SalahStep(
+            id: 'eid_takbirs_2',
+            arabicName: 'خَمْسُ تَكْبِيرَاتٍ زَائِدَة',
+            englishName: 'Qiyam + 5 Extra Takbirs',
+            phase: 'during',
+            icon: Icons.accessibility_new_rounded,
+            shortDesc: 'Say 5 extra Takbirs then recite Al-Fatihah + Surah',
+            detailDesc:
+                'Upon standing, say "Allahu Akbar" 5 additional times raising your hands '
+                'with each. Then recite Al-Fatihah and a Surah (Surah Al-Ghashiyah is Sunnah).',
+            keyPoints: [
+              '5 additional Takbirs with hands raised',
+              'Recite Al-Fatihah',
+              'Recite Surah Al-Ghashiyah or another Surah',
+            ],
+          ),
+          _ruku,
+          _iktidal,
+          _sujud1,
+          _jalsa,
+          _sujud2,
+        ],
+      ),
+      const SalahSection(
+        title: 'After Salah',
+        arabicTitle: 'بَعْدَ الصَّلَاة',
+        steps: [_finalTashahhud, _salam],
+      ),
+    ],
+  ),
+
+  // ─── Tarawih / Tahajjud ───────────────────────────────────────────────
+  SalahTypeData(
+    id: 'tarawih',
+    title: 'Tarawih / Tahajjud',
+    subtitle: '2 Rak\'ahs at a time, with long Qiyam',
+    arabicTitle: 'صلاة التراويح / التهجد',
+    icon: Icons.dark_mode_rounded,
+    sections: [
+      const SalahSection(
+        title: 'Before Salah',
+        arabicTitle: 'قَبْلَ الصَّلَاة',
+        steps: _baseStartSteps,
+      ),
+      SalahSection(
+        title: 'First Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الْأُولَى',
+        steps: [
+          _takbir,
+          SalahStep(
+            id: 'tarawih_qiyam1',
+            arabicName: 'الْقِيَام',
+            englishName: 'Qiyam — Long Recitation',
+            phase: 'during',
+            icon: Icons.accessibility_new_rounded,
+            shortDesc: 'Stand and recite Al-Fatihah + a long portion of Quran',
+            detailDesc:
+                'After the opening du\'a, recite Al-Fatihah followed by a long '
+                'portion of the Quran. Tarawih and Tahajjud are characterised by lengthing '
+                'the recitation in Qiyam as much as is comfortable.',
+            keyPoints: [
+              'Recite opening Istiftah du\'a',
+              'Recite Al-Fatihah + a long Surah or several shorter Surahs',
+              'Lengthen the standing as much as comfortable',
+            ],
+          ),
+          _ruku,
+          _iktidal,
+          _sujud1,
+          _jalsa,
+          _sujud2,
+          _jalsatIstiraha,
+        ],
+      ),
+      SalahSection(
+        title: 'Second Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الثَّانِيَة',
+        steps: [
+          SalahStep(
+            id: 'tarawih_qiyam2',
+            arabicName: 'الْقِيَام',
+            englishName: 'Qiyam — Long Recitation',
+            phase: 'during',
+            icon: Icons.accessibility_new_rounded,
+            shortDesc: 'Stand and recite Al-Fatihah + a long portion of Quran',
+            detailDesc:
+                'Recite Al-Fatihah followed by a continuation of the Quran. '
+                'Then proceed to Ruku\' and Sujud as normal.',
+            keyPoints: [
+              'Recite Al-Fatihah + another long portion',
+              'Proceed to Ruku\' and Sujud normally',
+            ],
+          ),
+          _ruku,
+          _iktidal,
+          _sujud1,
+          _jalsa,
+          _sujud2,
+        ],
+      ),
+      const SalahSection(
+        title: 'After Salah',
+        arabicTitle: 'بَعْدَ الصَّلَاة',
+        steps: _baseEndSteps,
+      ),
+      SalahSection(
+        title: 'Note',
+        arabicTitle: 'مُلَاحَظَة',
+        steps: [
+          SalahStep(
+            id: 'tarawih_note',
+            arabicName: 'مُلَاحَظَة',
+            englishName: 'Repeat in Sets of 2',
+            phase: 'after',
+            icon: Icons.info_outline_rounded,
+            shortDesc: 'Pray in sets of 2 Rak\'ahs, then finish with Witr',
+            detailDesc:
+                'Tarawih is prayed in sets of 2 Rak\'ahs. After every 2 Rak\'ahs, '
+                'give Salam and start a new set. You may pray 8, 12, or 20 Rak\'ahs. '
+                'Always conclude the night prayer with Witr (1 or 3 Rak\'ahs).',
+            keyPoints: [
+              'Pray in sets of 2',
+              'Give Salam between each set',
+              'Conclude with Witr prayer',
+            ],
+          ),
+        ],
       ),
     ],
   ),

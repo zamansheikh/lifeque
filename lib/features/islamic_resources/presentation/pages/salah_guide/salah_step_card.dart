@@ -187,9 +187,9 @@ class SalahStepDetailPage extends StatelessWidget {
                         .toList(),
                   ),
                 ),
-                if (step.arabicDua != null) ...[
+                if (step.duas != null && step.duas!.isNotEmpty) ...[
                   const SizedBox(height: 14),
-                  _duaCard(color, context),
+                  _DuaCarousel(duas: step.duas!, color: color),
                 ],
               ]),
             ),
@@ -334,11 +334,39 @@ class SalahStepDetailPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _duaCard(Color color, BuildContext context) {
+class _DuaCarousel extends StatefulWidget {
+  const _DuaCarousel({required this.duas, required this.color});
+  final List<SalahDua> duas;
+  final Color color;
+
+  @override
+  State<_DuaCarousel> createState() => _DuaCarouselState();
+}
+
+class _DuaCarouselState extends State<_DuaCarousel> {
+  int _currentIndex = 0;
+
+  void _next() {
+    if (_currentIndex < widget.duas.length - 1) {
+      setState(() => _currentIndex++);
+    }
+  }
+
+  void _prev() {
+    if (_currentIndex > 0) {
+      setState(() => _currentIndex--);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dua = widget.duas[_currentIndex];
+    final hasMultiple = widget.duas.length > 1;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: IslamicColors.lightGold,
         borderRadius: BorderRadius.circular(16),
@@ -346,58 +374,153 @@ class SalahStepDetailPage extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: IslamicColors.gold.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.auto_stories_rounded,
-                      size: 16,
-                      color: IslamicColors.gold,
-                    ),
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 8, 0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: IslamicColors.gold.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'Du\'a / Dhikr',
-                    style: TextStyle(
+                  child: const Icon(
+                    Icons.auto_stories_rounded,
+                    size: 16,
+                    color: IslamicColors.gold,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    hasMultiple
+                        ? 'Du\'a / Dhikr  (${_currentIndex + 1}/${widget.duas.length})'
+                        : 'Du\'a / Dhikr',
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: IslamicColors.gold,
                     ),
                   ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: dua.arabic));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Copied Arabic text')),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.copy,
+                    size: 18,
+                    color: IslamicColors.gold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(color: IslamicColors.gold, height: 1),
+
+          // Content with swipe + auto-resize
+          GestureDetector(
+            onHorizontalDragEnd: (details) {
+              if (details.primaryVelocity == null) return;
+              if (details.primaryVelocity! < -100) _next();
+              if (details.primaryVelocity! > 100) _prev();
+            },
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                switchInCurve: Curves.easeIn,
+                switchOutCurve: Curves.easeOut,
+                transitionBuilder: (child, animation) =>
+                    FadeTransition(opacity: animation, child: child),
+                child: _DuaContent(key: ValueKey(_currentIndex), dua: dua),
+              ),
+            ),
+          ),
+
+          // Indicators + navigation
+          if (hasMultiple) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Left arrow
+                  GestureDetector(
+                    onTap: _prev,
+                    child: Icon(
+                      Icons.chevron_left_rounded,
+                      color: _currentIndex > 0
+                          ? IslamicColors.gold
+                          : IslamicColors.gold.withValues(alpha: 0.25),
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Dots
+                  ...List.generate(
+                    widget.duas.length,
+                    (i) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: _currentIndex == i ? 20 : 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: _currentIndex == i
+                            ? IslamicColors.gold
+                            : IslamicColors.gold.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Right arrow
+                  GestureDetector(
+                    onTap: _next,
+                    child: Icon(
+                      Icons.chevron_right_rounded,
+                      color: _currentIndex < widget.duas.length - 1
+                          ? IslamicColors.gold
+                          : IslamicColors.gold.withValues(alpha: 0.25),
+                      size: 28,
+                    ),
+                  ),
                 ],
               ),
-              IconButton(
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: step.arabicDua ?? ''));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Copied Arabic text')),
-                  );
-                },
-                icon: const Icon(
-                  Icons.copy,
-                  size: 18,
-                  color: IslamicColors.gold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          const Divider(color: IslamicColors.gold, height: 1),
-          const SizedBox(height: 16),
-          // Arabic
+            ),
+          ] else
+            const SizedBox(height: 14),
+        ],
+      ),
+    );
+  }
+}
+
+class _DuaContent extends StatelessWidget {
+  const _DuaContent({super.key, required this.dua});
+  final SalahDua dua;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
           Align(
             alignment: Alignment.centerRight,
             child: Text(
-              step.arabicDua!,
+              dua.arabic,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
               style: GoogleFonts.amiri(
@@ -408,10 +531,10 @@ class SalahStepDetailPage extends StatelessWidget {
               ),
             ),
           ),
-          if (step.transliteration != null) ...[
+          if (dua.transliteration != null) ...[
             const SizedBox(height: 10),
             Text(
-              step.transliteration!,
+              dua.transliteration!,
               style: const TextStyle(
                 fontSize: 13,
                 fontStyle: FontStyle.italic,
@@ -420,10 +543,10 @@ class SalahStepDetailPage extends StatelessWidget {
               ),
             ),
           ],
-          if (step.translation != null) ...[
+          if (dua.translation != null) ...[
             const SizedBox(height: 8),
             Text(
-              '"${step.translation!}"',
+              '"${dua.translation!}"',
               style: const TextStyle(
                 fontSize: 13,
                 color: IslamicColors.darkText,

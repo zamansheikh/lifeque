@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
 
 // ─── Data model ──────────────────────────────────────────────────────────────
+class SalahDua {
+  final String arabic;
+  final String? transliteration;
+  final String? translation;
+
+  const SalahDua({
+    required this.arabic,
+    this.transliteration,
+    this.translation,
+  });
+}
+
 class SalahStep {
   final String id;
   final String arabicName;
@@ -10,9 +22,7 @@ class SalahStep {
   final String shortDesc;
   final String detailDesc;
   final List<String> keyPoints;
-  final String? arabicDua;
-  final String? transliteration;
-  final String? translation;
+  final List<SalahDua>? duas;
 
   const SalahStep({
     required this.id,
@@ -23,9 +33,7 @@ class SalahStep {
     required this.shortDesc,
     required this.detailDesc,
     required this.keyPoints,
-    this.arabicDua,
-    this.transliteration,
-    this.translation,
+    this.duas,
   });
 }
 
