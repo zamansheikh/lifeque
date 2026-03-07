@@ -11,7 +11,7 @@ class UnifiedBudgetCard extends StatefulWidget {
   final double monthlyTotal;
   final double monthlyMissed;
   final List<CategoryBudget> categoryBudgets;
-  final Map<ExpenseCategory, double> categorySpending;
+  final Map<String, double> categorySpending;
   final VoidCallback onSetBudget;
   final DateTime selectedMonth;
   final void Function(String id) onDeleteCategory;
@@ -142,9 +142,11 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
     }
 
     // Categories with spending but no explicit budget
-    final budgetedCats = widget.categoryBudgets.map((b) => b.category).toSet();
+    final budgetedKeys = widget.categoryBudgets
+        .map((b) => b.effectiveCategoryKey)
+        .toSet();
     final unbudgetedSpending = widget.categorySpending.entries
-        .where((e) => !budgetedCats.contains(e.key) && e.value > 0)
+        .where((e) => !budgetedKeys.contains(e.key) && e.value > 0)
         .toList();
     final hasCats =
         _visibleCategoryBudgets.isNotEmpty || unbudgetedSpending.isNotEmpty;
@@ -370,41 +372,106 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                     bottomRight: Radius.circular(20),
                   ),
                 ),
-                child: Column(
-                  children: [
-                    for (
-                      int i = 0;
-                      i < _visibleCategoryBudgets.length;
-                      i++
-                    ) ...[
-                      _buildCompactCategoryRow(_visibleCategoryBudgets[i]),
-                      if (i < _visibleCategoryBudgets.length - 1 ||
-                          unbudgetedSpending.isNotEmpty)
-                        const Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: Color(0xFFF1F5F9),
-                          indent: 52,
-                          endIndent: 16,
-                        ),
-                    ],
-                    // Unbudgeted categories that have spending
-                    for (int i = 0; i < unbudgetedSpending.length; i++) ...[
-                      _buildUnbudgetedCategoryRow(
-                        unbudgetedSpending[i].key,
-                        unbudgetedSpending[i].value,
-                      ),
-                      if (i < unbudgetedSpending.length - 1)
-                        const Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: Color(0xFFF1F5F9),
-                          indent: 52,
-                          endIndent: 16,
-                        ),
-                    ],
-                    const SizedBox(height: 4),
-                  ],
+                child: Builder(
+                  builder: (context) {
+                    // Split into native and custom category budgets
+                    final nativeBudgets = _visibleCategoryBudgets
+                        .where((b) => b.customCategoryName == null)
+                        .toList();
+                    final customBudgets = _visibleCategoryBudgets
+                        .where((b) => b.customCategoryName != null)
+                        .toList();
+
+                    return Column(
+                      children: [
+                        // Native category rows
+                        for (int i = 0; i < nativeBudgets.length; i++) ...[
+                          _buildCompactCategoryRow(nativeBudgets[i]),
+                          if (i < nativeBudgets.length - 1 ||
+                              customBudgets.isNotEmpty ||
+                              unbudgetedSpending.isNotEmpty)
+                            const Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: Color(0xFFF1F5F9),
+                              indent: 52,
+                              endIndent: 16,
+                            ),
+                        ],
+                        // Custom categories section (just a divider separator)
+                        if (customBudgets.isNotEmpty) ...[
+                          if (nativeBudgets.isNotEmpty)
+                            const Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: Color(0xFFE2E8F0),
+                              indent: 16,
+                              endIndent: 16,
+                            ),
+                          // Custom category rows
+                          for (int i = 0; i < customBudgets.length; i++) ...[
+                            Dismissible(
+                              key: ValueKey('dash_cat_${customBudgets[i].id}'),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20),
+                                color: Colors.red[400],
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.delete_rounded,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Delete',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              onDismissed: (_) {
+                                widget.onDeleteCategory(customBudgets[i].id);
+                              },
+                              child: _buildCompactCategoryRow(customBudgets[i]),
+                            ),
+                            if (i < customBudgets.length - 1 ||
+                                unbudgetedSpending.isNotEmpty)
+                              const Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: Color(0xFFF1F5F9),
+                                indent: 52,
+                                endIndent: 16,
+                              ),
+                          ],
+                        ],
+                        // Unbudgeted categories that have spending
+                        for (int i = 0; i < unbudgetedSpending.length; i++) ...[
+                          _buildUnbudgetedCategoryRow(
+                            unbudgetedSpending[i].key,
+                            unbudgetedSpending[i].value,
+                          ),
+                          if (i < unbudgetedSpending.length - 1)
+                            const Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: Color(0xFFF1F5F9),
+                              indent: 52,
+                              endIndent: 16,
+                            ),
+                        ],
+                        const SizedBox(height: 4),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -448,12 +515,13 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
 
     for (int i = 0; i < visCats.length; i++) {
       final b = visCats[i];
-      final spent = widget.categorySpending[b.category] ?? 0.0;
+      final spent = widget.categorySpending[b.effectiveCategoryKey] ?? 0.0;
       final fillRatio = b.budgetAmount > 0
           ? (spent / b.budgetAmount).clamp(0.0, 1.0)
           : 0.0;
       final isOver = spent > b.budgetAmount;
-      final segColor = isOver ? Colors.red[400]! : b.category.color;
+      final bDispSeg = _budgetDisplay(b);
+      final segColor = isOver ? Colors.red[400]! : bDispSeg.color;
       final isActive = _activeTip == i;
 
       children.add(
@@ -518,7 +586,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
     Widget? tip;
     if (_activeTip != null && _activeTip! < visCats.length) {
       final tb = visCats[_activeTip!];
-      final spent = widget.categorySpending[tb.category] ?? 0.0;
+      final spent = widget.categorySpending[tb.effectiveCategoryKey] ?? 0.0;
       final rem = tb.budgetAmount - spent;
       final isOver = spent > tb.budgetAmount;
       final pct = tb.budgetAmount > 0
@@ -690,7 +758,8 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
           spacing: 10,
           runSpacing: 4,
           children: visCats.map((b) {
-            final spent = widget.categorySpending[b.category] ?? 0.0;
+            final spent =
+                widget.categorySpending[b.effectiveCategoryKey] ?? 0.0;
             final isOver = spent > b.budgetAmount;
             final bDisp = _budgetDisplay(b);
             return Row(
@@ -749,7 +818,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
   //  Compact category row (inside expanded panel)
   // ══════════════════════════════════════════════
   Widget _buildCompactCategoryRow(CategoryBudget budget) {
-    final spent = widget.categorySpending[budget.category] ?? 0.0;
+    final spent = widget.categorySpending[budget.effectiveCategoryKey] ?? 0.0;
     final pct = budget.budgetAmount > 0
         ? (spent / budget.budgetAmount).clamp(0.0, 1.0)
         : 0.0;
@@ -878,7 +947,24 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
   // ══════════════════════════════════════════════
   //  Unbudgeted category row (spending without budget)
   // ══════════════════════════════════════════════
-  Widget _buildUnbudgetedCategoryRow(ExpenseCategory category, double spent) {
+  Widget _buildUnbudgetedCategoryRow(String categoryKey, double spent) {
+    // Resolve display properties from the key
+    final IconData icon;
+    final Color color;
+    final String name;
+    if (categoryKey.startsWith('custom:')) {
+      final customName = categoryKey.substring(7);
+      final cc = di.sl<CustomCategoryService>().findByName(customName);
+      icon = cc?.icon ?? Icons.label_rounded;
+      color = cc?.color ?? const Color(0xFF7C3AED);
+      name = cc?.displayName ?? customName;
+    } else {
+      final cat = ExpenseCategory.fromString(categoryKey);
+      icon = cat.icon;
+      color = cat.color;
+      name = cat.displayName;
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
@@ -887,10 +973,10 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: category.color.withValues(alpha: 0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(category.icon, color: category.color, size: 16),
+            child: Icon(icon, color: color, size: 16),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -902,7 +988,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                   children: [
                     Expanded(
                       child: Text(
-                        category.displayName,
+                        name,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -916,7 +1002,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: category.color,
+                        color: color,
                       ),
                     ),
                   ],
@@ -937,7 +1023,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
           IconButton(
             icon: Icon(
               Icons.add_circle_outline_rounded,
-              color: category.color,
+              color: color,
               size: 20,
             ),
             padding: EdgeInsets.zero,

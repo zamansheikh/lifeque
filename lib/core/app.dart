@@ -185,8 +185,7 @@ class AppRouter {
                     .map((e) => e as CategoryBudget)
                     .toList();
             final categorySpending =
-                (extra['categorySpending'] as Map<ExpenseCategory, double>?) ??
-                {};
+                (extra['categorySpending'] as Map<String, double>?) ?? {};
             return SetBudgetPage(
               selectedMonth: selectedMonth,
               existingBudget: existingBudget,

@@ -13,7 +13,7 @@ class SetBudgetPage extends StatefulWidget {
   final DateTime selectedMonth;
   final MonthlyBudget? existingBudget;
   final List<CategoryBudget> existingCategoryBudgets;
-  final Map<ExpenseCategory, double> categorySpending;
+  final Map<String, double> categorySpending;
 
   const SetBudgetPage({
     super.key,
@@ -816,7 +816,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     final isEnabled = _enabledCategories[cat] == true;
     final currentValue =
         double.tryParse(_categoryControllers[cat]?.text ?? '') ?? 0.0;
-    final spent = widget.categorySpending[cat] ?? 0.0;
+    final spent = widget.categorySpending[cat.name] ?? 0.0;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -970,7 +970,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     const cat = ExpenseCategory.other;
     final otherAmount = _otherBudgetAmount;
     final hasAmount = otherAmount > 0;
-    final spent = widget.categorySpending[cat] ?? 0.0;
+    final spent = widget.categorySpending[cat.name] ?? 0.0;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),

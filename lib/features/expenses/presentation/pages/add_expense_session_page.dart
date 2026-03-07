@@ -1440,18 +1440,6 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                   // Custom categories
                   if (customCats.isNotEmpty) ...[
                     const Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                      child: Text(
-                        'CUSTOM',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.grey[500],
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
                     ...customCats.map((cc) {
                       final isSelected = item.customCategoryName == cc.name;
                       return ListTile(

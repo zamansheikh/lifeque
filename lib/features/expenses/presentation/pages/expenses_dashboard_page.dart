@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/category_budget.dart';
-import '../../domain/entities/expense_category.dart';
 import '../../domain/entities/expense_session.dart';
 import '../bloc/expense_bloc.dart';
 import '../widgets/expense_session_card.dart';
@@ -104,7 +103,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
         : <CategoryBudget>[];
     final categorySpending = state is ExpenseLoaded
         ? state.getCategorySpending()
-        : <ExpenseCategory, double>{};
+        : <String, double>{};
     context.push(
       '/expenses/budget',
       extra: {
@@ -321,7 +320,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                           monthlyTotal: state.monthlyTotal,
                           monthlyMissed: state.monthlyMissed,
                           categoryBudgets: state.categoryBudgets,
-                          categorySpending: Map<ExpenseCategory, double>.from(
+                          categorySpending: Map<String, double>.from(
                             state.getCategorySpending(),
                           ),
                           onSetBudget: _setBudget,

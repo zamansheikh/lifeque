@@ -40,9 +40,10 @@ class ExpenseLoaded extends ExpenseState {
     this.isSearching = false,
   });
 
-  // Calculate spending by category for the selected month
-  Map<ExpenseCategory, double> getCategorySpending() {
-    final Map<ExpenseCategory, double> spending = {};
+  // Calculate spending by category for the selected month.
+  // Keys are effectiveCategoryKey strings (e.g. 'food', 'custom:Home Rent').
+  Map<String, double> getCategorySpending() {
+    final Map<String, double> spending = {};
 
     // Get sessions for the selected month
     final monthSessions = sessions.where(
@@ -51,12 +52,12 @@ class ExpenseLoaded extends ExpenseState {
           session.date.month == selectedMonth.month,
     );
 
-    // Sum up purchased items by category
+    // Sum up purchased items by effectiveCategoryKey
     for (final session in monthSessions) {
       for (final item in session.items) {
         if (item.isPurchased) {
-          spending[item.category] =
-              (spending[item.category] ?? 0.0) + item.amount;
+          final key = item.effectiveCategoryKey;
+          spending[key] = (spending[key] ?? 0.0) + item.amount;
         }
       }
     }
