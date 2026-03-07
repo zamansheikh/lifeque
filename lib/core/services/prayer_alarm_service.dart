@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:alarm/alarm.dart';
+import 'package:alarm/utils/alarm_set.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:adhan/adhan.dart';
 import '../utils/salah_time_calculator.dart';
@@ -87,7 +88,8 @@ class PrayerAlarmService {
   List<PrayerAlarmConfig> _alarms = [];
   bool _isEnabled = true;
   Timer? _refreshTimer;
-  StreamSubscription<AlarmSettings>? _ringSubscription;
+  StreamSubscription<AlarmSet>? _ringSubscription;
+  Set<int> _currentlyRingingIds = {};
 
   // Base alarm IDs for prayers (to avoid conflicts with study timer)
   static const Map<String, int> _prayerAlarmIds = {
@@ -116,8 +118,15 @@ class PrayerAlarmService {
 
     // Listen for alarm fires and automatically reschedule for the next day.
     // This ensures alarms repeat daily even if the midnight timer was missed.
-    _ringSubscription?.cancel();
-    _ringSubscription = Alarm.ringStream.stream.listen(_onAlarmRang);
+    _ringSubscription ??= Alarm.ringing.listen((AlarmSet alarmSet) {
+      final currentIds = alarmSet.alarms.map((a) => a.id).toSet();
+      for (final alarm in alarmSet.alarms) {
+        if (!_currentlyRingingIds.contains(alarm.id)) {
+          _onAlarmRang(alarm);
+        }
+      }
+      _currentlyRingingIds = currentIds;
+    });
 
     // Reschedule all alarms on startup so that any alarms missed while the
     // app was closed (e.g. after a device restart) are correctly re-queued.
