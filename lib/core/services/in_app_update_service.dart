@@ -152,14 +152,29 @@ class InAppUpdateService {
     );
   }
 
+  static bool _hasCheckedThisSession = false;
+
   /// Check and handle updates automatically
-  static Future<void> checkAndHandleUpdates(BuildContext context) async {
+  static Future<void> checkAndHandleUpdates(
+    BuildContext context, {
+    bool force = false,
+  }) async {
+    // If not forced and already checked this session, skip
+    if (!force && _hasCheckedThisSession) {
+      debugPrint('ℹ️ Skip update check: Already checked this session');
+      return;
+    }
+
     try {
       final updateInfo = await checkForUpdates();
 
       if (updateInfo != null && context.mounted) {
+        _hasCheckedThisSession = true;
         // Show update dialog
         await showUpdateDialog(context, updateInfo);
+      } else if (updateInfo == null) {
+        // Mark as checked even if no update found
+        _hasCheckedThisSession = true;
       }
     } catch (e) {
       debugPrint('❌ Error in checkAndHandleUpdates: $e');

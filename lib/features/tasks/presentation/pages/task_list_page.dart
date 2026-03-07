@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/services/in_app_update_service.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../bloc/task_bloc.dart';
 import '../widgets/task_card_factory.dart';
@@ -23,16 +22,6 @@ class _TaskListPageState extends State<TaskListPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
-    _checkForUpdatesInBackground();
-  }
-
-  /// Check for updates in background without showing UI
-  void _checkForUpdatesInBackground() async {
-    try {
-      await InAppUpdateService.checkForUpdates();
-    } catch (e) {
-      debugPrint('Background update check failed: $e');
-    }
   }
 
   @override

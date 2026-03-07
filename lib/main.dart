@@ -6,7 +6,6 @@ import 'package:alarm/alarm.dart';
 import 'core/app.dart';
 import 'core/services/notification_service.dart';
 // import 'core/services/update_service.dart'; // Commented out - using in-app updates now
-import 'core/services/in_app_update_service.dart';
 import 'features/medicines/domain/repositories/medicine_repository.dart';
 import 'features/tasks/domain/repositories/task_repository.dart';
 import 'injection_container.dart' as di;
@@ -99,9 +98,6 @@ void main() async {
   // Register home widget background callback for tap-to-refresh
   HomeWidget.registerInteractivityCallback(homeWidgetBackgroundCallback);
 
-  // Check for app updates in background
-  _checkForUpdatesInBackground();
-
   // Initialize background service for periodic widget updates
   await BackgroundService().initialize();
 
@@ -110,25 +106,6 @@ void main() async {
 
   debugPrint('🎯 Running app...');
   runApp(const MyApp());
-}
-
-/// Check for updates in the background without blocking app startup
-void _checkForUpdatesInBackground() {
-  Future.delayed(const Duration(seconds: 3), () async {
-    try {
-      debugPrint('🔄 Background update check started...');
-      // Using Google Play Store in-app updates instead of GitHub
-      final updateInfo = await InAppUpdateService.checkForUpdates();
-      if (updateInfo != null) {
-        debugPrint('✅ Update available from Google Play Store');
-        // Update info is available - will be handled by in-app update dialogs
-      } else {
-        debugPrint('✅ App is up to date');
-      }
-    } catch (e) {
-      debugPrint('❌ Background update check failed: $e');
-    }
-  });
 }
 
 /// Update home screen widget with latest prayer times in background
