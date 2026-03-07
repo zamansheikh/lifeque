@@ -29,13 +29,25 @@ class SalahStep {
   });
 }
 
+class SalahSection {
+  final String title;
+  final String arabicTitle;
+  final List<SalahStep> steps;
+
+  const SalahSection({
+    required this.title,
+    required this.arabicTitle,
+    required this.steps,
+  });
+}
+
 class SalahTypeData {
   final String id;
   final String title;
   final String subtitle;
   final String arabicTitle;
   final IconData icon;
-  final List<SalahStep> steps;
+  final List<SalahSection> sections;
 
   const SalahTypeData({
     required this.id,
@@ -43,6 +55,9 @@ class SalahTypeData {
     required this.subtitle,
     required this.arabicTitle,
     required this.icon,
-    required this.steps,
+    required this.sections,
   });
+
+  int get totalSteps =>
+      sections.fold(0, (sum, section) => sum + section.steps.length);
 }

@@ -19,17 +19,10 @@ class DetailedSalahPage extends StatelessWidget {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: SalahStepCard(
-                    step: salahType.steps[index],
-                    stepNumber: index + 1,
-                    accentColor: IslamicColors.deepGreen,
-                  ),
-                ),
-                childCount: salahType.steps.length,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final section = salahType.sections[index];
+                return _SectionWidget(section: section, index: index);
+              }, childCount: salahType.sections.length),
             ),
           ),
         ],
@@ -88,8 +81,8 @@ class DetailedSalahPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${salahType.steps.length} sequential steps',
-                          style: TextStyle(
+                          '${salahType.totalSteps} sequential steps',
+                          style: const TextStyle(
                             color: IslamicColors.gold,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -109,6 +102,100 @@ class DetailedSalahPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SectionWidget extends StatelessWidget {
+  const _SectionWidget({required this.section, required this.index});
+  final SalahSection section;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = IslamicColors.deepGreen;
+    final bgColor = IslamicColors.lightGreen;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (index > 0) const SizedBox(height: 16),
+        // Header
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      section.arabicTitle,
+                      style: GoogleFonts.amiri(
+                        fontSize: 15,
+                        color: color.withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      section.title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: color,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${section.steps.length} steps',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        // Steps
+        ...section.steps.asMap().entries.map((e) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: SalahStepCard(
+              step: e.value,
+              stepNumber: e.key + 1,
+              accentColor: color,
+            ),
+          );
+        }),
+      ],
     );
   }
 }

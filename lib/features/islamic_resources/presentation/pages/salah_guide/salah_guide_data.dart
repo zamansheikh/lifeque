@@ -397,11 +397,27 @@ final List<SalahTypeData> salahTypesData = [
     subtitle: 'Fajr Fard, Sunnah prayers, Nafl',
     arabicTitle: 'صلاة ركعتين',
     icon: Icons.looks_two_rounded,
-    steps: [
-      ..._baseStartSteps,
-      _qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2, // Rak'ah 1
-      ..._baseRakStepsWithSurah, // Rak'ah 2
-      ..._baseEndSteps, // Ending
+    sections: [
+      const SalahSection(
+        title: 'Before Salah',
+        arabicTitle: 'قَبْلَ الصَّلَاة',
+        steps: _baseStartSteps,
+      ),
+      const SalahSection(
+        title: 'First Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الْأُولَى',
+        steps: [_qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2],
+      ),
+      const SalahSection(
+        title: 'Second Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الثَّانِيَة',
+        steps: _baseRakStepsWithSurah,
+      ),
+      const SalahSection(
+        title: 'After Salah',
+        arabicTitle: 'بَعْدَ الصَّلَاة',
+        steps: _baseEndSteps,
+      ),
     ],
   ),
   SalahTypeData(
@@ -410,13 +426,32 @@ final List<SalahTypeData> salahTypesData = [
     subtitle: 'Maghrib Fard prayer',
     arabicTitle: 'صلاة المغرب ٣ ركعات',
     icon: Icons.looks_3_rounded,
-    steps: [
-      ..._baseStartSteps,
-      _qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2, // Rak'ah 1
-      ..._baseRakStepsWithSurah, // Rak'ah 2
-      _firstTashahhud,
-      ..._baseRakStepsFatihahOnly, // Rak'ah 3 (no surah)
-      ..._baseEndSteps, // Ending
+    sections: [
+      const SalahSection(
+        title: 'Before Salah',
+        arabicTitle: 'قَبْلَ الصَّلَاة',
+        steps: _baseStartSteps,
+      ),
+      const SalahSection(
+        title: 'First Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الْأُولَى',
+        steps: [_qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2],
+      ),
+      const SalahSection(
+        title: 'Second Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الثَّانِيَة',
+        steps: [..._baseRakStepsWithSurah, _firstTashahhud],
+      ),
+      const SalahSection(
+        title: 'Third Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الثَّالِثَة',
+        steps: _baseRakStepsFatihahOnly,
+      ),
+      const SalahSection(
+        title: 'After Salah',
+        arabicTitle: 'بَعْدَ الصَّلَاة',
+        steps: _baseEndSteps,
+      ),
     ],
   ),
   SalahTypeData(
@@ -425,14 +460,37 @@ final List<SalahTypeData> salahTypesData = [
     subtitle: 'Dhuhr, Asr, Isha Fard & Sunnah',
     arabicTitle: 'صلاة ٤ ركعات',
     icon: Icons.looks_4_rounded,
-    steps: [
-      ..._baseStartSteps,
-      _qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2, // Rak'ah 1
-      ..._baseRakStepsWithSurah, // Rak'ah 2
-      _firstTashahhud,
-      ..._baseRakStepsFatihahOnly, // Rak'ah 3
-      ..._baseRakStepsFatihahOnly, // Rak'ah 4
-      ..._baseEndSteps, // Ending
+    sections: [
+      const SalahSection(
+        title: 'Before Salah',
+        arabicTitle: 'قَبْلَ الصَّلَاة',
+        steps: _baseStartSteps,
+      ),
+      const SalahSection(
+        title: 'First Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الْأُولَى',
+        steps: [_qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2],
+      ),
+      const SalahSection(
+        title: 'Second Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الثَّانِيَة',
+        steps: [..._baseRakStepsWithSurah, _firstTashahhud],
+      ),
+      const SalahSection(
+        title: 'Third Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الثَّالِثَة',
+        steps: _baseRakStepsFatihahOnly,
+      ),
+      const SalahSection(
+        title: 'Fourth Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الرَّابِعَة',
+        steps: _baseRakStepsFatihahOnly,
+      ),
+      const SalahSection(
+        title: 'After Salah',
+        arabicTitle: 'بَعْدَ الصَّلَاة',
+        steps: _baseEndSteps,
+      ),
     ],
   ),
   SalahTypeData(
@@ -441,18 +499,32 @@ final List<SalahTypeData> salahTypesData = [
     subtitle: 'Witr prayer after Isha',
     arabicTitle: 'صلاة الوتر ٣ ركعات',
     icon: Icons.nightlight_round,
-    steps: [
-      ..._baseStartSteps,
-      _qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2, // Rak'ah 1
-      ..._baseRakStepsWithSurah, // Rak'ah 2
-      _firstTashahhud,
-      _qiyamWitrThirdRak,
-      _ruku,
-      _iktidal,
-      _sujud1,
-      _jalsa,
-      _sujud2, // Rak'ah 3 (witr qiyam)
-      ..._baseEndSteps, // Ending
+    sections: [
+      const SalahSection(
+        title: 'Before Salah',
+        arabicTitle: 'قَبْلَ الصَّلَاة',
+        steps: _baseStartSteps,
+      ),
+      const SalahSection(
+        title: 'First Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الْأُولَى',
+        steps: [_qiyamFirstRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2],
+      ),
+      const SalahSection(
+        title: 'Second Rak\'ah',
+        arabicTitle: 'الرَّكْعَةُ الثَّانِيَة',
+        steps: [..._baseRakStepsWithSurah, _firstTashahhud],
+      ),
+      const SalahSection(
+        title: 'Third Rak\'ah (Witr)',
+        arabicTitle: 'الرَّكْعَةُ الثَّالِثَة',
+        steps: [_qiyamWitrThirdRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2],
+      ),
+      const SalahSection(
+        title: 'After Salah',
+        arabicTitle: 'بَعْدَ الصَّلَاة',
+        steps: _baseEndSteps,
+      ),
     ],
   ),
   SalahTypeData(
@@ -461,11 +533,22 @@ final List<SalahTypeData> salahTypesData = [
     subtitle: 'Short Witr prayer',
     arabicTitle: 'صلاة الوتر ركعة',
     icon: Icons.mode_night_rounded,
-    steps: [
-      ..._baseStartSteps,
-      _qiyamWitrThirdRak, // Rak'ah 1 (witr qiyam with dua qunut)
-      _ruku, _iktidal, _sujud1, _jalsa, _sujud2,
-      ..._baseEndSteps, // Ending
+    sections: [
+      const SalahSection(
+        title: 'Before Salah',
+        arabicTitle: 'قَبْلَ الصَّلَاة',
+        steps: _baseStartSteps,
+      ),
+      const SalahSection(
+        title: 'First Rak\'ah (Witr)',
+        arabicTitle: 'الرَّكْعَةُ الْأُولَى',
+        steps: [_qiyamWitrThirdRak, _ruku, _iktidal, _sujud1, _jalsa, _sujud2],
+      ),
+      const SalahSection(
+        title: 'After Salah',
+        arabicTitle: 'بَعْدَ الصَّلَاة',
+        steps: _baseEndSteps,
+      ),
     ],
   ),
 ];
