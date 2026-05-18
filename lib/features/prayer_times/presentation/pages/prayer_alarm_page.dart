@@ -4,6 +4,7 @@ import 'package:adhan/adhan.dart';
 import '../../../../core/services/prayer_alarm_service.dart';
 import '../../../../core/utils/alarm_sound_utils.dart';
 import '../../../../core/utils/salah_time_calculator.dart';
+import '../utils/islamic_colors.dart';
 
 class PrayerAlarmPage extends StatefulWidget {
   const PrayerAlarmPage({super.key});
@@ -24,39 +25,78 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Override the local colour scheme so EVERY downstream `colorScheme.primary`
+    // (used heavily by this page's existing helpers) reads emerald instead of
+    // the app's default Material primary. Lets us re-skin the whole page
+    // without rewriting hundreds of lines.
+    final base = Theme.of(context);
+    final themed = base.copyWith(
+      colorScheme: base.colorScheme.copyWith(
+        primary: IslamicColors.emerald,
+        onPrimary: Colors.white,
+        secondary: IslamicColors.goldDeep,
+        onSecondary: Colors.white,
+        error: IslamicColors.warning,
+      ),
+    );
+
+    return Theme(
+      data: themed,
+      child: Builder(builder: _build),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: IslamicColors.cream,
       appBar: AppBar(
-        title: const Text('Prayer Alarms'),
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
+        title: const Text(
+          'Prayer Alarms',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+        backgroundColor: IslamicColors.emerald,
+        foregroundColor: Colors.white,
         elevation: 0,
-        scrolledUnderElevation: 1,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [IslamicColors.emerald, IslamicColors.emeraldMid],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         actions: [
           StreamBuilder<bool>(
             stream: _alarmService.enabledStream,
             builder: (context, snapshot) {
               final isEnabled = snapshot.data ?? true;
               return Container(
-                margin: const EdgeInsets.only(right: 8),
+                margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: IslamicColors.goldLight.withValues(alpha: 0.4),
+                  ),
                 ),
                 child: Switch(
                   value: isEnabled,
                   onChanged: (value) {
                     _alarmService.toggleGlobalAlarms(value);
                   },
-                  activeThumbColor: colorScheme.primary,
+                  activeThumbColor: IslamicColors.goldLight,
+                  activeTrackColor:
+                      IslamicColors.goldDeep.withValues(alpha: 0.5),
+                  inactiveThumbColor: Colors.white70,
+                  inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               );
             },
           ),
-          const SizedBox(width: 12),
         ],
       ),
       body: StreamBuilder<List<PrayerAlarmConfig>>(
