@@ -3,9 +3,9 @@ import 'dart:developer' as developer;
 import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_set.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:adhan/adhan.dart';
 import '../utils/salah_time_calculator.dart';
 import '../utils/alarm_sound_utils.dart';
+import '../../features/prayer_times/data/services/prayer_settings_service.dart';
 
 enum PrayerAlarmType { beforePrayerEnd, fixedTime, afterPrayerStart }
 
@@ -326,7 +326,22 @@ class PrayerAlarmService {
     DateTime? alarmTime;
 
     if (config.type == PrayerAlarmType.fixedTime && config.fixedTime != null) {
-      alarmTime = config.fixedTime!;
+      // Use only the time-of-day from the stored fixedTime and project it
+      // onto today (or tomorrow if today's already passed) so the alarm
+      // continues to fire daily instead of silently dying once the stored
+      // date is in the past.
+      final fixed = config.fixedTime!;
+      final base = DateTime(
+        startDate.year,
+        startDate.month,
+        startDate.day,
+        fixed.hour,
+        fixed.minute,
+        fixed.second,
+      );
+      alarmTime = base.isBefore(DateTime.now())
+          ? base.add(const Duration(days: 1))
+          : base;
     } else if (config.type == PrayerAlarmType.beforePrayerEnd) {
       alarmTime = await _calculateBeforePrayerEndTime(
         config.prayerName,
@@ -394,6 +409,24 @@ class PrayerAlarmService {
     }
   }
 
+  /// Build a [SalahTimeCalculator] honouring the user's saved location,
+  /// calculation method and madhab. Falls back to Dhaka/Karachi/Hanafi if no
+  /// settings have been saved yet.
+  Future<SalahTimeCalculator> _buildCalculator(DateTime date) async {
+    final settings = PrayerSettingsService.instance;
+    final location = await settings.getSavedLocation();
+    final method = await settings.getCalculationMethod();
+    final madhab = await settings.getMadhab();
+
+    return SalahTimeCalculator(
+      latitude: location?.latitude ?? 23.8103,
+      longitude: location?.longitude ?? 90.4125,
+      date: date,
+      method: method,
+      madhab: madhab,
+    );
+  }
+
   Future<DateTime?> _calculateBeforePrayerEndTime(
     String prayerName,
     int minutesBefore, {
@@ -403,13 +436,8 @@ class PrayerAlarmService {
       final now = DateTime.now();
       final date = referenceDate ?? now;
 
-      // Get prayer times for the reference date.
-      final calculator = SalahTimeCalculator(
-        latitude: 23.8103, // Default to Dhaka, should get from saved location
-        longitude: 90.4125,
-        date: date,
-        method: CalculationMethod.karachi,
-      );
+      // Get prayer times for the reference date using user's saved settings.
+      final calculator = await _buildCalculator(date);
 
       final prayerTimes = calculator.getPrayerTimesMap();
       final prayerTime = prayerTimes[prayerName];
@@ -420,11 +448,8 @@ class PrayerAlarmService {
       DateTime targetPrayerTime = prayerTime;
 
       if (prayerTime.isBefore(now)) {
-        final tomorrowCalculator = SalahTimeCalculator(
-          latitude: 23.8103,
-          longitude: 90.4125,
-          date: date.add(const Duration(days: 1)),
-          method: CalculationMethod.karachi,
+        final tomorrowCalculator = await _buildCalculator(
+          date.add(const Duration(days: 1)),
         );
         final tomorrowTimes = tomorrowCalculator.getPrayerTimesMap();
         targetPrayerTime = tomorrowTimes[prayerName] ?? prayerTime;
@@ -471,13 +496,8 @@ class PrayerAlarmService {
       final now = DateTime.now();
       final date = referenceDate ?? now;
 
-      // Get prayer times for the reference date.
-      final calculator = SalahTimeCalculator(
-        latitude: 23.8103, // Default to Dhaka, should get from saved location
-        longitude: 90.4125,
-        date: date,
-        method: CalculationMethod.karachi,
-      );
+      // Get prayer times for the reference date using user's saved settings.
+      final calculator = await _buildCalculator(date);
 
       final prayerTimes = calculator.getPrayerTimesMap();
       final prayerTime = prayerTimes[prayerName];
@@ -490,11 +510,8 @@ class PrayerAlarmService {
 
       // If the computed alarm time has already passed, shift to the next day.
       if (alarmTime.isBefore(now)) {
-        final tomorrowCalculator = SalahTimeCalculator(
-          latitude: 23.8103,
-          longitude: 90.4125,
-          date: date.add(const Duration(days: 1)),
-          method: CalculationMethod.karachi,
+        final tomorrowCalculator = await _buildCalculator(
+          date.add(const Duration(days: 1)),
         );
         final tomorrowTimes = tomorrowCalculator.getPrayerTimesMap();
         final tomorrowPrayer = tomorrowTimes[prayerName];
@@ -544,6 +561,26 @@ class PrayerAlarmService {
         await _scheduleAlarm(alarm);
       }
     }
+  }
+
+  /// Re-queue all enabled prayer alarms. Safe to call from a background
+  /// isolate (e.g. WorkManager). Does NOT touch streams or timers — just
+  /// reads persisted alarms and pushes them into the native Alarm package.
+  ///
+  /// The native Alarm package only holds one fire-time per alarm id, so on
+  /// every invocation we recompute today's (or tomorrow's, if today's has
+  /// passed) prayer time and re-set it. This is what keeps daily alarms
+  /// firing even when the app has been killed for days — WorkManager calls
+  /// this every ~15 min and tops up the queue.
+  Future<void> rescheduleFromBackground() async {
+    developer.log('PrayerAlarmService: rescheduleFromBackground');
+    await _loadSettings();
+    await _loadAlarms();
+    if (!_isEnabled) {
+      developer.log('PrayerAlarmService: global alarms disabled — skipping');
+      return;
+    }
+    await _scheduleAllAlarms();
   }
 
   Future<void> _cancelAllAlarms() async {

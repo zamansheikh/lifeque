@@ -29,6 +29,17 @@ class NotificationService {
 
   // Notification tracking constants
   static const String _medicineNotificationIdsKey = 'medicine_notification_ids';
+  // Persistent map of "med_<medicineId>_<timeString>" -> int notification id.
+  // We assign ids from a monotonic counter so different medicines (or the
+  // same medicine at different times) never collide, and so the medicine id
+  // space never overlaps the hashCode-based task/birthday id space.
+  static const String _medicineNotificationIdMapKey =
+      'medicine_notification_id_map';
+  static const String _medicineNotificationIdCounterKey =
+      'medicine_notification_id_counter';
+  // Start medicines well above the range any reasonable .hashCode result
+  // would land in for task ids (which are signed-32-bit String hashCodes).
+  static const int _medicineIdCounterStart = 1500000000;
 
   // Track if app was launched by notification action
   static bool _appLaunchedByNotification = false;
@@ -1608,6 +1619,39 @@ class NotificationService {
 
   // Medicine notification methods
 
+  /// Cancel notifications for any medicine whose course has ended (endDate
+  /// in the past). Without this, the daily-repeat scheduler at
+  /// [_scheduleTimeBasedMedicineNotification] would keep firing forever for
+  /// finished prescriptions.
+  Future<void> cancelExpiredMedicineNotifications(
+    MedicineRepository medicineRepository,
+  ) async {
+    debugPrint('🩺 Sweeping expired medicines...');
+    try {
+      final result = await medicineRepository.getAllMedicines();
+      await result.fold(
+        (failure) async =>
+            debugPrint('🩺 ❌ Failed to fetch medicines for sweep: $failure'),
+        (medicines) async {
+          final now = DateTime.now();
+          int cancelled = 0;
+          for (final medicine in medicines) {
+            final end =
+                medicine.endDate ??
+                medicine.startDate.add(Duration(days: medicine.durationInDays));
+            if (now.isAfter(end)) {
+              await cancelMedicineNotifications(medicine.id);
+              cancelled++;
+            }
+          }
+          debugPrint('🩺 Sweep cancelled $cancelled expired medicine schedules');
+        },
+      );
+    } catch (e) {
+      debugPrint('🩺 ❌ Error sweeping expired medicines: $e');
+    }
+  }
+
   /// Synchronizes notifications with the current database state.
   /// This handles:
   /// 1. Cancelling "orphan" notifications (e.g. if data was cleared but notifications remain).
@@ -1619,6 +1663,9 @@ class NotificationService {
     debugPrint('🔔 🔄 Starting notification synchronization...');
 
     try {
+      // 0. Kill notifications for medicines whose course ended.
+      await cancelExpiredMedicineNotifications(medicineRepository);
+
       // 1. Get all pending notifications from the system
       final pendingNotifications = await _flutterLocalNotificationsPlugin
           .pendingNotificationRequests();
@@ -1770,6 +1817,19 @@ class NotificationService {
       return;
     }
 
+    // Don't schedule for a medicine whose course has already ended. Without
+    // this guard the daily-repeat scheduler below would keep firing forever
+    // even though the prescription is over.
+    final medicineEndDate =
+        medicine.endDate ??
+        medicine.startDate.add(Duration(days: medicine.durationInDays));
+    if (DateTime.now().isAfter(medicineEndDate)) {
+      debugPrint(
+        '🩺 Medicine ${medicine.name} ended on $medicineEndDate — skipping notifications',
+      );
+      return;
+    }
+
     // Schedule notifications for each notification time and track their IDs
     final List<int> scheduledIds = [];
     for (final timeString in medicine.notificationTimes) {
@@ -1826,7 +1886,7 @@ class NotificationService {
         return null;
       }
 
-      final notificationId = _generateMedicineNotificationId(
+      final notificationId = await _generateMedicineNotificationId(
         medicine.id,
         timeString,
       );
@@ -1909,16 +1969,37 @@ class NotificationService {
   Future<void> cancelMedicineNotifications(String medicineId) async {
     debugPrint('🩺 Cancelling notifications for medicine: $medicineId');
 
-    // Get tracked notification IDs for this medicine
-    final notificationIds = await _getMedicineNotificationIds(medicineId);
+    final Set<int> idsToCancel = {};
 
-    if (notificationIds.isEmpty) {
-      debugPrint('🩺 No tracked notifications found for medicine $medicineId');
+    // 1. Tracked IDs from SharedPreferences (the fast path).
+    final trackedIds = await _getMedicineNotificationIds(medicineId);
+    idsToCancel.addAll(trackedIds);
+
+    // 2. Sweep the OS scheduler by payload. This catches notifications that
+    //    were scheduled before the tracking system existed, or that drifted
+    //    out of sync (data cleared / backup restored / mid-update crash).
+    //    Without this sweep, deleting a medicine would leave the OS still
+    //    firing reminders for it forever.
+    try {
+      final pending = await _flutterLocalNotificationsPlugin
+          .pendingNotificationRequests();
+      final expectedPayload = 'medicine_$medicineId';
+      for (final n in pending) {
+        if (n.payload == expectedPayload) {
+          idsToCancel.add(n.id);
+        }
+      }
+    } catch (e) {
+      debugPrint('🩺 Error scanning pending notifications: $e');
+    }
+
+    if (idsToCancel.isEmpty) {
+      debugPrint('🩺 Nothing to cancel for medicine $medicineId');
+      await _removeMedicineNotificationIds(medicineId);
       return;
     }
 
-    // Cancel each tracked notification
-    for (final notificationId in notificationIds) {
+    for (final notificationId in idsToCancel) {
       try {
         await _flutterLocalNotificationsPlugin.cancel(id: notificationId);
         debugPrint(
@@ -1933,7 +2014,8 @@ class NotificationService {
     await _removeMedicineNotificationIds(medicineId);
 
     debugPrint(
-      '🩺 Cancelled ${notificationIds.length} notifications for medicine $medicineId',
+      '🩺 Cancelled ${idsToCancel.length} notifications for medicine $medicineId '
+      '(${trackedIds.length} tracked, ${idsToCancel.length - trackedIds.length} swept from OS)',
     );
   }
 
@@ -2065,10 +2147,38 @@ class NotificationService {
     }
   }
 
-  int _generateMedicineNotificationId(String medicineId, String timeString) {
-    // Generate unique ID combining medicine ID and time
-    final combined = 'med_${medicineId}_$timeString';
-    return combined.hashCode.abs() % 2147483647; // Ensure positive int32
+  /// Returns a unique, stable, collision-free notification id for the given
+  /// (medicineId, timeString) pair. Backed by a persistent map; new pairs
+  /// get the next value from a monotonic counter. Replaces the previous
+  /// hashCode-mod approach, which could collide both inside the medicine
+  /// space and against the task/birthday id space.
+  Future<int> _generateMedicineNotificationId(
+    String medicineId,
+    String timeString,
+  ) async {
+    final key = 'med_${medicineId}_$timeString';
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final mapJson = prefs.getString(_medicineNotificationIdMapKey);
+      final Map<String, dynamic> map = mapJson == null
+          ? <String, dynamic>{}
+          : jsonDecode(mapJson) as Map<String, dynamic>;
+
+      final existing = map[key];
+      if (existing is int) return existing;
+
+      final nextId =
+          prefs.getInt(_medicineNotificationIdCounterKey) ??
+          _medicineIdCounterStart;
+      map[key] = nextId;
+      await prefs.setString(_medicineNotificationIdMapKey, jsonEncode(map));
+      await prefs.setInt(_medicineNotificationIdCounterKey, nextId + 1);
+      return nextId;
+    } catch (e) {
+      debugPrint('🩺 ID-map error, falling back to hashCode for $key: $e');
+      // Last-ditch fallback so a transient prefs error doesn't break scheduling.
+      return key.hashCode.abs() % 2147483647;
+    }
   }
 
   Future<void> _handleMedicineNotificationAction(

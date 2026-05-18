@@ -1,6 +1,8 @@
+import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:lifeque/features/home_widget/services/home_widget_service.dart';
+import 'package:lifeque/core/services/prayer_alarm_service.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as timezone;
 
@@ -18,13 +20,34 @@ void callbackDispatcher() {
 
     if (task == updateWidgetTask) {
       try {
-        // Initialize Timezone (critical for prayer calculations)
+        // Initialize Timezone. Try the device's actual zone (Android reports
+        // IANA names via DateTime.timeZoneName) and fall back to Asia/Dhaka.
         tz.initializeTimeZones();
-        timezone.setLocalLocation(timezone.getLocation('Asia/Dhaka'));
+        try {
+          final name = DateTime.now().timeZoneName;
+          final location = timezone.timeZoneDatabase.locations[name];
+          timezone.setLocalLocation(
+            location ?? timezone.getLocation('Asia/Dhaka'),
+          );
+        } catch (_) {
+          timezone.setLocalLocation(timezone.getLocation('Asia/Dhaka'));
+        }
 
         // Update the widget
         final service = HomeWidgetService();
         await service.updateWidget();
+
+        // Re-queue prayer alarms. The native Alarm package holds one
+        // fire-time per id, so if the app has been killed for days nothing
+        // will have re-queued tomorrow's alarms. Topping up here every ~15min
+        // keeps them firing without needing the app to be open.
+        try {
+          await Alarm.init();
+          await PrayerAlarmService().rescheduleFromBackground();
+          debugPrint("✅ Background Service: Prayer alarms re-queued");
+        } catch (e) {
+          debugPrint("⚠️ Background Service: Prayer alarm reschedule failed: $e");
+        }
 
         debugPrint(
           "✅ Background Service: Widget update completed successfully",

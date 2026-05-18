@@ -5,6 +5,7 @@ import 'package:timezone/timezone.dart' as timezone;
 import 'package:alarm/alarm.dart';
 import 'core/app.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/prayer_alarm_service.dart';
 // import 'core/services/update_service.dart'; // Commented out - using in-app updates now
 import 'features/medicines/domain/repositories/medicine_repository.dart';
 import 'features/tasks/domain/repositories/task_repository.dart';
@@ -24,7 +25,7 @@ Future<void> homeWidgetBackgroundCallback(Uri? uri) async {
   // Initialize timezone (needed for prayer time calculations)
   try {
     tz.initializeTimeZones();
-    timezone.setLocalLocation(timezone.getLocation('Asia/Dhaka'));
+    _initLocalTimezone();
   } catch (e) {
     debugPrint('⚠️ Timezone init warning in background: $e');
   }
@@ -55,19 +56,30 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('🚀 App starting...');
 
-  // Initialize timezone
+  // Initialize timezone DB and resolve the device's actual zone. We avoid
+  // adding a flutter_timezone dependency by first trying DateTime.timeZoneName
+  // (works on Android — returns IANA names) and falling back to Asia/Dhaka if
+  // the platform reports an abbreviation (iOS) or anything else not in the DB.
+  // NOTE: this only affects display/debug. TZDateTime.from(dt, tz.local)
+  // preserves the UTC instant regardless of which zone is set, so notification
+  // firing times are correct even with the fallback.
   tz.initializeTimeZones();
-
-  // Set the local timezone to Bangladesh (Asia/Dhaka)
-  timezone.setLocalLocation(timezone.getLocation('Asia/Dhaka'));
-  debugPrint('🌍 Timezone initialized and set to Asia/Dhaka (Bangladesh)');
-  debugPrint(
-    '🕐 Current local time: ${timezone.TZDateTime.now(timezone.local)}',
-  );
+  _initLocalTimezone();
+  debugPrint('🕐 Current local time: ${timezone.TZDateTime.now(timezone.local)}');
 
   // Initialize alarm service
   await Alarm.init();
   debugPrint('⏰ Alarm service initialized');
+
+  // Initialize prayer alarm service so the midnight refresh timer, the
+  // alarm-ring listener (for daily auto-reschedule) and the startup re-queue
+  // run regardless of whether the user opens the Prayer Alarms page.
+  try {
+    await PrayerAlarmService().initialize();
+    debugPrint('🕌 PrayerAlarmService initialized');
+  } catch (e) {
+    debugPrint('🕌 ❌ PrayerAlarmService init failed: $e');
+  }
 
   // Initialize dependency injection
   await di.init();
@@ -106,6 +118,27 @@ void main() async {
 
   debugPrint('🎯 Running app...');
   runApp(const MyApp());
+}
+
+/// Set tz.local to the device's zone if we can map it, otherwise Asia/Dhaka.
+void _initLocalTimezone() {
+  const fallback = 'Asia/Dhaka';
+  try {
+    final name = DateTime.now().timeZoneName; // e.g. "America/New_York" on Android
+    // Only IANA-style names will resolve; abbreviations like "EST"/"PST" won't.
+    final location = timezone.timeZoneDatabase.locations[name];
+    if (location != null) {
+      timezone.setLocalLocation(location);
+      debugPrint('🌍 Timezone set to device zone: $name');
+      return;
+    }
+    debugPrint(
+      '🌍 Device reported "$name" — not an IANA id, falling back to $fallback',
+    );
+  } catch (e) {
+    debugPrint('🌍 Timezone detection failed ($e) — using $fallback');
+  }
+  timezone.setLocalLocation(timezone.getLocation(fallback));
 }
 
 /// Update home screen widget with latest prayer times in background
