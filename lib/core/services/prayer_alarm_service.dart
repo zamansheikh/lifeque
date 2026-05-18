@@ -363,13 +363,18 @@ class PrayerAlarmService {
       return;
     }
 
-    // Get user's preferred alarm sound
-    final alarmSoundPath = await AlarmSoundUtils.getPrayerAlarmSound();
+    // Use the sound selected for THIS prayer's alarm config. Falls back to
+    // the global preference / default if the saved path is empty or invalid.
+    String alarmSoundPath = config.soundPath;
+    if (alarmSoundPath.isEmpty ||
+        !AlarmSoundUtils.isValidAlarmSound(alarmSoundPath)) {
+      alarmSoundPath = await AlarmSoundUtils.getPrayerAlarmSound();
+    }
 
     final alarmSettings = AlarmSettings(
       id: alarmId,
       dateTime: alarmTime,
-      assetAudioPath: alarmSoundPath, // Use user's preferred sound
+      assetAudioPath: alarmSoundPath, // Per-prayer user-selected sound
       loopAudio: true, // Enable looping to repeat the sound
       vibrate: true,
       warningNotificationOnKill: true,
