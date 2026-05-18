@@ -5,7 +5,9 @@ import '../../data/services/custom_category_service.dart';
 import '../../domain/entities/category_budget.dart';
 import '../../domain/entities/custom_category.dart';
 import '../../domain/entities/expense_category.dart';
+import '../../domain/entities/expense_session.dart';
 import '../../domain/entities/monthly_budget.dart';
+import '../../domain/repositories/expense_repository.dart';
 import '../../../../injection_container.dart' as di;
 import '../bloc/expense_bloc.dart';
 
@@ -1097,6 +1099,10 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     final isEnabled = _enabledCustomCategories[cc.name] == true;
     final currentValue =
         double.tryParse(_customCategoryControllers[cc.name]?.text ?? '') ?? 0.0;
+    // Spending map keys items by `effectiveCategoryKey` — for a custom
+    // category this is `'custom:<name>'`. Built-in rows do the equivalent
+    // lookup at line 819; custom rows were silently skipping it.
+    final spent = widget.categorySpending['custom:${cc.name}'] ?? 0.0;
 
     return Dismissible(
       key: ValueKey('custom_cat_${cc.name}'),
@@ -1183,6 +1189,15 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                  if (spent > 0)
+                    Text(
+                      '৳${_fmt(spent)} spent this month',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.orange[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -1259,17 +1274,109 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
   }
 
   Future<bool> _confirmDeleteCustomCategory(CustomCategory cc) async {
+    // Compute impact across ALL months — not just the selected month —
+    // because items referencing this custom category can live anywhere in
+    // history. Without this audit, deleting the category would silently
+    // orphan those items (their `effectiveCategoryKey` would point at a
+    // non-existent custom name forever).
+    final repo = di.sl<ExpenseRepository>();
+    final sessionsResult = await repo.getAllSessions();
+    final budgetsResult = await repo.getAllCategoryBudgets();
+
+    final allSessions = sessionsResult.getOrElse(() => <ExpenseSession>[]);
+    final allBudgets = budgetsResult.getOrElse(() => <CategoryBudget>[]);
+
+    int affectedItemCount = 0;
+    final affectedSessions = <ExpenseSession>[];
+    for (final session in allSessions) {
+      final touched = session.items.any(
+        (i) => i.customCategoryName == cc.name,
+      );
+      if (touched) {
+        affectedSessions.add(session);
+        affectedItemCount += session.items
+            .where((i) => i.customCategoryName == cc.name)
+            .length;
+      }
+    }
+
+    final affectedBudgets = allBudgets
+        .where((b) => b.customCategoryName == cc.name)
+        .toList();
+
+    if (!mounted) return false;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         title: const Text(
           'Delete Category',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
-        content: Text(
-          'Remove "${cc.displayName}" from your categories?',
-          style: const TextStyle(fontSize: 14),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Remove "${cc.displayName}" from your categories?',
+              style: const TextStyle(fontSize: 14),
+            ),
+            if (affectedItemCount > 0 || affectedBudgets.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Colors.orange.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          size: 16,
+                          color: Colors.orange[700],
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'This will affect:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.orange[800],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    if (affectedItemCount > 0)
+                      Text(
+                        '• $affectedItemCount item${affectedItemCount == 1 ? '' : 's'} '
+                        'across ${affectedSessions.length} '
+                        'session${affectedSessions.length == 1 ? '' : 's'} '
+                        '— will be moved to "Other"',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    if (affectedBudgets.isNotEmpty)
+                      Text(
+                        '• ${affectedBudgets.length} budget '
+                        'entr${affectedBudgets.length == 1 ? 'y' : 'ies'} '
+                        '— will be removed',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ],
         ),
         actions: [
           TextButton(
@@ -1284,17 +1391,45 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
         ],
       ),
     );
-    if (confirmed == true) {
-      await di.sl<CustomCategoryService>().remove(cc.name);
-      setState(() {
-        _customCategories = di.sl<CustomCategoryService>().getAll();
-        _customCategoryControllers[cc.name]?.dispose();
-        _customCategoryControllers.remove(cc.name);
-        _enabledCustomCategories.remove(cc.name);
-      });
-      return true;
+
+    if (confirmed != true) return false;
+
+    // Cascade cleanup BEFORE removing the category, so if anything fails
+    // we don't leave a partially-deleted state.
+    for (final session in affectedSessions) {
+      final cleaned = session.copyWith(
+        items: session.items.map((i) {
+          if (i.customCategoryName != cc.name) return i;
+          return i.copyWith(
+            category: ExpenseCategory.other,
+            clearCustomCategory: true,
+          );
+        }).toList(),
+      );
+      await repo.updateSession(cleaned);
     }
-    return false;
+
+    for (final budget in affectedBudgets) {
+      await repo.deleteCategoryBudget(budget.id);
+    }
+
+    await di.sl<CustomCategoryService>().remove(cc.name);
+
+    if (!mounted) return false;
+    setState(() {
+      _customCategories = di.sl<CustomCategoryService>().getAll();
+      _customCategoryControllers[cc.name]?.dispose();
+      _customCategoryControllers.remove(cc.name);
+      _enabledCustomCategories.remove(cc.name);
+    });
+
+    // Refresh the dashboard so the moved items + removed budgets show up.
+    if (mounted) {
+      context.read<ExpenseBloc>().add(
+        ChangeSelectedMonth(widget.selectedMonth),
+      );
+    }
+    return true;
   }
 
   // ── Add Custom Category Dialog ────────────────────────────────────────────

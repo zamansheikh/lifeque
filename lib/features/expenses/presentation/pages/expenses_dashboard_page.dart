@@ -419,6 +419,54 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
                           ],
                         ),
 
+                        // Cross-month search notice — the search use-case
+                        // doesn't restrict to the selected month, so results
+                        // can come from any prior month. Without this banner
+                        // users would see the summary card showing May's
+                        // totals while the list silently includes other
+                        // months' sessions, which is confusing.
+                        if (state.isSearching && sessions.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2563EB)
+                                    .withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: const Color(0xFF2563EB)
+                                      .withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.info_outline_rounded,
+                                    size: 16,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Showing matches across all months — '
+                                      'budget summary above still reflects '
+                                      'the selected month only.',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.blue[900],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
                         const SizedBox(height: 16),
 
                         // Enhanced Sessions List

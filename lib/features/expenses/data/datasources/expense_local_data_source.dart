@@ -35,25 +35,55 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
   static const String sessionsKey = 'CACHED_EXPENSE_SESSIONS';
   static const String budgetsKey = 'CACHED_MONTHLY_BUDGETS';
 
-  // Simple async lock to prevent race conditions during concurrent category budget updates
+  // Async locks per storage key to prevent read-modify-write races. Every
+  // read-then-write should be wrapped via [_runWithLock] so concurrent
+  // mutations are serialized — without this, fast successive saves
+  // (e.g. toggling several item-purchased flags in a row) can clobber each
+  // other and silently lose data.
+  Future<void>? _sessionLock;
+  Future<void>? _budgetLock;
   Future<void>? _categoryBudgetLock;
 
-  Future<void> _runWithCategoryBudgetLock(
-    Future<void> Function() action,
+  /// Serializes [action]s against the given lock slot. Returns whatever
+  /// [action] returned. **Crucially**, errors from [action] propagate to
+  /// the caller (previously they were swallowed, so callers thought saves
+  /// succeeded even when they failed).
+  Future<T> _runWithLock<T>(
+    Future<void>? Function() readSlot,
+    void Function(Future<void>) writeSlot,
+    Future<T> Function() action,
   ) async {
-    final previousLock = _categoryBudgetLock ?? Future.value();
+    final previousLock = readSlot() ?? Future<void>.value();
     final completer = Completer<void>();
-    _categoryBudgetLock = completer.future;
+    writeSlot(completer.future);
 
+    // Wait for the previous holder. If IT failed we still want to take
+    // the lock, so swallow only that exception.
     try {
       await previousLock;
-      await action();
     } catch (_) {
-      // Ignore errors for the lock propagation
+      // Previous holder's failure is none of our business.
+    }
+
+    try {
+      return await action();
     } finally {
       completer.complete();
     }
   }
+
+  Future<T> _runWithSessionLock<T>(Future<T> Function() action) =>
+      _runWithLock<T>(() => _sessionLock, (f) => _sessionLock = f, action);
+
+  Future<T> _runWithBudgetLock<T>(Future<T> Function() action) =>
+      _runWithLock<T>(() => _budgetLock, (f) => _budgetLock = f, action);
+
+  Future<T> _runWithCategoryBudgetLock<T>(Future<T> Function() action) =>
+      _runWithLock<T>(
+        () => _categoryBudgetLock,
+        (f) => _categoryBudgetLock = f,
+        action,
+      );
 
   ExpenseLocalDataSourceImpl({required this.sharedPreferences});
 
@@ -83,24 +113,28 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
   }
 
   @override
-  Future<void> saveSession(ExpenseSessionModel session) async {
-    final sessions = await getAllSessions();
-    final index = sessions.indexWhere((s) => s.id == session.id);
+  Future<void> saveSession(ExpenseSessionModel session) {
+    return _runWithSessionLock(() async {
+      final sessions = await getAllSessions();
+      final index = sessions.indexWhere((s) => s.id == session.id);
 
-    if (index != -1) {
-      sessions[index] = session;
-    } else {
-      sessions.add(session);
-    }
+      if (index != -1) {
+        sessions[index] = session;
+      } else {
+        sessions.add(session);
+      }
 
-    await saveAllSessions(sessions);
+      await saveAllSessions(sessions);
+    });
   }
 
   @override
-  Future<void> deleteSession(String id) async {
-    final sessions = await getAllSessions();
-    sessions.removeWhere((session) => session.id == id);
-    await saveAllSessions(sessions);
+  Future<void> deleteSession(String id) {
+    return _runWithSessionLock(() async {
+      final sessions = await getAllSessions();
+      sessions.removeWhere((session) => session.id == id);
+      await saveAllSessions(sessions);
+    });
   }
 
   @override
@@ -137,41 +171,45 @@ class ExpenseLocalDataSourceImpl implements ExpenseLocalDataSource {
   }
 
   @override
-  Future<void> saveBudget(MonthlyBudgetModel budget) async {
-    final budgets = await getAllBudgets();
-    // First try by ID
-    int index = budgets.indexWhere((b) => b.id == budget.id);
-    if (index == -1) {
-      // If ID not found, try to find by (year, month) to avoid duplicates
-      index = budgets.indexWhere(
-        (b) => b.year == budget.year && b.month == budget.month,
-      );
-      if (index != -1) {
-        // Preserve original id and createdAt when updating existing month entry
-        final existing = budgets[index];
-        budgets[index] = MonthlyBudgetModel(
-          id: existing.id,
-          year: budget.year,
-          month: budget.month,
-          targetAmount: budget.targetAmount,
-          createdAt: existing.createdAt,
-          updatedAt: budget.updatedAt,
+  Future<void> saveBudget(MonthlyBudgetModel budget) {
+    return _runWithBudgetLock(() async {
+      final budgets = await getAllBudgets();
+      // First try by ID
+      int index = budgets.indexWhere((b) => b.id == budget.id);
+      if (index == -1) {
+        // If ID not found, try to find by (year, month) to avoid duplicates
+        index = budgets.indexWhere(
+          (b) => b.year == budget.year && b.month == budget.month,
         );
+        if (index != -1) {
+          // Preserve original id and createdAt when updating existing month entry
+          final existing = budgets[index];
+          budgets[index] = MonthlyBudgetModel(
+            id: existing.id,
+            year: budget.year,
+            month: budget.month,
+            targetAmount: budget.targetAmount,
+            createdAt: existing.createdAt,
+            updatedAt: budget.updatedAt,
+          );
+        } else {
+          budgets.add(budget);
+        }
       } else {
-        budgets.add(budget);
+        budgets[index] = budget;
       }
-    } else {
-      budgets[index] = budget;
-    }
 
-    await saveAllBudgets(budgets);
+      await saveAllBudgets(budgets);
+    });
   }
 
   @override
-  Future<void> deleteBudget(String id) async {
-    final budgets = await getAllBudgets();
-    budgets.removeWhere((budget) => budget.id == id);
-    await saveAllBudgets(budgets);
+  Future<void> deleteBudget(String id) {
+    return _runWithBudgetLock(() async {
+      final budgets = await getAllBudgets();
+      budgets.removeWhere((budget) => budget.id == id);
+      await saveAllBudgets(budgets);
+    });
   }
 
   @override

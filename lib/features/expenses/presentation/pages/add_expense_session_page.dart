@@ -58,6 +58,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
       // Load existing items — all collapsed in edit mode
       for (final item in widget.session!.items) {
         final itemForm = ExpenseItemForm();
+        itemForm.originalId = item.id; // preserve identity across edits
         itemForm.nameController.text = item.name;
         itemForm.amountController.text = item.amount.toString();
         itemForm.isPurchased = item.isPurchased;
@@ -138,25 +139,28 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
 
   void _saveSession() {
     if (_formKey.currentState!.validate() && _items.isNotEmpty) {
-      final items = _items
-          .map(
-            (itemForm) => ExpenseItem(
-              id: _isEditing
-                  ? (widget.session!.items.length > _items.indexOf(itemForm)
-                        ? widget.session!.items[_items.indexOf(itemForm)].id
-                        : DateTime.now().millisecondsSinceEpoch.toString() +
-                              _items.indexOf(itemForm).toString())
-                  : DateTime.now().millisecondsSinceEpoch.toString() +
-                        _items.indexOf(itemForm).toString(),
-              name: itemForm.nameController.text.trim(),
-              amount: double.parse(itemForm.amountController.text),
-              isPurchased: itemForm.isPurchased,
-              purchasedAt: itemForm.isPurchased ? DateTime.now() : null,
-              category: itemForm.category,
-              customCategoryName: itemForm.customCategoryName,
-            ),
-          )
-          .toList();
+      // ID strategy:
+      //   • Existing items (loaded with originalId) keep their original id
+      //     so external references (analytics, dose history, etc.) stay valid
+      //     even after deleting/reordering items in the form.
+      //   • New items get a unique id from the timestamp + a counter, so two
+      //     items added in the same millisecond don't collide.
+      final nowMs = DateTime.now().millisecondsSinceEpoch.toString();
+      int newCounter = 0;
+      final items = <ExpenseItem>[];
+      for (final itemForm in _items) {
+        items.add(
+          ExpenseItem(
+            id: itemForm.originalId ?? '${nowMs}_${newCounter++}',
+            name: itemForm.nameController.text.trim(),
+            amount: double.parse(itemForm.amountController.text),
+            isPurchased: itemForm.isPurchased,
+            purchasedAt: itemForm.isPurchased ? DateTime.now() : null,
+            category: itemForm.category,
+            customCategoryName: itemForm.customCategoryName,
+          ),
+        );
+      }
 
       final session = ExpenseSession(
         id: _isEditing
@@ -1847,6 +1851,10 @@ class ExpenseItemForm {
   bool isPurchased = false;
   ExpenseCategory category = ExpenseCategory.other;
   String? customCategoryName;
+  // Original id from the loaded session, kept so editing → saving doesn't
+  // re-assign ids by list-position (which scrambles them on delete/reorder).
+  // Null for newly-added items — those get a freshly-minted id on save.
+  String? originalId;
 
   /// Display name for the effective category.
   String get effectiveDisplayName {
