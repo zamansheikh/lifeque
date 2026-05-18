@@ -923,42 +923,117 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   }
 
   Widget _settingsSheet() {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
+    // StatefulBuilder is needed because the modal sheet lives in its own
+    // overlay route — calling setState on the page rebuilds the page (good
+    // for the calculator-driven hero) but does NOT rebuild this sheet's
+    // subtree. We use the sheet-local `setSheetState` to force the sheet
+    // to re-read _selectedMethod / _selectedMadhab / location after each
+    // dropdown change.
+    return StatefulBuilder(
+      builder: (sheetContext, setSheetState) {
+        return DraggableScrollableSheet(
+      initialChildSize: 0.75,
       minChildSize: 0.5,
-      maxChildSize: 0.9,
+      maxChildSize: 0.95,
       expand: false,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            color: IslamicColors.cream,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(28),
+            ),
+            border: Border.all(
+              color: IslamicColors.goldLight.withValues(alpha: 0.5),
+              width: 1,
+            ),
           ),
           child: Column(
             children: [
               const SizedBox(height: 10),
               Container(
-                width: 36,
+                width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.15),
+                  color: IslamicColors.emerald.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(20),
+              // Emerald header band — matches the dynamic-sky vibe and
+              // gives the sheet a clear, branded top.
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      IslamicColors.emerald,
+                      IslamicColors.emeraldMid,
+                      IslamicColors.tealDeep,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: IslamicColors.emerald.withValues(alpha: 0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
                 child: Row(
                   children: [
-                    const Icon(Icons.tune_rounded),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Prayer Settings',
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w700),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: IslamicColors.goldLight
+                              .withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.tune_rounded,
+                        color: IslamicColors.goldLight,
+                        size: 20,
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Prayer Settings',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Calculation · Madhab · Location',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: IslamicColors.goldLight,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -967,25 +1042,50 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               Expanded(
                 child: ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                   children: [
-                    _sectionLabel('Calculation Method'),
-                    _methodDropdown(),
+                    _sectionLabel(
+                      'Calculation Method',
+                      Icons.calculate_rounded,
+                    ),
+                    _methodDropdown(setSheetState),
                     const SizedBox(height: 20),
-                    _sectionLabel('Madhab (Asr)'),
-                    _madhabDropdown(),
+                    _sectionLabel(
+                      'Madhab — for Asr',
+                      Icons.menu_book_rounded,
+                    ),
+                    _madhabDropdown(setSheetState),
                     const SizedBox(height: 20),
-                    _sectionLabel('Location'),
-                    _locationCard(),
-                    const SizedBox(height: 12),
+                    _sectionLabel(
+                      'Location',
+                      Icons.place_rounded,
+                    ),
+                    _locationCard(setSheetState),
+                    const SizedBox(height: 10),
                     OutlinedButton.icon(
-                      icon: const Icon(Icons.edit_location_rounded),
-                      label: const Text('Set Location Manually'),
-                      onPressed: _showManualLocationDialog,
+                      icon: const Icon(
+                        Icons.edit_location_rounded,
+                        size: 18,
+                      ),
+                      label: const Text(
+                        'Set Location Manually',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      onPressed: () async {
+                        await _showManualLocationDialog();
+                        setSheetState(() {});
+                      },
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        foregroundColor: IslamicColors.emerald,
+                        side: BorderSide(
+                          color: IslamicColors.emerald.withValues(alpha: 0.4),
+                          width: 1.5,
+                        ),
+                        backgroundColor: Colors.white,
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),
@@ -997,27 +1097,53 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         );
       },
     );
+      },
+    );
   }
 
-  Widget _sectionLabel(String s) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(
-          s,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+  Widget _sectionLabel(String s, IconData icon) => Padding(
+        padding: const EdgeInsets.fromLTRB(2, 4, 0, 10),
+        child: Row(
+          children: [
+            Icon(icon, size: 14, color: IslamicColors.emerald),
+            const SizedBox(width: 6),
+            Text(
+              s.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.4,
+                color: IslamicColors.emerald,
+              ),
+            ),
+          ],
         ),
       );
 
-  Widget _methodDropdown() {
+  Widget _methodDropdown(StateSetter setSheetState) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        border: Border.all(
+          color: IslamicColors.emerald.withValues(alpha: 0.25),
+        ),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<CalculationMethod>(
           value: _selectedMethod,
           isExpanded: true,
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: IslamicColors.emerald,
+          ),
+          dropdownColor: IslamicColors.cream,
+          style: const TextStyle(
+            color: Color(0xFF1B2A1F),
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
           items: const [
             CalculationMethod.karachi,
             CalculationMethod.muslim_world_league,
@@ -1037,7 +1163,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               .toList(),
           onChanged: (v) async {
             if (v == null) return;
+            // Page state rebuilds the calculator-driven hero; sheet state
+            // rebuilds THIS sheet so the dropdown shows the new value.
             setState(() => _selectedMethod = v);
+            setSheetState(() {});
             await _settingsService.saveCalculationMethod(v);
             _recomputeCalculator();
           },
@@ -1046,83 +1175,204 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     );
   }
 
-  Widget _madhabDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<Madhab>(
-          value: _selectedMadhab,
-          isExpanded: true,
-          items: const [
-            DropdownMenuItem(
-              value: Madhab.hanafi,
-              child: Text('Hanafi (Later Asr)'),
+  Widget _madhabDropdown(StateSetter setSheetState) {
+    return Row(
+      children: [
+        Expanded(
+          child: _madhabTile(
+            label: 'Hanafi',
+            sub: 'Later Asr',
+            value: Madhab.hanafi,
+            setSheetState: setSheetState,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _madhabTile(
+            label: 'Shafi',
+            sub: 'Earlier Asr',
+            value: Madhab.shafi,
+            setSheetState: setSheetState,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _madhabTile({
+    required String label,
+    required String sub,
+    required Madhab value,
+    required StateSetter setSheetState,
+  }) {
+    final selected = _selectedMadhab == value;
+    return InkWell(
+      onTap: () async {
+        setState(() => _selectedMadhab = value);
+        setSheetState(() {});
+        await _settingsService.saveMadhab(value);
+        _recomputeCalculator();
+      },
+      borderRadius: BorderRadius.circular(14),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? IslamicColors.emerald : Colors.white,
+          border: Border.all(
+            color: selected
+                ? IslamicColors.goldLight
+                : IslamicColors.emerald.withValues(alpha: 0.25),
+            width: selected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: IslamicColors.emerald.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              selected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_off,
+              size: 18,
+              color: selected
+                  ? IslamicColors.goldLight
+                  : IslamicColors.emerald.withValues(alpha: 0.4),
             ),
-            DropdownMenuItem(
-              value: Madhab.shafi,
-              child: Text('Shafi (Earlier Asr)'),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: selected
+                          ? Colors.white
+                          : IslamicColors.emerald,
+                    ),
+                  ),
+                  Text(
+                    sub,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: selected
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : Colors.black.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
-          onChanged: (v) async {
-            if (v == null) return;
-            setState(() => _selectedMadhab = v);
-            await _settingsService.saveMadhab(v);
-            _recomputeCalculator();
-          },
         ),
       ),
     );
   }
 
-  Widget _locationCard() {
+  Widget _locationCard(StateSetter setSheetState) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: IslamicColors.emerald.withValues(alpha: 0.25),
+        ),
       ),
       child: Row(
         children: [
-          Icon(
-            _isLocationFromGps
-                ? Icons.my_location_rounded
-                : Icons.place_rounded,
-            color: _isLocationFromGps ? Colors.green : Colors.orange,
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: _isLocationFromGps
+                    ? const [
+                        IslamicColors.emeraldMid,
+                        IslamicColors.emeraldLight,
+                      ]
+                    : const [
+                        IslamicColors.goldDeep,
+                        IslamicColors.goldLight,
+                      ],
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              _isLocationFromGps
+                  ? Icons.my_location_rounded
+                  : Icons.place_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   _locationName,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: Color(0xFF1B2A1F),
+                  ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   '${_latitude.toStringAsFixed(3)}°, '
-                  '${_longitude.toStringAsFixed(3)}°',
+                  '${_longitude.toStringAsFixed(3)}°  ·  '
+                  '${_isLocationFromGps ? "GPS" : "Saved"}',
                   style: TextStyle(
                     fontSize: 11,
                     color: Colors.black.withValues(alpha: 0.55),
+                    fontWeight: FontWeight.w500,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ],
             ),
           ),
-          IconButton(
-            tooltip: 'Refresh GPS',
-            onPressed: _isLocationUpdating ? null : _refreshLocation,
-            icon: _isLocationUpdating
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.refresh_rounded),
+          Material(
+            color: IslamicColors.emerald.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+            child: IconButton(
+              tooltip: 'Refresh GPS',
+              onPressed: _isLocationUpdating
+                  ? null
+                  : () async {
+                      setSheetState(() {}); // show spinner immediately
+                      await _refreshLocation();
+                      setSheetState(() {}); // refresh card after GPS lookup
+                    },
+              icon: _isLocationUpdating
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: IslamicColors.emerald,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.refresh_rounded,
+                      color: IslamicColors.emerald,
+                    ),
+            ),
           ),
         ],
       ),

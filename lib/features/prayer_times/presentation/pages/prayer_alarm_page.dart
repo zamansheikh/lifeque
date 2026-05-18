@@ -5,6 +5,7 @@ import '../../../../core/services/prayer_alarm_service.dart';
 import '../../../../core/utils/alarm_sound_utils.dart';
 import '../../../../core/utils/salah_time_calculator.dart';
 import '../utils/islamic_colors.dart';
+import '../utils/sky_theme.dart';
 
 class PrayerAlarmPage extends StatefulWidget {
   const PrayerAlarmPage({super.key});
@@ -47,8 +48,6 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
   }
 
   Widget _build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       backgroundColor: IslamicColors.cream,
       appBar: AppBar(
@@ -112,20 +111,40 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
               return ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
-                  // Modern info card
+                  // Hero info card — emerald gradient with gold accents,
+                  // matches the dynamic-sky design system used on the prayer
+                  // times page.
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
+                      gradient: LinearGradient(
+                        colors: globalEnabled
+                            ? const [
+                                IslamicColors.emerald,
+                                IslamicColors.emeraldMid,
+                                IslamicColors.tealDeep,
+                              ]
+                            : const [
+                                Color(0xFF424242),
+                                Color(0xFF2D2D2D),
+                              ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: colorScheme.outline.withValues(alpha: 0.2),
+                        color: IslamicColors.goldLight.withValues(
+                          alpha: globalEnabled ? 0.5 : 0.2,
+                        ),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
+                          color: (globalEnabled
+                                  ? IslamicColors.emerald
+                                  : Colors.black)
+                              .withValues(alpha: 0.35),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
@@ -137,40 +156,43 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: colorScheme.primary.withValues(
-                                  alpha: 0.1,
+                                color: Colors.white.withValues(alpha: 0.18),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: IslamicColors.goldLight
+                                      .withValues(alpha: 0.5),
                                 ),
-                                borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Icon(
-                                Icons.notifications_rounded,
-                                color: colorScheme.primary,
+                              child: const Icon(
+                                Icons.notifications_active_rounded,
+                                color: IslamicColors.goldLight,
                                 size: 24,
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  const Text(
                                     'Prayer Alarms',
                                     style: TextStyle(
                                       fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.onSurface,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                      letterSpacing: 0.2,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     globalEnabled
-                                        ? 'Configure reminders for each prayer'
-                                        : 'Enable alarms using the switch above',
+                                        ? 'Set a reminder for each waqt'
+                                        : 'Toggle on with the switch above',
                                     style: TextStyle(
-                                      fontSize: 14,
-                                      color: colorScheme.onSurface.withValues(
-                                        alpha: 0.7,
-                                      ),
+                                      fontSize: 12,
+                                      color: IslamicColors.goldLight
+                                          .withValues(alpha: 0.9),
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
@@ -178,28 +200,40 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
+                                horizontal: 10,
+                                vertical: 5,
                               ),
                               decoration: BoxDecoration(
                                 color: globalEnabled
-                                    ? colorScheme.primary.withValues(alpha: 0.1)
-                                    : colorScheme.onSurface.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                borderRadius: BorderRadius.circular(8),
+                                    ? IslamicColors.goldLight
+                                    : Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                              child: Text(
-                                globalEnabled ? 'ACTIVE' : 'DISABLED',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: globalEnabled
-                                      ? colorScheme.primary
-                                      : colorScheme.onSurface.withValues(
-                                          alpha: 0.6,
-                                        ),
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    globalEnabled
+                                        ? Icons.check_circle_rounded
+                                        : Icons.pause_circle_filled_rounded,
+                                    size: 12,
+                                    color: globalEnabled
+                                        ? IslamicColors.midnight
+                                        : Colors.white,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    globalEnabled ? 'ACTIVE' : 'OFF',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.8,
+                                      color: globalEnabled
+                                          ? IslamicColors.midnight
+                                          : Colors.white,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -207,7 +241,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   ..._prayers.map((prayer) {
                     final existingAlarm =
                         alarms.where((a) => a.prayerName == prayer).isNotEmpty
@@ -233,73 +267,141 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
     PrayerAlarmConfig? existingAlarm,
     bool globalEnabled,
   ) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final sky = SkyTheme.forPrayer(prayer);
     final isConfigured = existingAlarm != null;
     final isEnabled = isConfigured && existingAlarm.isEnabled;
     final isActive = isEnabled && globalEnabled;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isActive
-              ? colorScheme.primary.withValues(alpha: 0.3)
-              : colorScheme.outline.withValues(alpha: 0.2),
+              ? IslamicColors.goldLight
+              : IslamicColors.emerald.withValues(alpha: 0.15),
+          width: isActive ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: isActive
+                ? IslamicColors.goldGlow.withValues(alpha: 0.25)
+                : Colors.black.withValues(alpha: 0.05),
+            blurRadius: isActive ? 14 : 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
+          tilePadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           leading: Container(
-            padding: const EdgeInsets.all(10),
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: isActive
-                  ? colorScheme.primary.withValues(alpha: 0.1)
-                  : colorScheme.onSurface.withValues(alpha: 0.05),
+              gradient: LinearGradient(
+                colors: isActive
+                    ? sky.gradient
+                    : [
+                        IslamicColors.emerald.withValues(alpha: 0.18),
+                        IslamicColors.emerald.withValues(alpha: 0.08),
+                      ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(12),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: sky.gradient.last.withValues(alpha: 0.45),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : null,
             ),
             child: Icon(
               _getPrayerIcon(prayer),
               color: isActive
-                  ? colorScheme.primary
-                  : colorScheme.onSurface.withValues(alpha: 0.6),
-              size: 20,
+                  ? Colors.white
+                  : IslamicColors.emerald.withValues(alpha: 0.7),
+              size: 22,
             ),
           ),
-          title: Text(
-            prayer,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
-            ),
+          title: Row(
+            children: [
+              Text(
+                prayer,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: IslamicColors.emerald,
+                ),
+              ),
+              if (isActive) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: IslamicColors.goldLight,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'ON',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: IslamicColors.midnight,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              _getAlarmStatusText(existingAlarm, globalEnabled),
-              style: TextStyle(
-                color: isActive
-                    ? colorScheme.primary
-                    : colorScheme.onSurface.withValues(alpha: 0.6),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
+            child: Row(
+              children: [
+                Icon(
+                  isActive
+                      ? Icons.alarm_on_rounded
+                      : Icons.alarm_off_rounded,
+                  size: 12,
+                  color: isActive
+                      ? IslamicColors.goldDeep
+                      : Colors.black.withValues(alpha: 0.4),
+                ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    _getAlarmStatusText(existingAlarm, globalEnabled),
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isActive
+                          ? IslamicColors.goldDeep
+                          : Colors.black.withValues(alpha: 0.55),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           trailing: Container(
             decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.1),
+              color: IslamicColors.cream,
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: IslamicColors.emerald.withValues(alpha: 0.2),
+              ),
             ),
             child: Switch(
               value: isActive,
@@ -312,100 +414,114 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                       }
                     }
                   : null,
-              activeThumbColor: colorScheme.primary,
+              activeThumbColor: IslamicColors.goldLight,
+              activeTrackColor:
+                  IslamicColors.goldDeep.withValues(alpha: 0.5),
+              inactiveThumbColor: IslamicColors.emerald
+                  .withValues(alpha: 0.4),
+              inactiveTrackColor: IslamicColors.emerald
+                  .withValues(alpha: 0.1),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
           children: [
             if (isConfigured) ...[
               Container(
-                padding: const EdgeInsets.all(20),
-                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.03),
+                  color: IslamicColors.cream,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: IslamicColors.goldLight.withValues(alpha: 0.4),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.schedule_rounded,
-                          size: 18,
-                          color: colorScheme.primary,
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: IslamicColors.goldLight
+                                .withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.schedule_rounded,
+                            size: 14,
+                            color: IslamicColors.goldDeep,
+                          ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             _getAlarmDetailsText(existingAlarm),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: colorScheme.onSurface.withValues(
-                                alpha: 0.8,
-                              ),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF1B2A1F),
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // Edit button
-                        Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
+                        TextButton.icon(
+                          onPressed: globalEnabled
+                              ? () => _showAlarmConfigDialog(
+                                    prayer,
+                                    existingAlarm,
+                                  )
+                              : null,
+                          icon: const Icon(
+                            Icons.edit_rounded,
+                            size: 16,
                           ),
-                          child: TextButton.icon(
-                            onPressed: globalEnabled
-                                ? () {
-                                    _showAlarmConfigDialog(
-                                      prayer,
-                                      existingAlarm,
-                                    );
-                                  }
-                                : null,
-                            icon: Icon(
-                              Icons.edit_rounded,
-                              size: 16,
-                              color: colorScheme.primary,
+                          label: const Text('Edit'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: IslamicColors.emerald,
+                            backgroundColor: IslamicColors.emerald
+                                .withValues(alpha: 0.08),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
                             ),
-                            label: Text(
-                              'Edit',
-                              style: TextStyle(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        // Remove button
-                        Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.error.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
+                        const SizedBox(width: 8),
+                        TextButton.icon(
+                          onPressed: globalEnabled
+                              ? () => _alarmService.removeAlarm(prayer)
+                              : null,
+                          icon: const Icon(
+                            Icons.delete_rounded,
+                            size: 16,
                           ),
-                          child: TextButton.icon(
-                            onPressed: globalEnabled
-                                ? () {
-                                    _alarmService.removeAlarm(prayer);
-                                  }
-                                : null,
-                            icon: Icon(
-                              Icons.delete_rounded,
-                              size: 16,
-                              color: colorScheme.error,
+                          label: const Text('Remove'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: IslamicColors.warning,
+                            backgroundColor: IslamicColors.warning
+                                .withValues(alpha: 0.08),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
                             ),
-                            label: Text(
-                              'Remove',
-                              style: TextStyle(
-                                color: colorScheme.error,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -414,47 +530,63 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
             ] else ...[
               Padding(
-                padding: const EdgeInsets.all(20),
-                child: Center(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          colorScheme.primary,
-                          colorScheme.primary.withValues(alpha: 0.8),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: globalEnabled
+                          ? const [
+                              IslamicColors.emerald,
+                              IslamicColors.emeraldMid,
+                            ]
+                          : [Colors.grey.shade400, Colors.grey.shade500],
                     ),
-                    child: ElevatedButton.icon(
-                      onPressed: globalEnabled
-                          ? () {
-                              _showAlarmConfigDialog(prayer, null);
-                            }
-                          : null,
-                      icon: Icon(
-                        Icons.add_rounded,
-                        color: colorScheme.onPrimary,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: globalEnabled
+                        ? [
+                            BoxShadow(
+                              color: IslamicColors.emerald
+                                  .withValues(alpha: 0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
+                    border: Border.all(
+                      color: IslamicColors.goldLight.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: globalEnabled
+                        ? () => _showAlarmConfigDialog(prayer, null)
+                        : null,
+                    icon: const Icon(
+                      Icons.add_alarm_rounded,
+                      color: IslamicColors.goldLight,
+                    ),
+                    label: const Text(
+                      'Set Alarm',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        letterSpacing: 0.3,
                       ),
-                      label: Text(
-                        'Configure Alarm',
-                        style: TextStyle(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: colorScheme.onPrimary,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
@@ -712,16 +844,14 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header with gradient background
+            // Header — dynamic-sky gradient for this prayer, with gold
+            // accents so it matches the rest of the Islamic theme.
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    colorScheme.primary,
-                    colorScheme.primary.withValues(alpha: 0.8),
-                  ],
+                  colors: SkyTheme.forPrayer(widget.prayer).gradient,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -729,18 +859,28 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(24),
                 ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: IslamicColors.goldLight.withValues(alpha: 0.5),
+                    width: 1.5,
+                  ),
+                ),
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: IslamicColors.goldLight
+                            .withValues(alpha: 0.6),
+                      ),
                     ),
                     child: Icon(
-                      Icons.alarm,
-                      color: colorScheme.onPrimary,
+                      SkyTheme.forPrayer(widget.prayer).icon,
+                      color: IslamicColors.goldLight,
                       size: 24,
                     ),
                   ),
@@ -752,14 +892,16 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                         Text(
                           '${widget.prayer} Alarm',
                           style: textTheme.headlineSmall?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                         Text(
                           'Configure reminder settings',
                           style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                            color: IslamicColors.goldLight
+                                .withValues(alpha: 0.95),
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -1049,14 +1191,17 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
 
             // Actions
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.3,
-                ),
+                color: IslamicColors.cream,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(24),
                   bottomRight: Radius.circular(24),
+                ),
+                border: Border(
+                  top: BorderSide(
+                    color: IslamicColors.emerald.withValues(alpha: 0.15),
+                  ),
                 ),
               ),
               child: Row(
@@ -1065,50 +1210,81 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                     child: TextButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        foregroundColor:
+                            IslamicColors.emerald.withValues(alpha: 0.7),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Cancel',
-                        style: textTheme.labelLarge?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     flex: 2,
-                    child: ElevatedButton(
-                      onPressed: _saveAlarm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            IslamicColors.emerald,
+                            IslamicColors.emeraldMid,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.check,
-                            size: 20,
-                            color: colorScheme.onPrimary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Save',
-                            style: textTheme.labelLarge?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: IslamicColors.goldLight
+                              .withValues(alpha: 0.5),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: IslamicColors.emerald
+                                .withValues(alpha: 0.45),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _saveAlarm,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 14),
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(
+                              Icons.check_circle_rounded,
+                              size: 18,
+                              color: IslamicColors.goldLight,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Save Alarm',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
