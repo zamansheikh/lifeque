@@ -5,6 +5,8 @@ import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/utils/alarm_sound_utils.dart';
+
 enum StudyPhase {
   focus, // A focus block
   shortBreak, // The breather between blocks
@@ -444,6 +446,11 @@ class StudyTimerService {
     await _cancelAlarms();
     final now = DateTime.now();
 
+    // The app's own alarm tone. This used to point at
+    // 'packages/alarm/assets/alarm.mp3', which isn't bundled — every phase
+    // alarm fired with a FileNotFoundException instead of a sound.
+    final sound = await AlarmSoundUtils.getDefaultAlarmSound();
+
     for (var i = 0; i < _slots.length; i++) {
       final slot = _slots[i];
       if (!slot.end.isAfter(now)) continue;
@@ -454,7 +461,7 @@ class StudyTimerService {
           alarmSettings: AlarmSettings(
             id: _alarmIdBase + i,
             dateTime: slot.end,
-            assetAudioPath: 'packages/alarm/assets/alarm.mp3',
+            assetAudioPath: sound,
             loopAudio: false,
             vibrate: true,
             warningNotificationOnKill: false,

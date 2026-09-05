@@ -113,173 +113,45 @@ class HomeWidgetService {
       return;
     }
     try {
-      final settings = PrayerSettingsService.instance;
-      await settings.init();
+      final bundle = await _buildAll(measured: true);
 
-      final locationData = await settings.getSavedLocation();
-      debugPrint(
-        '🕌 Background Service: Saved Location: ${locationData?.locationName}, Lat: ${locationData?.latitude}',
-      );
-
-      if (locationData == null) {
-        // Render placeholder widget when location is not set
+      if (bundle == null) {
+        // No saved location yet — nothing truthful to draw.
         debugPrint('🕌 Location not set — rendering placeholder widget');
-        await HomeWidget.renderFlutterWidget(
-          const PrayerWidgetPlaceholder(),
-          key: 'prayer_widget_image',
-          logicalSize: _widgetSize,
-          pixelRatio: 3.0,
-        );
+        for (final key in const [
+          'prayer_widget_image',
+          'mosque_widget_image',
+        ]) {
+          await HomeWidget.renderFlutterWidget(
+            const PrayerWidgetPlaceholder(),
+            key: key,
+            logicalSize: _widgetSize,
+            pixelRatio: 3.0,
+          );
+        }
         await HomeWidget.updateWidget(
           qualifiedAndroidName: _prayerQualifiedName,
-        );
-
-        // Also render placeholder for mosque widget
-        await HomeWidget.renderFlutterWidget(
-          const PrayerWidgetPlaceholder(),
-          key: 'mosque_widget_image',
-          logicalSize: _widgetSize,
-          pixelRatio: 3.0,
         );
         await HomeWidget.updateWidget(
           qualifiedAndroidName: _mosqueQualifiedName,
         );
-
         debugPrint('✅ Placeholder widgets rendered');
         return;
       }
 
-      final method = await settings.getCalculationMethod();
-      final madhab = await settings.getMadhab();
-
-      final date = DateTime.now();
-      final calculator = SalahTimeCalculator(
-        latitude: locationData.latitude,
-        longitude: locationData.longitude,
-        date: date,
-        method: method,
-        madhab: madhab,
-      );
-
-      final times = calculator.getPrayerTimesMap();
-      final endTimes = calculator.getEndTimes(calculator.getStartTimes());
-      final hijri = HijriCalendar.fromDate(date);
-      final bangla = BanglaDate.fromDate(date);
-
-      // The prayer the widget is about: the running waqt, else the next one.
-      String? current;
-      for (final p in _fard) {
-        if (times[p]!.isBefore(date)) current = p;
-      }
-      final next = _fard.firstWhere(
-        (p) => times[p]!.isAfter(date),
-        orElse: () => 'Fajr',
-      );
-      final subject = current ?? next;
-      final windowEnd =
-          endTimes[subject] ?? times['Fajr']!.add(const Duration(days: 1));
-      final nextTime = current == null
-          ? times[next]!
-          : (times[next]!.isAfter(date)
-                ? times[next]!
-                : times['Fajr']!.add(const Duration(days: 1)));
-
-      // Prohibited-time state.
-      final restricted = calculator.getRestrictedTimes();
-      final windows = [
-        for (final key in _restrictedOrder)
-          (
-            name: _restrictedLabels[_restrictedOrder.indexOf(key)],
-            start: restricted[key]!['start'] as DateTime,
-            end: restricted[key]!['end'] as DateTime,
-          ),
-      ];
-      final activeWindow = windows
-          .where((w) => date.isAfter(w.start) && date.isBefore(w.end))
-          .firstOrNull;
-      final nextWindow = windows
-          .where((w) => w.start.isAfter(date))
-          .firstOrNull;
-      final avoidText = activeWindow != null
-          ? '⛔ AVOID NOW · ${_short(activeWindow.end.difference(date))} left'
-          : nextWindow != null
-          ? 'next avoid · ${nextWindow.name} ${_t12(nextWindow.start)}'
-          : 'all avoid-times passed';
-
-      // Render each widget at the size its host actually gave it.
-      final prayerSize = await _cellSize('prayer_widget_image', _widgetSize);
-      final mosqueSize = await _cellSize('mosque_widget_image', _widgetSize);
-      final timelineSize = await _cellSize(
-        'day_timeline_widget_image',
-        _timelineSize,
-      );
-      final slimSize = await _cellSize('slim_bar_widget_image', _slimSize);
-
-      final sunriseStr = _t12(times['Sunrise']!).toUpperCase();
-      final sunsetStr = _t12(times['Maghrib']!).toUpperCase();
-      final sahriStr = _t12(times['Fajr']!).toUpperCase();
-      final iftarStr = _t12(times['Maghrib']!).toUpperCase();
-      final updatedAt = _t12(date).toUpperCase();
-
-      // ── Render the current-waqt widget ──
       await HomeWidget.renderFlutterWidget(
-        PrayerWidgetUI(
-          size: prayerSize,
-          hijriLine:
-              '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} '
-              '${hijri.hYear}, ${DateFormat('EEEE').format(date)}',
-          secondaryDateLine:
-              '${DateFormat('d MMMM').format(date)} · ${bangla.formatted}',
-          updatedAt: updatedAt,
-          prayerName: subject,
-          windowRange:
-              '${_t12(times[subject]!).toUpperCase()} – '
-              '${_t12(windowEnd).toUpperCase()}',
-          endsLine:
-              'Ends: ${_t12(windowEnd).toUpperCase()} · in '
-              '${_hms(windowEnd.difference(date))}',
-          nextChip: '$next ${_t12(nextTime).toUpperCase()}',
-          avoidText: avoidText,
-          avoidActive: activeWindow != null,
-          sunrise: sunriseStr,
-          sunset: sunsetStr,
-          sahri: sahriStr,
-          iftar: iftarStr,
-        ),
+        bundle.prayer,
         key: 'prayer_widget_image',
-        logicalSize: prayerSize,
+        logicalSize: bundle.prayerSize,
         pixelRatio: 3.0,
       );
-
       await HomeWidget.updateWidget(qualifiedAndroidName: _prayerQualifiedName);
       debugPrint('✅ Prayer widget updated successfully');
 
-      // ── Render the day-timeline widget ──
       await HomeWidget.renderFlutterWidget(
-        DayTimelineWidgetUI(
-          size: timelineSize,
-          now: _dayFraction(date),
-          avoidText: avoidText,
-          avoidActive: activeWindow != null,
-          blocks: [
-            for (final w in windows)
-              TimelineBlock(
-                start: _dayFraction(w.start),
-                end: _dayFraction(w.end),
-              ),
-          ],
-          ticks: [
-            for (final p in _fard)
-              TimelineTick(
-                position: _dayFraction(times[p]!),
-                label: p.substring(0, 3).toUpperCase(),
-                passed: !times[p]!.isAfter(date),
-                isCurrent: p == subject,
-              ),
-          ],
-        ),
+        bundle.timeline,
         key: 'day_timeline_widget_image',
-        logicalSize: timelineSize,
+        logicalSize: bundle.timelineSize,
         pixelRatio: 3.0,
       );
       await HomeWidget.updateWidget(
@@ -287,48 +159,233 @@ class HomeWidgetService {
       );
       debugPrint('✅ Day timeline widget updated successfully');
 
-      // ── Render the slim bar widget ──
       await HomeWidget.renderFlutterWidget(
-        SlimBarWidgetUI(
-          size: slimSize,
-          prayerName: subject,
-          windowRange:
-              '${_t12(times[subject]!).toUpperCase()} – '
-              '${_t12(windowEnd).toUpperCase()}',
-          countdown: _hms(windowEnd.difference(date)),
-          countdownLabel: current == null ? 'starts in' : 'waqt ends in',
-        ),
+        bundle.slim,
         key: 'slim_bar_widget_image',
-        logicalSize: slimSize,
+        logicalSize: bundle.slimSize,
         pixelRatio: 3.0,
       );
       await HomeWidget.updateWidget(qualifiedAndroidName: _slimQualifiedName);
       debugPrint('✅ Slim bar widget updated successfully');
 
-      // ── Render the mosque jamaat widget ──
-      await _updateMosqueWidget(
-        size: mosqueSize,
-        settings: settings,
-        date: date,
-        times: times,
-        current: subject,
-        dateLine:
-            '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} ${hijri.hYear}, '
-            '${DateFormat('EEEE').format(date)} · '
-            '${DateFormat('d MMMM').format(date)}',
-        updatedAt: updatedAt,
-        sunrise: sunriseStr,
-        sunset: sunsetStr,
-        sahri: sahriStr,
-        iftar: iftarStr,
+      await HomeWidget.renderFlutterWidget(
+        bundle.mosque,
+        key: 'mosque_widget_image',
+        logicalSize: bundle.mosqueSize,
+        pixelRatio: 3.0,
       );
+      await HomeWidget.updateWidget(qualifiedAndroidName: _mosqueQualifiedName);
+      debugPrint('✅ Mosque widget updated successfully');
     } catch (e, stack) {
       debugPrint('❌ Error updating home widget: $e');
       debugPrint('Stack: $stack');
     }
   }
 
-  Future<void> _updateMosqueWidget({
+  /// The same four widgets the launcher gets, ready to be shown inside the
+  /// app.
+  ///
+  /// The "add a widget" sheet used to offer four coloured rectangles with an
+  /// icon in them, which told you nothing about what you were about to put on
+  /// your home screen. These are the real things, drawn from the real prayer
+  /// times, so the preview and the widget cannot drift apart.
+  ///
+  /// Null when there is no saved location — there is nothing honest to draw.
+  Future<WidgetPreviews?> buildPreviews() async {
+    try {
+      final bundle = await _buildAll(measured: false);
+      if (bundle == null) return null;
+      return WidgetPreviews(
+        currentWaqt: bundle.prayer,
+        currentWaqtSize: bundle.prayerSize,
+        mosqueJamaat: bundle.mosque,
+        mosqueJamaatSize: bundle.mosqueSize,
+        dayMap: bundle.timeline,
+        dayMapSize: bundle.timelineSize,
+        slimBar: bundle.slim,
+        slimBarSize: bundle.slimSize,
+      );
+    } catch (e) {
+      debugPrint('🕌 Could not build widget previews: $e');
+      return null;
+    }
+  }
+
+  /// Assembles all four widget UIs from the saved location and settings.
+  ///
+  /// [measured] renders at the cell size each launcher actually handed the
+  /// provider, so the PNG lands 1:1 in the widget. The in-app preview passes
+  /// false and gets the nominal design sizes instead, which look the same on
+  /// every device — and which avoid a plugin call that throws on iOS.
+  Future<_WidgetBundle?> _buildAll({required bool measured}) async {
+    final settings = PrayerSettingsService.instance;
+    await settings.init();
+
+    final locationData = await settings.getSavedLocation();
+    debugPrint(
+      '🕌 Background Service: Saved Location: ${locationData?.locationName}, '
+      'Lat: ${locationData?.latitude}',
+    );
+    if (locationData == null) return null;
+
+    final method = await settings.getCalculationMethod();
+    final madhab = await settings.getMadhab();
+
+    final date = DateTime.now();
+    final calculator = SalahTimeCalculator(
+      latitude: locationData.latitude,
+      longitude: locationData.longitude,
+      date: date,
+      method: method,
+      madhab: madhab,
+    );
+
+    final times = calculator.getPrayerTimesMap();
+    final endTimes = calculator.getEndTimes(calculator.getStartTimes());
+    final hijri = HijriCalendar.fromDate(date);
+    final bangla = BanglaDate.fromDate(date);
+
+    // The prayer the widget is about: the running waqt, else the next one.
+    String? current;
+    for (final p in _fard) {
+      if (times[p]!.isBefore(date)) current = p;
+    }
+    final next = _fard.firstWhere(
+      (p) => times[p]!.isAfter(date),
+      orElse: () => 'Fajr',
+    );
+    final subject = current ?? next;
+    final windowEnd =
+        endTimes[subject] ?? times['Fajr']!.add(const Duration(days: 1));
+    final nextTime = current == null
+        ? times[next]!
+        : (times[next]!.isAfter(date)
+              ? times[next]!
+              : times['Fajr']!.add(const Duration(days: 1)));
+
+    // Prohibited-time state.
+    final restricted = calculator.getRestrictedTimes();
+    final windows = [
+      for (final key in _restrictedOrder)
+        (
+          name: _restrictedLabels[_restrictedOrder.indexOf(key)],
+          start: restricted[key]!['start'] as DateTime,
+          end: restricted[key]!['end'] as DateTime,
+        ),
+    ];
+    final activeWindow = windows
+        .where((w) => date.isAfter(w.start) && date.isBefore(w.end))
+        .firstOrNull;
+    final nextWindow = windows.where((w) => w.start.isAfter(date)).firstOrNull;
+    final avoidText = activeWindow != null
+        ? '⛔ AVOID NOW · ${_short(activeWindow.end.difference(date))} left'
+        : nextWindow != null
+        ? 'next avoid · ${nextWindow.name} ${_t12(nextWindow.start)}'
+        : 'all avoid-times passed';
+
+    final prayerSize = measured
+        ? await _cellSize('prayer_widget_image', _widgetSize)
+        : _widgetSize;
+    final mosqueSize = measured
+        ? await _cellSize('mosque_widget_image', _widgetSize)
+        : _widgetSize;
+    final timelineSize = measured
+        ? await _cellSize('day_timeline_widget_image', _timelineSize)
+        : _timelineSize;
+    final slimSize = measured
+        ? await _cellSize('slim_bar_widget_image', _slimSize)
+        : _slimSize;
+
+    final sunriseStr = _t12(times['Sunrise']!).toUpperCase();
+    final sunsetStr = _t12(times['Maghrib']!).toUpperCase();
+    final sahriStr = _t12(times['Fajr']!).toUpperCase();
+    final iftarStr = _t12(times['Maghrib']!).toUpperCase();
+    final updatedAt = _t12(date).toUpperCase();
+
+    final prayer = PrayerWidgetUI(
+      size: prayerSize,
+      hijriLine:
+          '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} '
+          '${hijri.hYear}, ${DateFormat('EEEE').format(date)}',
+      secondaryDateLine:
+          '${DateFormat('d MMMM').format(date)} · ${bangla.formatted}',
+      updatedAt: updatedAt,
+      prayerName: subject,
+      windowRange:
+          '${_t12(times[subject]!).toUpperCase()} – '
+          '${_t12(windowEnd).toUpperCase()}',
+      endsLine:
+          'Ends: ${_t12(windowEnd).toUpperCase()} · in '
+          '${_hms(windowEnd.difference(date))}',
+      nextChip: '$next ${_t12(nextTime).toUpperCase()}',
+      avoidText: avoidText,
+      avoidActive: activeWindow != null,
+      sunrise: sunriseStr,
+      sunset: sunsetStr,
+      sahri: sahriStr,
+      iftar: iftarStr,
+    );
+
+    final timeline = DayTimelineWidgetUI(
+      size: timelineSize,
+      now: _dayFraction(date),
+      avoidText: avoidText,
+      avoidActive: activeWindow != null,
+      blocks: [
+        for (final w in windows)
+          TimelineBlock(start: _dayFraction(w.start), end: _dayFraction(w.end)),
+      ],
+      ticks: [
+        for (final p in _fard)
+          TimelineTick(
+            position: _dayFraction(times[p]!),
+            label: p.substring(0, 3).toUpperCase(),
+            passed: !times[p]!.isAfter(date),
+            isCurrent: p == subject,
+          ),
+      ],
+    );
+
+    final slim = SlimBarWidgetUI(
+      size: slimSize,
+      prayerName: subject,
+      windowRange:
+          '${_t12(times[subject]!).toUpperCase()} – '
+          '${_t12(windowEnd).toUpperCase()}',
+      countdown: _hms(windowEnd.difference(date)),
+      countdownLabel: current == null ? 'starts in' : 'waqt ends in',
+    );
+
+    final mosque = await _buildMosque(
+      size: mosqueSize,
+      settings: settings,
+      date: date,
+      times: times,
+      current: subject,
+      dateLine:
+          '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} ${hijri.hYear}, '
+          '${DateFormat('EEEE').format(date)} · '
+          '${DateFormat('d MMMM').format(date)}',
+      updatedAt: updatedAt,
+      sunrise: sunriseStr,
+      sunset: sunsetStr,
+      sahri: sahriStr,
+      iftar: iftarStr,
+    );
+
+    return _WidgetBundle(
+      prayer: prayer,
+      prayerSize: prayerSize,
+      timeline: timeline,
+      timelineSize: timelineSize,
+      slim: slim,
+      slimSize: slimSize,
+      mosque: mosque,
+      mosqueSize: mosqueSize,
+    );
+  }
+
+  Future<MosqueWidgetUI> _buildMosque({
     required Size size,
     required PrayerSettingsService settings,
     required DateTime date,
@@ -341,68 +398,48 @@ class HomeWidgetService {
     required String sahri,
     required String iftar,
   }) async {
-    try {
-      final ramadan = await settings.getRamadanMode();
+    final ramadan = await settings.getRamadanMode();
 
-      final chips = <JamaatChip>[];
-      for (var i = 0; i < _fard.length; i++) {
-        final prayer = _fard[i];
-        final saved = _parseMosqueTime(
-          await settings.getMosqueTime(prayer.toLowerCase()),
-        );
-
-        // Ramadan mode derives Fajr and Maghrib jamaat from waqt + 15 min;
-        // everything else falls back to the waqt itself when unset.
-        final DateTime jamaat;
-        if (ramadan && (prayer == 'Fajr' || prayer == 'Maghrib')) {
-          jamaat = times[prayer]!.add(const Duration(minutes: 15));
-        } else if (saved != null) {
-          jamaat = DateTime(
-            date.year,
-            date.month,
-            date.day,
-            saved.$1,
-            saved.$2,
-          );
-        } else {
-          // Nothing saved yet (fresh install): fall back to the customary
-          // offset rather than the waqt itself, which no mosque prays at.
-          jamaat =
-              JamaatDefaults.forPrayer(prayer, times[prayer]!) ??
-              times[prayer]!;
-        }
-
-        chips.add(
-          JamaatChip(
-            label: _banglaPrayerNames[i],
-            time: _t12(jamaat).toUpperCase(),
-            isCurrent: prayer == current,
-          ),
-        );
-      }
-
-      await HomeWidget.renderFlutterWidget(
-        MosqueWidgetUI(
-          size: size,
-          dateLine: dateLine,
-          updatedAt: updatedAt,
-          sunrise: sunrise,
-          sunset: sunset,
-          sahri: sahri,
-          iftar: iftar,
-          jamaat: chips,
-        ),
-        key: 'mosque_widget_image',
-        logicalSize: size,
-        pixelRatio: 3.0,
+    final chips = <JamaatChip>[];
+    for (var i = 0; i < _fard.length; i++) {
+      final prayer = _fard[i];
+      final saved = _parseMosqueTime(
+        await settings.getMosqueTime(prayer.toLowerCase()),
       );
 
-      await HomeWidget.updateWidget(qualifiedAndroidName: _mosqueQualifiedName);
-      debugPrint('✅ Mosque widget updated successfully');
-    } catch (e, stack) {
-      debugPrint('❌ Error updating mosque widget: $e');
-      debugPrint('Stack: $stack');
+      // Ramadan mode derives Fajr and Maghrib jamaat from waqt + 15 min;
+      // everything else falls back to the waqt itself when unset.
+      final DateTime jamaat;
+      if (ramadan && (prayer == 'Fajr' || prayer == 'Maghrib')) {
+        jamaat = times[prayer]!.add(const Duration(minutes: 15));
+      } else if (saved != null) {
+        jamaat = DateTime(date.year, date.month, date.day, saved.$1, saved.$2);
+      } else {
+        // Nothing saved yet (fresh install): fall back to the customary
+        // offset rather than the waqt itself, which no mosque prays at.
+        jamaat =
+            JamaatDefaults.forPrayer(prayer, times[prayer]!) ?? times[prayer]!;
+      }
+
+      chips.add(
+        JamaatChip(
+          label: _banglaPrayerNames[i],
+          time: _t12(jamaat).toUpperCase(),
+          isCurrent: prayer == current,
+        ),
+      );
     }
+
+    return MosqueWidgetUI(
+      size: size,
+      dateLine: dateLine,
+      updatedAt: updatedAt,
+      sunrise: sunrise,
+      sunset: sunset,
+      sahri: sahri,
+      iftar: iftar,
+      jamaat: chips,
+    );
   }
 
   /// `13:30` → `(13, 30)`.
@@ -415,4 +452,53 @@ class HomeWidgetService {
       return null;
     }
   }
+}
+
+/// The four assembled widget UIs and the size each was laid out for.
+class _WidgetBundle {
+  final Widget prayer;
+  final Size prayerSize;
+  final Widget timeline;
+  final Size timelineSize;
+  final Widget slim;
+  final Size slimSize;
+  final Widget mosque;
+  final Size mosqueSize;
+
+  const _WidgetBundle({
+    required this.prayer,
+    required this.prayerSize,
+    required this.timeline,
+    required this.timelineSize,
+    required this.slim,
+    required this.slimSize,
+    required this.mosque,
+    required this.mosqueSize,
+  });
+}
+
+/// Live previews of the home-screen widgets, for showing inside the app.
+///
+/// Each comes with the size it was laid out at so the caller can scale it
+/// down without guessing its aspect ratio.
+class WidgetPreviews {
+  final Widget currentWaqt;
+  final Size currentWaqtSize;
+  final Widget mosqueJamaat;
+  final Size mosqueJamaatSize;
+  final Widget dayMap;
+  final Size dayMapSize;
+  final Widget slimBar;
+  final Size slimBarSize;
+
+  const WidgetPreviews({
+    required this.currentWaqt,
+    required this.currentWaqtSize,
+    required this.mosqueJamaat,
+    required this.mosqueJamaatSize,
+    required this.dayMap,
+    required this.dayMapSize,
+    required this.slimBar,
+    required this.slimBarSize,
+  });
 }
