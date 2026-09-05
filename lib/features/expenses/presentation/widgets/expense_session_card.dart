@@ -117,7 +117,9 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '$totalItems items · $purchasedItems bought · ${_formatDateTime(widget.session.createdAt)}',
+                          '$totalItems ${totalItems == 1 ? 'item' : 'items'} · '
+                          '$purchasedItems bought · '
+                          '${_formatDateTime(widget.session.createdAt)}',
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.grey[500],

@@ -12,7 +12,30 @@ class ExpenseSessionDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The list handed over by the route is a snapshot taken when the row was
+    // tapped. Ticking an item off goes through the bloc, so read the live copy
+    // back out of it — otherwise the tap saved fine but nothing on this screen
+    // moved, which read as "the checkbox is broken".
+    return BlocBuilder<ExpenseBloc, ExpenseState>(
+      builder: (context, state) {
+        final live = state is ExpenseLoaded
+            ? (state.sessions.where((s) => s.id == session.id).firstOrNull ??
+                  state.searchResults
+                      .where((s) => s.id == session.id)
+                      .firstOrNull ??
+                  session)
+            : session;
+        return _buildPage(context, live);
+      },
+    );
+  }
+
+  Widget _buildPage(BuildContext context, ExpenseSession session) {
     final theme = Theme.of(context);
+    final totalCount = session.items.length;
+    final purchasedCount = session.purchasedCount;
+    final progress = totalCount > 0 ? purchasedCount / totalCount : 0.0;
+    final done = totalCount > 0 && purchasedCount == totalCount;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -92,8 +115,20 @@ class ExpenseSessionDetailPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Session Info Card
+          // ── Overview ──
+          // The app bar already carries the list name, so this card leads with
+          // what it can't show: the date, how far through the list you are, and
+          // one money row instead of the old count row plus amount row that
+          // said "purchased" and "missed" twice over.
           Card(
+            color: Colors.white,
+            elevation: 2,
+            shadowColor: Colors.black12,
+            surfaceTintColor: Colors.transparent,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -102,47 +137,86 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                   Row(
                     children: [
                       Icon(
-                        Icons.shopping_cart,
-                        color: theme.primaryColor,
-                        size: 22,
+                        Icons.calendar_today_rounded,
+                        size: 15,
+                        color: Colors.grey[600],
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              session.title,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _formatDate(session.date),
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
+                      const SizedBox(width: 8),
+                      Text(
+                        _formatDate(session.date),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '$purchasedCount of $totalCount bought',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: done ? Colors.green[700] : Colors.grey[700],
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 6,
+                      backgroundColor: Colors.grey.withValues(alpha: 0.15),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        done ? const Color(0xFF10B981) : theme.primaryColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      _stat(
+                        'Spent',
+                        session.purchasedAmount,
+                        purchasedCount,
+                        const Color(0xFF059669),
+                        Icons.check_circle_rounded,
+                      ),
+                      const SizedBox(width: 10),
+                      _stat(
+                        'Not bought',
+                        session.missedAmount,
+                        session.missedCount,
+                        const Color(0xFFD97706),
+                        Icons.remove_circle_outline_rounded,
+                      ),
+                      const SizedBox(width: 10),
+                      _stat(
+                        'List total',
+                        session.totalAmount,
+                        totalCount,
+                        const Color(0xFF2563EB),
+                        Icons.receipt_long_rounded,
+                      ),
+                    ],
+                  ),
                   if (session.notes != null) ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
+                        color: Colors.blue.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.note, color: Colors.blue[700], size: 16),
+                          Icon(
+                            Icons.sticky_note_2_rounded,
+                            color: Colors.blue[700],
+                            size: 16,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -150,6 +224,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                               style: TextStyle(
                                 color: Colors.blue[700],
                                 fontSize: 13,
+                                height: 1.35,
                               ),
                             ),
                           ),
@@ -164,118 +239,16 @@ class ExpenseSessionDetailPage extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Summary Card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Summary',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      _buildSummaryItem(
-                        'Total Items',
-                        session.items.length.toString(),
-                        Icons.inventory,
-                        Colors.blue,
-                      ),
-                      const SizedBox(width: 16),
-                      _buildSummaryItem(
-                        'Purchased',
-                        session.purchasedCount.toString(),
-                        Icons.check_circle,
-                        Colors.green,
-                      ),
-                      const SizedBox(width: 16),
-                      _buildSummaryItem(
-                        'Missed',
-                        session.missedCount.toString(),
-                        Icons.cancel,
-                        Colors.orange,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Total Amount',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          Text(
-                            '৳${session.totalAmount.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Purchased',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          Text(
-                            '৳${session.purchasedAmount.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Missed (Saved)',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          Text(
-                            '৳${session.missedAmount.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.orange,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
           // Items List
           Card(
+            color: Colors.white,
+            elevation: 2,
+            shadowColor: Colors.black12,
+            surfaceTintColor: Colors.transparent,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -292,8 +265,14 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        '${session.items.length} items',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        totalCount == purchasedCount
+                            ? 'All bought'
+                            : '${totalCount - purchasedCount} left',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: done ? Colors.green[700] : Colors.grey[600],
+                        ),
                       ),
                     ],
                   ),
@@ -301,7 +280,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                   ...session.items.map(
                     (item) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildItemCard(item, context),
+                      child: _buildItemCard(item, session.id, context),
                     ),
                   ),
                 ],
@@ -315,35 +294,50 @@ class ExpenseSessionDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryItem(
+  /// One overview tile: the money first, then what it covers, so the amount
+  /// and the item count no longer need two separate rows.
+  Widget _stat(
     String label,
-    String value,
-    IconData icon,
+    double amount,
+    int count,
     Color color,
+    IconData icon,
   ) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 20),
+            Icon(icon, color: color, size: 18),
             const SizedBox(height: 6),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: color,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '৳${amount.toStringAsFixed(0)}',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
               ),
             ),
+            const SizedBox(height: 2),
             Text(
               label,
-              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF334155),
+              ),
               textAlign: TextAlign.center,
+            ),
+            Text(
+              '$count ${count == 1 ? 'item' : 'items'}',
+              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -351,12 +345,16 @@ class ExpenseSessionDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildItemCard(ExpenseItem item, BuildContext context) {
+  Widget _buildItemCard(
+    ExpenseItem item,
+    String sessionId,
+    BuildContext context,
+  ) {
     return GestureDetector(
       onTap: () {
         // Toggle item purchased status
         context.read<ExpenseBloc>().add(
-          ToggleItemPurchasedEvent(session.id, item.id),
+          ToggleItemPurchasedEvent(sessionId, item.id),
         );
       },
       child: Container(
@@ -411,7 +409,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                   if (item.isPurchased && item.purchasedAt != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Purchased: ${_formatDateTime(item.purchasedAt!)}',
+                      'Bought ${_formatDateTime(item.purchasedAt!)}',
                       style: TextStyle(fontSize: 11, color: Colors.green[600]),
                     ),
                   ],
@@ -431,7 +429,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                 ),
                 if (!item.isPurchased)
                   Text(
-                    'Tap to mark',
+                    'Tap when bought',
                     style: TextStyle(fontSize: 10, color: Colors.grey[500]),
                   ),
               ],
@@ -442,11 +440,28 @@ class ExpenseSessionDetailPage extends StatelessWidget {
     );
   }
 
+  static const _months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  // d/m/y reads as m/d/y to half the world, so spell the month out.
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    return '${date.day} ${_months[date.month - 1]} ${date.year}';
   }
 
   String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '${_formatDate(dateTime)}, ${dateTime.hour}:$minute';
   }
 }

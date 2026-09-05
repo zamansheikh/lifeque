@@ -185,11 +185,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              _isEditing
-                  ? 'Session updated successfully'
-                  : 'Session added successfully',
-            ),
+            content: Text(_isEditing ? 'List updated' : 'List saved'),
             backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -204,7 +200,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
     } else if (_items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please add at least one item'),
+          content: const Text('Add at least one item before saving'),
           backgroundColor: const Color(0xFFF59E0B),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -222,7 +218,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(
-          _isEditing ? 'Edit Session' : 'Add Session',
+          _isEditing ? 'Edit list' : 'New shopping list',
           style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 24,
@@ -344,7 +340,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                                 ),
                                 const SizedBox(width: 10),
                                 const Text(
-                                  'Session Details',
+                                  'List details',
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
@@ -360,12 +356,12 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                         // Title Field
                         _buildEnhancedTextField(
                           controller: _titleController,
-                          label: 'Session Title',
-                          hint: 'e.g., Market 1, Grocery Store',
+                          label: 'List name',
+                          hint: 'e.g. Weekly bazar, Grocery run',
                           icon: Icons.title_rounded,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Please enter a session title';
+                              return 'Give this list a name';
                             }
                             return null;
                           },
@@ -427,8 +423,8 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                         const SizedBox(height: 8),
                         _buildEnhancedTextField(
                           controller: _notesController,
-                          label: 'Notes (Optional)',
-                          hint: 'Additional notes about this session',
+                          label: 'Note (optional)',
+                          hint: 'Anything worth remembering',
                           icon: Icons.notes_rounded,
                           maxLines: 1,
                         ),
@@ -529,7 +525,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Add your first item below',
+                                  'List each thing you plan to buy, with its price',
                                   style: TextStyle(
                                     color: Colors.grey[600],
                                     fontSize: 13,
@@ -553,7 +549,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                                       Icons.add_rounded,
                                       size: 18,
                                     ),
-                                    label: const Text('Add First Item'),
+                                    label: const Text('Add item'),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.transparent,
                                       foregroundColor: Colors.white,
@@ -601,7 +597,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                                 _addItem();
                               },
                               icon: const Icon(Icons.add_rounded, size: 18),
-                              label: const Text('Add Another Item'),
+                              label: const Text('Add another item'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.transparent,
                                 foregroundColor: Colors.white,
@@ -801,8 +797,31 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
   }
 
   // ── Collapsed compact row ────────────────────────────────────────────────
+  /// Icon, colour and label for an item's *effective* category. A custom
+  /// category carries its own three, so the collapsed row can't just read the
+  /// enum — it used to, and every custom category showed up as "Other".
+  ({IconData icon, Color color, String name}) _categoryLook(
+    ExpenseItemForm item,
+  ) {
+    final customName = item.customCategoryName;
+    if (customName == null) {
+      return (
+        icon: item.category.icon,
+        color: item.category.color,
+        name: item.category.displayName,
+      );
+    }
+    final custom = di.sl<CustomCategoryService>().findByName(customName);
+    return (
+      icon: custom?.icon ?? Icons.label_rounded,
+      color: custom?.color ?? const Color(0xFF7C3AED),
+      name: customName,
+    );
+  }
+
   Widget _buildCollapsedItemRow(int index) {
     final item = _items[index];
+    final look = _categoryLook(item);
     final hasName = item.nameController.text.trim().isNotEmpty;
     final amount = double.tryParse(item.amountController.text);
 
@@ -833,14 +852,10 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               width: 34,
               height: 34,
               decoration: BoxDecoration(
-                color: item.category.color.withValues(alpha: 0.12),
+                color: look.color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                item.category.icon,
-                color: item.category.color,
-                size: 17,
-              ),
+              child: Icon(look.icon, color: look.color, size: 17),
             ),
             const SizedBox(width: 10),
 
@@ -864,10 +879,10 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    item.category.displayName,
+                    look.name,
                     style: TextStyle(
                       fontSize: 11,
-                      color: item.category.color,
+                      color: look.color,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -970,7 +985,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                     color: Color(0xFF10B981),
                     size: 18,
                   ),
-                  tooltip: 'Confirm item',
+                  tooltip: 'Done',
                   constraints: const BoxConstraints(),
                   padding: const EdgeInsets.all(8),
                 ),
@@ -988,6 +1003,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                     color: Colors.red[600],
                     size: 18,
                   ),
+                  tooltip: 'Remove item',
                   constraints: const BoxConstraints(),
                   padding: const EdgeInsets.all(8),
                 ),
@@ -1018,7 +1034,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                     ),
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
-                      labelText: 'Item Name',
+                      labelText: 'Item name',
                       hintText: 'e.g., Rice, Bus fare',
                       hintStyle: TextStyle(
                         color: Colors.grey[400],
@@ -1071,23 +1087,37 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                     ),
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
-                      labelText: 'Amount',
+                      // "Price" rather than "Amount": it is short enough to
+                      // survive next to the prefix in this half-width field,
+                      // where "Amount" was being clipped to "Amou…".
+                      labelText: 'Price',
                       hintText: '0',
                       hintStyle: TextStyle(
                         color: Colors.grey[400],
                         fontWeight: FontWeight.w400,
                       ),
+                      // The taka sign, not the lira icon that used to sit here
+                      // while every figure around it was quoted in ৳.
                       prefixIcon: Container(
                         margin: const EdgeInsets.all(8),
+                        width: 26,
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Icon(
-                          Icons.currency_lira,
-                          color: Color(0xFF3B82F6),
-                          size: 16,
+                        child: const Text(
+                          '৳',
+                          style: TextStyle(
+                            color: Color(0xFF3B82F6),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
+                      ),
+                      prefixIconConstraints: const BoxConstraints(
+                        minWidth: 42,
+                        minHeight: 42,
                       ),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
@@ -1124,7 +1154,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                 ),
                 const SizedBox(width: 4),
                 const Text(
-                  'Suggested:',
+                  'Suggestions',
                   style: TextStyle(
                     fontSize: 12,
                     color: Color(0xFF64748B),
@@ -1248,7 +1278,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Already purchased',
+                    'Already bought',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,

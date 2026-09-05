@@ -1289,9 +1289,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     int affectedItemCount = 0;
     final affectedSessions = <ExpenseSession>[];
     for (final session in allSessions) {
-      final touched = session.items.any(
-        (i) => i.customCategoryName == cc.name,
-      );
+      final touched = session.items.any((i) => i.customCategoryName == cc.name);
       if (touched) {
         affectedSessions.add(session);
         affectedItemCount += session.items
@@ -1309,9 +1307,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Delete Category',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
@@ -1361,7 +1357,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                       Text(
                         '• $affectedItemCount item${affectedItemCount == 1 ? '' : 's'} '
                         'across ${affectedSessions.length} '
-                        'session${affectedSessions.length == 1 ? '' : 's'} '
+                        'list${affectedSessions.length == 1 ? '' : 's'} '
                         '— will be moved to "Other"',
                         style: const TextStyle(fontSize: 12),
                       ),

@@ -47,8 +47,9 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
       final cc = di.sl<CustomCategoryService>().findByName(
         b.customCategoryName!,
       );
-      if (cc != null)
+      if (cc != null) {
         return (icon: cc.icon, color: cc.color, name: cc.displayName);
+      }
       return (
         icon: Icons.label_rounded,
         color: const Color(0xFF7C3AED),
@@ -283,6 +284,9 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                   ],
                 ),
                 // ── Shopping summary row ──
+                // "Spent" is already the first tile above, so this row only
+                // adds what it doesn't say: what the lists came to in total
+                // and how much of that went unbought.
                 if (widget.monthlyTotal > 0) ...[
                   const SizedBox(height: 8),
                   Row(
@@ -290,19 +294,13 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                       _infoTile(
                         icon: Icons.receipt_long_rounded,
                         value: '৳${widget.monthlyTotal.toStringAsFixed(0)}',
-                        label: 'Listed',
-                      ),
-                      const SizedBox(width: 8),
-                      _infoTile(
-                        icon: Icons.check_circle_rounded,
-                        value: '৳${widget.actualSpent.toStringAsFixed(0)}',
-                        label: 'Purchased',
+                        label: 'Planned',
                       ),
                       const SizedBox(width: 8),
                       _infoTile(
                         icon: Icons.remove_shopping_cart_rounded,
                         value: '৳${widget.monthlyMissed.toStringAsFixed(0)}',
-                        label: 'Missed',
+                        label: 'Not bought',
                       ),
                     ],
                   ),
@@ -335,8 +333,8 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                   children: [
                     Text(
                       _expanded
-                          ? 'Hide Category Budgets'
-                          : 'Show Category Budgets (${_visibleCategoryBudgets.length})',
+                          ? 'Hide category budgets'
+                          : 'Show category budgets (${_visibleCategoryBudgets.length})',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,

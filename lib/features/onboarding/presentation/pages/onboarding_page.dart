@@ -67,7 +67,7 @@ const _slides = [
     heroIcon: Icons.insights_rounded,
     chips: [
       _FeatureChip(Icons.pie_chart_rounded, 'Budgets'),
-      _FeatureChip(Icons.receipt_long_rounded, 'Sessions'),
+      _FeatureChip(Icons.receipt_long_rounded, 'Expenses'),
       _FeatureChip(Icons.medication_rounded, 'Med Reminders'),
       _FeatureChip(Icons.bar_chart_rounded, 'Analytics'),
     ],

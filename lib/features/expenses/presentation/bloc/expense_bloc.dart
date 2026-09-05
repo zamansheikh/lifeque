@@ -4,7 +4,6 @@ import '../../domain/entities/expense_session.dart';
 import '../../domain/entities/expense_item.dart';
 import '../../domain/entities/monthly_budget.dart';
 import '../../domain/entities/category_budget.dart';
-import '../../domain/entities/expense_category.dart';
 import '../../domain/usecases/expense_usecases.dart';
 import '../../../../core/usecases/usecase.dart';
 
@@ -97,7 +96,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
     final currentMonth = DateTime(now.year, now.month);
 
     await sessionsResult.fold(
-      (failure) async => emit(const ExpenseError('Failed to load sessions')),
+      (failure) async => emit(const ExpenseError("Couldn't load your lists")),
       (sessions) async {
         await budgetsResult.fold(
           (failure) async => emit(const ExpenseError('Failed to load budgets')),
@@ -201,7 +200,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       final result = await addSession(AddSessionParams(session: event.session));
 
       result.fold(
-        (failure) => emit(const ExpenseError('Failed to add session')),
+        (failure) => emit(const ExpenseError("Couldn't save the list")),
         (_) {
           // Directly reload data instead of showing success state
           add(ChangeSelectedMonth(currentState.selectedMonth));
@@ -222,7 +221,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       );
 
       result.fold(
-        (failure) => emit(const ExpenseError('Failed to update session')),
+        (failure) => emit(const ExpenseError("Couldn't update the list")),
         (_) {
           add(ChangeSelectedMonth(currentState.selectedMonth));
         },
@@ -240,7 +239,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       final result = await deleteSession(DeleteSessionParams(id: event.id));
 
       result.fold(
-        (failure) => emit(const ExpenseError('Failed to delete session')),
+        (failure) => emit(const ExpenseError("Couldn't delete the list")),
         (_) {
           // Directly reload data instead of emitting success then reloading
           add(ChangeSelectedMonth(currentState.selectedMonth));
@@ -329,7 +328,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       );
 
       result.fold(
-        (failure) => emit(const ExpenseError('Failed to toggle item')),
+        (failure) => emit(const ExpenseError("Couldn't update that item")),
         (_) {
           add(ChangeSelectedMonth(currentState.selectedMonth));
         },
@@ -454,7 +453,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       );
 
       result.fold(
-        (failure) => emit(const ExpenseError('Failed to search sessions')),
+        (failure) => emit(const ExpenseError("Couldn't search your lists")),
         (searchResults) {
           emit(
             currentState.copyWith(
