@@ -230,7 +230,7 @@ class _TasbihPageState extends State<TasbihPage>
                 ),
               ),
               Container(
-                margin: const EdgeInsets.all(22),
+                margin: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   // Solid white, not a gradient — a gradient's outer stop
@@ -248,25 +248,64 @@ class _TasbihPageState extends State<TasbihPage>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      '${_state.count}',
-                      style: const TextStyle(
-                        color: PrayerPalette.ink,
-                        fontSize: 56,
-                        fontWeight: FontWeight.w300,
-                        height: 1,
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
+                    // Count and total on one baseline, so the eye lands on
+                    // the number and the total reads as context, not a label.
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          '${_state.count}',
+                          style: const TextStyle(
+                            color: PrayerPalette.ink,
+                            fontSize: 62,
+                            fontWeight: FontWeight.w300,
+                            height: 1,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          '/${TasbihService.perRound}',
+                          style: TextStyle(
+                            color: PrayerPalette.inkA(0.35),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            height: 1,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 6),
-                    // One short line, so it stays inside the circle at every
-                    // count width — a stacked chip broke out of the curve.
-                    Text(
-                      'of ${TasbihService.perRound} · tap to count',
-                      style: TextStyle(
-                        color: PrayerPalette.inkA(0.5),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 11,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: PrayerPalette.accentA(0.10),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.touch_app_rounded,
+                            size: 12,
+                            color: PrayerPalette.accent,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _state.count == 0 ? 'tap to begin' : 'tap to count',
+                            style: const TextStyle(
+                              color: PrayerPalette.accent,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

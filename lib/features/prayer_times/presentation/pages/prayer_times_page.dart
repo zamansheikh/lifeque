@@ -21,6 +21,7 @@ import '../utils/prayer_palette.dart';
 import '../widgets/mosque_time_edit_sheet.dart';
 import '../widgets/nafal_times_card.dart';
 import '../widgets/prayer_alarm_sheet.dart';
+import '../widgets/prayer_snack.dart';
 import 'prayer_alarm_page.dart';
 import '../widgets/prayer_focus_card.dart' show QuickAlarmChoice;
 import '../widgets/prayer_sky_header.dart';
@@ -661,12 +662,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     if (existing != null && existing.isEnabled) {
       await _alarmService.removeAlarm(prayer);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('🔕 $prayer alarm off'),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-        ),
+      PrayerSnack.show(
+        context,
+        '$prayer alarm turned off',
+        kind: PrayerSnackKind.muted,
       );
       return;
     }
@@ -1025,13 +1024,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     await _loadDayState(date);
     if (!mounted) return;
     if (on) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('✅ $prayer marked as prayed'),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      PrayerSnack.show(context, '$prayer marked as prayed');
     }
   }
 
@@ -1057,12 +1050,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     if (sameAsActive) {
       await _alarmService.removeAlarm(prayer);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('🔕 $prayer alarm off'),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-        ),
+      PrayerSnack.show(
+        context,
+        '$prayer alarm turned off',
+        kind: PrayerSnackKind.muted,
       );
       return;
     }
@@ -1082,12 +1073,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       await _alarmService.addAlarm(config);
     }
     if (!announce || !mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('⏰ $prayer · ${choice.label.toLowerCase()}'),
-        duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-      ),
+    PrayerSnack.show(
+      context,
+      '$prayer · ${choice.label.toLowerCase()}',
+      kind: PrayerSnackKind.scheduled,
     );
   }
 

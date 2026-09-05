@@ -12,6 +12,7 @@ import '../../../../core/utils/salah_time_calculator.dart';
 import '../utils/bangla_date.dart';
 import '../utils/hijri_names.dart';
 import '../utils/prayer_palette.dart';
+import 'prayer_snack.dart';
 
 /// Preview-and-share for the day's prayer times.
 ///
@@ -83,11 +84,11 @@ class _ShareSheetState extends State<_ShareSheet> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not share the card: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      PrayerSnack.show(
+        context,
+        'Could not share the card: $e',
+        kind: PrayerSnackKind.error,
+        duration: const Duration(seconds: 3),
       );
     } finally {
       if (mounted) setState(() => _busy = false);

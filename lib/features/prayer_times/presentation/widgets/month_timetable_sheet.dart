@@ -13,6 +13,7 @@ import '../../../../core/utils/salah_time_calculator.dart';
 import '../utils/bangla_date.dart';
 import '../utils/hijri_names.dart';
 import '../utils/prayer_palette.dart';
+import 'prayer_snack.dart';
 
 /// Preview-and-share for a whole month's timetable, as an A4-proportioned
 /// (794×1123) sheet suitable for printing or forwarding to a mosque group.
@@ -93,11 +94,11 @@ class _SheetState extends State<_Sheet> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not share the timetable: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      PrayerSnack.show(
+        context,
+        'Could not share the timetable: $e',
+        kind: PrayerSnackKind.error,
+        duration: const Duration(seconds: 3),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
