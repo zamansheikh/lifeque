@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -6,15 +7,12 @@ import '../utils/prayer_palette.dart';
 
 /// Dawn-gradient header: location, a cycling date line, the semicircular waqt
 /// gauge and a hill silhouette along the bottom edge.
-class PrayerSkyHeader extends StatelessWidget {
+class PrayerSkyHeader extends StatefulWidget {
   final String locationName;
 
-  /// The date line, already formatted. Cycles between Hijri / Gregorian /
-  /// Bangla upstream; this widget only fades it.
-  final String dateLine;
-
-  /// Drives the cross-fade between date formats.
-  final double dateOpacity;
+  /// The date in each calendar — Hijri, Gregorian, Bangla. Shown as a
+  /// swipeable carousel that also advances on its own.
+  final List<String> dateLines;
 
   /// Prayer the gauge is describing, e.g. `Dhuhr`.
   final String gaugeName;
@@ -34,8 +32,7 @@ class PrayerSkyHeader extends StatelessWidget {
   const PrayerSkyHeader({
     super.key,
     required this.locationName,
-    required this.dateLine,
-    required this.dateOpacity,
+    required this.dateLines,
     required this.gaugeName,
     required this.gaugeLabel,
     required this.gaugeCountdown,
@@ -43,6 +40,44 @@ class PrayerSkyHeader extends StatelessWidget {
     required this.onLocationTap,
     required this.onMenu,
   });
+
+  @override
+  State<PrayerSkyHeader> createState() => _PrayerSkyHeaderState();
+}
+
+class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
+  late final PageController _dates = PageController();
+  Timer? _advance;
+  int _page = 0;
+
+  /// Left inset that lines the date strip up with the location text: the
+  /// menu button plus the gap beside it.
+  static const _contentInset = 42.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoAdvance();
+  }
+
+  @override
+  void dispose() {
+    _advance?.cancel();
+    _dates.dispose();
+    super.dispose();
+  }
+
+  void _startAutoAdvance() {
+    _advance?.cancel();
+    _advance = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted || !_dates.hasClients) return;
+      _dates.animateToPage(
+        (_page + 1) % widget.dateLines.length,
+        duration: const Duration(milliseconds: 420),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,23 +114,8 @@ class PrayerSkyHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _locationRow(),
-                Padding(
-                  padding: const EdgeInsets.only(left: 22, top: 3),
-                  child: AnimatedOpacity(
-                    opacity: dateOpacity,
-                    duration: const Duration(milliseconds: 400),
-                    child: Text(
-                      dateLine,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: PrayerPalette.inkA(0.65),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 3),
+                _dateCarousel(),
                 const SizedBox(height: 8),
                 Center(child: _gauge()),
               ],
@@ -113,48 +133,127 @@ class PrayerSkyHeader extends StatelessWidget {
     );
   }
 
-  Widget _locationRow() {
-    return Row(
-      children: [
-        InkWell(
-          onTap: onLocationTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.place, size: 16, color: PrayerPalette.ink),
-              const SizedBox(width: 6),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 220),
-                child: Text(
-                  locationName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: PrayerPalette.ink,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+  /// Swipeable Hijri / Gregorian / Bangla strip. Auto-advances, and a manual
+  /// swipe restarts the timer so it doesn't slide out from under a read.
+  Widget _dateCarousel() {
+    return Padding(
+      padding: const EdgeInsets.only(left: _contentInset),
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 18,
+              child: PageView.builder(
+                controller: _dates,
+                itemCount: widget.dateLines.length,
+                onPageChanged: (i) {
+                  setState(() => _page = i);
+                  _startAutoAdvance();
+                },
+                itemBuilder: (context, i) => Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    widget.dateLines[i],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: PrayerPalette.inkA(0.65),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 6),
-              const Icon(
-                Icons.keyboard_arrow_down_rounded,
-                size: 18,
-                color: PrayerPalette.ink,
+            ),
+          ),
+          const SizedBox(width: 8),
+          for (var i = 0; i < widget.dateLines.length; i++)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              margin: const EdgeInsets.only(left: 3),
+              width: i == _page ? 12 : 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: PrayerPalette.inkA(i == _page ? 0.55 : 0.2),
+                borderRadius: BorderRadius.circular(3),
               ),
-            ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _locationRow() {
+    return Row(
+      children: [
+        // Explicit drawer affordance — the bismillah is decorative, not a
+        // control, so it can't be the only way into the menu.
+        InkWell(
+          onTap: widget.onMenu,
+          customBorder: const CircleBorder(),
+          child: Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.55),
+            ),
+            child: const Icon(
+              Icons.menu_rounded,
+              size: 19,
+              color: PrayerPalette.ink,
+            ),
           ),
         ),
-        const Spacer(),
-        InkWell(
-          onTap: onMenu,
-          borderRadius: BorderRadius.circular(8),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        const SizedBox(width: 8),
+        Expanded(
+          child: InkWell(
+            onTap: widget.onLocationTap,
+            borderRadius: BorderRadius.circular(8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.place, size: 16, color: PrayerPalette.ink),
+                const SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    widget.locationName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: PrayerPalette.ink,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 18,
+                  color: PrayerPalette.ink,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        // U+FDFD, the single bismillah ligature. Amiri draws it as a wide
+        // calligraphic form — far wider than the system fallback — so it gets
+        // a fixed slot and scales into it rather than pushing the row over.
+        SizedBox(
+          width: 142,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
             child: Text(
-              '﷽',
-              style: TextStyle(color: PrayerPalette.ink, fontSize: 17),
+              '\uFDFD',
+              textDirection: TextDirection.rtl,
+              style: PrayerPalette.arabic(
+                fontSize: 52,
+                color: PrayerPalette.inkA(0.8),
+                height: 1.0,
+              ),
             ),
           ),
         ),
@@ -169,14 +268,16 @@ class PrayerSkyHeader extends StatelessWidget {
       child: Stack(
         children: [
           Positioned.fill(
-            child: CustomPaint(painter: _GaugePainter(progress: progress)),
+            child: CustomPaint(
+              painter: _GaugePainter(progress: widget.progress),
+            ),
           ),
           Positioned.fill(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
-                  gaugeName,
+                  widget.gaugeName,
                   style: const TextStyle(
                     color: PrayerPalette.ink,
                     fontSize: 23,
@@ -185,7 +286,7 @@ class PrayerSkyHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  gaugeLabel,
+                  widget.gaugeLabel,
                   style: TextStyle(
                     color: PrayerPalette.inkA(0.65),
                     fontSize: 12,
@@ -194,7 +295,7 @@ class PrayerSkyHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  gaugeCountdown,
+                  widget.gaugeCountdown,
                   style: const TextStyle(
                     color: PrayerPalette.ink,
                     fontSize: 29,

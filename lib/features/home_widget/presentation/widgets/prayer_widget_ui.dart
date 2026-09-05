@@ -39,8 +39,14 @@ class PrayerWidgetUI extends StatelessWidget {
   final String sahri;
   final String iftar;
 
+  /// Exact render size. home_widget lays the widget out inside a Column, which
+  /// passes an unbounded height — so the box has to be sized explicitly or the
+  /// PNG comes out letterboxed and the host's fitXY then distorts it.
+  final Size size;
+
   const PrayerWidgetUI({
     super.key,
+    required this.size,
     required this.hijriLine,
     required this.secondaryDateLine,
     required this.updatedAt,
@@ -63,7 +69,10 @@ class PrayerWidgetUI extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: Container(
+      child: SizedBox(
+        width: size.width,
+        height: size.height,
+        child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -94,22 +103,24 @@ class PrayerWidgetUI extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(14, 11, 14, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   _header(),
                   const SizedBox(height: 8),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: _left()),
-                      const SizedBox(width: 8),
-                      _right(),
-                    ],
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _left()),
+                        const SizedBox(width: 8),
+                        _right(),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           ],
+        ),
         ),
       ),
     );
@@ -179,7 +190,7 @@ class PrayerWidgetUI extends StatelessWidget {
   Widget _left() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
           prayerName,
@@ -225,7 +236,7 @@ class PrayerWidgetUI extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 7),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(

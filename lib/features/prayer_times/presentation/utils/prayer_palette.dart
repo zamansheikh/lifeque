@@ -74,6 +74,25 @@ class PrayerPalette {
   static const alert = Color(0xFFEF4444);
   static const alertLight = Color(0xFFFCA5A5);
 
+  /// Amiri — the bundled Naskh face. Arabic set in the app's Latin font falls
+  /// back to a system face that renders the ligatures poorly, so every Arabic
+  /// string goes through here.
+  static const arabicFont = 'Amiri';
+
+  static TextStyle arabic({
+    required double fontSize,
+    Color color = ink,
+    FontWeight fontWeight = FontWeight.w400,
+    double? height,
+  }) =>
+      TextStyle(
+        fontFamily: arabicFont,
+        fontSize: fontSize,
+        color: color,
+        fontWeight: fontWeight,
+        height: height,
+      );
+
   static const cardRadius = 20.0;
 
   static List<BoxShadow> get cardShadow => [

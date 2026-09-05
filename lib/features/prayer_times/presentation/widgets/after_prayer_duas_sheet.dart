@@ -128,11 +128,7 @@ class AfterPrayerDuasSheet {
               dua.arabic,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
-              style: const TextStyle(
-                color: PrayerPalette.ink,
-                fontSize: 19,
-                height: 1.8,
-              ),
+              style: PrayerPalette.arabic(fontSize: 22, height: 1.9),
             ),
             const SizedBox(height: 5),
             Text(

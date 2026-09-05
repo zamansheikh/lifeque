@@ -34,8 +34,12 @@ class MosqueWidgetUI extends StatelessWidget {
 
   final List<JamaatChip> jamaat;
 
+  /// Exact render size — see [PrayerWidgetUI.size] for why this is explicit.
+  final Size size;
+
   const MosqueWidgetUI({
     super.key,
+    required this.size,
     required this.dateLine,
     required this.updatedAt,
     required this.sunrise,
@@ -52,7 +56,10 @@ class MosqueWidgetUI extends StatelessWidget {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: Container(
+      child: SizedBox(
+        width: size.width,
+        height: size.height,
+        child: Container(
         padding: const EdgeInsets.fromLTRB(14, 11, 14, 12),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -69,10 +76,9 @@ class MosqueWidgetUI extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _header(),
-            const SizedBox(height: 9),
             Row(
               children: [
                 Expanded(child: _sunTile(Icons.wb_sunny_outlined, 'Sunrise', sunrise)),
@@ -84,7 +90,6 @@ class MosqueWidgetUI extends StatelessWidget {
                 Expanded(child: _sunTile(Icons.dinner_dining_outlined, 'Iftar', iftar)),
               ],
             ),
-            const SizedBox(height: 9),
             Row(
               children: [
                 for (var i = 0; i < jamaat.length; i++) ...[
@@ -94,6 +99,7 @@ class MosqueWidgetUI extends StatelessWidget {
               ],
             ),
           ],
+        ),
         ),
       ),
     );

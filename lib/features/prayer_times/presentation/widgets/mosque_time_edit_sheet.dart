@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../data/services/prayer_settings_service.dart';
+import '../utils/prayer_palette.dart';
 
-/// Bottom sheet to edit a single prayer's mosque (jamaat) time and to flip
-/// Ramadan mode (which auto-derives Fajr & Maghrib from Waqt). Replaces the
-/// old standalone Mosque tab.
+/// Sets one prayer's mosque (jamaat) time with a ±5-minute stepper, and
+/// carries the Ramadan-mode switch that auto-derives Fajr and Maghrib from
+/// the waqt.
 class MosqueTimeEditSheet extends StatefulWidget {
   final String prayer;
   final TimeOfDay? currentMosqueTime;
   final TimeOfDay? waqtTime;
   final bool isRamadanMode;
+
+  /// True for Fajr and Maghrib, whose jamaat Ramadan mode computes itself.
   final bool isLockedByRamadan;
+
   final void Function(TimeOfDay) onSaved;
   final ValueChanged<bool> onRamadanModeChanged;
 
@@ -36,10 +40,13 @@ class MosqueTimeEditSheet extends StatefulWidget {
   }) async {
     final ramadan = await PrayerSettingsService.instance.getRamadanMode();
     if (!context.mounted) return;
-    await showModalBottomSheet(
+    await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
       builder: (ctx) => MosqueTimeEditSheet(
         prayer: prayer,
         currentMosqueTime: currentMosqueTime,
@@ -58,292 +65,281 @@ class MosqueTimeEditSheet extends StatefulWidget {
 
 class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
   late TimeOfDay _time;
-  late bool _ramadanMode;
+  late bool _ramadan;
+
+  /// True while Ramadan mode is computing this prayer's jamaat for us.
+  bool get _locked => _ramadan && widget.isLockedByRamadan;
 
   @override
   void initState() {
     super.initState();
+    _ramadan = widget.isRamadanMode;
     _time = widget.currentMosqueTime ??
-        (widget.waqtTime != null
-            ? _addMinutes(widget.waqtTime!, 15)
-            : const TimeOfDay(hour: 12, minute: 30));
-    _ramadanMode = widget.isRamadanMode;
+        widget.waqtTime ??
+        const TimeOfDay(hour: 5, minute: 0);
+    if (_locked) _time = _ramadanDerived;
   }
 
-  TimeOfDay _addMinutes(TimeOfDay t, int mins) {
-    final total = t.hour * 60 + t.minute + mins;
+  /// Ramadan mode sets Fajr and Maghrib jamaat to waqt + 15 minutes.
+  TimeOfDay get _ramadanDerived {
+    final waqt = widget.waqtTime;
+    if (waqt == null) return _time;
+    final total = waqt.hour * 60 + waqt.minute + 15;
     return TimeOfDay(hour: (total ~/ 60) % 24, minute: total % 60);
   }
 
-  int _deltaMinutes() {
-    if (widget.waqtTime == null) return 0;
-    return (_time.hour * 60 + _time.minute) -
-        (widget.waqtTime!.hour * 60 + widget.waqtTime!.minute);
+  void _step(int minutes) {
+    if (_locked) return;
+    final total = _time.hour * 60 + _time.minute + minutes;
+    final wrapped = (total + 1440) % 1440;
+    setState(() {
+      _time = TimeOfDay(hour: wrapped ~/ 60, minute: wrapped % 60);
+    });
+  }
+
+  String _fmt(TimeOfDay t) {
+    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+    return '$h:${t.minute.toString().padLeft(2, '0')} '
+        '${t.hour < 12 ? 'am' : 'pm'}';
+  }
+
+  /// How far the jamaat sits from the waqt, as the design's caption.
+  String get _delta {
+    final waqt = widget.waqtTime;
+    if (waqt == null) return 'steps of 5 min';
+    final diff = (_time.hour * 60 + _time.minute) -
+        (waqt.hour * 60 + waqt.minute);
+    if (diff == 0) return 'same as waqt · steps of 5 min';
+    return diff > 0
+        ? '+$diff min after waqt · steps of 5 min'
+        : '$diff min before waqt · steps of 5 min';
   }
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final delta = _deltaMinutes();
-
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        24,
-        12,
-        24,
-        24 + MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 36,
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
               height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.15),
+                color: PrayerPalette.inkA(0.15),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-          ),
-          Row(
-            children: [
-              Icon(Icons.mosque_rounded, color: cs.primary),
-              const SizedBox(width: 8),
-              Text(
-                '${widget.prayer} · Mosque Time',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Jamaat time for your local mosque.',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.black.withValues(alpha: 0.6),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Ramadan mode tile
-          _Tile(
-            icon: Icons.nightlight_round,
-            iconColor: const Color(0xFFB45309),
-            title: 'Ramadan Mode',
-            subtitle: 'Auto-sets Fajr & Maghrib to Waqt + 15m',
-            trailing: Switch.adaptive(
-              value: _ramadanMode,
-              onChanged: (v) async {
-                setState(() => _ramadanMode = v);
-                widget.onRamadanModeChanged(v);
-              },
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Time picker tile
-          AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: widget.isLockedByRamadan && _ramadanMode ? 0.5 : 1.0,
-            child: IgnorePointer(
-              ignoring: widget.isLockedByRamadan && _ramadanMode,
-              child: _Tile(
-                icon: Icons.access_time_rounded,
-                iconColor: cs.primary,
-                title: _format(_time),
-                subtitle: widget.waqtTime == null
-                    ? 'Waqt unknown'
-                    : 'Waqt is ${_format(widget.waqtTime!)}'
-                        '${delta == 0 ? '' : delta > 0 ? '  ·  +${delta}m later' : '  ·  ${delta}m earlier'}',
-                trailing: TextButton.icon(
-                  icon: const Icon(Icons.edit),
-                  label: const Text('Change'),
-                  onPressed: () async {
-                    final picked = await showTimePicker(
-                      context: context,
-                      initialTime: _time,
-                    );
-                    if (picked != null) {
-                      setState(() => _time = picked);
-                    }
-                  },
-                ),
+            const SizedBox(height: 12),
+            Text(
+              '${widget.prayer} jamaat time',
+              style: const TextStyle(
+                color: PrayerPalette.ink,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
               ),
             ),
-          ),
-
-          // Quick-offset row
-          if (widget.waqtTime != null &&
-              !(widget.isLockedByRamadan && _ramadanMode))
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Wrap(
-                spacing: 8,
-                children: [
-                  for (final offset in [0, 5, 10, 15, 20, 30])
-                    _OffsetChip(
-                      label: offset == 0 ? 'On time' : '+${offset}m',
-                      selected: _deltaMinutes() == offset,
-                      onTap: () => setState(
-                        () => _time = _addMinutes(widget.waqtTime!, offset),
-                      ),
-                    ),
-                ],
+            const SizedBox(height: 2),
+            Text(
+              "Your mosque's congregation time",
+              style: TextStyle(
+                color: PrayerPalette.inkA(0.55),
+                fontSize: 11.5,
+                fontWeight: FontWeight.w500,
               ),
             ),
-
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+            const SizedBox(height: 16),
+            _stepper(),
+            const SizedBox(height: 6),
+            Text(
+              _locked
+                  ? 'Set automatically by Ramadan mode'
+                  : _delta,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: PrayerPalette.inkA(0.55),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _ramadanRow(),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: PrayerPalette.accent,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Text('Cancel'),
+                ),
+                onPressed: () {
+                  widget.onSaved(_time);
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  'Save',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: FilledButton.icon(
-                  onPressed: widget.isLockedByRamadan && _ramadanMode
-                      ? null
-                      : () {
-                          widget.onSaved(_time);
-                          Navigator.of(context).pop();
-                        },
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  icon: const Icon(Icons.check_rounded, size: 18),
-                  label: const Text('Save Mosque Time'),
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  String _format(TimeOfDay t) {
-    final h = t.hour;
-    final m = t.minute.toString().padLeft(2, '0');
-    final hh = h == 0 ? 12 : (h > 12 ? h - 12 : h);
-    final ap = h >= 12 ? 'PM' : 'AM';
-    return '$hh:$m $ap';
+  Widget _stepper() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _stepButton(Icons.remove_rounded, () => _step(-5)),
+        const SizedBox(width: 18),
+        SizedBox(
+          width: 150,
+          child: Text(
+            _fmt(_time),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _locked ? PrayerPalette.inkA(0.45) : PrayerPalette.ink,
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+        const SizedBox(width: 18),
+        _stepButton(Icons.add_rounded, () => _step(5)),
+      ],
+    );
   }
-}
 
-class _Tile extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final Widget trailing;
+  Widget _stepButton(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: _locked ? null : onTap,
+      customBorder: const CircleBorder(),
+      child: Container(
+        width: 44,
+        height: 44,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: _locked
+              ? PrayerPalette.inkA(0.04)
+              : PrayerPalette.accentA(0.10),
+          border: Border.all(
+            color: _locked
+                ? PrayerPalette.inkA(0.12)
+                : PrayerPalette.accentA(0.3),
+          ),
+        ),
+        child: Icon(
+          icon,
+          size: 22,
+          color: _locked ? PrayerPalette.inkA(0.3) : PrayerPalette.accent,
+        ),
+      ),
+    );
+  }
 
-  const _Tile({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    required this.trailing,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _ramadanRow() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+        color: PrayerPalette.canvas,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PrayerPalette.inkA(0.08)),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              color: PrayerPalette.gold.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(11),
             ),
-            child: Icon(icon, color: iconColor, size: 18),
+            child: const Icon(
+              Icons.nightlight_round,
+              size: 16,
+              color: Color(0xFFB8901E),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                const Text(
+                  'Ramadan mode',
+                  style: TextStyle(
+                    color: PrayerPalette.ink,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
-                  subtitle,
+                  'Auto-sets Fajr & Maghrib to waqt + 15m',
                   style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.black.withValues(alpha: 0.6),
+                    color: PrayerPalette.inkA(0.5),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
           ),
-          trailing,
-        ],
-      ),
-    );
-  }
-}
-
-class _OffsetChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-  const _OffsetChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Material(
-      color: selected
-          ? cs.primary
-          : cs.surfaceContainerHighest.withValues(alpha: 0.7),
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: selected ? cs.onPrimary : cs.onSurface,
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () {
+              final next = !_ramadan;
+              setState(() {
+                _ramadan = next;
+                if (next && widget.isLockedByRamadan) {
+                  _time = _ramadanDerived;
+                }
+              });
+              widget.onRamadanModeChanged(next);
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 40,
+              height: 23,
+              decoration: BoxDecoration(
+                color: _ramadan
+                    ? PrayerPalette.accent
+                    : PrayerPalette.inkA(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 200),
+                alignment:
+                    _ramadan ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 3,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

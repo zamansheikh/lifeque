@@ -441,14 +441,21 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final gauge = _gaugeFor(times, endTimes, now, isToday);
     final restrictedNow = isToday ? calc.getCurrentRestrictedPeriod() : null;
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 12),
-      physics: const BouncingScrollPhysics(),
-      children: [
+    return RefreshIndicator(
+      color: PrayerPalette.accent,
+      backgroundColor: Colors.white,
+      onRefresh: () => _refreshDay(date),
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: 12),
+        // AlwaysScrollable so the pull gesture works even when the content
+        // is short enough not to scroll.
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        children: [
         PrayerSkyHeader(
           locationName: _locationName,
-          dateLine: _dateCycleLine(date),
-          dateOpacity: _dateCycleOpacity(),
+          dateLines: _dateLines(date),
           gaugeName: gauge.name,
           gaugeLabel: gauge.label,
           gaugeCountdown: gauge.countdown,
@@ -498,9 +505,20 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             ),
           ),
         ),
-        if (!isToday) _backToTodayButton(),
-      ],
+          if (!isToday) _backToTodayButton(),
+        ],
+      ),
     );
+  }
+
+  /// Pull-to-refresh: re-read location and settings, recompute, and reload
+  /// this day's completions and mosque times.
+  Future<void> _refreshDay(DateTime date) async {
+    await _loadFromSavedData();
+    await _loadMosqueState();
+    await _loadDayState(date);
+    if (!mounted) return;
+    setState(() {});
   }
 
   // ── Formatting helpers ──────────────────────────────────────────────────
@@ -535,27 +553,17 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
   // ── Cycling date line ───────────────────────────────────────────────────
 
-  /// Rotates Hijri → Gregorian → Bangla every 3 seconds, matching the design.
-  String _dateCycleLine(DateTime date) {
+  /// The same date in all three calendars, in carousel order.
+  List<String> _dateLines(DateTime date) {
     final dowEn = DateFormat('EEEE').format(date);
     final hijri = HijriCalendar.fromDate(date);
-    final slot =
-        (DateTime.now().millisecondsSinceEpoch ~/ 3000) % 3;
-    switch (slot) {
-      case 0:
-        return '$dowEn, ${hijri.hDay} ${_hijriMonthName(hijri.hMonth)} '
-            '${hijri.hYear}';
-      case 1:
-        return '$dowEn, ${DateFormat('MMMM d, y').format(date)}';
-      default:
-        return '${BanglaDate.weekdayName(date)}, '
-            '${BanglaDate.fromDate(date).formatted}';
-    }
+    return [
+      '$dowEn, ${hijri.hDay} ${_hijriMonthName(hijri.hMonth)} ${hijri.hYear}',
+      '$dowEn, ${DateFormat('MMMM d, y').format(date)}',
+      '${BanglaDate.weekdayName(date)}, '
+          '${BanglaDate.fromDate(date).formatted}',
+    ];
   }
-
-  /// Dips just before each swap so the line cross-fades rather than jumping.
-  double _dateCycleOpacity() =>
-      DateTime.now().millisecondsSinceEpoch % 3000 < 400 ? 0.25 : 1.0;
 
   static String _hijriMonthName(int m) => const [
         'Muharram',

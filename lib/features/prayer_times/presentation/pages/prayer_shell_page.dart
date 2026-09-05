@@ -37,6 +37,9 @@ class _PrayerShellPageState extends State<PrayerShellPage> {
         children: [
           Expanded(
             child: IndexedStack(
+              // Without expand, IndexedStack loose-sizes each tab and pins it
+              // to the top-start — which left the Qibla dial off-centre.
+              sizing: StackFit.expand,
               index: PrayerTab.values.indexOf(_tab),
               children: const [
                 PrayerTimesPage(),

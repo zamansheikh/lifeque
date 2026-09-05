@@ -178,6 +178,7 @@ class HomeWidgetService {
       // ── Render the current-waqt widget ──
       await HomeWidget.renderFlutterWidget(
         PrayerWidgetUI(
+          size: _widgetSize,
           hijriLine: '${hijri.hDay} ${_hijriMonth(hijri.hMonth)} '
               '${hijri.hYear}, ${DateFormat('EEEE').format(date)}',
           secondaryDateLine:
@@ -274,6 +275,7 @@ class HomeWidgetService {
 
       await HomeWidget.renderFlutterWidget(
         MosqueWidgetUI(
+          size: _widgetSize,
           dateLine: dateLine,
           updatedAt: updatedAt,
           sunrise: sunrise,

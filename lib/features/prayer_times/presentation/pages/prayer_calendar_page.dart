@@ -8,6 +8,7 @@ import '../../data/services/prayer_settings_service.dart';
 import '../utils/bangla_date.dart';
 import '../utils/hijri_names.dart';
 import '../utils/prayer_palette.dart';
+import '../widgets/month_timetable_sheet.dart';
 import '../widgets/prayer_share_sheet.dart';
 
 /// Month timetable: a week strip, today's five prayers, and a scrollable list
@@ -85,10 +86,16 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
       );
     }
     final now = DateTime.now();
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 12),
-      physics: const BouncingScrollPhysics(),
-      children: [
+    return RefreshIndicator(
+      color: PrayerPalette.accent,
+      backgroundColor: Colors.white,
+      onRefresh: _load,
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: 12),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        children: [
         _header(now),
         Transform.translate(
           offset: const Offset(0, -12),
@@ -109,13 +116,55 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Text(
                 '✦ = Jumu\'ah',
                 style: TextStyle(
                   color: PrayerPalette.inkA(0.5),
                   fontSize: 10.5,
                   fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              InkWell(
+                onTap: () => MonthTimetableSheet.show(
+                  context,
+                  month: _month,
+                  latitude: _latitude,
+                  longitude: _longitude,
+                  method: _method,
+                  madhab: _madhab,
+                  locationName: _locationName,
+                ),
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: PrayerPalette.accentA(0.10),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.ios_share_rounded,
+                        size: 12,
+                        color: PrayerPalette.accent,
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        'Share month',
+                        style: TextStyle(
+                          color: PrayerPalette.accent,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -125,11 +174,12 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: _columnHeader(),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Column(children: _monthRows(now)),
-        ),
-      ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Column(children: _monthRows(now)),
+          ),
+        ],
+      ),
     );
   }
 

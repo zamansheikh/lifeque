@@ -270,12 +270,10 @@ class PrayerShareCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text(
-                    '﷽',
-                    style: TextStyle(
-                      color: PrayerPalette.ink,
-                      fontSize: 56,
-                    ),
+                  Text(
+                    '\uFDFD',
+                    textDirection: ui.TextDirection.rtl,
+                    style: PrayerPalette.arabic(fontSize: 92, height: 1.0),
                   ),
                   const SizedBox(height: 28),
                   const Text(
