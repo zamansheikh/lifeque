@@ -8,6 +8,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import '../../features/tasks/domain/entities/task.dart';
 import '../../features/tasks/presentation/bloc/task_bloc.dart';
+import '../../features/todos/domain/entities/todo.dart';
+import '../../features/todos/domain/repositories/todo_repository.dart';
+import '../../features/todos/presentation/bloc/todo_bloc.dart';
 import '../../features/medicines/presentation/bloc/medicine_cubit.dart';
 import '../../features/medicines/domain/usecases/manage_doses.dart';
 import '../../core/usecases/usecase.dart';
@@ -40,6 +43,19 @@ class NotificationService {
   // Start medicines well above the range any reasonable .hashCode result
   // would land in for task ids (which are signed-32-bit String hashCodes).
   static const int _medicineIdCounterStart = 1500000000;
+
+  // To-do reminders get their own band for the same reason: ids come from a
+  // monotonic counter kept in a persistent map, so a to-do can never land on
+  // the same notification id as a task, a birthday, or a medicine dose.
+  static const String _todoNotificationIdMapKey = 'todo_notification_id_map';
+  static const String _todoNotificationIdCounterKey =
+      'todo_notification_id_counter';
+  static const int _todoIdCounterStart = 1700000000;
+
+  /// Payload prefix that marks a notification as belonging to a to-do.
+  /// Everything without a known prefix is still treated as a task id, so this
+  /// has to be checked before that fallback.
+  static const String todoPayloadPrefix = 'todo_';
 
   // Track if app was launched by notification action
   static bool _appLaunchedByNotification = false;
@@ -187,10 +203,24 @@ class NotificationService {
           AndroidFlutterLocalNotificationsPlugin
         >();
 
+    // Channel for to-do reminders
+    const AndroidNotificationChannel todoRemindersChannel =
+        AndroidNotificationChannel(
+          'todo_reminders',
+          'To-Do Reminders',
+          description: 'Reminders for the to-dos on your list',
+          importance: Importance.max,
+          enableLights: true,
+          enableVibration: true,
+          playSound: true,
+          showBadge: true,
+        );
+
     if (platform != null) {
       await platform.createNotificationChannel(taskRemindersChannel);
       await platform.createNotificationChannel(medicineRemindersChannel);
       await platform.createNotificationChannel(persistentTasksChannel);
+      await platform.createNotificationChannel(todoRemindersChannel);
       debugPrint('🔔 📺 Notification channels created with max importance');
     }
   }
@@ -261,6 +291,16 @@ class NotificationService {
         actionId,
         payload.substring(9),
       ); // Remove 'medicine_' prefix
+      return;
+    }
+
+    // To-do reminders. Checked before the task fallback below, which treats
+    // any unprefixed payload as a task id.
+    if (payload.startsWith(todoPayloadPrefix)) {
+      await _handleTodoNotificationAction(
+        actionId,
+        payload.substring(todoPayloadPrefix.length),
+      );
       return;
     }
 
@@ -1644,7 +1684,9 @@ class NotificationService {
               cancelled++;
             }
           }
-          debugPrint('🩺 Sweep cancelled $cancelled expired medicine schedules');
+          debugPrint(
+            '🩺 Sweep cancelled $cancelled expired medicine schedules',
+          );
         },
       );
     } catch (e) {
@@ -1713,8 +1755,9 @@ class NotificationService {
                       );
                       cancelledCount++;
                     }
-                  } else {
-                    // Assume task ID
+                  } else if (!payload.startsWith(todoPayloadPrefix)) {
+                    // Assume task ID. To-dos are skipped here and reconciled
+                    // by syncTodoNotifications, which knows their repository.
                     if (!activeTaskIds.contains(payload)) {
                       debugPrint(
                         '🔔 🗑️ Cancelling orphan task notification (pending): $payload',
@@ -1756,8 +1799,8 @@ class NotificationService {
                           cancelledCount++;
                         }
                       }
-                    } else {
-                      // Assume task ID
+                    } else if (!payload.startsWith(todoPayloadPrefix)) {
+                      // Assume task ID — see the note above.
                       if (!activeTaskIds.contains(payload)) {
                         if (notification.id != null) {
                           debugPrint(
@@ -1803,6 +1846,267 @@ class NotificationService {
       debugPrint('🔔 ✅ Notification synchronization completed');
     } catch (e) {
       debugPrint('🔔 ❌ Error during notification synchronization: $e');
+    }
+  }
+
+  // ── To-do reminders ─────────────────────────────────────────────────────
+
+  /// Stable notification id for a to-do, drawn from a persistent map so the
+  /// same to-do always gets the same id (and can therefore be cancelled and
+  /// rescheduled) without ever colliding with tasks or medicines.
+  Future<int> _generateTodoNotificationId(String todoId) async {
+    final key = 'todo_$todoId';
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final mapJson = prefs.getString(_todoNotificationIdMapKey);
+      final Map<String, dynamic> map = mapJson == null
+          ? <String, dynamic>{}
+          : jsonDecode(mapJson) as Map<String, dynamic>;
+
+      final existing = map[key];
+      if (existing is int) return existing;
+
+      final nextId =
+          prefs.getInt(_todoNotificationIdCounterKey) ?? _todoIdCounterStart;
+      map[key] = nextId;
+      await prefs.setString(_todoNotificationIdMapKey, jsonEncode(map));
+      await prefs.setInt(_todoNotificationIdCounterKey, nextId + 1);
+      return nextId;
+    } catch (e) {
+      debugPrint('✅ To-do ID-map error, falling back to hashCode for $key: $e');
+      return key.hashCode.abs() % 2147483647;
+    }
+  }
+
+  /// Schedules (or clears) the reminder for a single to-do.
+  ///
+  /// Always cancels first, so this is safe to call after any edit: turning the
+  /// reminder off, completing the to-do, or moving its time all end up doing
+  /// the right thing without the caller having to work out which case it is.
+  Future<void> scheduleTodoNotification(Todo todo) async {
+    await cancelTodoNotification(todo.id);
+
+    if (!todo.hasReminder || todo.reminderTime == null || todo.isCompleted) {
+      debugPrint('✅ No reminder to schedule for to-do: ${todo.title}');
+      return;
+    }
+
+    final scheduledDate = tz.TZDateTime.from(todo.reminderTime!, tz.local);
+    final now = tz.TZDateTime.now(tz.local);
+    if (!scheduledDate.isAfter(now)) {
+      debugPrint(
+        '✅ Reminder for "${todo.title}" is in the past ($scheduledDate), '
+        'not scheduling',
+      );
+      return;
+    }
+
+    final id = await _generateTodoNotificationId(todo.id);
+    final body = _getTodoNotificationBody(todo);
+
+    try {
+      await _flutterLocalNotificationsPlugin.zonedSchedule(
+        id: id,
+        title: '✅ ${todo.title}',
+        body: body,
+        scheduledDate: scheduledDate,
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            'todo_reminders',
+            'To-Do Reminders',
+            channelDescription: 'Reminders for the to-dos on your list',
+            importance: Importance.max,
+            priority: Priority.max,
+            enableLights: true,
+            enableVibration: true,
+            playSound: true,
+            visibility: NotificationVisibility.public,
+            category: AndroidNotificationCategory.reminder,
+            styleInformation: BigTextStyleInformation(body),
+            actions: const [
+              AndroidNotificationAction(
+                'todo_done',
+                'Mark as done',
+                showsUserInterface: false,
+                cancelNotification: true,
+              ),
+              AndroidNotificationAction(
+                'todo_snooze',
+                'Snooze 1 hour',
+                showsUserInterface: false,
+                cancelNotification: true,
+              ),
+            ],
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        payload: '$todoPayloadPrefix${todo.id}',
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+      debugPrint(
+        '✅ 🔔 To-do reminder scheduled: ${todo.title} at $scheduledDate',
+      );
+    } catch (e) {
+      debugPrint('✅ ❌ Failed to schedule to-do reminder: $e');
+    }
+  }
+
+  Future<void> cancelTodoNotification(String todoId) async {
+    final id = await _generateTodoNotificationId(todoId);
+    await _flutterLocalNotificationsPlugin.cancel(id: id);
+    debugPrint('✅ 🗑️ Cancelled to-do reminder for $todoId (id $id)');
+  }
+
+  String _getTodoNotificationBody(Todo todo) {
+    final parts = <String>[];
+
+    final description = todo.description?.trim();
+    if (description != null && description.isNotEmpty) parts.add(description);
+
+    final due = todo.dueDate;
+    if (due != null) {
+      if (todo.isDueToday) {
+        parts.add('Due today');
+      } else if (todo.isDueTomorrow) {
+        parts.add('Due tomorrow');
+      } else if (todo.isOverdue) {
+        parts.add('Overdue since ${DateFormat('d MMM').format(due)}');
+      } else {
+        parts.add('Due ${DateFormat('d MMM').format(due)}');
+      }
+    }
+
+    parts.add(
+      '${todo.priority.displayName} priority · ${todo.category.displayName}',
+    );
+    return parts.join(' · ');
+  }
+
+  /// Handles the "Mark as done" / "Snooze" buttons on a to-do reminder.
+  Future<void> _handleTodoNotificationAction(
+    String actionId,
+    String todoId,
+  ) async {
+    debugPrint('✅ Handling to-do action "$actionId" for $todoId');
+
+    late final TodoRepository repository;
+    try {
+      repository = di.sl<TodoRepository>();
+    } catch (e) {
+      debugPrint('✅ ❌ Todo repository unavailable: $e');
+      return;
+    }
+
+    final lookup = await repository.getTodoById(todoId);
+    final todo = lookup.fold((failure) => null, (value) => value);
+    if (todo == null) {
+      debugPrint(
+        '✅ ⚠️ To-do $todoId no longer exists, cancelling its reminder',
+      );
+      await cancelTodoNotification(todoId);
+      return;
+    }
+
+    switch (actionId) {
+      case 'todo_done':
+        final result = await repository.completeTodo(todoId);
+        await result.fold(
+          (failure) async =>
+              debugPrint('✅ ❌ Could not complete to-do $todoId: $failure'),
+          (_) async {
+            await cancelTodoNotification(todoId);
+            await _showActionFeedbackNotification(
+              '✅ Done',
+              '"${todo.title}" is off your list',
+              const Color(0xFF10B981),
+            );
+          },
+        );
+        break;
+
+      case 'todo_snooze':
+        final snoozed = todo.copyWith(
+          reminderTime: DateTime.now().add(const Duration(hours: 1)),
+          hasReminder: true,
+        );
+        final result = await repository.updateTodo(snoozed);
+        await result.fold(
+          (failure) async =>
+              debugPrint('✅ ❌ Could not snooze to-do $todoId: $failure'),
+          (_) async {
+            await scheduleTodoNotification(snoozed);
+            await _showActionFeedbackNotification(
+              '💤 Snoozed',
+              '"${todo.title}" will remind you again in an hour',
+              const Color(0xFF3B82F6),
+            );
+          },
+        );
+        break;
+
+      default:
+        debugPrint('✅ Unknown to-do action: $actionId');
+        return;
+    }
+
+    // Refresh the list if the app happens to be running.
+    try {
+      di.sl<TodoBloc>().add(LoadTodos());
+    } catch (e) {
+      debugPrint('✅ To-do list not loaded, skipping refresh: $e');
+    }
+  }
+
+  /// Re-syncs every to-do reminder with what is actually stored.
+  ///
+  /// Reminders that belong to deleted or completed to-dos are dropped, and the
+  /// rest are rescheduled — the reboot/upgrade path, where Android has thrown
+  /// away all pending alarms.
+  Future<void> syncTodoNotifications(TodoRepository repository) async {
+    debugPrint('✅ 🔄 Syncing to-do reminders...');
+    try {
+      final result = await repository.getAllTodos();
+      await result.fold(
+        (failure) async => debugPrint('✅ ❌ Could not read to-dos: $failure'),
+        (todos) async {
+          final live = {for (final t in todos) '$todoPayloadPrefix${t.id}'};
+
+          final pending = await _flutterLocalNotificationsPlugin
+              .pendingNotificationRequests();
+          final queued = pending
+              .where((n) => n.payload?.startsWith(todoPayloadPrefix) ?? false)
+              .toList();
+          debugPrint(
+            '✅ 📋 ${queued.length} to-do reminder(s) queued with the system: '
+            '${queued.map((n) => '${n.id}:${n.title}').join(', ')}',
+          );
+          for (final notification in pending) {
+            final payload = notification.payload;
+            if (payload == null) continue;
+            if (!payload.startsWith(todoPayloadPrefix)) continue;
+            if (!live.contains(payload)) {
+              debugPrint('✅ 🗑️ Cancelling orphan to-do reminder: $payload');
+              await _flutterLocalNotificationsPlugin.cancel(
+                id: notification.id,
+              );
+            }
+          }
+
+          var rescheduled = 0;
+          for (final todo in todos) {
+            if (!todo.hasReminder || todo.isCompleted) continue;
+            await scheduleTodoNotification(todo);
+            rescheduled++;
+          }
+          debugPrint('✅ 🔄 Rescheduled $rescheduled to-do reminders');
+        },
+      );
+    } catch (e) {
+      debugPrint('✅ ❌ Error syncing to-do reminders: $e');
     }
   }
 

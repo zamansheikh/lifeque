@@ -252,8 +252,12 @@ class Task extends Equatable {
         birthdayDate.day,
       );
 
-      // If this year's birthday has passed, return next year's
-      if (now.isAfter(thisYearBirthday)) {
+      // If this year's birthday has passed, return next year's. Compared by
+      // date, not by instant: thisYearBirthday is midnight, so any time after
+      // midnight on the day itself used to push the answer a full year out —
+      // a birthday today read as "in 365 days".
+      final today = DateTime(now.year, now.month, now.day);
+      if (today.isAfter(thisYearBirthday)) {
         return DateTime(currentYear + 1, birthdayDate.month, birthdayDate.day);
       }
       return thisYearBirthday;

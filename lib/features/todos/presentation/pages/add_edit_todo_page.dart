@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../domain/entities/todo.dart';
 import '../bloc/todo_bloc.dart';
 
+/// Create or edit a to-do.
+///
+/// Only the title is required. Due date and reminder are offered as one-tap
+/// choices rather than pickers you have to open, because the common answers
+/// are "today", "tomorrow" and "when it's due".
 class AddEditTodoPage extends StatefulWidget {
   final Todo? todo;
 
@@ -16,23 +22,33 @@ class AddEditTodoPage extends StatefulWidget {
 }
 
 class _AddEditTodoPageState extends State<AddEditTodoPage> {
+  static const _ink = Color(0xFF1E293B);
+  static const _muted = Color(0xFF64748B);
+  static const _brand = Color(0xFF2563EB);
+  static const _field = Color(0xFFF8FAFC);
+
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  TodoCategory _selectedCategory = TodoCategory.personal;
-  TodoPriority _selectedPriority = TodoPriority.medium;
-  DateTime? _selectedDueDate;
+  TodoCategory _category = TodoCategory.personal;
+  TodoPriority _priority = TodoPriority.medium;
+  DateTime? _dueDate;
+  DateTime? _reminderAt;
+  bool _showNote = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.isEditing) {
-      _titleController.text = widget.todo!.title;
-      _descriptionController.text = widget.todo!.description ?? '';
-      _selectedCategory = widget.todo!.category;
-      _selectedPriority = widget.todo!.priority;
-      _selectedDueDate = widget.todo!.dueDate;
+    final todo = widget.todo;
+    if (todo != null) {
+      _titleController.text = todo.title;
+      _descriptionController.text = todo.description ?? '';
+      _showNote = _descriptionController.text.isNotEmpty;
+      _category = todo.category;
+      _priority = todo.priority;
+      _dueDate = todo.dueDate;
+      _reminderAt = todo.hasReminder ? todo.reminderTime : null;
     }
   }
 
@@ -43,93 +59,80 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
     super.dispose();
   }
 
-  void _selectDueDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _selectedDueDate ?? DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+  // ── Save ───────────────────────────────────────────────────────────────
+
+  void _save() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final existing = widget.todo;
+    final description = _descriptionController.text.trim();
+
+    final todo = Todo(
+      id: existing?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      title: _titleController.text.trim(),
+      description: description.isEmpty ? null : description,
+      category: _category,
+      priority: _priority,
+      dueDate: _dueDate,
+      // A reminder in the past would never fire, so it is dropped rather than
+      // saved as a promise the app can't keep.
+      reminderTime: _reminderIsUsable ? _reminderAt : null,
+      hasReminder: _reminderIsUsable,
+      isCompleted: existing?.isCompleted ?? false,
+      createdAt: existing?.createdAt ?? DateTime.now(),
+      completedAt: existing?.completedAt,
+      // Carried through rather than dropped: editing a to-do used to silently
+      // wipe whatever wasn't on this form.
+      tags: existing?.tags ?? const [],
     );
 
-    if (date != null) {
-      if (!mounted) return;
-      final time = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(_selectedDueDate ?? DateTime.now()),
-      );
-
-      if (time != null) {
-        setState(() {
-          _selectedDueDate = DateTime(
-            date.year,
-            date.month,
-            date.day,
-            time.hour,
-            time.minute,
-          );
-        });
-      }
+    final bloc = context.read<TodoBloc>();
+    if (widget.isEditing) {
+      bloc.add(UpdateTodoEvent(todo));
+    } else {
+      bloc.add(AddTodoEvent(todo));
     }
+    context.pop();
   }
 
-  void _saveTodo() {
-    if (_formKey.currentState!.validate()) {
-      final todo = Todo(
-        id: widget.todo?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim().isEmpty
-            ? null
-            : _descriptionController.text.trim(),
-        category: _selectedCategory,
-        priority: _selectedPriority,
-        dueDate: _selectedDueDate,
-        isCompleted: widget.todo?.isCompleted ?? false,
-        createdAt: widget.todo?.createdAt ?? DateTime.now(),
-        completedAt: widget.todo?.completedAt,
-      );
+  bool get _reminderIsUsable =>
+      _reminderAt != null && _reminderAt!.isAfter(DateTime.now());
 
-      if (widget.isEditing) {
-        context.read<TodoBloc>().add(UpdateTodoEvent(todo));
-      } else {
-        context.read<TodoBloc>().add(AddTodoEvent(todo));
-      }
-
-      context.pop();
-    }
-  }
+  // ── Build ──────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: _field,
       appBar: AppBar(
         title: Text(
-          widget.isEditing ? 'Edit Todo' : 'Add Todo',
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 24),
+          widget.isEditing ? 'Edit to-do' : 'New to-do',
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 22,
+            color: _ink,
+          ),
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
-        foregroundColor: Colors.black87,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: _muted),
+          onPressed: () => context.pop(),
+        ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            child: ElevatedButton(
-              onPressed: _saveTodo,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 8, 12, 8),
+            child: FilledButton.icon(
+              onPressed: _save,
+              icon: const Icon(Icons.check_rounded, size: 18),
+              label: const Text('Save'),
+              style: FilledButton.styleFrom(
+                backgroundColor: _brand,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-              child: const Text(
-                'Save',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
             ),
           ),
@@ -138,342 +141,591 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
-            // Title Field
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  hintText: 'Enter todo title',
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(16),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
-              ),
+            _card(children: [_titleField(), ..._noteRow()]),
+            const SizedBox(height: 12),
+            _card(
+              title: 'When',
+              children: [_dueRow(), const SizedBox(height: 12), _reminderRow()],
             ),
-
-            const SizedBox(height: 16),
-
-            // Description Field
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextFormField(
-                controller: _descriptionController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Description (Optional)',
-                  hintText: 'Enter todo description',
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(16),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Category Selection
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Category',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: TodoCategory.values.map((category) {
-                        final isSelected = _selectedCategory == category;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedCategory = category;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? category.color.withValues(alpha: 0.2)
-                                  : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected
-                                    ? category.color
-                                    : Colors.grey.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  category.icon,
-                                  size: 16,
-                                  color: isSelected
-                                      ? category.color
-                                      : Colors.grey[600],
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  category.displayName,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: isSelected
-                                        ? category.color
-                                        : Colors.grey[700],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Priority Selection
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Priority',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: TodoPriority.values.map((priority) {
-                        final isSelected = _selectedPriority == priority;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedPriority = priority;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? priority.color.withValues(alpha: 0.2)
-                                  : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected
-                                    ? priority.color
-                                    : Colors.grey.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  priority.icon,
-                                  size: 16,
-                                  color: isSelected
-                                      ? priority.color
-                                      : Colors.grey[600],
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  priority.displayName,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: isSelected
-                                        ? priority.color
-                                        : Colors.grey[700],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Due Date Selection
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: InkWell(
-                onTap: _selectDueDate,
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        color: _selectedDueDate != null
-                            ? Theme.of(context).primaryColor
-                            : Colors.grey[600],
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Due Date',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: _selectedDueDate != null
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.black87,
-                              ),
-                            ),
-                            if (_selectedDueDate != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                _formatDateTime(_selectedDueDate!),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      if (_selectedDueDate != null)
-                        IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            setState(() {
-                              _selectedDueDate = null;
-                            });
-                          },
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 32),
+            const SizedBox(height: 12),
+            _card(title: 'Priority', children: [_priorityRow()]),
+            const SizedBox(height: 12),
+            _card(title: 'Category', children: [_categoryWrap()]),
           ],
         ),
       ),
     );
   }
 
+  Widget _card({String? title, required List<Widget> children}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title != null) ...[
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: _muted,
+                letterSpacing: 0.2,
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _titleField() {
+    return TextFormField(
+      controller: _titleController,
+      autofocus: !widget.isEditing,
+      textCapitalization: TextCapitalization.sentences,
+      style: const TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        color: _ink,
+      ),
+      decoration: InputDecoration(
+        hintText: 'What needs doing?',
+        hintStyle: TextStyle(
+          color: Colors.grey[500],
+          fontWeight: FontWeight.w500,
+        ),
+        border: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) return 'Give it a name';
+        return null;
+      },
+    );
+  }
+
+  List<Widget> _noteRow() {
+    if (!_showNote) {
+      return [
+        const SizedBox(height: 4),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: _chipButton(
+            icon: Icons.notes_rounded,
+            label: 'Add a note',
+            onTap: () => setState(() => _showNote = true),
+          ),
+        ),
+      ];
+    }
+    return [
+      const SizedBox(height: 8),
+      Container(
+        decoration: BoxDecoration(
+          color: _field,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.25)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: TextFormField(
+          controller: _descriptionController,
+          maxLines: 3,
+          minLines: 1,
+          textCapitalization: TextCapitalization.sentences,
+          style: const TextStyle(fontSize: 14, color: _ink),
+          decoration: InputDecoration(
+            hintText: 'Any detail worth remembering',
+            hintStyle: TextStyle(color: Colors.grey[500]),
+            border: InputBorder.none,
+          ),
+        ),
+      ),
+    ];
+  }
+
+  // ── When ───────────────────────────────────────────────────────────────
+
+  Widget _dueRow() {
+    final now = DateTime.now();
+    // Evening by default, but never a time that has already gone: tapping
+    // "Today" at 10pm shouldn't hand you something that is instantly overdue.
+    final evening = DateTime(now.year, now.month, now.day, 18);
+    final today = evening.isAfter(now)
+        ? evening
+        : DateTime(now.year, now.month, now.day, 23, 59);
+    final tomorrow = DateTime(now.year, now.month, now.day + 1, 18);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.event_rounded, size: 17, color: _muted),
+            const SizedBox(width: 8),
+            const Text(
+              'Due',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: _ink,
+              ),
+            ),
+            const Spacer(),
+            if (_dueDate != null)
+              Text(
+                _formatDateTime(_dueDate!),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: _brand,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _choice(
+              'No date',
+              selected: _dueDate == null,
+              onTap: () => setState(() {
+                _dueDate = null;
+                _reminderAt = null;
+              }),
+            ),
+            _choice(
+              'Today',
+              selected: _isSameDay(_dueDate, today),
+              onTap: () => _setDue(today),
+            ),
+            _choice(
+              'Tomorrow',
+              selected: _isSameDay(_dueDate, tomorrow),
+              onTap: () => _setDue(tomorrow),
+            ),
+            _choice(
+              'Pick…',
+              icon: Icons.calendar_month_rounded,
+              selected:
+                  _dueDate != null &&
+                  !_isSameDay(_dueDate, today) &&
+                  !_isSameDay(_dueDate, tomorrow),
+              onTap: _pickDueDate,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _reminderRow() {
+    final on = _reminderAt != null;
+    final stale = on && !_reminderIsUsable;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: on ? _brand.withValues(alpha: 0.06) : _field,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: on
+              ? _brand.withValues(alpha: 0.35)
+              : Colors.grey.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                on
+                    ? Icons.notifications_active_rounded
+                    : Icons.notifications_none_rounded,
+                size: 18,
+                color: on ? _brand : _muted,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Remind me',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: on ? _brand : _ink,
+                  ),
+                ),
+              ),
+              Switch.adaptive(
+                value: on,
+                activeThumbColor: _brand,
+                onChanged: (value) => setState(() {
+                  _reminderAt = value ? _defaultReminder() : null;
+                }),
+              ),
+            ],
+          ),
+          if (on) ...[
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (_dueDate != null) ...[
+                  _choice(
+                    'At due time',
+                    selected: _reminderMatches(_dueDate!),
+                    onTap: () => setState(() => _reminderAt = _dueDate),
+                  ),
+                  _choice(
+                    '1 h before',
+                    selected: _reminderMatches(
+                      _dueDate!.subtract(const Duration(hours: 1)),
+                    ),
+                    onTap: () => setState(
+                      () => _reminderAt = _dueDate!.subtract(
+                        const Duration(hours: 1),
+                      ),
+                    ),
+                  ),
+                  _choice(
+                    'A day before',
+                    selected: _reminderMatches(
+                      _dueDate!.subtract(const Duration(days: 1)),
+                    ),
+                    onTap: () => setState(
+                      () => _reminderAt = _dueDate!.subtract(
+                        const Duration(days: 1),
+                      ),
+                    ),
+                  ),
+                ],
+                _choice(
+                  _dueDate == null ? _formatDateTime(_reminderAt!) : 'Pick…',
+                  icon: Icons.schedule_rounded,
+                  selected: _dueDate == null,
+                  onTap: _pickReminder,
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              stale
+                  ? 'That time has already passed — pick a later one or the '
+                        'reminder won\'t be saved.'
+                  : 'Notification on ${_formatDateTime(_reminderAt!)}',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: stale ? const Color(0xFFDC2626) : _muted,
+                height: 1.35,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── Priority & category ────────────────────────────────────────────────
+
+  Widget _priorityRow() {
+    return Row(
+      children: [
+        for (final priority in TodoPriority.values) ...[
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _priority = priority),
+              child: Container(
+                height: 62,
+                margin: EdgeInsets.only(
+                  right: priority == TodoPriority.values.last ? 0 : 8,
+                ),
+                decoration: BoxDecoration(
+                  color: _priority == priority
+                      ? priority.color.withValues(alpha: 0.14)
+                      : _field,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: _priority == priority
+                        ? priority.color
+                        : Colors.grey.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      priority.icon,
+                      size: 18,
+                      color: _priority == priority
+                          ? priority.color
+                          : Colors.grey[500],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      priority.displayName,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: _priority == priority
+                            ? priority.color
+                            : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _categoryWrap() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: TodoCategory.values.map((category) {
+        final selected = _category == category;
+        return GestureDetector(
+          onTap: () => setState(() => _category = category),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              color: selected ? category.color : _field,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: selected
+                    ? category.color
+                    : Colors.grey.withValues(alpha: 0.25),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  category.icon,
+                  size: 15,
+                  color: selected ? Colors.white : category.color,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  category.displayName,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: selected ? Colors.white : const Color(0xFF475569),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // ── Small pieces ───────────────────────────────────────────────────────
+
+  Widget _choice(
+    String label, {
+    required bool selected,
+    required VoidCallback onTap,
+    IconData? icon,
+  }) {
+    return Material(
+      color: selected ? _brand : Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        // No `alignment` here: a Container that is given one and no width
+        // expands to fill its loose constraints, which made every choice a
+        // full-width row inside the Wrap instead of a chip.
+        child: Container(
+          height: 34,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selected ? _brand : Colors.grey.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 14, color: selected ? Colors.white : _muted),
+                const SizedBox(width: 5),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white : const Color(0xFF475569),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _chipButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: _brand.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: _brand),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _brand,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Date helpers ───────────────────────────────────────────────────────
+
+  void _setDue(DateTime date) {
+    setState(() {
+      _dueDate = date;
+      // Keep an existing reminder pinned to the due date rather than leaving
+      // it stranded on the old one.
+      if (_reminderAt != null) _reminderAt = date;
+    });
+  }
+
+  Future<void> _pickDueDate() async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _dueDate ?? now,
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 5),
+      helpText: 'Due date',
+    );
+    if (date == null || !mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_dueDate ?? DateTime(0, 1, 1, 18)),
+      helpText: 'Due time',
+    );
+    if (!mounted) return;
+
+    final due = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time?.hour ?? 18,
+      time?.minute ?? 0,
+    );
+    _setDue(due);
+  }
+
+  Future<void> _pickReminder() async {
+    final now = DateTime.now();
+    final base = _reminderAt ?? _defaultReminder();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: base,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: DateTime(now.year + 5),
+      helpText: 'Remind me on',
+    );
+    if (date == null || !mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(base),
+      helpText: 'Remind me at',
+    );
+    if (!mounted) return;
+
+    setState(() {
+      _reminderAt = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time?.hour ?? base.hour,
+        time?.minute ?? base.minute,
+      );
+    });
+  }
+
+  /// Turning the switch on shouldn't make you pick a time — the due date, or
+  /// an hour from now, is nearly always what you meant.
+  DateTime _defaultReminder() {
+    final due = _dueDate;
+    if (due != null && due.isAfter(DateTime.now())) return due;
+    return DateTime.now().add(const Duration(hours: 1));
+  }
+
+  bool _reminderMatches(DateTime candidate) {
+    final current = _reminderAt;
+    if (current == null) return false;
+    return current.difference(candidate).inMinutes.abs() < 1;
+  }
+
+  bool _isSameDay(DateTime? a, DateTime b) =>
+      a != null && a.year == b.year && a.month == b.month && a.day == b.day;
+
   String _formatDateTime(DateTime dateTime) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
-    final selectedDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    final day = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    final diff = day.difference(today).inDays;
 
-    String dateStr;
-    if (selectedDate == today) {
-      dateStr = 'Today';
-    } else if (selectedDate == tomorrow) {
-      dateStr = 'Tomorrow';
-    } else {
-      dateStr = '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    }
-
-    final timeStr =
-        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-
-    return '$dateStr at $timeStr';
+    final label = switch (diff) {
+      0 => 'Today',
+      1 => 'Tomorrow',
+      -1 => 'Yesterday',
+      _ => DateFormat('d MMM').format(dateTime),
+    };
+    return '$label, ${DateFormat('HH:mm').format(dateTime)}';
   }
 }

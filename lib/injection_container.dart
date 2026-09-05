@@ -84,6 +84,8 @@ Future<void> init() async {
       getPendingTodos: sl(),
       getOverdueTodos: sl(),
       getTodosDueToday: sl(),
+      notificationService: sl(),
+      todoRepository: sl(),
     ),
   );
 

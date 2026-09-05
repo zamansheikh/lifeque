@@ -1,263 +1,80 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../domain/entities/todo.dart';
 
+/// A single to-do row.
+///
+/// The list groups by when things are due, so the card only spells out a due
+/// date when the surrounding section doesn't already say it ([showDueDate]).
+/// Priority is a colour stripe rather than a badge — it is a property of the
+/// row, not another chip competing with the title for attention.
 class TodoCard extends StatelessWidget {
   final Todo todo;
   final VoidCallback? onTap;
-  final Function(Todo)? onToggleComplete;
-  final Function(Todo)? onDelete;
+  final ValueChanged<Todo>? onToggleComplete;
+  final ValueChanged<Todo>? onEdit;
+  final ValueChanged<Todo>? onDelete;
+  final bool showDueDate;
 
   const TodoCard({
     super.key,
     required this.todo,
     this.onTap,
     this.onToggleComplete,
+    this.onEdit,
     this.onDelete,
+    this.showDueDate = true,
   });
+
+  static const _ink = Color(0xFF1E293B);
 
   @override
   Widget build(BuildContext context) {
-    final isOverdue = todo.isOverdue;
-    final isDueToday = todo.isDueToday;
+    final done = todo.isCompleted;
+    final overdue = todo.isOverdue;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
-        border: isOverdue
-            ? Border.all(color: Colors.red.withValues(alpha: 0.3), width: 1)
-            : isDueToday
-            ? Border.all(color: Colors.orange.withValues(alpha: 0.3), width: 1)
-            : null,
       ),
+      clipBehavior: Clip.antiAlias,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+          child: IntrinsicHeight(
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Completion Checkbox
-                GestureDetector(
-                  onTap: () => onToggleComplete?.call(todo),
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: todo.isCompleted
-                            ? Theme.of(context).primaryColor
-                            : Colors.grey.withValues(alpha: 0.5),
-                        width: 2,
-                      ),
-                      color: todo.isCompleted
-                          ? Theme.of(context).primaryColor
-                          : Colors.transparent,
-                    ),
-                    child: todo.isCompleted
-                        ? const Icon(Icons.check, size: 16, color: Colors.white)
-                        : null,
-                  ),
+                // Priority, as a stripe you read without having to read.
+                Container(
+                  width: 4,
+                  color: done
+                      ? Colors.grey.withValues(alpha: 0.3)
+                      : todo.priority.color,
                 ),
-
-                const SizedBox(width: 12),
-
-                // Todo Content
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title
-                      Text(
-                        todo.title,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: todo.isCompleted
-                              ? Colors.grey[500]
-                              : Colors.black87,
-                          decoration: todo.isCompleted
-                              ? TextDecoration.lineThrough
-                              : null,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      // Description
-                      if (todo.description?.isNotEmpty == true) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          todo.description!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: todo.isCompleted
-                                ? Colors.grey[400]
-                                : Colors.grey[600],
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 10, 4, 10),
+                    child: Row(
+                      children: [
+                        _checkbox(context, done),
+                        const SizedBox(width: 12),
+                        Expanded(child: _body(done, overdue)),
+                        if (onEdit != null || onDelete != null) _menu(),
                       ],
-
-                      const SizedBox(height: 8),
-
-                      // Tags Row
-                      Row(
-                        children: [
-                          // Priority Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: todo.priority.color.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  todo.priority.icon,
-                                  size: 12,
-                                  color: todo.priority.color,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  todo.priority.displayName,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: todo.priority.color,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(width: 8),
-
-                          // Category Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: todo.category.color.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  todo.category.icon,
-                                  size: 12,
-                                  color: todo.category.color,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  todo.category.displayName,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: todo.category.color,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const Spacer(),
-
-                          // Due Date
-                          if (todo.dueDate != null)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isOverdue
-                                    ? Colors.red.withValues(alpha: 0.1)
-                                    : isDueToday
-                                    ? Colors.orange.withValues(alpha: 0.1)
-                                    : Colors.grey.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.access_time,
-                                    size: 12,
-                                    color: isOverdue
-                                        ? Colors.red
-                                        : isDueToday
-                                        ? Colors.orange
-                                        : Colors.grey[600],
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    _formatDueDate(todo.dueDate!),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: isOverdue
-                                          ? Colors.red
-                                          : isDueToday
-                                          ? Colors.orange
-                                          : Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-
-                // More Options
-                if (onDelete != null)
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.more_vert,
-                      color: Colors.grey[600],
-                      size: 20,
-                    ),
-                    onSelected: (value) {
-                      if (value == 'delete') {
-                        onDelete?.call(todo);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, color: Colors.red, size: 16),
-                            SizedBox(width: 8),
-                            Text('Delete'),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
               ],
             ),
           ),
@@ -266,20 +83,182 @@ class TodoCard extends StatelessWidget {
     );
   }
 
+  Widget _checkbox(BuildContext context, bool done) {
+    return GestureDetector(
+      onTap: () => onToggleComplete?.call(todo),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        // Padding rather than a bigger box: keeps the tap target comfortable
+        // without pushing the title off-centre.
+        padding: const EdgeInsets.all(4),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: done ? const Color(0xFF10B981) : Colors.transparent,
+            border: Border.all(
+              color: done ? const Color(0xFF10B981) : Colors.grey.shade400,
+              width: 2,
+            ),
+          ),
+          child: done
+              ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+              : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _body(bool done, bool overdue) {
+    final description = todo.description?.trim();
+    final showDue = showDueDate && todo.dueDate != null;
+    final showReminder = todo.hasReminder && todo.reminderTime != null && !done;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          todo.title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            height: 1.25,
+            color: done ? Colors.grey[500] : _ink,
+            decoration: done ? TextDecoration.lineThrough : null,
+          ),
+        ),
+        if (description != null && description.isNotEmpty) ...[
+          const SizedBox(height: 3),
+          Text(
+            description,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12.5,
+              color: done ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+        ],
+        if (showDue || showReminder || !done) ...[
+          const SizedBox(height: 7),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _chip(
+                icon: todo.category.icon,
+                label: todo.category.displayName,
+                color: todo.category.color,
+              ),
+              if (showDue)
+                _chip(
+                  icon: Icons.event_rounded,
+                  label: _formatDueDate(todo.dueDate!),
+                  color: overdue
+                      ? const Color(0xFFDC2626)
+                      : todo.isDueToday
+                      ? const Color(0xFFD97706)
+                      : Colors.grey.shade600,
+                ),
+              if (showReminder)
+                _chip(
+                  icon: Icons.notifications_active_rounded,
+                  label: DateFormat('d MMM, HH:mm').format(todo.reminderTime!),
+                  color: const Color(0xFF2563EB),
+                ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _chip({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _menu() {
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert_rounded, color: Colors.grey[400], size: 20),
+      padding: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      onSelected: (value) {
+        if (value == 'edit') onEdit?.call(todo);
+        if (value == 'delete') onDelete?.call(todo);
+      },
+      itemBuilder: (context) => [
+        if (onEdit != null)
+          const PopupMenuItem<String>(
+            value: 'edit',
+            height: 40,
+            child: Row(
+              children: [
+                Icon(Icons.edit_rounded, size: 16, color: Color(0xFF2563EB)),
+                SizedBox(width: 10),
+                Text('Edit', style: TextStyle(fontSize: 13)),
+              ],
+            ),
+          ),
+        if (onDelete != null)
+          const PopupMenuItem<String>(
+            value: 'delete',
+            height: 40,
+            child: Row(
+              children: [
+                Icon(Icons.delete_rounded, size: 16, color: Color(0xFFDC2626)),
+                SizedBox(width: 10),
+                Text(
+                  'Delete',
+                  style: TextStyle(fontSize: 13, color: Color(0xFFDC2626)),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
   String _formatDueDate(DateTime dueDate) {
     final now = DateTime.now();
-    final difference = dueDate.difference(now).inDays;
+    final today = DateTime(now.year, now.month, now.day);
+    final due = DateTime(dueDate.year, dueDate.month, dueDate.day);
+    final days = due.difference(today).inDays;
 
-    if (difference == 0) {
-      return 'Today';
-    } else if (difference == 1) {
-      return 'Tomorrow';
-    } else if (difference == -1) {
-      return 'Yesterday';
-    } else if (difference < 0) {
-      return '${difference.abs()} days ago';
-    } else {
-      return 'In $difference days';
-    }
+    if (days == 0) return 'Today';
+    if (days == 1) return 'Tomorrow';
+    if (days == -1) return 'Yesterday';
+    if (days < 0) return '${days.abs()} days late';
+    if (days < 7) return DateFormat('EEEE').format(dueDate);
+    return DateFormat('d MMM').format(dueDate);
   }
 }

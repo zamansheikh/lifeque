@@ -8,7 +8,12 @@ import '../bloc/task_bloc.dart';
 class AddEditTaskPage extends StatefulWidget {
   final String? taskId;
 
-  const AddEditTaskPage({super.key, this.taskId});
+  /// Preselects the kind of thing being created. The birthday page opens this
+  /// screen with [TaskType.birthday] so nobody has to find the type picker
+  /// before typing a name.
+  final TaskType? initialTaskType;
+
+  const AddEditTaskPage({super.key, this.taskId, this.initialTaskType});
 
   @override
   State<AddEditTaskPage> createState() => _AddEditTaskPageState();
@@ -36,6 +41,14 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
   ]; // Default to 1 day before and exact time
 
   Task? _existingTask;
+
+  /// What the thing being created is called, so the app bar, the title field
+  /// and the save button stop saying "Task" while the Birthday type is picked.
+  String get _typeNoun => switch (_taskType) {
+    TaskType.birthday => 'Birthday',
+    TaskType.reminder => 'Reminder',
+    TaskType.task => 'Task',
+  };
   bool get _isEditing => widget.taskId != null;
 
   @override
@@ -43,6 +56,8 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
     super.initState();
     if (_isEditing) {
       _loadExistingTask();
+    } else if (widget.initialTaskType != null) {
+      _taskType = widget.initialTaskType!;
     }
   }
 
@@ -97,7 +112,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
           ),
         ),
         title: Text(
-          _isEditing ? 'Edit Task' : 'Create Task',
+          _isEditing ? 'Edit $_typeNoun' : 'New $_typeNoun',
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -151,8 +166,12 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                 TextFormField(
                   controller: _titleController,
                   decoration: InputDecoration(
-                    labelText: 'Task Title',
-                    hintText: 'What needs to be done?',
+                    labelText: _taskType == TaskType.birthday
+                        ? 'Whose birthday?'
+                        : '$_typeNoun title',
+                    hintText: _taskType == TaskType.birthday
+                        ? 'Their name'
+                        : 'What needs to be done?',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -1343,13 +1362,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                       foregroundColor: Colors.white,
                     ),
                     child: Text(
-                      _isEditing
-                          ? (_taskType == TaskType.reminder
-                                ? 'Update Reminder'
-                                : 'Update Task')
-                          : (_taskType == TaskType.reminder
-                                ? 'Create Reminder'
-                                : 'Create Task'),
+                      _isEditing ? 'Update $_typeNoun' : 'Create $_typeNoun',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

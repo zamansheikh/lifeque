@@ -15,6 +15,11 @@ class NavigationPreferencesService {
       iconData: Icons.checklist_rounded,
     ),
     NavItem(
+      route: '/birthdays',
+      label: 'Birthdays',
+      iconData: Icons.cake_rounded,
+    ),
+    NavItem(
       route: '/expenses',
       label: 'Expense Tracker',
       iconData: Icons.account_balance_wallet_rounded,

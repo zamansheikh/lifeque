@@ -1,8 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/todo.dart';
+import '../../domain/repositories/todo_repository.dart';
 import '../../domain/usecases/todo_usecases.dart';
 import '../../../../core/usecases/usecase.dart';
+import '../../../../core/services/notification_service.dart';
 
 part 'todo_event.dart';
 part 'todo_state.dart';
@@ -20,6 +22,10 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
   final GetPendingTodos getPendingTodos;
   final GetOverdueTodos getOverdueTodos;
   final GetTodosDueToday getTodosDueToday;
+  final NotificationService notificationService;
+  // Held directly (rather than behind a use case) only so reminder syncing
+  // has something to read the full list from.
+  final TodoRepository todoRepository;
 
   TodoBloc({
     required this.getAllTodos,
@@ -34,6 +40,8 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     required this.getPendingTodos,
     required this.getOverdueTodos,
     required this.getTodosDueToday,
+    required this.notificationService,
+    required this.todoRepository,
   }) : super(TodoInitial()) {
     on<LoadTodos>(_onLoadTodos);
     on<AddTodoEvent>(_onAddTodo);
@@ -56,9 +64,26 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     final result = await getAllTodos(NoParams());
 
     result.fold(
-      (failure) => emit(const TodoError('Failed to load todos')),
-      (todos) => emit(TodoLoaded(todos: todos)),
+      (failure) => emit(const TodoError("Couldn't load your to-dos")),
+      (todos) {
+        emit(TodoLoaded(todos: todos));
+        // Android drops pending alarms on reboot and on app upgrade, so every
+        // load is a chance to put the reminders back.
+        notificationService.syncTodoNotifications(todoRepository);
+      },
     );
+  }
+
+  /// Emits the updated list, then a one-shot success state for the snackbar,
+  /// then the list again.
+  ///
+  /// Without that third emit the page is left sitting on a non-list state and
+  /// has to reload from scratch, which used to flash a spinner — and, briefly,
+  /// an error message — after every single edit.
+  void _settle(Emitter<TodoState> emit, TodoLoaded loaded, String message) {
+    emit(loaded);
+    emit(TodoOperationSuccess(message));
+    emit(loaded);
   }
 
   Future<void> _onAddTodo(AddTodoEvent event, Emitter<TodoState> emit) async {
@@ -67,13 +92,17 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
       final result = await addTodo(AddTodoParams(todo: event.todo));
 
-      result.fold((failure) => emit(const TodoError('Failed to add todo')), (
+      result.fold((failure) => emit(const TodoError("Couldn't save that")), (
         _,
       ) {
         final updatedTodos = List<Todo>.from(currentState.todos)
           ..add(event.todo);
-        emit(currentState.copyWith(todos: updatedTodos));
-        emit(const TodoOperationSuccess('Todo added successfully'));
+        notificationService.scheduleTodoNotification(event.todo);
+        _settle(
+          emit,
+          currentState.copyWith(todos: updatedTodos),
+          'To-do added',
+        );
       });
     }
   }
@@ -87,14 +116,21 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
       final result = await updateTodo(UpdateTodoParams(todo: event.todo));
 
-      result.fold((failure) => emit(const TodoError('Failed to update todo')), (
+      result.fold((failure) => emit(const TodoError("Couldn't save that")), (
         _,
       ) {
         final updatedTodos = currentState.todos.map((todo) {
           return todo.id == event.todo.id ? event.todo : todo;
         }).toList();
-        emit(currentState.copyWith(todos: updatedTodos));
-        emit(const TodoOperationSuccess('Todo updated successfully'));
+        // Reschedules, moves or clears the reminder to match the new values —
+        // scheduleTodoNotification cancels first, so all three cases are one
+        // call.
+        notificationService.scheduleTodoNotification(event.todo);
+        _settle(
+          emit,
+          currentState.copyWith(todos: updatedTodos),
+          'To-do updated',
+        );
       });
     }
   }
@@ -108,14 +144,18 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
       final result = await deleteTodo(DeleteTodoParams(id: event.id));
 
-      result.fold((failure) => emit(const TodoError('Failed to delete todo')), (
+      result.fold((failure) => emit(const TodoError("Couldn't delete that")), (
         _,
       ) {
         final updatedTodos = currentState.todos
             .where((todo) => todo.id != event.id)
             .toList();
-        emit(currentState.copyWith(todos: updatedTodos));
-        emit(const TodoOperationSuccess('Todo deleted successfully'));
+        notificationService.cancelTodoNotification(event.id);
+        _settle(
+          emit,
+          currentState.copyWith(todos: updatedTodos),
+          'To-do deleted',
+        );
       });
     }
   }
@@ -129,22 +169,22 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
       final result = await completeTodo(CompleteTodoParams(id: event.id));
 
-      result.fold(
-        (failure) => emit(const TodoError('Failed to complete todo')),
-        (_) {
-          final updatedTodos = currentState.todos.map((todo) {
-            if (todo.id == event.id) {
-              return todo.copyWith(
-                isCompleted: true,
-                completedAt: DateTime.now(),
-              );
-            }
-            return todo;
-          }).toList();
-          emit(currentState.copyWith(todos: updatedTodos));
-          emit(const TodoOperationSuccess('Todo completed successfully'));
-        },
-      );
+      result.fold((failure) => emit(const TodoError("Couldn't update that")), (
+        _,
+      ) {
+        final updatedTodos = currentState.todos.map((todo) {
+          if (todo.id == event.id) {
+            return todo.copyWith(
+              isCompleted: true,
+              completedAt: DateTime.now(),
+            );
+          }
+          return todo;
+        }).toList();
+        // A finished to-do has no business buzzing later on.
+        notificationService.cancelTodoNotification(event.id);
+        _settle(emit, currentState.copyWith(todos: updatedTodos), 'Done');
+      });
     }
   }
 
@@ -157,19 +197,27 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
       final result = await uncompleteTodo(UncompleteTodoParams(id: event.id));
 
-      result.fold(
-        (failure) => emit(const TodoError('Failed to uncomplete todo')),
-        (_) {
-          final updatedTodos = currentState.todos.map((todo) {
-            if (todo.id == event.id) {
-              return todo.copyWith(isCompleted: false, completedAt: null);
-            }
-            return todo;
-          }).toList();
-          emit(currentState.copyWith(todos: updatedTodos));
-          emit(const TodoOperationSuccess('Todo uncompleted successfully'));
-        },
-      );
+      result.fold((failure) => emit(const TodoError("Couldn't update that")), (
+        _,
+      ) {
+        Todo? reopened;
+        final updatedTodos = currentState.todos.map((todo) {
+          if (todo.id == event.id) {
+            reopened = todo.copyWith(isCompleted: false, completedAt: null);
+            return reopened!;
+          }
+          return todo;
+        }).toList();
+        // Reopening puts the reminder back, if its time hasn't passed.
+        if (reopened != null) {
+          notificationService.scheduleTodoNotification(reopened!);
+        }
+        _settle(
+          emit,
+          currentState.copyWith(todos: updatedTodos),
+          'Moved back to your list',
+        );
+      });
     }
   }
 

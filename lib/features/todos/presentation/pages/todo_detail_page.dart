@@ -11,11 +11,26 @@ class TodoDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The route hands over a snapshot taken when the row was tapped. Ticking
+    // the box goes through the bloc, so read the live copy back out — this
+    // page used to pop itself after a toggle purely to avoid showing stale
+    // values.
+    return BlocBuilder<TodoBloc, TodoState>(
+      builder: (context, state) {
+        final live = state is TodoLoaded
+            ? (state.todos.where((t) => t.id == todo.id).firstOrNull ?? todo)
+            : todo;
+        return _build(context, live);
+      },
+    );
+  }
+
+  Widget _build(BuildContext context, Todo todo) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text(
-          'Todo Details',
+          'To-do',
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 24),
         ),
         backgroundColor: Colors.transparent,
@@ -49,7 +64,9 @@ class TodoDetailPage extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
+      // Scrolls: with a description, tags, a due date and a reminder all
+      // present this column is taller than a phone screen.
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +100,6 @@ class TodoDetailPage extends StatelessWidget {
                           CompleteTodoEvent(todo.id),
                         );
                       }
-                      context.pop(); // Go back to refresh the list
                     },
                     child: Container(
                       width: 32,
@@ -400,6 +416,68 @@ class TodoDetailPage extends StatelessWidget {
                 ),
               ),
 
+            if (todo.hasReminder && todo.reminderTime != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withValues(alpha: 0.1),
+                      spreadRadius: 1,
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Reminder',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          todo.isCompleted
+                              ? Icons.notifications_off_rounded
+                              : Icons.notifications_active_rounded,
+                          size: 20,
+                          color: todo.isCompleted
+                              ? Colors.grey
+                              : const Color(0xFF2563EB),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            todo.isCompleted
+                                ? 'Cancelled — this one is done'
+                                : _formatDateTime(todo.reminderTime!),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: todo.isCompleted
+                                  ? Colors.grey
+                                  : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             const SizedBox(height: 16),
 
             // Dates Info
@@ -464,7 +542,7 @@ class TodoDetailPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Todo'),
+        title: const Text('Delete this to-do?'),
         content: Text('Are you sure you want to delete "${todo.title}"?'),
         actions: [
           TextButton(

@@ -9,6 +9,7 @@ import 'core/services/prayer_alarm_service.dart';
 // import 'core/services/update_service.dart'; // Commented out - using in-app updates now
 import 'features/medicines/domain/repositories/medicine_repository.dart';
 import 'features/tasks/domain/repositories/task_repository.dart';
+import 'features/todos/domain/repositories/todo_repository.dart';
 import 'injection_container.dart' as di;
 import 'features/home_widget/services/home_widget_service.dart';
 import 'core/services/background_service.dart';
@@ -102,6 +103,9 @@ void main() async {
       medicineRepository,
       taskRepository,
     );
+    // To-do reminders are reconciled separately: syncNotifications only knows
+    // about medicines and tasks, and treats anything else as an orphan.
+    await notificationService.syncTodoNotifications(di.sl<TodoRepository>());
   } catch (e) {
     debugPrint('🔔 ❌ Failed to sync notifications on startup: $e');
   }

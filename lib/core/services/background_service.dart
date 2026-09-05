@@ -47,7 +47,9 @@ void callbackDispatcher() {
           await PrayerAlarmService().rescheduleFromBackground();
           debugPrint("✅ Background Service: Prayer alarms re-queued");
         } catch (e) {
-          debugPrint("⚠️ Background Service: Prayer alarm reschedule failed: $e");
+          debugPrint(
+            "⚠️ Background Service: Prayer alarm reschedule failed: $e",
+          );
         }
 
         debugPrint(

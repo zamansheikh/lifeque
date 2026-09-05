@@ -6,6 +6,8 @@ import '../features/tasks/presentation/bloc/task_bloc.dart';
 import '../features/tasks/presentation/pages/task_list_page.dart';
 import '../features/tasks/presentation/pages/add_edit_task_page.dart';
 import '../features/tasks/presentation/pages/task_detail_page.dart';
+import '../features/tasks/presentation/pages/birthday_list_page.dart';
+import '../features/tasks/domain/entities/task.dart' show TaskType;
 import '../features/todos/presentation/bloc/todo_bloc.dart';
 import '../features/todos/presentation/pages/todo_list_page.dart';
 import '../features/todos/presentation/pages/add_edit_todo_page.dart';
@@ -21,7 +23,6 @@ import '../features/expenses/presentation/pages/expense_session_detail_page.dart
 import '../features/expenses/presentation/pages/set_budget_page.dart';
 import '../features/expenses/domain/entities/monthly_budget.dart';
 import '../features/expenses/domain/entities/category_budget.dart';
-import '../features/expenses/domain/entities/expense_category.dart';
 import '../features/expenses/domain/entities/expense_session.dart';
 import '../features/prayer_times/presentation/pages/prayer_shell_page.dart';
 import '../features/study/presentation/pages/study_timer_page.dart';
@@ -104,6 +105,17 @@ class AppRouter {
         path: '/add-task',
         name: 'add-task',
         builder: (context, state) => const AddEditTaskPage(),
+      ),
+      GoRoute(
+        path: '/birthdays',
+        name: 'birthdays',
+        builder: (context, state) => const BirthdayListPage(),
+      ),
+      GoRoute(
+        path: '/add-birthday',
+        name: 'add-birthday',
+        builder: (context, state) =>
+            const AddEditTaskPage(initialTaskType: TaskType.birthday),
       ),
       GoRoute(
         path: '/edit-task/:id',
