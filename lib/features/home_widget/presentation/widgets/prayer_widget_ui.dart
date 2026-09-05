@@ -163,6 +163,9 @@ class PrayerWidgetUI extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 9,
                   fontWeight: FontWeight.w600,
+                  // Rendered outside the app's theme, so the Bengali fallback
+                  // has to be named here.
+                  fontFamilyFallback: const ['NotoSerifBengali'],
                 ),
               ),
             ],

@@ -226,8 +226,10 @@ class MosqueWidgetUI extends StatelessWidget {
                 color: chip.isCurrent
                     ? _navyInk
                     : Colors.white.withValues(alpha: 0.6),
-                fontSize: 9,
-                fontWeight: FontWeight.w800,
+                fontSize: 9.5,
+                fontWeight: FontWeight.w700,
+                // Rendered outside the app's theme, so name the fallback here.
+                fontFamilyFallback: const ['NotoSerifBengali'],
               ),
             ),
             const SizedBox(height: 2),

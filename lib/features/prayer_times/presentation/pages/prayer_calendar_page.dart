@@ -59,12 +59,12 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
   }
 
   SalahTimeCalculator _calcFor(DateTime d) => SalahTimeCalculator(
-        latitude: _latitude,
-        longitude: _longitude,
-        date: d,
-        method: _method,
-        madhab: _madhab,
-      );
+    latitude: _latitude,
+    longitude: _longitude,
+    date: d,
+    method: _method,
+    madhab: _madhab,
+  );
 
   String _fmt(DateTime t) {
     final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
@@ -74,9 +74,8 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
   bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  void _shiftMonth(int delta) => setState(
-        () => _month = DateTime(_month.year, _month.month + delta),
-      );
+  void _shiftMonth(int delta) =>
+      setState(() => _month = DateTime(_month.year, _month.month + delta));
 
   @override
   Widget build(BuildContext context) {
@@ -96,84 +95,84 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
           parent: BouncingScrollPhysics(),
         ),
         children: [
-        _header(now),
-        Transform.translate(
-          offset: const Offset(0, -12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _todayCard(now),
+          _header(now),
+          Transform.translate(
+            offset: const Offset(0, -12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _todayCard(now),
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 2, 20, 0),
-          child: Row(
-            children: [
-              const Text(
-                'Full month',
-                style: TextStyle(
-                  color: PrayerPalette.ink,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '✦ = Jumu\'ah',
-                style: TextStyle(
-                  color: PrayerPalette.inkA(0.5),
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              InkWell(
-                onTap: () => MonthTimetableSheet.show(
-                  context,
-                  month: _month,
-                  latitude: _latitude,
-                  longitude: _longitude,
-                  method: _method,
-                  madhab: _madhab,
-                  locationName: _locationName,
-                ),
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+            child: Row(
+              children: [
+                const Text(
+                  'Full month',
+                  style: TextStyle(
+                    color: PrayerPalette.ink,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
                   ),
-                  decoration: BoxDecoration(
-                    color: PrayerPalette.accentA(0.10),
-                    borderRadius: BorderRadius.circular(10),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '✦ = Jumu\'ah',
+                  style: TextStyle(
+                    color: PrayerPalette.inkA(0.5),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
                   ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.ios_share_rounded,
-                        size: 12,
-                        color: PrayerPalette.accent,
-                      ),
-                      SizedBox(width: 5),
-                      Text(
-                        'Share month',
-                        style: TextStyle(
+                ),
+                const Spacer(),
+                InkWell(
+                  onTap: () => MonthTimetableSheet.show(
+                    context,
+                    month: _month,
+                    latitude: _latitude,
+                    longitude: _longitude,
+                    method: _method,
+                    madhab: _madhab,
+                    locationName: _locationName,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: PrayerPalette.accentA(0.10),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.ios_share_rounded,
+                          size: 12,
                           color: PrayerPalette.accent,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 5),
+                        Text(
+                          'Share month',
+                          style: TextStyle(
+                            color: PrayerPalette.accent,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: _columnHeader(),
-        ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: _columnHeader(),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Column(children: _monthRows(now)),
@@ -197,7 +196,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
     final hijriSpan = hijriStart.hMonth == hijriEnd.hMonth
         ? '${HijriNames.month(hijriStart.hMonth)} ${hijriStart.hYear}'
         : '${HijriNames.month(hijriStart.hMonth)} – '
-            '${HijriNames.month(hijriEnd.hMonth)} ${hijriEnd.hYear}';
+              '${HijriNames.month(hijriEnd.hMonth)} ${hijriEnd.hYear}';
     final banglaSpan = banglaStart.monthName == banglaEnd.monthName
         ? banglaStart.monthName
         : '${banglaStart.monthName}–${banglaEnd.monthName}';
@@ -230,6 +229,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
           Row(
             children: [
               _circleButton(Icons.chevron_left_rounded, () => _shiftMonth(-1)),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   children: [
@@ -242,20 +242,27 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                       ),
                     ),
                     const SizedBox(height: 1),
-                    Text(
-                      '$hijriSpan · $banglaSpan '
-                      '${BanglaDate.digits(banglaEnd.year)} · $_locationName',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: PrayerPalette.inkA(0.6),
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
+                    // The full Hijri names plus the Bangla span are wider
+                    // than the gap between the arrows; scale rather than
+                    // truncate, so both calendars stay readable in full.
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '$hijriSpan · $banglaSpan '
+                        '${BanglaDate.digits(banglaEnd.year)}',
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: PrayerPalette.inkA(0.6),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               _circleButton(Icons.chevron_right_rounded, () => _shiftMonth(1)),
             ],
           ),
@@ -267,26 +274,26 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
   }
 
   Widget _circleButton(IconData icon, VoidCallback onTap) => InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Container(
-          width: 34,
-          height: 34,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: PrayerPalette.ink.withValues(alpha: 0.12),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+    onTap: onTap,
+    customBorder: const CircleBorder(),
+    child: Container(
+      width: 34,
+      height: 34,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: PrayerPalette.ink.withValues(alpha: 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          child: Icon(icon, size: 18, color: PrayerPalette.ink),
-        ),
-      );
+        ],
+      ),
+      child: Icon(icon, size: 18, color: PrayerPalette.ink),
+    ),
+  );
 
   /// Seven days centred on today (or on the 1st when browsing another month).
   List<Widget> _weekStrip(DateTime now) {
@@ -317,8 +324,8 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
           color: isToday
               ? PrayerPalette.ink
               : isFriday
-                  ? PrayerPalette.goldRule.withValues(alpha: 0.45)
-                  : PrayerPalette.inkA(0.1),
+              ? PrayerPalette.goldRule.withValues(alpha: 0.45)
+              : PrayerPalette.inkA(0.1),
         ),
         boxShadow: [
           BoxShadow(
@@ -375,6 +382,8 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
     final current = _currentPrayer(times, now);
 
     return Container(
+      // Symmetric gutter: the Share pill sits 14pt in from the card's edge,
+      // mirroring "TODAY" on the left, rather than flush against it.
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -405,7 +414,11 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              Flexible(
+              // Expanded, not Flexible + Spacer: those are both flex 1, so
+              // they split the slack and this short text leaves its half
+              // unused — which Flex then parks *after* the last child,
+              // holding the Share pill ~30pt off the card's edge.
+              Expanded(
                 child: Text(
                   '· ${bangla.formatted}',
                   maxLines: 1,
@@ -417,7 +430,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                   ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               InkWell(
                 onTap: () => PrayerShareSheet.show(
                   context,
@@ -425,26 +438,32 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                   date: now,
                   locationName: _locationName,
                 ),
-                borderRadius: BorderRadius.circular(10),
-                child: Padding(
+                borderRadius: BorderRadius.circular(11),
+                child: Container(
+                  // A filled pill, so it reads as a button and matches
+                  // "Share month" below rather than floating as bare text.
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: PrayerPalette.gold.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(11),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
                         Icons.ios_share_rounded,
-                        size: 13,
+                        size: 12,
                         color: PrayerPalette.gold,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 5),
                       Text(
                         'Share',
                         style: TextStyle(
-                          color: PrayerPalette.gold.withValues(alpha: 0.95),
-                          fontSize: 10,
+                          color: PrayerPalette.gold,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -466,8 +485,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                           : BoxDecoration(
                               border: Border(
                                 right: BorderSide(
-                                  color:
-                                      Colors.white.withValues(alpha: 0.12),
+                                  color: Colors.white.withValues(alpha: 0.12),
                                 ),
                               ),
                             ),
@@ -539,7 +557,17 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
       ),
       child: Row(
         children: [
-          const SizedBox(width: 88),
+          SizedBox(
+            width: 88,
+            child: Text(
+              'DATE',
+              style: TextStyle(
+                color: PrayerPalette.inkA(0.55),
+                fontSize: 9.5,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
           for (final p in _fard)
             Expanded(
               child: Text(
@@ -577,10 +605,9 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
     final labelColor = isToday
         ? PrayerPalette.gold
         : isFriday
-            ? PrayerPalette.fridayText
-            : PrayerPalette.ink;
-    final timeColor =
-        isToday ? Colors.white : PrayerPalette.inkA(0.8);
+        ? PrayerPalette.fridayText
+        : PrayerPalette.ink;
+    final timeColor = isToday ? Colors.white : PrayerPalette.inkA(0.8);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -588,15 +615,15 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
         color: isToday
             ? PrayerPalette.ink
             : isFriday
-                ? PrayerPalette.fridayBg
-                : Colors.white,
+            ? PrayerPalette.fridayBg
+            : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isToday
               ? PrayerPalette.ink
               : isFriday
-                  ? PrayerPalette.goldRule.withValues(alpha: 0.4)
-                  : PrayerPalette.inkA(0.08),
+              ? PrayerPalette.goldRule.withValues(alpha: 0.4)
+              : PrayerPalette.inkA(0.08),
         ),
         boxShadow: isToday
             ? [

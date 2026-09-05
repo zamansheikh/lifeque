@@ -232,6 +232,11 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          // Bengali glyphs resolve from Hind Siliguri wherever the primary
+          // face lacks them, so Bangla dates sit with the Latin text instead
+          // of falling back to a system face with different metrics. Set as a
+          // fallback rather than the family so Latin is untouched.
+          fontFamilyFallback: const ['NotoSerifBengali'],
           appBarTheme: const AppBarTheme(
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: Colors.transparent,

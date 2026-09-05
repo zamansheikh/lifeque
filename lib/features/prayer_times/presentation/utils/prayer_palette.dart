@@ -93,6 +93,27 @@ class PrayerPalette {
         height: height,
       );
 
+  /// Noto Serif Bengali — the bundled Bengali face. Bangla set in the Latin
+  /// UI font falls back to a system face whose metrics don't match, which is
+  /// what made the Bangla dates look pasted in.
+  static const banglaFont = 'NotoSerifBengali';
+
+  static TextStyle bangla({
+    required double fontSize,
+    Color? color,
+    FontWeight fontWeight = FontWeight.w600,
+    double? height,
+    double? letterSpacing,
+  }) =>
+      TextStyle(
+        fontFamily: banglaFont,
+        fontSize: fontSize,
+        color: color ?? ink,
+        fontWeight: fontWeight,
+        height: height,
+        letterSpacing: letterSpacing,
+      );
+
   static const cardRadius = 20.0;
 
   static List<BoxShadow> get cardShadow => [

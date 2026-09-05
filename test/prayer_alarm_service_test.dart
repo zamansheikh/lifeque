@@ -35,9 +35,13 @@ void main() {
     });
 
     test('should handle prayer alarm types correctly', () {
-      expect(PrayerAlarmType.values.length, equals(2));
+      expect(PrayerAlarmType.values.length, equals(4));
       expect(PrayerAlarmType.beforePrayerEnd.index, equals(0));
       expect(PrayerAlarmType.fixedTime.index, equals(1));
+      expect(PrayerAlarmType.afterPrayerStart.index, equals(2));
+      // Indices are persisted in saved alarms, so appending only — never
+      // reordering — keeps existing alarms pointing at the right type.
+      expect(PrayerAlarmType.afterJamaat.index, equals(3));
     });
 
     test('should create service instance correctly', () {

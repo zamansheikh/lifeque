@@ -76,30 +76,41 @@ class _SheetState extends State<_Sheet> {
   PrayerAlarmConfig? _configFor(String prayer) =>
       _service.alarms.where((a) => a.prayerName == prayer).firstOrNull;
 
-  /// Minutes relative to the waqt start, or null when the alarm is off.
+  /// Whether this prayer's alarm is anchored to the jamaat rather than the
+  /// waqt. Off alarms default to waqt.
+  bool _isJamaatBased(String prayer) =>
+      _configFor(prayer)?.type == PrayerAlarmType.afterJamaat;
+
+  /// Minutes relative to the anchor, or null when the alarm is off.
   int? _minutesFor(String prayer) {
     final pending = _pendingOffsets[prayer];
     if (pending != null) return pending;
     final config = _configFor(prayer);
     if (config == null || !config.isEnabled) return null;
-    if (config.type != PrayerAlarmType.afterPrayerStart) return null;
+    if (config.type != PrayerAlarmType.afterPrayerStart &&
+        config.type != PrayerAlarmType.afterJamaat) {
+      return null;
+    }
     return config.minutesAfterStart;
   }
 
-  /// e.g. `On time`, `5 min before waqt`, `10 min after waqt`.
-  String _offsetLabel(int minutes) {
-    if (minutes == 0) return 'On time';
-    final unit = minutes.abs() == 1 ? 'min' : 'min';
+  /// e.g. `On time`, `5 min before jamaat`, `10 min after waqt`.
+  String _offsetLabel(int minutes, bool jamaat) {
+    final anchor = jamaat ? 'jamaat' : 'waqt';
+    if (minutes == 0) return jamaat ? 'At jamaat' : 'At waqt';
     return minutes < 0
-        ? '${minutes.abs()} $unit before waqt'
-        : '$minutes $unit after waqt';
+        ? '${minutes.abs()} min before $anchor'
+        : '$minutes min after $anchor';
   }
 
-  Future<void> _setMinutes(String prayer, int minutes) async {
+  Future<void> _setMinutes(String prayer, int minutes, {bool? jamaat}) async {
     final existing = _configFor(prayer);
+    final useJamaat = jamaat ?? _isJamaatBased(prayer);
     final config = PrayerAlarmConfig(
       prayerName: prayer,
-      type: PrayerAlarmType.afterPrayerStart,
+      type: useJamaat
+          ? PrayerAlarmType.afterJamaat
+          : PrayerAlarmType.afterPrayerStart,
       minutesAfterStart: minutes,
       isEnabled: true,
       soundPath: _soundPath,
@@ -262,14 +273,14 @@ class _SheetState extends State<_Sheet> {
   }
 
   Widget _section(String title) => Text(
-        title,
-        style: TextStyle(
-          color: PrayerPalette.inkA(0.5),
-          fontSize: 10.5,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1,
-        ),
-      );
+    title,
+    style: TextStyle(
+      color: PrayerPalette.inkA(0.5),
+      fontSize: 10.5,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 1,
+    ),
+  );
 
   /// A row per prayer: an on/off switch, and — when on — a slider for the
   /// exact offset, so any minute in range is reachable rather than only the
@@ -277,6 +288,7 @@ class _SheetState extends State<_Sheet> {
   Widget _prayerRow(String prayer) {
     final minutes = _minutesFor(prayer);
     final isOn = minutes != null;
+    final jamaat = _isJamaatBased(prayer);
 
     return Container(
       padding: EdgeInsets.fromLTRB(12, 8, 12, isOn ? 4 : 8),
@@ -306,10 +318,11 @@ class _SheetState extends State<_Sheet> {
               ),
               Expanded(
                 child: Text(
-                  isOn ? _offsetLabel(minutes) : 'No alarm',
+                  isOn ? _offsetLabel(minutes, jamaat) : 'No alarm',
                   style: TextStyle(
-                    color:
-                        isOn ? PrayerPalette.accent : PrayerPalette.inkA(0.45),
+                    color: isOn
+                        ? PrayerPalette.accent
+                        : PrayerPalette.inkA(0.45),
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
@@ -329,13 +342,76 @@ class _SheetState extends State<_Sheet> {
               ),
             ],
           ),
-          if (isOn) _offsetSlider(prayer, minutes),
+          if (isOn) ...[
+            const SizedBox(height: 6),
+            _anchorSelector(prayer, jamaat, minutes),
+            _offsetSlider(prayer, minutes, jamaat),
+          ],
         ],
       ),
     );
   }
 
-  Widget _offsetSlider(String prayer, int minutes) {
+  /// Measure the offset from the waqt or from the mosque's jamaat. Jamaat is
+  /// what most people actually plan around, so it's offered per prayer rather
+  /// than as one global setting.
+  Widget _anchorSelector(String prayer, bool jamaat, int minutes) {
+    Widget chip(String label, bool selected, VoidCallback onTap) => Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(9),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? PrayerPalette.accent : Colors.white,
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(
+              color: selected ? Colors.transparent : PrayerPalette.inkA(0.15),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? Colors.white : PrayerPalette.inkA(0.7),
+              fontSize: 10,
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Row(
+        children: [
+          Text(
+            'Measured from',
+            style: TextStyle(
+              color: PrayerPalette.inkA(0.45),
+              fontSize: 9.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 8),
+          chip(
+            'Waqt',
+            !jamaat,
+            () => _setMinutes(prayer, minutes, jamaat: false),
+          ),
+          const SizedBox(width: 6),
+          chip(
+            'Jamaat',
+            jamaat,
+            () => _setMinutes(prayer, minutes, jamaat: true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _offsetSlider(String prayer, int minutes, bool jamaat) {
     return Row(
       children: [
         Text(
@@ -365,7 +441,7 @@ class _SheetState extends State<_Sheet> {
               max: _maxOffset,
               // One division per minute, so every value is reachable.
               divisions: (_maxOffset - _minOffset).round(),
-              label: _offsetLabel(minutes),
+              label: _offsetLabel(minutes, jamaat),
               // Track the finger live, but only write on release — each
               // write reschedules the OS alarm.
               onChanged: (v) =>

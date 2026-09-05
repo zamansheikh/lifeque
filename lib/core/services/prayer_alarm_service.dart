@@ -5,9 +5,20 @@ import 'package:alarm/utils/alarm_set.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/salah_time_calculator.dart';
 import '../utils/alarm_sound_utils.dart';
+import '../../features/prayer_times/data/services/jamaat_defaults.dart';
 import '../../features/prayer_times/data/services/prayer_settings_service.dart';
 
-enum PrayerAlarmType { beforePrayerEnd, fixedTime, afterPrayerStart }
+/// What an alarm's offset is measured from.
+///
+/// [afterJamaat] mirrors [afterPrayerStart] but anchors to the mosque's
+/// congregation time instead of the waqt, so "10 min before jamaat" tracks
+/// the jamaat as the user adjusts it.
+enum PrayerAlarmType {
+  beforePrayerEnd,
+  fixedTime,
+  afterPrayerStart,
+  afterJamaat,
+}
 
 class PrayerAlarmConfig {
   final String prayerName;
@@ -383,6 +394,12 @@ class PrayerAlarmService {
         config.minutesAfterStart,
         referenceDate: startDate,
       );
+    } else if (config.type == PrayerAlarmType.afterJamaat) {
+      alarmTime = await _calculateAfterJamaatTime(
+        config.prayerName,
+        config.minutesAfterStart,
+        referenceDate: startDate,
+      );
     }
 
     if (alarmTime == null || alarmTime.isBefore(DateTime.now())) {
@@ -521,6 +538,72 @@ class PrayerAlarmService {
     }
   }
 
+  /// The mosque's jamaat for [prayerName] on [date] — the user's saved time
+  /// if they've set one, the Ramadan-mode derivation for Fajr/Maghrib, else
+  /// the customary default. Same precedence the prayer list and widget use,
+  /// so an alarm never disagrees with the time shown next to it.
+  Future<DateTime?> _resolveJamaatTime(String prayerName, DateTime date) async {
+    final settings = PrayerSettingsService.instance;
+    final calculator = await _buildCalculator(date);
+    final waqt = calculator.getPrayerTimesMap()[prayerName];
+    if (waqt == null) return null;
+
+    if (await settings.getRamadanMode() &&
+        (prayerName == 'Fajr' || prayerName == 'Maghrib')) {
+      return waqt.add(const Duration(minutes: 15));
+    }
+
+    final saved = await settings.getMosqueTime(prayerName.toLowerCase());
+    if (saved != null) {
+      try {
+        final parts = saved.split(':');
+        return DateTime(
+          date.year,
+          date.month,
+          date.day,
+          int.parse(parts[0]),
+          int.parse(parts[1]),
+        );
+      } catch (_) {
+        // Fall through to the default on a malformed stored value.
+      }
+    }
+    return JamaatDefaults.forPrayer(prayerName, waqt);
+  }
+
+  /// Jamaat ± [minutesAfter]. Negative fires before jamaat, 0 on it.
+  Future<DateTime?> _calculateAfterJamaatTime(
+    String prayerName,
+    int minutesAfter, {
+    DateTime? referenceDate,
+  }) async {
+    try {
+      final now = DateTime.now();
+      final date = referenceDate ?? now;
+
+      final jamaat = await _resolveJamaatTime(prayerName, date);
+      if (jamaat == null) return null;
+
+      var alarmTime = jamaat.add(Duration(minutes: minutesAfter));
+
+      // Today's has passed — recompute against tomorrow's jamaat rather than
+      // adding 24h, so it tracks the waqt drift the default is derived from.
+      if (alarmTime.isBefore(now)) {
+        final tomorrow = await _resolveJamaatTime(
+          prayerName,
+          date.add(const Duration(days: 1)),
+        );
+        if (tomorrow != null) {
+          alarmTime = tomorrow.add(Duration(minutes: minutesAfter));
+        }
+      }
+      return alarmTime;
+    } catch (e) {
+      developer.log('PrayerAlarmService: Error calculating jamaat time: $e');
+      return null;
+    }
+  }
+
   Future<DateTime?> _calculateAfterPrayerStartTime(
     String prayerName,
     int minutesAfter, {
@@ -568,6 +651,12 @@ class PrayerAlarmService {
       return '${config.prayerName} prayer time reminder';
     } else if (config.type == PrayerAlarmType.beforePrayerEnd) {
       return '${config.minutesBeforeEnd} minutes left for ${config.prayerName}';
+    } else if (config.type == PrayerAlarmType.afterJamaat) {
+      final m = config.minutesAfterStart;
+      if (m == 0) return '${config.prayerName} jamaat is starting';
+      return m < 0
+          ? '${config.prayerName} jamaat in ${m.abs()} minutes'
+          : '$m minutes after ${config.prayerName} jamaat';
     } else if (config.type == PrayerAlarmType.afterPrayerStart) {
       final mins = config.minutesAfterStart;
       if (mins == 0) {

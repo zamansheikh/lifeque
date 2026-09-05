@@ -213,17 +213,6 @@ class PrayerShareCard extends StatelessWidget {
     final times = calculator.getPrayerTimesMap();
     final hijri = HijriCalendar.fromDate(date);
     final bangla = BanglaDate.fromDate(date);
-    final now = DateTime.now();
-    final isToday = date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
-
-    String? current;
-    if (isToday) {
-      for (final p in _fard) {
-        if (times[p]!.isBefore(now)) current = p;
-      }
-    }
 
     return Directionality(
       textDirection: ui.TextDirection.ltr,
@@ -271,10 +260,25 @@ class PrayerShareCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    '\uFDFD',
-                    textDirection: ui.TextDirection.rtl,
-                    style: PrayerPalette.arabic(fontSize: 92, height: 1.0),
+                  // Amiri draws U+FDFD as one very wide calligraphic
+                  // ligature — far wider than the card's 888px content box,
+                  // so unconstrained it painted outside the card and came out
+                  // clipped in the exported PNG. Give it a fixed slot.
+                  SizedBox(
+                    // Stops short of the decorative sun at the card's top
+                    // right, which sits 154px in from that edge.
+                    width: 600,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '\uFDFD',
+                        textDirection: ui.TextDirection.rtl,
+                        style: PrayerPalette.arabic(
+                          fontSize: 150,
+                          height: 1.0,
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 28),
                   const Text(
@@ -329,10 +333,12 @@ class PrayerShareCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
                   _divider(),
-                  const SizedBox(height: 26),
+                  // The hill silhouette sits behind this band, so the first
+                  // row needs clearance or it reads as colliding with it.
+                  const SizedBox(height: 44),
                   for (var i = 0; i < _fard.length; i++) ...[
                     if (i > 0) const SizedBox(height: 14),
-                    _row(_fard[i], times[_fard[i]]!, _fard[i] == current),
+                    _row(_fard[i], times[_fard[i]]!),
                   ],
                   const SizedBox(height: 26),
                   Row(
@@ -363,18 +369,17 @@ class PrayerShareCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 46,
-                        height: 46,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: PrayerPalette.ink,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: const Icon(
-                          Icons.mosque,
-                          size: 25,
-                          color: PrayerPalette.gold,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: Image.asset(
+                          'assets/icon/icon.png',
+                          width: 52,
+                          height: 52,
+                          fit: BoxFit.cover,
+                          // The source is 2048², far more than the 52pt slot
+                          // needs; decode it small rather than re-encoding
+                          // the launcher icon itself.
+                          cacheWidth: 156,
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -444,28 +449,20 @@ class PrayerShareCard extends StatelessWidget {
         ],
       );
 
-  Widget _row(String name, DateTime time, bool isCurrent) {
+  /// Every prayer renders identically. The card is a timetable people send
+  /// to others, so marking "now" would be wrong the moment it's forwarded.
+  Widget _row(String name, DateTime time) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 46, vertical: 22),
       decoration: BoxDecoration(
-        gradient: isCurrent
-            ? const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [PrayerPalette.ramadanFrom, PrayerPalette.ramadanTo],
-              )
-            : null,
-        color: isCurrent ? null : Colors.white.withValues(alpha: 0.85),
+        color: Colors.white.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(
-          color: isCurrent ? PrayerPalette.ink : PrayerPalette.inkA(0.10),
-          width: 1.5,
-        ),
+        border: Border.all(color: PrayerPalette.inkA(0.10), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: PrayerPalette.ink.withValues(alpha: isCurrent ? 0.32 : 0.07),
-            blurRadius: isCurrent ? 34 : 18,
-            offset: Offset(0, isCurrent ? 14 : 6),
+            color: PrayerPalette.ink.withValues(alpha: 0.07),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -476,37 +473,26 @@ class PrayerShareCard extends StatelessWidget {
             child: Icon(
               _glyphs[name],
               size: 34,
-              color: isCurrent ? PrayerPalette.gold : PrayerPalette.goldDeep,
+              color: PrayerPalette.goldDeep,
             ),
           ),
           const SizedBox(width: 18),
           Text(
             name,
-            style: TextStyle(
-              color: isCurrent ? Colors.white : PrayerPalette.ink,
+            style: const TextStyle(
+              color: PrayerPalette.ink,
               fontSize: 37,
               fontWeight: FontWeight.w800,
             ),
           ),
-          if (isCurrent) ...[
-            const SizedBox(width: 20),
-            const Text(
-              '· now',
-              style: TextStyle(
-                color: PrayerPalette.gold,
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
           const Spacer(),
           Text(
             _fmt(time),
-            style: TextStyle(
-              color: isCurrent ? PrayerPalette.gold : PrayerPalette.ink,
+            style: const TextStyle(
+              color: PrayerPalette.ink,
               fontSize: 41,
               fontWeight: FontWeight.w800,
-              fontFeatures: const [FontFeature.tabularFigures()],
+              fontFeatures: [FontFeature.tabularFigures()],
             ),
           ),
         ],

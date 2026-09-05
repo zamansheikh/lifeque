@@ -11,6 +11,7 @@ import 'package:lifeque/features/home_widget/presentation/widgets/slim_bar_widge
 import 'package:lifeque/features/prayer_times/data/services/jamaat_defaults.dart';
 import 'package:lifeque/features/prayer_times/data/services/prayer_settings_service.dart';
 import 'package:lifeque/features/prayer_times/presentation/utils/bangla_date.dart';
+import 'package:lifeque/features/prayer_times/presentation/utils/hijri_names.dart';
 import 'package:intl/intl.dart';
 import 'package:hijri/hijri_calendar.dart';
 
@@ -104,10 +105,6 @@ class HomeWidgetService {
     return m >= 60 ? '${m ~/ 60}h ${m % 60}m' : '${m}m';
   }
 
-  static String _hijriMonth(int m) => const [
-        'Muharram', 'Safar', 'Rabiʿ I', 'Rabiʿ II', 'Jumada I', 'Jumada II',
-        'Rajab', 'Shaʿban', 'Ramadan', 'Shawwal', 'Dhul Qaʿdah', 'Dhul Hijjah',
-      ][(m - 1).clamp(0, 11)];
 
   Future<void> updateWidget() async {
     if (!isHomeWidgetSupported) {
@@ -224,7 +221,7 @@ class HomeWidgetService {
       await HomeWidget.renderFlutterWidget(
         PrayerWidgetUI(
           size: prayerSize,
-          hijriLine: '${hijri.hDay} ${_hijriMonth(hijri.hMonth)} '
+          hijriLine: '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} '
               '${hijri.hYear}, ${DateFormat('EEEE').format(date)}',
           secondaryDateLine:
               '${DateFormat('d MMMM').format(date)} · ${bangla.formatted}',
@@ -307,7 +304,7 @@ class HomeWidgetService {
         date: date,
         times: times,
         current: subject,
-        dateLine: '${hijri.hDay} ${_hijriMonth(hijri.hMonth)} ${hijri.hYear}, '
+        dateLine: '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} ${hijri.hYear}, '
             '${DateFormat('EEEE').format(date)} · '
             '${DateFormat('d MMMM').format(date)}',
         updatedAt: updatedAt,

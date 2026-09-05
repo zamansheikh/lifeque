@@ -79,6 +79,7 @@ dependencies:
   share_plus: ^13.3.0
   path_provider: ^2.1.6
   audioplayers: ^6.8.1
+  geocoding: ^5.0.0
 
 dev_dependencies:
   flutter_test:
@@ -118,6 +119,13 @@ flutter:
         - asset: assets/fonts/Amiri-Regular.ttf
         - asset: assets/fonts/Amiri-Bold.ttf
           weight: 700
+
+    # Noto Serif Bengali — the Bangla face. The system fallback renders Bangla
+    # with mismatched metrics next to the Latin text; this sits with it.
+    # Published variable-only, so heavier weights are synthesised.
+    - family: NotoSerifBengali
+      fonts:
+        - asset: assets/fonts/NotoSerifBengali.ttf
 
   # fonts:
   #   - family: Schyler

@@ -71,8 +71,9 @@ class _SheetState extends State<_Sheet> {
   Future<void> _share() async {
     setState(() => _busy = true);
     try {
-      final boundary = _boundaryKey.currentContext!.findRenderObject()
-          as RenderRepaintBoundary;
+      final boundary =
+          _boundaryKey.currentContext!.findRenderObject()
+              as RenderRepaintBoundary;
       // Rendered at 2× so the dense table stays legible when printed.
       final image = await boundary.toImage(pixelRatio: 2);
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
@@ -88,7 +89,8 @@ class _SheetState extends State<_Sheet> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
-          text: '${DateFormat('MMMM y').format(widget.month)} prayer '
+          text:
+              '${DateFormat('MMMM y').format(widget.month)} prayer '
               'timetable · ${widget.locationName}',
         ),
       );
@@ -227,11 +229,18 @@ class MonthTimetableCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
-    final now = DateTime.now();
     final hijriStart = HijriCalendar.fromDate(month);
     final hijriEnd = HijriCalendar.fromDate(
       DateTime(month.year, month.month + 1, 0),
     );
+    final banglaStart = BanglaDate.fromDate(month);
+    final banglaEnd = BanglaDate.fromDate(
+      DateTime(month.year, month.month + 1, 0),
+    );
+    // A Gregorian month spans two Bangla months more often than not.
+    final banglaSpan = banglaStart.monthName == banglaEnd.monthName
+        ? banglaStart.monthName
+        : '${banglaStart.monthName}–${banglaEnd.monthName}';
     final madhabLabel = madhab == Madhab.hanafi ? 'Hanafi' : 'Shafi';
 
     return Directionality(
@@ -256,67 +265,67 @@ class MonthTimetableCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(46, 34, 46, 0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.fromLTRB(46, 26, 46, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              DateFormat('MMMM y').format(month),
-                              style: const TextStyle(
-                                color: PrayerPalette.ink,
-                                fontSize: 34,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Text(
-                              '${HijriNames.month(hijriStart.hMonth)} – '
-                              '${HijriNames.month(hijriEnd.hMonth)} '
-                              '${hijriEnd.hYear}',
-                              style: const TextStyle(
-                                color: Color(0xFFB8901E),
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Prayer timetable · $locationName · $madhabLabel',
-                          style: TextStyle(
-                            color: PrayerPalette.inkA(0.6),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                  // Centred above the heading — the conventional place for the
+                  // bismillah on a printed sheet, rather than crowding the
+                  // top-right corner.
+                  Center(
+                    child: SizedBox(
+                      width: 340,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '\uFDFD',
+                          textDirection: ui.TextDirection.rtl,
+                          style: PrayerPalette.arabic(
+                            fontSize: 96,
+                            height: 1.0,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Amiri's bismillah ligature is very wide; give it a fixed
-                  // slot so it can't push the heading off the sheet.
-                  SizedBox(
-                    width: 260,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        '\uFDFD',
-                        textDirection: ui.TextDirection.rtl,
-                        style: PrayerPalette.arabic(
-                          fontSize: 96,
-                          height: 1.0,
                         ),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        DateFormat('MMMM y').format(month),
+                        style: const TextStyle(
+                          color: PrayerPalette.ink,
+                          fontSize: 34,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      // Hijri and Bangla get their own line: sharing the
+                      // title row left too little width and truncated them.
+                      Text(
+                        '${HijriNames.month(hijriStart.hMonth)} – '
+                        '${HijriNames.month(hijriEnd.hMonth)} '
+                        '${hijriEnd.hYear}  ·  $banglaSpan '
+                        '${BanglaDate.digits(banglaEnd.year)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFFB8901E),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Prayer timetable · $locationName · $madhabLabel',
+                        style: TextStyle(
+                          color: PrayerPalette.inkA(0.6),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -382,10 +391,7 @@ class MonthTimetableCard extends StatelessWidget {
                   children: [
                     for (var d = 1; d <= daysInMonth; d++)
                       Expanded(
-                        child: _row(
-                          DateTime(month.year, month.month, d),
-                          now,
-                        ),
+                        child: _row(DateTime(month.year, month.month, d)),
                       ),
                   ],
                 ),
@@ -402,18 +408,14 @@ class MonthTimetableCard extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      width: 22,
-                      height: 22,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: PrayerPalette.ink,
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      child: const Icon(
-                        Icons.mosque,
-                        size: 13,
-                        color: PrayerPalette.gold,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(7),
+                      child: Image.asset(
+                        'assets/icon/icon.png',
+                        width: 24,
+                        height: 24,
+                        fit: BoxFit.cover,
+                        cacheWidth: 72,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -445,7 +447,7 @@ class MonthTimetableCard extends StatelessWidget {
     );
   }
 
-  Widget _row(DateTime day, DateTime now) {
+  Widget _row(DateTime day) {
     final calc = SalahTimeCalculator(
       latitude: latitude,
       longitude: longitude,
@@ -457,21 +459,18 @@ class MonthTimetableCard extends StatelessWidget {
     final hijri = HijriCalendar.fromDate(day);
     final bangla = BanglaDate.fromDate(day);
     final isFriday = day.weekday == DateTime.friday;
-    final isToday = day.year == now.year &&
-        day.month == now.month &&
-        day.day == now.day;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: isToday
-            ? PrayerPalette.accentA(0.16)
-            : isFriday
-                ? const Color(0xFFF7EFD8)
-                : day.day.isEven
-                    ? PrayerPalette.inkA(0.035)
-                    : Colors.transparent,
+        // No "today" highlight: this sheet is printed or forwarded, and the
+        // marker would be wrong for anyone reading it on another day.
+        color: isFriday
+            ? const Color(0xFFF7EFD8)
+            : day.day.isEven
+            ? PrayerPalette.inkA(0.035)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(9),
       ),
       child: Row(
@@ -481,12 +480,9 @@ class MonthTimetableCard extends StatelessWidget {
             child: Text(
               '${DateFormat('E d').format(day)}${isFriday ? ' ✦' : ''}',
               style: TextStyle(
-                color: isFriday
-                    ? PrayerPalette.fridayText
-                    : PrayerPalette.ink,
+                color: isFriday ? PrayerPalette.fridayText : PrayerPalette.ink,
                 fontSize: 12.5,
-                fontWeight:
-                    isFriday || isToday ? FontWeight.w800 : FontWeight.w700,
+                fontWeight: isFriday ? FontWeight.w800 : FontWeight.w700,
               ),
             ),
           ),
