@@ -52,6 +52,28 @@ class NotificationService {
       'todo_notification_id_counter';
   static const int _todoIdCounterStart = 1700000000;
 
+  // ── Channels ────────────────────────────────────────────────────────────
+  //
+  // Android freezes a channel's sound the moment it is created: changing it
+  // later is ignored until the app is reinstalled. So giving the app its own
+  // tone means new channel ids, and deleting the old ones so the app's
+  // notification settings don't list each channel twice.
+  static const String channelTasks = 'task_reminders_v2';
+  static const String channelMedicines = 'medicine_reminders_v2';
+  static const String channelTodos = 'todo_reminders_v2';
+  static const String channelPersistent = 'persistent_tasks';
+
+  static const List<String> _retiredChannels = [
+    'task_reminders',
+    'medicine_reminders',
+    'todo_reminders',
+  ];
+
+  /// `res/raw/notification_tone.mp3` — a two-second cut of the app's own
+  /// alarm tone, short enough not to outstay its welcome.
+  static const AndroidNotificationSound _tone =
+      RawResourceAndroidNotificationSound('notification_tone');
+
   /// Payload prefix that marks a notification as belonging to a to-do.
   /// Everything without a known prefix is still treated as a task id, so this
   /// has to be checked before that fallback.
@@ -155,74 +177,81 @@ class NotificationService {
   }
 
   Future<void> _createNotificationChannels() async {
-    // Channel for task reminders with maximum priority settings
-    const AndroidNotificationChannel taskRemindersChannel =
-        AndroidNotificationChannel(
-          'task_reminders',
-          'Task Reminders',
-          description:
-              'Important notifications for task reminders and deadlines',
-          importance: Importance.max, // Highest importance
-          enableLights: true,
-          enableVibration: true,
-          playSound: true,
-          showBadge: true,
-          // Use default notification sound
-        );
-
-    // Channel for medicine reminders
-    const AndroidNotificationChannel medicineRemindersChannel =
-        AndroidNotificationChannel(
-          'medicine_reminders',
-          'Medicine Reminders',
-          description: 'Important notifications for medicine dose reminders',
-          importance: Importance.max, // Highest importance
-          enableLights: true,
-          enableVibration: true,
-          playSound: true,
-          showBadge: true,
-        );
-
-    // Channel for persistent tasks - non-dismissable with special settings
-    const AndroidNotificationChannel
-    persistentTasksChannel = AndroidNotificationChannel(
-      'persistent_tasks',
-      'Persistent Tasks',
-      description:
-          'Ongoing task progress notifications - these stay visible until task completion',
-      importance: Importance.low,
-      enableLights: false,
-      enableVibration: false,
-      playSound: false,
-      // Make it less likely to be dismissed by system
-      showBadge: true,
-    );
-
     final platform = _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
+    if (platform == null) return;
 
-    // Channel for to-do reminders
-    const AndroidNotificationChannel todoRemindersChannel =
-        AndroidNotificationChannel(
-          'todo_reminders',
-          'To-Do Reminders',
-          description: 'Reminders for the to-dos on your list',
-          importance: Importance.max,
-          enableLights: true,
-          enableVibration: true,
-          playSound: true,
-          showBadge: true,
-        );
+    // Anything that alerts you gets the app's own tone; the ongoing
+    // "pinned" channel stays silent, because a progress readout that chimed
+    // every time it refreshed would be unbearable.
+    const channels = [
+      AndroidNotificationChannel(
+        channelTasks,
+        'Task Reminders',
+        description: 'Tasks, reminders and birthdays',
+        importance: Importance.max,
+        enableLights: true,
+        enableVibration: true,
+        playSound: true,
+        sound: _tone,
+        audioAttributesUsage: AudioAttributesUsage.notificationEvent,
+        showBadge: true,
+      ),
+      AndroidNotificationChannel(
+        channelMedicines,
+        'Medicine Reminders',
+        description: 'Doses to take',
+        importance: Importance.max,
+        enableLights: true,
+        enableVibration: true,
+        playSound: true,
+        sound: _tone,
+        audioAttributesUsage: AudioAttributesUsage.notificationEvent,
+        showBadge: true,
+      ),
+      AndroidNotificationChannel(
+        channelTodos,
+        'To-Do Reminders',
+        description: 'Reminders for the to-dos on your list',
+        importance: Importance.max,
+        enableLights: true,
+        enableVibration: true,
+        playSound: true,
+        sound: _tone,
+        audioAttributesUsage: AudioAttributesUsage.notificationEvent,
+        showBadge: true,
+      ),
+      AndroidNotificationChannel(
+        channelPersistent,
+        'Persistent Tasks',
+        description:
+            'Ongoing task progress notifications — these stay visible '
+            'until the task is complete',
+        importance: Importance.low,
+        enableLights: false,
+        enableVibration: false,
+        playSound: false,
+        showBadge: true,
+      ),
+    ];
 
-    if (platform != null) {
-      await platform.createNotificationChannel(taskRemindersChannel);
-      await platform.createNotificationChannel(medicineRemindersChannel);
-      await platform.createNotificationChannel(persistentTasksChannel);
-      await platform.createNotificationChannel(todoRemindersChannel);
-      debugPrint('🔔 📺 Notification channels created with max importance');
+    for (final channel in channels) {
+      await platform.createNotificationChannel(channel);
     }
+
+    // Retire the soundless originals so the app's notification settings
+    // don't show two of everything after the upgrade.
+    for (final id in _retiredChannels) {
+      try {
+        await platform.deleteNotificationChannel(channelId: id);
+      } catch (e) {
+        debugPrint('🔔 Could not delete old channel $id: $e');
+      }
+    }
+
+    debugPrint('🔔 📺 Notification channels created with the app tone');
   }
 
   void _onNotificationTapped(NotificationResponse notificationResponse) {
@@ -581,7 +610,7 @@ class NotificationService {
       body: message,
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
-          'task_reminders',
+          channelTasks,
           'Task Reminders',
           channelDescription: 'Action feedback notifications',
           // Low: this is a three-second confirmation that an action landed,
@@ -657,6 +686,9 @@ class NotificationService {
       enableLights: true,
       enableVibration: true,
       playSound: true,
+      // Redundant on Android 8+, where the channel owns the sound, but it is
+      // what pre-8 devices read.
+      sound: _tone,
       icon: '@mipmap/ic_launcher',
       color: color,
       visibility: NotificationVisibility.public,
@@ -695,7 +727,7 @@ class NotificationService {
       case TaskType.task:
         return NotificationDetails(
           android: _androidAlert(
-            channelId: 'task_reminders',
+            channelId: channelTasks,
             channelName: 'Task Reminders',
             kind: kind ?? 'Task',
             color: _taskColor,
@@ -720,7 +752,7 @@ class NotificationService {
       case TaskType.reminder:
         return NotificationDetails(
           android: _androidAlert(
-            channelId: 'task_reminders',
+            channelId: channelTasks,
             channelName: 'Task Reminders',
             kind: kind ?? 'Reminder',
             color: _reminderColor,
@@ -744,7 +776,7 @@ class NotificationService {
       case TaskType.birthday:
         return NotificationDetails(
           android: _androidAlert(
-            channelId: 'task_reminders',
+            channelId: channelTasks,
             channelName: 'Task Reminders',
             kind: kind ?? 'Birthday',
             color: _birthdayColor,
@@ -910,7 +942,7 @@ class NotificationService {
             scheduledDate: testTime,
             notificationDetails: const NotificationDetails(
               android: AndroidNotificationDetails(
-                'task_reminders',
+                channelTasks,
                 'Task Reminders',
                 channelDescription: 'Test notification',
                 importance: Importance.max,
@@ -1114,7 +1146,7 @@ class NotificationService {
       body: content,
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
-          'persistent_tasks',
+          channelPersistent,
           'Persistent Tasks',
           channelDescription: 'Ongoing task progress notifications',
           importance: Importance.low,
@@ -1463,7 +1495,7 @@ class NotificationService {
       body: 'This is an immediate test notification to verify the system works',
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
-          'task_reminders',
+          channelTasks,
           'Task Reminders',
           channelDescription: 'Test notification',
           importance: Importance.max,
@@ -1525,7 +1557,7 @@ class NotificationService {
       scheduledDate: scheduledTime,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
-          'task_reminders',
+          channelTasks,
           'Task Reminders',
           channelDescription: 'Scheduled test notification',
           importance: Importance.max,
@@ -1573,7 +1605,7 @@ class NotificationService {
         scheduledDate: scheduledTime,
         notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
-            'task_reminders',
+            channelTasks,
             'Task Reminders',
             channelDescription: 'Simple test notification',
             importance: Importance.max,
@@ -1910,7 +1942,7 @@ class NotificationService {
         scheduledDate: scheduledDate,
         notificationDetails: NotificationDetails(
           android: _androidAlert(
-            channelId: 'todo_reminders',
+            channelId: channelTodos,
             channelName: 'To-Do Reminders',
             kind: 'To-do',
             color: _todoColor,
@@ -2214,7 +2246,7 @@ class NotificationService {
   ]) {
     return NotificationDetails(
       android: _androidAlert(
-        channelId: 'medicine_reminders',
+        channelId: channelMedicines,
         channelName: 'Medicine Reminders',
         kind: 'Medicine',
         color: _medicineColor,
@@ -2671,7 +2703,7 @@ class NotificationService {
       scheduledDate: snoozeTime,
       notificationDetails: NotificationDetails(
         android: _androidAlert(
-          channelId: 'medicine_reminders',
+          channelId: channelMedicines,
           channelName: 'Medicine Reminders',
           kind: 'Snoozed',
           color: _medicineColor,

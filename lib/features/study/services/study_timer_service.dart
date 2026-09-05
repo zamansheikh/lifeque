@@ -110,7 +110,17 @@ class StudyTimerService {
   /// Alarm ids are reserved as a contiguous block so the chain can be
   /// cancelled wholesale without tracking which ones are live.
   static const int _alarmIdBase = 1000;
-  static const int _maxScheduledSlots = 20;
+
+  /// About three hours of pomodoro planned ahead. Every slot costs one
+  /// AlarmManager round-trip to arm and another to cancel, so this is a
+  /// balance between surviving a long session with the app closed and not
+  /// making the pause button wait on forty platform calls.
+  static const int _maxScheduledSlots = 12;
+
+  /// The id block this service has ever used. Earlier builds planned twenty
+  /// slots, so a sweep has to reach past the current dozen to clear alarms an
+  /// old version left behind.
+  static const int _reservedAlarmSlots = 20;
 
   StudySession? _session;
   List<StudySlot> _slots = const [];
@@ -118,6 +128,20 @@ class StudyTimerService {
   Duration _pausedRemaining = Duration.zero;
 
   Timer? _ticker;
+
+  /// Ids currently sitting in AlarmManager. Cancelling used to blind-fire a
+  /// stop at every id in the reserved block whether or not anything was
+  /// scheduled there, which is most of why pause and resume felt sluggish.
+  final Set<int> _liveAlarmIds = <int>{};
+
+  /// Alarm work runs off the button's critical path but strictly in order —
+  /// a pause immediately followed by a resume must not end up cancelling the
+  /// alarms the resume just armed.
+  Future<void> _alarmQueue = Future<void>.value();
+
+  /// Alarms armed by a previous run of the process are live but unrecorded,
+  /// so the first load re-arms from scratch rather than trusting them.
+  bool _rearmedThisLaunch = false;
 
   /// Guards the tick-time rebuild below: the ticker fires every second, and a
   /// rebuild takes longer than that, so without this it would pile up calls.
@@ -192,6 +216,17 @@ class StudyTimerService {
   bool get isPaused => _session != null && _paused;
   bool get isRunning => _session != null && !_paused;
 
+  /// Hands alarm work to the background queue and returns at once.
+  ///
+  /// The UI has already been told what happened by the time this is called;
+  /// making the user watch a spinner while AlarmManager is written to would
+  /// be a poor trade for a button that should feel instant.
+  void _queueAlarmWork(Future<void> Function() work) {
+    _alarmQueue = _alarmQueue
+        .then((_) => work())
+        .catchError((Object e) => debugPrint('📚 Alarm work failed: $e'));
+  }
+
   // ── Lifecycle ───────────────────────────────────────────────────────────
 
   Future<void> startStudySession({
@@ -200,8 +235,6 @@ class StudyTimerService {
     int longBreakDuration = 15,
     int cyclesBeforeLongBreak = 4,
   }) async {
-    await _cancelAlarms();
-
     _session = StudySession(
       startTime: DateTime.now(),
       focusDuration: focusDuration,
@@ -217,10 +250,10 @@ class StudyTimerService {
       cyclesDone: 0,
     );
 
-    await _armAlarms();
-    await _save();
     _startTicker();
     _emitAll();
+    unawaited(_save());
+    _queueAlarmWork(_armAlarms);
   }
 
   Future<void> pauseSession() async {
@@ -248,9 +281,9 @@ class StudyTimerService {
     _ticker?.cancel();
     _ticker = null;
 
-    await _cancelAlarms();
-    await _save();
     _emitAll();
+    unawaited(_save());
+    _queueAlarmWork(_cancelAlarms);
     debugPrint('📚 Session paused with ${_pausedRemaining.inSeconds}s left');
   }
 
@@ -273,10 +306,10 @@ class StudyTimerService {
     );
     _pausedRemaining = Duration.zero;
 
-    await _armAlarms();
-    await _save();
     _startTicker();
     _emitAll();
+    unawaited(_save());
+    _queueAlarmWork(_armAlarms);
     debugPrint('📚 Session resumed');
   }
 
@@ -301,10 +334,10 @@ class StudyTimerService {
       cyclesDone: cyclesDone,
     );
 
-    await _armAlarms();
-    await _save();
     _startTicker();
     _emitAll();
+    unawaited(_save());
+    _queueAlarmWork(_armAlarms);
   }
 
   Future<void> stopSession() async {
@@ -315,10 +348,10 @@ class StudyTimerService {
     _paused = false;
     _pausedRemaining = Duration.zero;
 
-    await _cancelAlarms();
+    _emitAll();
+    _queueAlarmWork(_cancelAlarms);
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);
-    _emitAll();
   }
 
   /// Picks the session back up wherever the clock says it is.
@@ -368,8 +401,8 @@ class StudyTimerService {
             : StudyPhase.focus,
         cyclesDone: last?.cyclesDone ?? 0,
       );
-      await _armAlarms();
-      await _save();
+      unawaited(_save());
+      _queueAlarmWork(_armAlarms);
     } else if (_slots.indexOf(_currentSlot ?? _slots.first) >
         _slots.length - 4) {
       // Getting close to the end of the plan: extend it and re-arm.
@@ -379,9 +412,16 @@ class StudyTimerService {
         cyclesDone: _currentSlot?.cyclesDone ?? 0,
         firstPhaseLength: _currentSlot?.duration,
       );
-      await _armAlarms();
-      await _save();
+      unawaited(_save());
+      _queueAlarmWork(_armAlarms);
+    } else if (!_rearmedThisLaunch) {
+      // Plan is still good, but this process didn't arm it. Sweep the whole
+      // reserved block — which clears the extra ids an older, twenty-slot
+      // build would have left — then put the current plan back.
+      _queueAlarmWork(() => _cancelAlarms(all: true));
+      _queueAlarmWork(_armAlarms);
     }
+    _rearmedThisLaunch = true;
 
     _startTicker();
     _emitAll();
@@ -478,17 +518,28 @@ class StudyTimerService {
             ),
           ),
         );
+        _liveAlarmIds.add(_alarmIdBase + i);
       } catch (e) {
         debugPrint('📚 Could not arm alarm ${_alarmIdBase + i}: $e');
       }
     }
-    debugPrint('📚 Armed ${_slots.length} phase alarms');
+    debugPrint('📚 Armed ${_liveAlarmIds.length} phase alarms');
   }
 
-  Future<void> _cancelAlarms() async {
-    for (var i = 0; i < _maxScheduledSlots; i++) {
+  /// Stops only what is actually scheduled.
+  ///
+  /// [all] sweeps the whole reserved block regardless — used once on load,
+  /// where alarms armed by a previous run of the process are live but this
+  /// instance has no record of them.
+  Future<void> _cancelAlarms({bool all = false}) async {
+    final ids = all
+        ? [for (var i = 0; i < _reservedAlarmSlots; i++) _alarmIdBase + i]
+        : _liveAlarmIds.toList();
+    _liveAlarmIds.clear();
+
+    for (final id in ids) {
       try {
-        await Alarm.stop(_alarmIdBase + i);
+        await Alarm.stop(id);
       } catch (_) {
         // Nothing scheduled under that id — nothing to do.
       }
