@@ -9,4 +9,5 @@
     android:updatePeriodMillis="900000"
     android:widgetCategory="home_screen"
     android:label="Next prayer"
+    android:description="@string/slim_bar_widget_description"
     android:previewLayout="@layout/slim_bar_widget_preview" />

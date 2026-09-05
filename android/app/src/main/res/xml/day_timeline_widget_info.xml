@@ -9,4 +9,5 @@
     android:updatePeriodMillis="900000"
     android:widgetCategory="home_screen"
     android:label="Prayer day map"
+    android:description="@string/day_timeline_widget_description"
     android:previewLayout="@layout/day_timeline_widget_preview" />
