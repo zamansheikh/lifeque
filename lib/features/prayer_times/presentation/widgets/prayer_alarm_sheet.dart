@@ -26,6 +26,9 @@ class PrayerAlarmSheet {
     /// Current offset per prayer; missing or null means `off`.
     required Map<String, AlarmOffset> current,
     required Future<void> Function(String prayer, AlarmOffset offset) onSet,
+
+    /// Opens the full alarm page, where sound and duration live.
+    required VoidCallback onOpenFullSettings,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -37,6 +40,7 @@ class PrayerAlarmSheet {
         prayers: prayers,
         initial: current,
         onSet: onSet,
+        onOpenFullSettings: onOpenFullSettings,
       ),
     );
   }
@@ -46,11 +50,13 @@ class _Sheet extends StatefulWidget {
   final List<String> prayers;
   final Map<String, AlarmOffset> initial;
   final Future<void> Function(String prayer, AlarmOffset offset) onSet;
+  final VoidCallback onOpenFullSettings;
 
   const _Sheet({
     required this.prayers,
     required this.initial,
     required this.onSet,
+    required this.onOpenFullSettings,
   });
 
   @override
@@ -99,7 +105,29 @@ class _SheetState extends State<_Sheet> {
               if (i > 0) const SizedBox(height: 9),
               _row(widget.prayers[i]),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                widget.onOpenFullSettings();
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                child: Text(
+                  'Adhan sound & duration →',
+                  style: TextStyle(
+                    color: PrayerPalette.accent,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
             InkWell(
               onTap: () => Navigator.pop(context),
               borderRadius: BorderRadius.circular(16),

@@ -21,6 +21,7 @@ import '../utils/prayer_palette.dart';
 import '../widgets/mosque_time_edit_sheet.dart';
 import '../widgets/nafal_times_card.dart';
 import '../widgets/prayer_alarm_sheet.dart';
+import 'prayer_alarm_page.dart';
 import '../widgets/prayer_focus_card.dart' show QuickAlarmChoice;
 import '../widgets/prayer_sky_header.dart';
 import '../widgets/prohibited_times_card.dart';
@@ -682,6 +683,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         for (final prayer in _fardPrayers)
           prayer: _offsetFor(prayer),
       },
+      onOpenFullSettings: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PrayerAlarmPage()),
+      ),
       onSet: (prayer, offset) async {
         if (offset == AlarmOffset.off) {
           await _alarmService.removeAlarm(prayer);

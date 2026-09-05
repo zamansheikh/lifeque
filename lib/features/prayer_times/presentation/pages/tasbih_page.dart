@@ -230,7 +230,7 @@ class _TasbihPageState extends State<TasbihPage>
                 ),
               ),
               Container(
-                margin: const EdgeInsets.all(26),
+                margin: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   // Solid white, not a gradient — a gradient's outer stop
@@ -252,38 +252,21 @@ class _TasbihPageState extends State<TasbihPage>
                       '${_state.count}',
                       style: const TextStyle(
                         color: PrayerPalette.ink,
-                        fontSize: 60,
+                        fontSize: 56,
                         fontWeight: FontWeight.w300,
                         height: 1,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'of ${TasbihService.perRound}',
-                      style: TextStyle(
-                        color: PrayerPalette.inkA(0.45),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
                     const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: PrayerPalette.accentA(0.10),
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: const Text(
-                        'tap to count',
-                        style: TextStyle(
-                          color: PrayerPalette.accent,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                        ),
+                    // One short line, so it stays inside the circle at every
+                    // count width — a stacked chip broke out of the curve.
+                    Text(
+                      'of ${TasbihService.perRound} · tap to count',
+                      style: TextStyle(
+                        color: PrayerPalette.inkA(0.5),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
