@@ -10,15 +10,14 @@ ExpenseItem item(
   bool purchased = false,
   ExpenseCategory category = ExpenseCategory.other,
   String? custom,
-}) =>
-    ExpenseItem(
-      id: name,
-      name: name,
-      amount: amount,
-      isPurchased: purchased,
-      category: category,
-      customCategoryName: custom,
-    );
+}) => ExpenseItem(
+  id: name,
+  name: name,
+  amount: amount,
+  isPurchased: purchased,
+  category: category,
+  customCategoryName: custom,
+);
 
 void main() {
   final now = DateTime(2026, 9, 5);
@@ -46,7 +45,11 @@ void main() {
 
     test('empty session is zero, not NaN', () {
       final s = ExpenseSession(
-        id: 's', title: 't', date: now, createdAt: now, items: const [],
+        id: 's',
+        title: 't',
+        date: now,
+        createdAt: now,
+        items: const [],
       );
       expect(s.totalAmount, 0);
       expect(s.purchasedAmount, 0);
@@ -57,19 +60,35 @@ void main() {
   group('category keys', () {
     test('custom categories never collide with the built-in "other"', () {
       final builtIn = item('x', 10, category: ExpenseCategory.other);
-      final custom = item('y', 10, category: ExpenseCategory.other, custom: 'Gifts');
+      final custom = item(
+        'y',
+        10,
+        category: ExpenseCategory.other,
+        custom: 'Gifts',
+      );
       expect(builtIn.effectiveCategoryKey, 'other');
       expect(custom.effectiveCategoryKey, 'custom:Gifts');
-      expect(builtIn.effectiveCategoryKey == custom.effectiveCategoryKey, isFalse);
+      expect(
+        builtIn.effectiveCategoryKey == custom.effectiveCategoryKey,
+        isFalse,
+      );
     });
 
     test('item and budget agree on the key for the same custom category', () {
-      final it = item('y', 10, category: ExpenseCategory.other, custom: 'Gifts');
+      final it = item(
+        'y',
+        10,
+        category: ExpenseCategory.other,
+        custom: 'Gifts',
+      );
       final budget = CategoryBudget(
-        id: 'b', year: 2026, month: 9,
+        id: 'b',
+        year: 2026,
+        month: 9,
         category: ExpenseCategory.other,
         budgetAmount: 500,
-        createdAt: now, updatedAt: now,
+        createdAt: now,
+        updatedAt: now,
         customCategoryName: 'Gifts',
       );
       expect(it.effectiveCategoryKey, budget.effectiveCategoryKey);
@@ -78,10 +97,13 @@ void main() {
 
   group('category budget math', () {
     final b = CategoryBudget(
-      id: 'b', year: 2026, month: 9,
+      id: 'b',
+      year: 2026,
+      month: 9,
       category: ExpenseCategory.food,
       budgetAmount: 1000,
-      createdAt: now, updatedAt: now,
+      createdAt: now,
+      updatedAt: now,
     );
 
     test('progress, remaining and percentage agree', () {
@@ -108,8 +130,11 @@ void main() {
   group('month attribution', () {
     test('session belongs to the month of its date', () {
       final s = ExpenseSession(
-        id: 's', title: 't', date: DateTime(2026, 9, 30, 23, 59),
-        createdAt: now, items: const [],
+        id: 's',
+        title: 't',
+        date: DateTime(2026, 9, 30, 23, 59),
+        createdAt: now,
+        items: const [],
       );
       expect(s.isSameMonth(DateTime(2026, 9, 1)), isTrue);
       expect(s.isSameMonth(DateTime(2026, 10, 1)), isFalse);
@@ -121,25 +146,53 @@ void main() {
     test('per-category spending sums back to the month purchased total', () {
       final sessions = [
         ExpenseSession(
-          id: 's1', title: 'a', date: now, createdAt: now,
+          id: 's1',
+          title: 'a',
+          date: now,
+          createdAt: now,
           items: [
-            item('rice', 120.50, purchased: true, category: ExpenseCategory.food),
-            item('bus', 40.00, purchased: true, category: ExpenseCategory.transport),
+            item(
+              'rice',
+              120.50,
+              purchased: true,
+              category: ExpenseCategory.food,
+            ),
+            item(
+              'bus',
+              40.00,
+              purchased: true,
+              category: ExpenseCategory.transport,
+            ),
             item('soap', 55.75),
           ],
         ),
         ExpenseSession(
-          id: 's2', title: 'b', date: now, createdAt: now,
+          id: 's2',
+          title: 'b',
+          date: now,
+          createdAt: now,
           items: [
-            item('gift', 300.00, purchased: true,
-                category: ExpenseCategory.other, custom: 'Gifts'),
-            item('fish', 210.25, purchased: true, category: ExpenseCategory.food),
+            item(
+              'gift',
+              300.00,
+              purchased: true,
+              category: ExpenseCategory.other,
+              custom: 'Gifts',
+            ),
+            item(
+              'fish',
+              210.25,
+              purchased: true,
+              category: ExpenseCategory.food,
+            ),
           ],
         ),
       ];
 
-      final monthPurchased =
-          sessions.fold<double>(0, (sum, s) => sum + s.purchasedAmount);
+      final monthPurchased = sessions.fold<double>(
+        0,
+        (sum, s) => sum + s.purchasedAmount,
+      );
 
       final spending = <String, double>{};
       for (final s in sessions) {

@@ -1573,9 +1573,12 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                   final custom = CustomCategory(
                     name: name,
                     iconIndex: selectedIconIndex,
+                    // toARGB32 is the documented replacement for the
+                    // deprecated Color.value, and round-trips exactly through
+                    // the Color(colorValue) that reads it back.
                     colorValue: CustomCategory
                         .availableColors[selectedColorIndex]
-                        .value,
+                        .toARGB32(),
                   );
                   final added = await di.sl<CustomCategoryService>().add(
                     custom,

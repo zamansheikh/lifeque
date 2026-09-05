@@ -55,15 +55,15 @@ void callbackDispatcher() {
         debugPrint(
           "✅ Background Service: Widget update completed successfully",
         );
-        return Future.value(true);
+        return true;
       } catch (e, stack) {
         debugPrint("❌ Background Service: Task failed: $e");
         debugPrint("Stack: $stack");
-        return Future.value(false);
+        return false;
       }
     }
 
-    return Future.value(true);
+    return true;
   });
 }
 

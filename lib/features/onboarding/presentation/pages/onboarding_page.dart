@@ -152,7 +152,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           // Animated gradient background
           AnimatedBuilder(
             animation: _bgController,
-            builder: (_, __) {
+            builder: (_, _) {
               final t = _bgController.value;
               return Container(
                 decoration: BoxDecoration(

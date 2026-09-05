@@ -147,9 +147,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: ReorderableListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: tempItems.length,
-                        onReorder: (oldIndex, newIndex) {
+                        // onReorderItem already accounts for the removed
+                        // item, so the old `if (newIndex > oldIndex)` fix-up
+                        // that onReorder needed would now be off by one.
+                        onReorderItem: (oldIndex, newIndex) {
                           setSheetState(() {
-                            if (newIndex > oldIndex) newIndex--;
                             final item = tempItems.removeAt(oldIndex);
                             tempItems.insert(newIndex, item);
                           });
@@ -199,8 +201,12 @@ class _SettingsPageState extends State<SettingsPage> {
                               // Apply order
                               setState(() => _items = tempItems);
                               await _svc.saveOrder(_items);
-                              if (!context.mounted) return;
+                              // Two different contexts, so two guards: `ctx`
+                              // belongs to the sheet being popped, `context`
+                              // to this State.
+                              if (!ctx.mounted) return;
                               Navigator.pop(ctx);
+                              if (!mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: const Text('Navigation order saved'),
@@ -359,7 +365,9 @@ class _SettingsPageState extends State<SettingsPage> {
   // ── About Dialog ───────────────────────────────────────────────
   Future<void> _showAboutSheet(BuildContext ctx) async {
     final packageInfo = await PackageInfo.fromPlatform();
-    if (!mounted) return;
+    // `ctx` is a parameter, so this State's `mounted` says nothing about
+    // whether it is still in the tree.
+    if (!ctx.mounted) return;
     final colorScheme = Theme.of(ctx).colorScheme;
 
     showDialog(

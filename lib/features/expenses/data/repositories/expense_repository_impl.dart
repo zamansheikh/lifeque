@@ -95,13 +95,19 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   Future<Either<Failure, double>> getMonthlyTotal(int year, int month) async {
     try {
       final sessionsResult = await getSessionsByMonth(year, month);
-      return sessionsResult.fold((failure) => Left(failure), (sessions) {
-        final total = sessions.fold(
-          0.0,
-          (sum, session) => sum + session.totalAmount,
-        );
-        return Right(total);
-      });
+      // The type argument pins fold's result to Either. Without it the
+      // return context (FutureOr<Either<…>>) leaks into the inference and
+      // the analyzer reads this as a Future escaping the try block.
+      return sessionsResult.fold<Either<Failure, double>>(
+        (failure) => Left(failure),
+        (sessions) {
+          final total = sessions.fold(
+            0.0,
+            (sum, session) => sum + session.totalAmount,
+          );
+          return Right(total);
+        },
+      );
     } catch (e) {
       return Left(CacheFailure());
     }
@@ -114,13 +120,19 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   ) async {
     try {
       final sessionsResult = await getSessionsByMonth(year, month);
-      return sessionsResult.fold((failure) => Left(failure), (sessions) {
-        final total = sessions.fold(
-          0.0,
-          (sum, session) => sum + session.purchasedAmount,
-        );
-        return Right(total);
-      });
+      // The type argument pins fold's result to Either. Without it the
+      // return context (FutureOr<Either<…>>) leaks into the inference and
+      // the analyzer reads this as a Future escaping the try block.
+      return sessionsResult.fold<Either<Failure, double>>(
+        (failure) => Left(failure),
+        (sessions) {
+          final total = sessions.fold(
+            0.0,
+            (sum, session) => sum + session.purchasedAmount,
+          );
+          return Right(total);
+        },
+      );
     } catch (e) {
       return Left(CacheFailure());
     }
@@ -133,13 +145,19 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   ) async {
     try {
       final sessionsResult = await getSessionsByMonth(year, month);
-      return sessionsResult.fold((failure) => Left(failure), (sessions) {
-        final total = sessions.fold(
-          0.0,
-          (sum, session) => sum + session.missedAmount,
-        );
-        return Right(total);
-      });
+      // The type argument pins fold's result to Either. Without it the
+      // return context (FutureOr<Either<…>>) leaks into the inference and
+      // the analyzer reads this as a Future escaping the try block.
+      return sessionsResult.fold<Either<Failure, double>>(
+        (failure) => Left(failure),
+        (sessions) {
+          final total = sessions.fold(
+            0.0,
+            (sum, session) => sum + session.missedAmount,
+          );
+          return Right(total);
+        },
+      );
     } catch (e) {
       return Left(CacheFailure());
     }

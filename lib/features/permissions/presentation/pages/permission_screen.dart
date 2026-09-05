@@ -326,7 +326,7 @@ class _PermissionScreenState extends State<PermissionScreen>
           // ── Animated gradient BG (matches onboarding) ──
           AnimatedBuilder(
             animation: _bgController,
-            builder: (_, __) {
+            builder: (_, _) {
               final t = _bgController.value;
               return Container(
                 decoration: BoxDecoration(
@@ -480,7 +480,7 @@ class _PermStepView extends StatelessWidget {
             // ── Hero bubble ──
             AnimatedBuilder(
               animation: heroAnimation,
-              builder: (_, __) {
+              builder: (_, _) {
                 final slide = CurvedAnimation(
                   parent: heroAnimation,
                   curve: Curves.easeOutBack,
@@ -503,7 +503,7 @@ class _PermStepView extends StatelessWidget {
             // ── Title ──
             AnimatedBuilder(
               animation: heroAnimation,
-              builder: (_, __) {
+              builder: (_, _) {
                 final t = CurvedAnimation(
                   parent: heroAnimation,
                   curve: const Interval(0.15, 0.7, curve: Curves.easeOut),
@@ -532,7 +532,7 @@ class _PermStepView extends StatelessWidget {
             // ── Subtitle ──
             AnimatedBuilder(
               animation: heroAnimation,
-              builder: (_, __) {
+              builder: (_, _) {
                 final t = CurvedAnimation(
                   parent: heroAnimation,
                   curve: const Interval(0.25, 0.8, curve: Curves.easeOut),
@@ -558,7 +558,7 @@ class _PermStepView extends StatelessWidget {
             // ── Benefit rows ──
             AnimatedBuilder(
               animation: heroAnimation,
-              builder: (_, __) {
+              builder: (_, _) {
                 final t = CurvedAnimation(
                   parent: heroAnimation,
                   curve: const Interval(0.35, 0.9, curve: Curves.easeOut),
@@ -585,7 +585,7 @@ class _PermStepView extends StatelessWidget {
             // ── CTA ──
             AnimatedBuilder(
               animation: heroAnimation,
-              builder: (_, __) {
+              builder: (_, _) {
                 final t = CurvedAnimation(
                   parent: heroAnimation,
                   curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
@@ -635,7 +635,7 @@ class _PermStepView extends StatelessWidget {
                           ),
                           child: const Text(
                             'Maybe later',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -683,7 +683,7 @@ class _CelebrationView extends StatelessWidget {
             // ── Hero check ──
             AnimatedBuilder(
               animation: heroAnimation,
-              builder: (_, __) {
+              builder: (_, _) {
                 final scale = CurvedAnimation(
                   parent: heroAnimation,
                   curve: Curves.elasticOut,
@@ -728,7 +728,7 @@ class _CelebrationView extends StatelessWidget {
             // ── Title + subtitle ──
             AnimatedBuilder(
               animation: heroAnimation,
-              builder: (_, __) {
+              builder: (_, _) {
                 final t = CurvedAnimation(
                   parent: heroAnimation,
                   curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
@@ -771,7 +771,7 @@ class _CelebrationView extends StatelessWidget {
             // ── Status summary ──
             AnimatedBuilder(
               animation: heroAnimation,
-              builder: (_, __) {
+              builder: (_, _) {
                 final t = CurvedAnimation(
                   parent: heroAnimation,
                   curve: const Interval(0.4, 0.9, curve: Curves.easeOut),
@@ -813,7 +813,7 @@ class _CelebrationView extends StatelessWidget {
             // ── Continue ──
             AnimatedBuilder(
               animation: heroAnimation,
-              builder: (_, __) {
+              builder: (_, _) {
                 final t = CurvedAnimation(
                   parent: heroAnimation,
                   curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
