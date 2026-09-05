@@ -5,15 +5,15 @@ import 'package:uuid/uuid.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
 
+/// Create or edit a task or a reminder.
+///
+/// Birthdays are not offered here: they have their own form and their own
+/// page, and leaving a third tile in this picker would have meant two routes
+/// to the same thing with different questions on each.
 class AddEditTaskPage extends StatefulWidget {
   final String? taskId;
 
-  /// Preselects the kind of thing being created. The birthday page opens this
-  /// screen with [TaskType.birthday] so nobody has to find the type picker
-  /// before typing a name.
-  final TaskType? initialTaskType;
-
-  const AddEditTaskPage({super.key, this.taskId, this.initialTaskType});
+  const AddEditTaskPage({super.key, this.taskId});
 
   @override
   State<AddEditTaskPage> createState() => _AddEditTaskPageState();
@@ -56,8 +56,6 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
     super.initState();
     if (_isEditing) {
       _loadExistingTask();
-    } else if (widget.initialTaskType != null) {
-      _taskType = widget.initialTaskType!;
     }
   }
 
@@ -351,56 +349,6 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                                         fontWeight: FontWeight.w600,
                                         color: _taskType == TaskType.reminder
                                             ? Colors.orange
-                                            : Colors.grey.shade700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: InkWell(
-                              onTap: () =>
-                                  setState(() => _taskType = TaskType.birthday),
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                  horizontal: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _taskType == TaskType.birthday
-                                      ? Colors.pink.withValues(alpha: 0.1)
-                                      : Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: _taskType == TaskType.birthday
-                                        ? Colors.pink
-                                        : Colors.grey.shade300,
-                                    width: _taskType == TaskType.birthday
-                                        ? 2
-                                        : 1,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.cake_rounded,
-                                      color: _taskType == TaskType.birthday
-                                          ? Colors.pink
-                                          : Colors.grey.shade600,
-                                      size: 24,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Birthday',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: _taskType == TaskType.birthday
-                                            ? Colors.pink
                                             : Colors.grey.shade700,
                                       ),
                                     ),

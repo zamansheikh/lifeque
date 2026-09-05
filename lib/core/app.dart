@@ -7,6 +7,7 @@ import '../features/tasks/presentation/pages/task_list_page.dart';
 import '../features/tasks/presentation/pages/add_edit_task_page.dart';
 import '../features/tasks/presentation/pages/task_detail_page.dart';
 import '../features/tasks/presentation/pages/birthday_list_page.dart';
+import '../features/tasks/presentation/pages/add_edit_birthday_page.dart';
 import '../features/tasks/domain/entities/task.dart' show TaskType;
 import '../features/todos/presentation/bloc/todo_bloc.dart';
 import '../features/todos/presentation/pages/todo_list_page.dart';
@@ -114,15 +115,31 @@ class AppRouter {
       GoRoute(
         path: '/add-birthday',
         name: 'add-birthday',
+        builder: (context, state) => const AddEditBirthdayPage(),
+      ),
+      GoRoute(
+        path: '/edit-birthday/:id',
+        name: 'edit-birthday',
         builder: (context, state) =>
-            const AddEditTaskPage(initialTaskType: TaskType.birthday),
+            AddEditBirthdayPage(taskId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/edit-task/:id',
         name: 'edit-task',
         builder: (context, state) {
           final taskId = state.pathParameters['id']!;
-          return AddEditTaskPage(taskId: taskId);
+          // Birthdays share the task store but not the task form. Routing on
+          // the stored type here means every "edit" entry point — the task
+          // detail page included — lands on the right one.
+          final taskState = context.read<TaskBloc>().state;
+          final isBirthday =
+              taskState is TaskLoaded &&
+              taskState.tasks.any(
+                (t) => t.id == taskId && t.taskType == TaskType.birthday,
+              );
+          return isBirthday
+              ? AddEditBirthdayPage(taskId: taskId)
+              : AddEditTaskPage(taskId: taskId);
         },
       ),
       GoRoute(

@@ -258,7 +258,7 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                   label: birthday.isNotificationEnabled
                       ? 'Reminders on'
                       : 'Reminders off',
-                  onTap: () => context.push('/edit-task/${birthday.id}'),
+                  onTap: () => context.push('/edit-birthday/${birthday.id}'),
                 ),
               ),
               const SizedBox(width: 10),
@@ -459,7 +459,7 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                   ),
                   onSelected: (value) {
                     if (value == 'edit') {
-                      context.push('/edit-task/${birthday.id}');
+                      context.push('/edit-birthday/${birthday.id}');
                     } else if (value == 'delete') {
                       _confirmDelete(birthday);
                     }
