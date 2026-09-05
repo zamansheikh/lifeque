@@ -6,19 +6,6 @@ import '../../../../core/utils/alarm_sound_utils.dart';
 import '../utils/prayer_palette.dart';
 import 'prayer_snack.dart';
 
-/// When an alarm fires relative to the start of the waqt. `off` removes it.
-enum AlarmOffset {
-  fiveBefore(-5, '−5m'),
-  onTime(0, 'On time'),
-  tenAfter(10, '+10m'),
-  off(null, 'Off');
-
-  final int? minutes;
-  final String label;
-
-  const AlarmOffset(this.minutes, this.label);
-}
-
 /// The single place prayer alarms are configured: a master switch, per-prayer
 /// timing, the adhan sound and how long it rings.
 ///
@@ -56,9 +43,17 @@ class _SheetState extends State<_Sheet> {
   /// How long the adhan rings before it gives up, in minutes.
   static const _durations = [1, 2, 5, 10];
 
+  /// Range the offset slider covers, in minutes relative to the waqt start.
+  static const _minOffset = -30.0;
+  static const _maxOffset = 60.0;
+
   late bool _globalEnabled = _service.isEnabled;
   late String _soundPath;
   late int _duration;
+  late bool _vibrate;
+
+  /// Slider positions mid-drag, before they are committed on release.
+  final Map<String, int> _pendingOffsets = {};
 
   @override
   void initState() {
@@ -69,6 +64,7 @@ class _SheetState extends State<_Sheet> {
     _soundPath =
         existing?.soundPath ?? AlarmSoundUtils.availableAlarmSounds[0]['path']!;
     _duration = existing?.alarmDurationMinutes ?? 2;
+    _vibrate = existing?.vibrate ?? true;
   }
 
   @override
@@ -77,32 +73,38 @@ class _SheetState extends State<_Sheet> {
     super.dispose();
   }
 
-  AlarmOffset _offsetFor(String prayer) {
-    final config =
-        _service.alarms.where((a) => a.prayerName == prayer).firstOrNull;
-    if (config == null || !config.isEnabled) return AlarmOffset.off;
-    if (config.type != PrayerAlarmType.afterPrayerStart) return AlarmOffset.off;
-    for (final offset in AlarmOffset.values) {
-      if (offset.minutes == config.minutesAfterStart) return offset;
-    }
-    return AlarmOffset.onTime;
+  PrayerAlarmConfig? _configFor(String prayer) =>
+      _service.alarms.where((a) => a.prayerName == prayer).firstOrNull;
+
+  /// Minutes relative to the waqt start, or null when the alarm is off.
+  int? _minutesFor(String prayer) {
+    final pending = _pendingOffsets[prayer];
+    if (pending != null) return pending;
+    final config = _configFor(prayer);
+    if (config == null || !config.isEnabled) return null;
+    if (config.type != PrayerAlarmType.afterPrayerStart) return null;
+    return config.minutesAfterStart;
   }
 
-  Future<void> _setOffset(String prayer, AlarmOffset offset) async {
-    if (offset == AlarmOffset.off) {
-      await _service.removeAlarm(prayer);
-      if (mounted) setState(() {});
-      return;
-    }
-    final existing =
-        _service.alarms.where((a) => a.prayerName == prayer).firstOrNull;
+  /// e.g. `On time`, `5 min before waqt`, `10 min after waqt`.
+  String _offsetLabel(int minutes) {
+    if (minutes == 0) return 'On time';
+    final unit = minutes.abs() == 1 ? 'min' : 'min';
+    return minutes < 0
+        ? '${minutes.abs()} $unit before waqt'
+        : '$minutes $unit after waqt';
+  }
+
+  Future<void> _setMinutes(String prayer, int minutes) async {
+    final existing = _configFor(prayer);
     final config = PrayerAlarmConfig(
       prayerName: prayer,
       type: PrayerAlarmType.afterPrayerStart,
-      minutesAfterStart: offset.minutes!,
+      minutesAfterStart: minutes,
       isEnabled: true,
       soundPath: _soundPath,
       alarmDurationMinutes: _duration,
+      vibrate: _vibrate,
     );
     if (existing != null) {
       await _service.updateAlarm(config);
@@ -116,18 +118,11 @@ class _SheetState extends State<_Sheet> {
   /// "Adhan voice" choice in More — so changing one rewrites them all.
   Future<void> _applyToAllAlarms() async {
     for (final alarm in List.of(_service.alarms)) {
-      // PrayerAlarmConfig has no copyWith — rebuild it, carrying every other
-      // field through so nothing is silently reset.
       await _service.updateAlarm(
-        PrayerAlarmConfig(
-          prayerName: alarm.prayerName,
-          type: alarm.type,
-          minutesBeforeEnd: alarm.minutesBeforeEnd,
-          minutesAfterStart: alarm.minutesAfterStart,
-          fixedTime: alarm.fixedTime,
-          isEnabled: alarm.isEnabled,
+        alarm.copyWith(
           soundPath: _soundPath,
           alarmDurationMinutes: _duration,
+          vibrate: _vibrate,
         ),
       );
     }
@@ -184,6 +179,8 @@ class _SheetState extends State<_Sheet> {
           _section('Rings for'),
           const SizedBox(height: 8),
           _durationRow(),
+          const SizedBox(height: 18),
+          _vibrationRow(),
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
@@ -274,65 +271,121 @@ class _SheetState extends State<_Sheet> {
         ),
       );
 
+  /// A row per prayer: an on/off switch, and — when on — a slider for the
+  /// exact offset, so any minute in range is reachable rather than only the
+  /// three presets the chips used to offer.
   Widget _prayerRow(String prayer) {
-    final active = _offsetFor(prayer);
-    return Row(
-      children: [
-        SizedBox(
-          width: 62,
-          child: Text(
-            prayer,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: PrayerPalette.ink,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+    final minutes = _minutesFor(prayer);
+    final isOn = minutes != null;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(12, 8, 12, isOn ? 4 : 8),
+      decoration: BoxDecoration(
+        color: isOn ? PrayerPalette.accentA(0.06) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isOn ? PrayerPalette.accentA(0.3) : PrayerPalette.inkA(0.12),
         ),
-        for (final offset in AlarmOffset.values) ...[
-          const SizedBox(width: 8),
-          Expanded(child: _chip(prayer, offset, offset == active)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 66,
+                child: Text(
+                  prayer,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: PrayerPalette.ink,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  isOn ? _offsetLabel(minutes) : 'No alarm',
+                  style: TextStyle(
+                    color:
+                        isOn ? PrayerPalette.accent : PrayerPalette.inkA(0.45),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              _switch(
+                value: isOn,
+                compact: true,
+                onChanged: (v) async {
+                  if (v) {
+                    await _setMinutes(prayer, 0);
+                  } else {
+                    await _service.removeAlarm(prayer);
+                    if (mounted) setState(() {});
+                  }
+                },
+              ),
+            ],
+          ),
+          if (isOn) _offsetSlider(prayer, minutes),
         ],
-      ],
+      ),
     );
   }
 
-  Widget _chip(String prayer, AlarmOffset offset, bool active) {
-    // "Off" reads as a neutral state rather than a positive choice, so it
-    // takes the dark ink fill instead of the accent green.
-    final bg = !active
-        ? Colors.white
-        : offset == AlarmOffset.off
-            ? PrayerPalette.inkA(0.85)
-            : PrayerPalette.accent;
-
-    return InkWell(
-      onTap: () => _setOffset(prayer, offset),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 7),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: active ? Colors.transparent : PrayerPalette.inkA(0.15),
+  Widget _offsetSlider(String prayer, int minutes) {
+    return Row(
+      children: [
+        Text(
+          '${_minOffset.round()}',
+          style: TextStyle(
+            color: PrayerPalette.inkA(0.35),
+            fontSize: 9.5,
+            fontWeight: FontWeight.w700,
           ),
         ),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            offset.label,
-            style: TextStyle(
-              color: active ? Colors.white : PrayerPalette.inkA(0.7),
-              fontSize: 10.5,
-              fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+        Expanded(
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 3,
+              activeTrackColor: PrayerPalette.accent,
+              inactiveTrackColor: PrayerPalette.inkA(0.12),
+              thumbColor: PrayerPalette.accent,
+              overlayColor: PrayerPalette.accentA(0.15),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+              valueIndicatorColor: PrayerPalette.ink,
+              showValueIndicator: ShowValueIndicator.onDrag,
+            ),
+            child: Slider(
+              value: minutes.toDouble().clamp(_minOffset, _maxOffset),
+              min: _minOffset,
+              max: _maxOffset,
+              // One division per minute, so every value is reachable.
+              divisions: (_maxOffset - _minOffset).round(),
+              label: _offsetLabel(minutes),
+              // Track the finger live, but only write on release — each
+              // write reschedules the OS alarm.
+              onChanged: (v) =>
+                  setState(() => _pendingOffsets[prayer] = v.round()),
+              onChangeEnd: (v) async {
+                _pendingOffsets.remove(prayer);
+                await _setMinutes(prayer, v.round());
+              },
             ),
           ),
         ),
-      ),
+        Text(
+          '+${_maxOffset.round()}',
+          style: TextStyle(
+            color: PrayerPalette.inkA(0.35),
+            fontSize: 9.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 
@@ -444,6 +497,69 @@ class _SheetState extends State<_Sheet> {
     );
   }
 
+  /// Vibration rides along with the adhan; some users keep the phone silent
+  /// and rely on the buzz alone, so it is separately switchable.
+  Widget _vibrationRow() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: PrayerPalette.canvas,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PrayerPalette.inkA(0.08)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: PrayerPalette.accentA(0.12),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: const Icon(
+              Icons.vibration_rounded,
+              size: 17,
+              color: PrayerPalette.accent,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Vibrate',
+                  style: TextStyle(
+                    color: PrayerPalette.ink,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  'Buzz while the adhan plays',
+                  style: TextStyle(
+                    color: PrayerPalette.inkA(0.5),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _switch(
+            value: _vibrate,
+            onChanged: (v) async {
+              setState(() => _vibrate = v);
+              await _applyToAllAlarms();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _durationRow() {
     return Row(
       children: [
@@ -493,25 +609,29 @@ class _SheetState extends State<_Sheet> {
   Widget _switch({
     required bool value,
     required ValueChanged<bool> onChanged,
+    bool compact = false,
   }) {
+    final w = compact ? 38.0 : 44.0;
+    final h = compact ? 22.0 : 26.0;
+    final knob = compact ? 16.0 : 20.0;
     return InkWell(
       onTap: () => onChanged(!value),
       borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 44,
-        height: 26,
+        width: w,
+        height: h,
         decoration: BoxDecoration(
           color: value ? PrayerPalette.accent : PrayerPalette.inkA(0.2),
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(h / 2),
         ),
         child: AnimatedAlign(
           duration: const Duration(milliseconds: 200),
           alignment: value ? Alignment.centerRight : Alignment.centerLeft,
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 3),
-            width: 20,
-            height: 20,
+            width: knob,
+            height: knob,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white,

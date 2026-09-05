@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../data/services/prayer_settings_service.dart';
 import '../utils/prayer_palette.dart';
 
-/// Sets one prayer's mosque (jamaat) time with a ±5-minute stepper, and
-/// carries the Ramadan-mode switch that auto-derives Fajr and Maghrib from
-/// the waqt.
+/// Sets one prayer's mosque (jamaat) time — nudge it in 5-minute steps or
+/// pick an exact wall-clock time — and carries the Ramadan-mode switch that
+/// auto-derives Fajr and Maghrib from the waqt.
 class MosqueTimeEditSheet extends StatefulWidget {
   final String prayer;
   final TimeOfDay? currentMosqueTime;
@@ -103,16 +103,16 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
         '${t.hour < 12 ? 'am' : 'pm'}';
   }
 
-  /// How far the jamaat sits from the waqt, as the design's caption.
+  /// How far the jamaat sits from the waqt.
   String get _delta {
     final waqt = widget.waqtTime;
-    if (waqt == null) return 'steps of 5 min';
-    final diff = (_time.hour * 60 + _time.minute) -
-        (waqt.hour * 60 + waqt.minute);
-    if (diff == 0) return 'same as waqt · steps of 5 min';
+    if (waqt == null) return 'Nudge by 5 min, or pick an exact time';
+    final diff =
+        (_time.hour * 60 + _time.minute) - (waqt.hour * 60 + waqt.minute);
+    if (diff == 0) return 'Same as waqt';
     return diff > 0
-        ? '+$diff min after waqt · steps of 5 min'
-        : '$diff min before waqt · steps of 5 min';
+        ? '$diff min after waqt'
+        : '${diff.abs()} min before waqt';
   }
 
   @override
@@ -151,6 +151,8 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
             ),
             const SizedBox(height: 16),
             _stepper(),
+            const SizedBox(height: 10),
+            _pickExactButton(),
             const SizedBox(height: 6),
             Text(
               _locked
@@ -190,6 +192,54 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
         ),
       ),
     );
+  }
+
+  /// Nudging by 5 minutes is fine for small corrections, but a mosque's
+  /// jamaat is an arbitrary wall-clock time — this sets it directly.
+  Widget _pickExactButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: _locked ? null : _pickExactTime,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: PrayerPalette.accent,
+          side: BorderSide(
+            color: _locked
+                ? PrayerPalette.inkA(0.12)
+                : PrayerPalette.accentA(0.4),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        icon: const Icon(Icons.schedule_rounded, size: 17),
+        label: const Text(
+          'Pick exact time',
+          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickExactTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _time,
+      helpText: '${widget.prayer} jamaat time',
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
+                primary: PrayerPalette.accent,
+                onPrimary: Colors.white,
+                surface: Colors.white,
+              ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _time = picked);
   }
 
   Widget _stepper() {

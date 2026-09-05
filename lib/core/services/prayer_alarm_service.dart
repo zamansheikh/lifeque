@@ -18,6 +18,7 @@ class PrayerAlarmConfig {
   final bool isEnabled;
   final String soundPath;
   final int alarmDurationMinutes; // Duration in minutes before auto-stop
+  final bool vibrate; // Buzz alongside the adhan
 
   PrayerAlarmConfig({
     required this.prayerName,
@@ -28,7 +29,32 @@ class PrayerAlarmConfig {
     this.isEnabled = true,
     this.soundPath = 'assets/audio/alarm_sound_1.mp3', // Use custom sound
     this.alarmDurationMinutes = 2, // Default 2 minutes
+    this.vibrate = true,
   });
+
+  PrayerAlarmConfig copyWith({
+    String? prayerName,
+    PrayerAlarmType? type,
+    int? minutesBeforeEnd,
+    int? minutesAfterStart,
+    DateTime? fixedTime,
+    bool? isEnabled,
+    String? soundPath,
+    int? alarmDurationMinutes,
+    bool? vibrate,
+  }) {
+    return PrayerAlarmConfig(
+      prayerName: prayerName ?? this.prayerName,
+      type: type ?? this.type,
+      minutesBeforeEnd: minutesBeforeEnd ?? this.minutesBeforeEnd,
+      minutesAfterStart: minutesAfterStart ?? this.minutesAfterStart,
+      fixedTime: fixedTime ?? this.fixedTime,
+      isEnabled: isEnabled ?? this.isEnabled,
+      soundPath: soundPath ?? this.soundPath,
+      alarmDurationMinutes: alarmDurationMinutes ?? this.alarmDurationMinutes,
+      vibrate: vibrate ?? this.vibrate,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -40,6 +66,7 @@ class PrayerAlarmConfig {
       'isEnabled': isEnabled,
       'soundPath': soundPath,
       'alarmDurationMinutes': alarmDurationMinutes,
+      'vibrate': vibrate,
     };
   }
 
@@ -68,6 +95,8 @@ class PrayerAlarmConfig {
       alarmDurationMinutes: json['alarmDurationMinutes'] is String
           ? int.parse(json['alarmDurationMinutes'])
           : (json['alarmDurationMinutes'] ?? 2),
+      // Alarms saved before vibration was configurable buzzed by default.
+      vibrate: json['vibrate'] ?? true,
     );
   }
 }
@@ -376,7 +405,7 @@ class PrayerAlarmService {
       dateTime: alarmTime,
       assetAudioPath: alarmSoundPath, // Per-prayer user-selected sound
       loopAudio: true, // Enable looping to repeat the sound
-      vibrate: true,
+      vibrate: config.vibrate,
       warningNotificationOnKill: true,
       androidFullScreenIntent: true,
       volumeSettings: VolumeSettings.fade(
