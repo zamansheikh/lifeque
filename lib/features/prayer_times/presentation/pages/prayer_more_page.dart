@@ -1,12 +1,14 @@
 import 'package:adhan/adhan.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/utils/alarm_sound_preview.dart';
 import '../../../../core/utils/alarm_sound_utils.dart';
 import '../../../islamic_resources/presentation/pages/islamic_resources_page.dart'
     hide IslamicColors;
 import '../../data/services/prayer_settings_service.dart';
 import '../utils/prayer_palette.dart';
 import '../widgets/after_prayer_duas_sheet.dart';
+import '../widgets/prayer_snack.dart';
 import 'prayer_alarm_page.dart';
 import 'prayer_stats_page.dart';
 
@@ -49,6 +51,13 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    // Don't leave a preview playing after the user navigates away.
+    AlarmSoundPreview.instance.stop();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -322,9 +331,52 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
                 ],
               ),
             ),
+            const SizedBox(width: 8),
+            _previewButton(sound['path']!),
           ],
         ),
       ),
+    );
+  }
+
+  /// Audition a sound without selecting it.
+  Widget _previewButton(String path) {
+    return ValueListenableBuilder<String?>(
+      valueListenable: AlarmSoundPreview.instance.playing,
+      builder: (_, current, child) {
+        final isPlaying = current == path;
+        return InkWell(
+          onTap: () async {
+            try {
+              await AlarmSoundPreview.instance.toggle(path);
+            } catch (_) {
+              if (!mounted) return;
+              PrayerSnack.show(
+                context,
+                'Could not play this sound',
+                kind: PrayerSnackKind.error,
+              );
+            }
+          },
+          customBorder: const CircleBorder(),
+          child: Container(
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isPlaying
+                  ? PrayerPalette.accent
+                  : PrayerPalette.accentA(0.12),
+            ),
+            child: Icon(
+              isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded,
+              size: 18,
+              color: isPlaying ? Colors.white : PrayerPalette.accent,
+            ),
+          ),
+        );
+      },
     );
   }
 
