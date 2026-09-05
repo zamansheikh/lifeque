@@ -15,6 +15,10 @@ class MosqueTimeEditSheet extends StatefulWidget {
   /// True for Fajr and Maghrib, whose jamaat Ramadan mode computes itself.
   final bool isLockedByRamadan;
 
+  /// True while the shown time is still the customary default rather than one
+  /// the user has confirmed — mosques vary, so say so.
+  final bool isDefault;
+
   final void Function(TimeOfDay) onSaved;
   final ValueChanged<bool> onRamadanModeChanged;
 
@@ -25,6 +29,7 @@ class MosqueTimeEditSheet extends StatefulWidget {
     required this.waqtTime,
     required this.isRamadanMode,
     required this.isLockedByRamadan,
+    required this.isDefault,
     required this.onSaved,
     required this.onRamadanModeChanged,
   });
@@ -35,6 +40,7 @@ class MosqueTimeEditSheet extends StatefulWidget {
     required TimeOfDay? currentMosqueTime,
     required TimeOfDay? waqtTime,
     required bool isLockedByRamadan,
+    bool isDefault = false,
     required void Function(TimeOfDay) onSaved,
     required ValueChanged<bool> onRamadanModeChanged,
   }) async {
@@ -53,6 +59,7 @@ class MosqueTimeEditSheet extends StatefulWidget {
         waqtTime: waqtTime,
         isRamadanMode: ramadan,
         isLockedByRamadan: isLockedByRamadan,
+        isDefault: isDefault,
         onSaved: onSaved,
         onRamadanModeChanged: onRamadanModeChanged,
       ),
@@ -74,7 +81,8 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
   void initState() {
     super.initState();
     _ramadan = widget.isRamadanMode;
-    _time = widget.currentMosqueTime ??
+    _time =
+        widget.currentMosqueTime ??
         widget.waqtTime ??
         const TimeOfDay(hour: 5, minute: 0);
     if (_locked) _time = _ramadanDerived;
@@ -110,9 +118,7 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
     final diff =
         (_time.hour * 60 + _time.minute) - (waqt.hour * 60 + waqt.minute);
     if (diff == 0) return 'Same as waqt';
-    return diff > 0
-        ? '$diff min after waqt'
-        : '${diff.abs()} min before waqt';
+    return diff > 0 ? '$diff min after waqt' : '${diff.abs()} min before waqt';
   }
 
   @override
@@ -149,15 +155,25 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
                 fontWeight: FontWeight.w500,
               ),
             ),
+            if (widget.isDefault && !_locked) ...[
+              const SizedBox(height: 12),
+              _defaultNotice(),
+            ],
             const SizedBox(height: 16),
             _stepper(),
             const SizedBox(height: 10),
-            _pickExactButton(),
+            Row(
+              children: [
+                Expanded(child: _pickExactButton()),
+                if (widget.waqtTime != null) ...[
+                  const SizedBox(width: 8),
+                  Expanded(child: _sameAsWaqtButton()),
+                ],
+              ],
+            ),
             const SizedBox(height: 6),
             Text(
-              _locked
-                  ? 'Set automatically by Ramadan mode'
-                  : _delta,
+              _locked ? 'Set automatically by Ramadan mode' : _delta,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: PrayerPalette.inkA(0.55),
@@ -194,28 +210,90 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
     );
   }
 
+  /// Every mosque sets its own jamaat, so be explicit that this is a
+  /// starting point rather than something we know about their mosque.
+  Widget _defaultNotice() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: PrayerPalette.gold.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.info_outline_rounded,
+            size: 15,
+            color: Color(0xFFB8901E),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'A common default — set your mosque\'s actual time',
+              style: TextStyle(
+                color: PrayerPalette.inkA(0.75),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Nudging by 5 minutes is fine for small corrections, but a mosque's
   /// jamaat is an arbitrary wall-clock time — this sets it directly.
   Widget _pickExactButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: _locked ? null : _pickExactTime,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: PrayerPalette.accent,
-          side: BorderSide(
-            color: _locked
-                ? PrayerPalette.inkA(0.12)
-                : PrayerPalette.accentA(0.4),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 11),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
+    return OutlinedButton.icon(
+      onPressed: _locked ? null : _pickExactTime,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: PrayerPalette.accent,
+        side: BorderSide(
+          color: _locked
+              ? PrayerPalette.inkA(0.12)
+              : PrayerPalette.accentA(0.4),
         ),
-        icon: const Icon(Icons.schedule_rounded, size: 17),
-        label: const Text(
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      icon: const Icon(Icons.schedule_rounded, size: 16),
+      label: const FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
           'Pick exact time',
+          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+  }
+
+  /// Some congregations — Maghrib especially — pray effectively at the waqt,
+  /// so make that a one-tap choice instead of stepping down to it.
+  Widget _sameAsWaqtButton() {
+    final waqt = widget.waqtTime;
+    final isSame =
+        waqt != null && waqt.hour == _time.hour && waqt.minute == _time.minute;
+    return OutlinedButton.icon(
+      onPressed: _locked || waqt == null
+          ? null
+          : () => setState(() => _time = waqt),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: isSame ? Colors.white : PrayerPalette.accent,
+        backgroundColor: isSame ? PrayerPalette.accent : null,
+        side: BorderSide(
+          color: _locked
+              ? PrayerPalette.inkA(0.12)
+              : PrayerPalette.accentA(0.4),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      icon: const Icon(Icons.vertical_align_center_rounded, size: 16),
+      label: const FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          'Same as waqt',
           style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
         ),
       ),
@@ -230,10 +308,10 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: Theme.of(context).colorScheme.copyWith(
-                primary: PrayerPalette.accent,
-                onPrimary: Colors.white,
-                surface: Colors.white,
-              ),
+            primary: PrayerPalette.accent,
+            onPrimary: Colors.white,
+            surface: Colors.white,
+          ),
         ),
         child: child!,
       ),
@@ -368,8 +446,9 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
               ),
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 200),
-                alignment:
-                    _ramadan ? Alignment.centerRight : Alignment.centerLeft,
+                alignment: _ramadan
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 2.5),
                   width: 18,

@@ -8,6 +8,7 @@ import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_
 import 'package:lifeque/features/home_widget/presentation/widgets/day_timeline_widget_ui.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/mosque_widget_ui.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/slim_bar_widget_ui.dart';
+import 'package:lifeque/features/prayer_times/data/services/jamaat_defaults.dart';
 import 'package:lifeque/features/prayer_times/data/services/prayer_settings_service.dart';
 import 'package:lifeque/features/prayer_times/presentation/utils/bangla_date.dart';
 import 'package:intl/intl.dart';
@@ -357,7 +358,10 @@ class HomeWidgetService {
             saved.$2,
           );
         } else {
-          jamaat = times[prayer]!;
+          // Nothing saved yet (fresh install): fall back to the customary
+          // offset rather than the waqt itself, which no mosque prays at.
+          jamaat = JamaatDefaults.forPrayer(prayer, times[prayer]!) ??
+              times[prayer]!;
         }
 
         chips.add(

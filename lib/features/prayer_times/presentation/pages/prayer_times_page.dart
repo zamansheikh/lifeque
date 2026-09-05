@@ -16,6 +16,7 @@ import '../../../../core/utils/alarm_sound_utils.dart';
 import '../../../islamic_resources/presentation/pages/islamic_resources_page.dart'
     hide IslamicColors;
 import '../../data/services/prayer_completion_service.dart';
+import '../../data/services/jamaat_defaults.dart';
 import '../../data/services/prayer_settings_service.dart';
 import '../utils/bangla_date.dart';
 import '../utils/islamic_colors.dart';
@@ -870,9 +871,20 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       if (waqt != null) return waqt.add(const Duration(minutes: 15));
     }
     final tod = _mosqueTimes[prayer];
-    if (tod == null) return null;
+    if (tod == null) {
+      // Show the customary default until the user sets their mosque's time,
+      // so the list and the home-screen widget agree from first launch.
+      final waqt = times[prayer];
+      return waqt == null ? null : JamaatDefaults.forPrayer(prayer, waqt);
+    }
     return DateTime(date.year, date.month, date.day, tod.hour, tod.minute);
   }
+
+  /// True while a prayer is still showing the default rather than a time the
+  /// user has confirmed — drives the hint in the edit sheet.
+  bool _isJamaatDefault(String prayer) =>
+      _mosqueTimes[prayer] == null &&
+      !(_ramadanMode && (prayer == 'Fajr' || prayer == 'Maghrib'));
 
   /// Opens the restricted-times info as a centered modal dialog (was a
   /// bottom sheet — user prefers a dialog). Designed in the same Islamic
@@ -983,6 +995,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       currentMosqueTime: _mosqueTimes[prayer],
       waqtTime: waqt,
       isLockedByRamadan: lockedByRamadan,
+      isDefault: _isJamaatDefault(prayer),
       onSaved: (time) async {
         await _settingsService.saveMosqueTime(
           prayer.toLowerCase(),
