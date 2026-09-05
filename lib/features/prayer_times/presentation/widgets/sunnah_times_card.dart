@@ -71,8 +71,11 @@ class SunnahTimesCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.auto_awesome_rounded,
-                      size: 16, color: IslamicColors.goldLight),
+                  const Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 16,
+                    color: IslamicColors.goldLight,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     'SUNNAH TIMES',

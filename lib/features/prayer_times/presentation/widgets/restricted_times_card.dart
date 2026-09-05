@@ -63,22 +63,15 @@ class RestrictedTimesCard extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: isActive
-                  ? const [
-                      IslamicColors.warning,
-                      IslamicColors.burgundy,
-                    ]
-                  : const [
-                      IslamicColors.emeraldMid,
-                      IslamicColors.emerald,
-                    ],
+                  ? const [IslamicColors.warning, IslamicColors.burgundy]
+                  : const [IslamicColors.emeraldMid, IslamicColors.emerald],
             ),
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: (isActive
-                        ? IslamicColors.warning
-                        : IslamicColors.emerald)
-                    .withValues(alpha: 0.35),
+                color:
+                    (isActive ? IslamicColors.warning : IslamicColors.emerald)
+                        .withValues(alpha: 0.35),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -206,10 +199,7 @@ class RestrictedTimesCard extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 6,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.22),
               borderRadius: BorderRadius.circular(20),
@@ -243,8 +233,11 @@ class RestrictedTimesCard extends StatelessWidget {
         children: [
           Row(
             children: const [
-              Icon(Icons.info_outline_rounded,
-                  size: 16, color: IslamicColors.gold),
+              Icon(
+                Icons.info_outline_rounded,
+                size: 16,
+                color: IslamicColors.gold,
+              ),
               SizedBox(width: 6),
               Text(
                 'Why these times?',
@@ -300,8 +293,8 @@ class _PeriodRow extends StatelessWidget {
     final accent = isActive
         ? IslamicColors.warning
         : isPast
-            ? IslamicColors.emeraldLight
-            : IslamicColors.goldDeep;
+        ? IslamicColors.emeraldLight
+        : IslamicColors.goldDeep;
     final bg = isActive
         ? IslamicColors.warning.withValues(alpha: 0.08)
         : IslamicColors.cream;
@@ -326,11 +319,7 @@ class _PeriodRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: accent.withValues(alpha: 0.4)),
             ),
-            child: Icon(
-              _iconFor(name),
-              size: 18,
-              color: accent,
-            ),
+            child: Icon(_iconFor(name), size: 18, color: accent),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -376,8 +365,8 @@ class _PeriodRow extends StatelessWidget {
                 isActive
                     ? 'ACTIVE'
                     : isPast
-                        ? 'PASSED'
-                        : 'UPCOMING',
+                    ? 'PASSED'
+                    : 'UPCOMING',
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.w800,

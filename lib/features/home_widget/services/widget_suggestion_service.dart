@@ -77,9 +77,7 @@ class WidgetSuggestionService {
   /// Ask the launcher to pin [widget]. The system shows its own confirmation,
   /// so a success here means "asked", not "placed".
   Future<void> pin(PinnableWidget widget) async {
-    await HomeWidget.requestPinWidget(
-      qualifiedAndroidName: widget.provider,
-    );
+    await HomeWidget.requestPinWidget(qualifiedAndroidName: widget.provider);
     await markPinned();
   }
 

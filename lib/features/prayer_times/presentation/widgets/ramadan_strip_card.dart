@@ -110,10 +110,10 @@ class RamadanStripCard extends StatelessWidget {
   }
 
   Widget _divider() => Container(
-        width: 1,
-        margin: const EdgeInsets.symmetric(horizontal: 8),
-        color: Colors.white.withValues(alpha: 0.18),
-      );
+    width: 1,
+    margin: const EdgeInsets.symmetric(horizontal: 8),
+    color: Colors.white.withValues(alpha: 0.18),
+  );
 
   Widget _stat({
     required String value,

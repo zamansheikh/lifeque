@@ -9,8 +9,7 @@ class PrayerCompletionService {
   static const _prefsKey = 'prayer_completions_v1';
   static const _prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
-  static final PrayerCompletionService instance =
-      PrayerCompletionService._();
+  static final PrayerCompletionService instance = PrayerCompletionService._();
   PrayerCompletionService._();
 
   static String _dateKey(DateTime d) =>

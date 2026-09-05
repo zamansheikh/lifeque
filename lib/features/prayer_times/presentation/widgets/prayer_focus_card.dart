@@ -82,9 +82,7 @@ class PrayerFocusCard extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.14),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.22),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
             borderRadius: BorderRadius.circular(24),
           ),
           child: Column(
@@ -137,10 +135,7 @@ class PrayerFocusCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Expanded(
-                      child: _WaqtTile(
-                        startTime: waqtTime,
-                        endTime: windowEnd,
-                      ),
+                      child: _WaqtTile(startTime: waqtTime, endTime: windowEnd),
                     ),
                     Container(
                       width: 1,
@@ -295,9 +290,11 @@ class _WaqtTile extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(Icons.arrow_forward_rounded,
-                  size: 10,
-                  color: Colors.white.withValues(alpha: 0.6)),
+              Icon(
+                Icons.arrow_forward_rounded,
+                size: 10,
+                color: Colors.white.withValues(alpha: 0.6),
+              ),
               const SizedBox(width: 4),
               Text(
                 'ends ${DateFormat('h:mm a').format(endTime!).toLowerCase()}',
@@ -356,10 +353,7 @@ class _WindowProgress extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
           child: Stack(
             children: [
-              Container(
-                height: 5,
-                color: Colors.white.withValues(alpha: 0.15),
-              ),
+              Container(height: 5, color: Colors.white.withValues(alpha: 0.15)),
               FractionallySizedBox(
                 widthFactor: frac,
                 child: Container(
@@ -433,8 +427,7 @@ class _MosqueTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.mosque_rounded,
-                  size: 11, color: IslamicColors.mint),
+              Icon(Icons.mosque_rounded, size: 11, color: IslamicColors.mint),
               const SizedBox(width: 4),
               Text(
                 'MOSQUE',
@@ -447,18 +440,17 @@ class _MosqueTile extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               if (!isAuto)
-                Icon(Icons.edit_outlined,
-                    size: 11,
-                    color: Colors.white.withValues(alpha: 0.6)),
+                Icon(
+                  Icons.edit_outlined,
+                  size: 11,
+                  color: Colors.white.withValues(alpha: 0.6),
+                ),
             ],
           ),
           const SizedBox(height: 4),
           if (time == null)
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 6,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: IslamicColors.mint.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
@@ -470,8 +462,7 @@ class _MosqueTile extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: const [
-                  Icon(Icons.add_rounded,
-                      size: 14, color: IslamicColors.mint),
+                  Icon(Icons.add_rounded, size: 14, color: IslamicColors.mint),
                   SizedBox(width: 4),
                   Text(
                     'Set jamaat',
@@ -515,10 +506,10 @@ class _MosqueTile extends StatelessWidget {
             isAuto
                 ? '✦ Auto · Waqt + 15m'
                 : delta == null
-                    ? 'tap to set'
-                    : (delta == 0
-                        ? 'same as Waqt'
-                        : (delta! > 0
+                ? 'tap to set'
+                : (delta == 0
+                      ? 'same as Waqt'
+                      : (delta! > 0
                             ? '+${delta!}m after Waqt'
                             : '${delta!}m before Waqt')),
             style: TextStyle(
@@ -564,8 +555,7 @@ class _PrayedPill extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color:
-                          IslamicColors.emeraldLight.withValues(alpha: 0.55),
+                      color: IslamicColors.emeraldLight.withValues(alpha: 0.55),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -727,11 +717,11 @@ class _AlarmChip extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(icon,
-                    size: 12,
-                    color: active
-                        ? IslamicColors.midnight
-                        : Colors.white),
+                Icon(
+                  icon,
+                  size: 12,
+                  color: active ? IslamicColors.midnight : Colors.white,
+                ),
                 const SizedBox(width: 4),
               ],
               Text(
@@ -740,9 +730,7 @@ class _AlarmChip extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-                  color: active
-                      ? IslamicColors.midnight
-                      : Colors.white,
+                  color: active ? IslamicColors.midnight : Colors.white,
                 ),
               ),
             ],
@@ -843,13 +831,13 @@ class _RestrictedStrip extends StatelessWidget {
     final bg = isActive
         ? IslamicColors.warning.withValues(alpha: 0.32)
         : allPassed
-            ? IslamicColors.emerald.withValues(alpha: 0.18)
-            : Colors.white.withValues(alpha: 0.08);
+        ? IslamicColors.emerald.withValues(alpha: 0.18)
+        : Colors.white.withValues(alpha: 0.08);
     final border = isActive
         ? IslamicColors.warningLight
         : allPassed
-            ? IslamicColors.emeraldLight.withValues(alpha: 0.4)
-            : IslamicColors.warning.withValues(alpha: 0.35);
+        ? IslamicColors.emeraldLight.withValues(alpha: 0.4)
+        : IslamicColors.warning.withValues(alpha: 0.35);
 
     return Material(
       color: Colors.transparent,
@@ -879,20 +867,18 @@ class _RestrictedStrip extends StatelessWidget {
                 isActive
                     ? Icons.do_not_disturb_on_rounded
                     : allPassed
-                        ? Icons.check_circle_rounded
-                        : Icons.do_not_disturb_on_outlined,
+                    ? Icons.check_circle_rounded
+                    : Icons.do_not_disturb_on_outlined,
                 size: 16,
-                color: allPassed
-                    ? IslamicColors.mint
-                    : Colors.white,
+                color: allPassed ? IslamicColors.mint : Colors.white,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: isActive
                     ? _activeSummary()
                     : allPassed
-                        ? _passedSummary()
-                        : _passiveSummary(next!),
+                    ? _passedSummary()
+                    : _passiveSummary(next!),
               ),
               const SizedBox(width: 4),
               Icon(

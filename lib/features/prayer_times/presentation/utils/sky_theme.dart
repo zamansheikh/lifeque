@@ -64,11 +64,7 @@ class SkyTheme {
 
   /// Dhuhr — emerald-tinted blue, midday sky over an oasis.
   static const SkyTheme dhuhr = SkyTheme(
-    gradient: [
-      IslamicColors.teal,
-      IslamicColors.tealLight,
-      Color(0xFF7FBDB3),
-    ],
+    gradient: [IslamicColors.teal, IslamicColors.tealLight, Color(0xFF7FBDB3)],
     accent: IslamicColors.gold,
     onAccent: Colors.white,
     icon: Icons.wb_sunny_rounded,

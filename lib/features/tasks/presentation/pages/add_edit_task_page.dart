@@ -5,11 +5,12 @@ import 'package:uuid/uuid.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
 
-/// Create or edit a task or a reminder.
+/// Create or edit a task.
 ///
-/// Birthdays are not offered here: they have their own form and their own
-/// page, and leaving a third tile in this picker would have meant two routes
-/// to the same thing with different questions on each.
+/// Reminders and birthdays are not offered here — each has its own page and
+/// its own form, asking only what that kind of thing actually needs. Leaving
+/// a type picker on this screen would have meant three routes to the same
+/// three things, with different questions on each.
 class AddEditTaskPage extends StatefulWidget {
   final String? taskId;
 
@@ -220,149 +221,6 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                   maxLines: 2,
                 ),
                 const SizedBox(height: 24),
-
-                // Task Type Selector - More compact
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.purple.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Icon(
-                              Icons.category_rounded,
-                              color: Colors.purple,
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Task Type',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      // Compact horizontal task type selection
-                      Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: () =>
-                                  setState(() => _taskType = TaskType.task),
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                  horizontal: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _taskType == TaskType.task
-                                      ? Colors.blue.withValues(alpha: 0.1)
-                                      : Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: _taskType == TaskType.task
-                                        ? Colors.blue
-                                        : Colors.grey.shade300,
-                                    width: _taskType == TaskType.task ? 2 : 1,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.assignment_rounded,
-                                      color: _taskType == TaskType.task
-                                          ? Colors.blue
-                                          : Colors.grey.shade600,
-                                      size: 24,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Task',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: _taskType == TaskType.task
-                                            ? Colors.blue
-                                            : Colors.grey.shade700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: InkWell(
-                              onTap: () =>
-                                  setState(() => _taskType = TaskType.reminder),
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                  horizontal: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _taskType == TaskType.reminder
-                                      ? Colors.orange.withValues(alpha: 0.1)
-                                      : Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: _taskType == TaskType.reminder
-                                        ? Colors.orange
-                                        : Colors.grey.shade300,
-                                    width: _taskType == TaskType.reminder
-                                        ? 2
-                                        : 1,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.notifications_active_rounded,
-                                      color: _taskType == TaskType.reminder
-                                          ? Colors.orange
-                                          : Colors.grey.shade600,
-                                      size: 24,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Reminder',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: _taskType == TaskType.reminder
-                                            ? Colors.orange
-                                            : Colors.grey.shade700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
 
                 // Date and Time Section - More compact layout
                 if (_taskType == TaskType.task) ...[

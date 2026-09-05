@@ -43,17 +43,12 @@ class DailyProgressStrip extends StatelessWidget {
                 height: 36,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [
-                      IslamicColors.emerald,
-                      IslamicColors.emeraldLight,
-                    ],
+                    colors: [IslamicColors.emerald, IslamicColors.emeraldLight],
                   ),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: IslamicColors.emeraldLight.withValues(
-                        alpha: 0.45,
-                      ),
+                      color: IslamicColors.emeraldLight.withValues(alpha: 0.45),
                       blurRadius: 8,
                     ),
                   ],
@@ -91,8 +86,7 @@ class DailyProgressStrip extends StatelessWidget {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text('🔥',
-                                  style: TextStyle(fontSize: 11)),
+                              const Text('🔥', style: TextStyle(fontSize: 11)),
                               const SizedBox(width: 2),
                               Text(
                                 '$streak',

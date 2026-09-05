@@ -123,10 +123,7 @@ class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
           ),
           SizedBox(
             height: 30,
-            child: CustomPaint(
-              painter: _HillsPainter(),
-              size: Size.infinite,
-            ),
+            child: CustomPaint(painter: _HillsPainter(), size: Size.infinite),
           ),
         ],
       ),

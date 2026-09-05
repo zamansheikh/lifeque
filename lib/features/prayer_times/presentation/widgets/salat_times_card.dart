@@ -119,9 +119,7 @@ class SalatTimesCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: row.isCurrent ? PrayerPalette.accentA(0.10) : Colors.transparent,
         borderRadius: BorderRadius.circular(14),
-        border: Border(
-          bottom: BorderSide(color: PrayerPalette.inkA(0.05)),
-        ),
+        border: Border(bottom: BorderSide(color: PrayerPalette.inkA(0.05))),
       ),
       child: Row(
         children: [
@@ -143,8 +141,9 @@ class SalatTimesCard extends StatelessWidget {
                         style: TextStyle(
                           color: PrayerPalette.ink,
                           fontSize: 14.5,
-                          fontWeight:
-                              row.isCurrent ? FontWeight.w800 : FontWeight.w700,
+                          fontWeight: row.isCurrent
+                              ? FontWeight.w800
+                              : FontWeight.w700,
                         ),
                       ),
                     ),

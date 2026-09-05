@@ -22,31 +22,37 @@ class SmartAlertsBar extends StatelessWidget {
     final pieces = <Widget>[];
 
     if (makruhName != null && makruhRemaining != null) {
-      pieces.add(_Pill(
-        icon: Icons.do_not_disturb_on_rounded,
-        bg: const Color(0xFFEF4444),
-        fg: Colors.white,
-        text: 'Avoid · $makruhName · ${_fmt(makruhRemaining!)} left',
-        pulse: true,
-      ));
+      pieces.add(
+        _Pill(
+          icon: Icons.do_not_disturb_on_rounded,
+          bg: const Color(0xFFEF4444),
+          fg: Colors.white,
+          text: 'Avoid · $makruhName · ${_fmt(makruhRemaining!)} left',
+          pulse: true,
+        ),
+      );
     }
 
     if (streakDays > 0) {
-      pieces.add(_Pill(
-        icon: Icons.local_fire_department_rounded,
-        bg: const Color(0xFFFBBF24),
-        fg: const Color(0xFF1F2937),
-        text: '$streakDays-day streak',
-      ));
+      pieces.add(
+        _Pill(
+          icon: Icons.local_fire_department_rounded,
+          bg: const Color(0xFFFBBF24),
+          fg: const Color(0xFF1F2937),
+          text: '$streakDays-day streak',
+        ),
+      );
     }
 
     if (ramadanMode) {
-      pieces.add(_Pill(
-        icon: Icons.nightlight_round,
-        bg: const Color(0xFF7C3AED),
-        fg: Colors.white,
-        text: 'Ramadan mode',
-      ));
+      pieces.add(
+        _Pill(
+          icon: Icons.nightlight_round,
+          bg: const Color(0xFF7C3AED),
+          fg: Colors.white,
+          text: 'Ramadan mode',
+        ),
+      );
     }
 
     if (pieces.isEmpty) return const SizedBox.shrink();

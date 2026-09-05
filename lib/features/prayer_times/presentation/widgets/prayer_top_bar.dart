@@ -55,8 +55,11 @@ class PrayerTopBar extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.place_rounded,
-                            color: Colors.white, size: 14),
+                        const Icon(
+                          Icons.place_rounded,
+                          color: Colors.white,
+                          size: 14,
+                        ),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
@@ -116,9 +119,19 @@ class PrayerTopBar extends StatelessWidget {
 
   static String _hijriMonthName(int m) {
     const names = [
-      '', 'Muharram', 'Safar', 'Rabi I', 'Rabi II',
-      'Jumada I', 'Jumada II', 'Rajab', 'Shaban',
-      'Ramadan', 'Shawwal', 'Dhul Q.', 'Dhul H.',
+      '',
+      'Muharram',
+      'Safar',
+      'Rabi I',
+      'Rabi II',
+      'Jumada I',
+      'Jumada II',
+      'Rajab',
+      'Shaban',
+      'Ramadan',
+      'Shawwal',
+      'Dhul Q.',
+      'Dhul H.',
     ];
     return m >= 1 && m < names.length ? names[m] : '';
   }

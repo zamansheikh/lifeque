@@ -29,10 +29,7 @@ class QiblaFab extends StatelessWidget {
       foregroundColor: Colors.black87,
       elevation: 6,
       icon: const Icon(Icons.explore_rounded),
-      label: const Text(
-        'Qibla',
-        style: TextStyle(fontWeight: FontWeight.w700),
-      ),
+      label: const Text('Qibla', style: TextStyle(fontWeight: FontWeight.w700)),
     );
   }
 }
@@ -73,10 +70,7 @@ class _QiblaSheet extends StatelessWidget {
                   const SizedBox(width: 8),
                   const Text(
                     'Qibla Compass',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                 ],
               ),

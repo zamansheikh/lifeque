@@ -525,10 +525,7 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
   }
 
   /// The design's pill switch — smaller and squarer than Material's default.
-  Widget _switch({
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
+  Widget _switch({required bool value, required ValueChanged<bool> onChanged}) {
     return InkWell(
       onTap: () => onChanged(!value),
       borderRadius: BorderRadius.circular(12),
@@ -599,8 +596,10 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
                   ),
                 ),
                 trailing: entry.key == _method
-                    ? const Icon(Icons.check_rounded,
-                        color: PrayerPalette.accent)
+                    ? const Icon(
+                        Icons.check_rounded,
+                        color: PrayerPalette.accent,
+                      )
                     : null,
                 onTap: () => Navigator.pop(ctx, entry.key),
               ),

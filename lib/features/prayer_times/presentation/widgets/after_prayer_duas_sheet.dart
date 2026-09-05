@@ -92,54 +92,54 @@ class AfterPrayerDuasSheet {
   }
 
   static Widget _card(_Dua dua) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
-        decoration: BoxDecoration(
-          color: PrayerPalette.canvas,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: PrayerPalette.inkA(0.08)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+    decoration: BoxDecoration(
+      color: PrayerPalette.canvas,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: PrayerPalette.inkA(0.08)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Text(
-                  dua.tag,
-                  style: const TextStyle(
-                    color: PrayerPalette.accent,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  dua.count,
-                  style: TextStyle(
-                    color: PrayerPalette.inkA(0.5),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 7),
             Text(
-              dua.arabic,
-              textAlign: TextAlign.right,
-              textDirection: TextDirection.rtl,
-              style: PrayerPalette.arabic(fontSize: 22, height: 1.9),
+              dua.tag,
+              style: const TextStyle(
+                color: PrayerPalette.accent,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1,
+              ),
             ),
-            const SizedBox(height: 5),
+            const Spacer(),
             Text(
-              dua.english,
+              dua.count,
               style: TextStyle(
-                color: PrayerPalette.inkA(0.6),
-                fontSize: 11,
-                height: 1.5,
+                color: PrayerPalette.inkA(0.5),
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
         ),
-      );
+        const SizedBox(height: 7),
+        Text(
+          dua.arabic,
+          textAlign: TextAlign.right,
+          textDirection: TextDirection.rtl,
+          style: PrayerPalette.arabic(fontSize: 22, height: 1.9),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          dua.english,
+          style: TextStyle(
+            color: PrayerPalette.inkA(0.6),
+            fontSize: 11,
+            height: 1.5,
+          ),
+        ),
+      ],
+    ),
+  );
 }

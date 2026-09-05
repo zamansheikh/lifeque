@@ -26,6 +26,7 @@ class PrayerCountdownHero extends StatelessWidget {
   final String? currentPrayer;
   final bool isToday;
   final ValueChanged<String> onPrayerTapped;
+
   /// Restricted (makruh) periods to overlay as red bands on the arc. Each
   /// map needs `start` and `end` DateTimes. Pass an empty list to hide them.
   final List<Map<String, DateTime>> restrictedPeriods;
@@ -56,8 +57,8 @@ class PrayerCountdownHero extends StatelessWidget {
     final countdown = isPast
         ? _fmtPassed(now.difference(focusedPrayerTime))
         : showLive
-            ? _fmt(remaining)
-            : DateFormat('h:mm a').format(focusedPrayerTime);
+        ? _fmt(remaining)
+        : DateFormat('h:mm a').format(focusedPrayerTime);
     final sky = SkyTheme.forPrayer(focusedPrayer);
 
     return Column(
@@ -79,10 +80,10 @@ class PrayerCountdownHero extends StatelessWidget {
               Text(
                 isToday
                     ? (isPast
-                        ? 'PASSED · $focusedPrayer'
-                        : remaining.isNegative
-                            ? 'NOW · $focusedPrayer'
-                            : 'NEXT · $focusedPrayer')
+                          ? 'PASSED · $focusedPrayer'
+                          : remaining.isNegative
+                          ? 'NOW · $focusedPrayer'
+                          : 'NEXT · $focusedPrayer')
                     : 'AT · $focusedPrayer',
                 style: const TextStyle(
                   color: Colors.white,
@@ -120,8 +121,8 @@ class PrayerCountdownHero extends StatelessWidget {
           isPast
               ? 'was at ${DateFormat('h:mm a').format(focusedPrayerTime)}'
               : showLive
-                  ? 'until ${DateFormat('h:mm a').format(focusedPrayerTime)}'
-                  : DateFormat('EEE, MMM d').format(focusedPrayerTime),
+              ? 'until ${DateFormat('h:mm a').format(focusedPrayerTime)}'
+              : DateFormat('EEE, MMM d').format(focusedPrayerTime),
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.75),
             fontSize: 13,
@@ -272,10 +273,7 @@ class _ArcWithLabels extends StatelessWidget {
                     painter: _ConnectorsPainter(
                       dotPositions: [
                         for (final n in visible)
-                          Offset(
-                            dotX(times[n]!),
-                            _arcYAt(_frac(times[n]!)),
-                          ),
+                          Offset(dotX(times[n]!), _arcYAt(_frac(times[n]!))),
                       ],
                       labelPositions: [
                         for (int i = 0; i < visible.length; i++)
@@ -318,8 +316,7 @@ class _ArcWithLabels extends StatelessWidget {
                           name: visible[i],
                           time: times[visible[i]]!,
                           isFocused: visible[i] == focusedPrayer,
-                          isPast: isToday &&
-                              times[visible[i]]!.isBefore(now),
+                          isPast: isToday && times[visible[i]]!.isBefore(now),
                           onTap: () => onPrayerTapped(visible[i]),
                         ),
                       ),
@@ -508,8 +505,8 @@ class _LabelCell extends StatelessWidget {
     final color = isFocused
         ? Colors.white
         : isPast
-            ? Colors.white.withValues(alpha: 0.55)
-            : Colors.white.withValues(alpha: 0.85);
+        ? Colors.white.withValues(alpha: 0.55)
+        : Colors.white.withValues(alpha: 0.85);
 
     return Material(
       color: Colors.transparent,

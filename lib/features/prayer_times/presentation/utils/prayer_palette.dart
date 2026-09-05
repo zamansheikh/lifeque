@@ -54,11 +54,11 @@ class PrayerPalette {
   static const heat5 = accent;
 
   static Color heatFor(int prayed) => switch (prayed) {
-        >= 5 => heat5,
-        4 => heat4,
-        3 => heat3,
-        _ => heat0,
-      };
+    >= 5 => heat5,
+    4 => heat4,
+    3 => heat3,
+    _ => heat0,
+  };
 
   // Home-screen widget surfaces (dark, sit on the launcher wallpaper).
   static const widgetGreenFrom = Color(0xFF1E7A50);
@@ -84,14 +84,13 @@ class PrayerPalette {
     Color color = ink,
     FontWeight fontWeight = FontWeight.w400,
     double? height,
-  }) =>
-      TextStyle(
-        fontFamily: arabicFont,
-        fontSize: fontSize,
-        color: color,
-        fontWeight: fontWeight,
-        height: height,
-      );
+  }) => TextStyle(
+    fontFamily: arabicFont,
+    fontSize: fontSize,
+    color: color,
+    fontWeight: fontWeight,
+    height: height,
+  );
 
   /// Noto Serif Bengali — the bundled Bengali face. Bangla set in the Latin
   /// UI font falls back to a system face whose metrics don't match, which is
@@ -104,31 +103,30 @@ class PrayerPalette {
     FontWeight fontWeight = FontWeight.w600,
     double? height,
     double? letterSpacing,
-  }) =>
-      TextStyle(
-        fontFamily: banglaFont,
-        fontSize: fontSize,
-        color: color ?? ink,
-        fontWeight: fontWeight,
-        height: height,
-        letterSpacing: letterSpacing,
-      );
+  }) => TextStyle(
+    fontFamily: banglaFont,
+    fontSize: fontSize,
+    color: color ?? ink,
+    fontWeight: fontWeight,
+    height: height,
+    letterSpacing: letterSpacing,
+  );
 
   static const cardRadius = 20.0;
 
   static List<BoxShadow> get cardShadow => [
-        BoxShadow(
-          color: ink.withValues(alpha: 0.08),
-          blurRadius: 14,
-          offset: const Offset(0, 3),
-        ),
-      ];
+    BoxShadow(
+      color: ink.withValues(alpha: 0.08),
+      blurRadius: 14,
+      offset: const Offset(0, 3),
+    ),
+  ];
 
   static List<BoxShadow> get heroShadow => [
-        BoxShadow(
-          color: ink.withValues(alpha: 0.10),
-          blurRadius: 28,
-          offset: const Offset(0, 8),
-        ),
-      ];
+    BoxShadow(
+      color: ink.withValues(alpha: 0.10),
+      blurRadius: 28,
+      offset: const Offset(0, 8),
+    ),
+  ];
 }

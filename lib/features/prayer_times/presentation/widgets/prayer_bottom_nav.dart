@@ -52,8 +52,7 @@ class PrayerBottomNav extends StatelessWidget {
 
   Widget _item(PrayerTab tab, IconData icon, String label) {
     final active = tab == current;
-    final color =
-        active ? PrayerPalette.ink : PrayerPalette.inkA(0.45);
+    final color = active ? PrayerPalette.ink : PrayerPalette.inkA(0.45);
     return InkWell(
       onTap: () => onSelect(tab),
       borderRadius: BorderRadius.circular(14),
@@ -63,9 +62,7 @@ class PrayerBottomNav extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 4),
             decoration: BoxDecoration(
-              color: active
-                  ? PrayerPalette.accentA(0.14)
-                  : Colors.transparent,
+              color: active ? PrayerPalette.accentA(0.14) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, size: 18, color: color),

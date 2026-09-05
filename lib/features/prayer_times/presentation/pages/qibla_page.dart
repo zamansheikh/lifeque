@@ -75,7 +75,8 @@ class _QiblaPageState extends State<QiblaPage> {
     double rad(double d) => d * math.pi / 180;
     final dLat = rad(_makkahLat - _latitude);
     final dLng = rad(_makkahLng - _longitude);
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+    final a =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
         math.cos(rad(_latitude)) *
             math.cos(rad(_makkahLat)) *
             math.sin(dLng / 2) *
@@ -147,10 +148,7 @@ class _QiblaPageState extends State<QiblaPage> {
             ),
             const SizedBox(height: 18),
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               decoration: BoxDecoration(
                 color: _isAligned
                     ? PrayerPalette.accentA(0.10)
@@ -161,8 +159,8 @@ class _QiblaPageState extends State<QiblaPage> {
                 _heading == null
                     ? 'No compass on this device — bearing shown above'
                     : _isAligned
-                        ? '✓ Aligned — you are facing the Qibla'
-                        : '✓ Aligned when the Kaaba points up',
+                    ? '✓ Aligned — you are facing the Qibla'
+                    : '✓ Aligned when the Kaaba points up',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _isAligned

@@ -79,11 +79,7 @@ class _PrayerStatsPageState extends State<PrayerStatsPage> {
     return Row(
       children: [
         Expanded(
-          child: _tile(
-            value: '$_streak',
-            label: 'day streak 🔥',
-            dark: true,
-          ),
+          child: _tile(value: '$_streak', label: 'day streak 🔥', dark: true),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -214,8 +210,8 @@ class _PrayerStatsPageState extends State<PrayerStatsPage> {
             color: isToday
                 ? PrayerPalette.goldRule
                 : count >= 5
-                    ? PrayerPalette.accent
-                    : PrayerPalette.ramadanTo.withValues(alpha: 0.3),
+                ? PrayerPalette.accent
+                : PrayerPalette.ramadanTo.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(5),
           ),
         ),

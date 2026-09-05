@@ -50,11 +50,11 @@ class BanglaDate {
   /// Falgun (index 10) gains a day when the February it contains is a leap
   /// February — that February falls in `startYear + 1`.
   static List<int> _monthLengths(int startYear) => <int>[
-        31, 31, 31, 31, 31, // Boishakh … Bhadro
-        30, 30, 30, 30, 30, // Ashwin … Magh
-        _isGregorianLeap(startYear + 1) ? 31 : 30, // Falgun
-        30, // Choitro
-      ];
+    31, 31, 31, 31, 31, // Boishakh … Bhadro
+    30, 30, 30, 30, 30, // Ashwin … Magh
+    _isGregorianLeap(startYear + 1) ? 31 : 30, // Falgun
+    30, // Choitro
+  ];
 
   /// Convert a Gregorian [date] to its Bengali equivalent.
   factory BanglaDate.fromDate(DateTime date) {
@@ -94,14 +94,13 @@ class BanglaDate {
   String get monthName => _monthNames[month - 1];
 
   /// Bengali weekday name for the Gregorian [date] this was built from.
-  static String weekdayName(DateTime date) =>
-      _weekdayNames[date.weekday - 1];
+  static String weekdayName(DateTime date) => _weekdayNames[date.weekday - 1];
 
   /// Render [n] with Bengali digits (০–৯).
   static String digits(Object n) => n.toString().replaceAllMapped(
-        RegExp(r'\d'),
-        (m) => '০১২৩৪৫৬৭৮৯'[int.parse(m[0]!)],
-      );
+    RegExp(r'\d'),
+    (m) => '০১২৩৪৫৬৭৮৯'[int.parse(m[0]!)],
+  );
 
   /// e.g. `২১ ভাদ্র ১৪৩৩`
   String get formatted => '${digits(day)} $monthName ${digits(year)}';

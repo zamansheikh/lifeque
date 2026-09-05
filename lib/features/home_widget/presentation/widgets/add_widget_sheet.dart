@@ -8,6 +8,7 @@ import '../../services/widget_suggestion_service.dart';
 class AddWidgetSheet {
   static Future<void> show(
     BuildContext context, {
+
     /// True when this is the automatic post-setup prompt rather than the
     /// user deliberately opening it — only that version records a dismissal.
     bool isSuggestion = false,
@@ -215,21 +216,21 @@ class _SheetState extends State<_Sheet> {
   Widget _preview(PinnableWidget option) {
     final (colors, isSlim) = switch (option) {
       PinnableWidget.currentWaqt => (
-          [const Color(0xFF1E7A50), const Color(0xFF0E4A30)],
-          false,
-        ),
+        [const Color(0xFF1E7A50), const Color(0xFF0E4A30)],
+        false,
+      ),
       PinnableWidget.mosqueJamaat => (
-          [const Color(0xFF16324A), const Color(0xFF0C1E2E)],
-          false,
-        ),
+        [const Color(0xFF16324A), const Color(0xFF0C1E2E)],
+        false,
+      ),
       PinnableWidget.dayMap => (
-          [const Color(0xFF123B2C), const Color(0xFF062316)],
-          false,
-        ),
+        [const Color(0xFF123B2C), const Color(0xFF062316)],
+        false,
+      ),
       PinnableWidget.slimBar => (
-          [const Color(0xFF1E7A50), const Color(0xFF0E4A30)],
-          true,
-        ),
+        [const Color(0xFF1E7A50), const Color(0xFF0E4A30)],
+        true,
+      ),
     };
 
     return Container(

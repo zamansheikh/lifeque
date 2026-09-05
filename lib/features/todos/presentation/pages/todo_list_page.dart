@@ -62,7 +62,7 @@ class _TodoListPageState extends State<TodoListPage> {
       drawer: const AppDrawer(currentRoute: '/todos'),
       appBar: AppBar(
         title: const Text(
-          'To-Dos',
+          'To Do List',
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 22,

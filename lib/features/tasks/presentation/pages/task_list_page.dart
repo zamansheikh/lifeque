@@ -185,7 +185,7 @@ class _TaskListPageState extends State<TaskListPage>
         if (state is TaskLoading) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is TaskLoaded) {
-          if (state.tasks.every((t) => t.taskType == TaskType.birthday)) {
+          if (state.tasks.every((t) => t.taskType != TaskType.task)) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -224,7 +224,7 @@ class _TaskListPageState extends State<TaskListPage>
 
           // Sort tasks by next occurrence (most urgent first)
           final sortedTasks = state.tasks
-              .where((task) => task.taskType != TaskType.birthday)
+              .where((task) => task.taskType == TaskType.task)
               .toList();
           sortedTasks.sort(
             (a, b) => a.nextOccurrence.compareTo(b.nextOccurrence),
@@ -284,13 +284,10 @@ class _TaskListPageState extends State<TaskListPage>
     return BlocBuilder<TaskBloc, TaskState>(
       builder: (context, state) {
         if (state is TaskLoaded) {
-          // Birthdays have their own page in the drawer now, so they are out
-          // of every tab here — they never complete, never go overdue, and
-          // only made the task list harder to read.
+          // Birthdays and reminders each have their own page in the drawer
+          // now, so this list is tasks and nothing else.
           final activeTasks = state.tasks
-              .where(
-                (task) => task.isActive && task.taskType != TaskType.birthday,
-              )
+              .where((task) => task.isActive && task.taskType == TaskType.task)
               .toList();
 
           // Sort by next occurrence (most urgent first)
@@ -495,8 +492,7 @@ class _TaskListPageState extends State<TaskListPage>
         if (state is TaskLoaded) {
           final completedTasks = state.tasks
               .where(
-                (task) =>
-                    task.isCompleted && task.taskType != TaskType.birthday,
+                (task) => task.isCompleted && task.taskType == TaskType.task,
               )
               .toList();
 

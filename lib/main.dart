@@ -68,7 +68,9 @@ void main() async {
   // firing times are correct even with the fallback.
   tz.initializeTimeZones();
   _initLocalTimezone();
-  debugPrint('🕐 Current local time: ${timezone.TZDateTime.now(timezone.local)}');
+  debugPrint(
+    '🕐 Current local time: ${timezone.TZDateTime.now(timezone.local)}',
+  );
 
   // Initialize alarm service
   await Alarm.init();
@@ -142,7 +144,8 @@ void main() async {
 void _initLocalTimezone() {
   const fallback = 'Asia/Dhaka';
   try {
-    final name = DateTime.now().timeZoneName; // e.g. "America/New_York" on Android
+    final name =
+        DateTime.now().timeZoneName; // e.g. "America/New_York" on Android
     // Only IANA-style names will resolve; abbreviations like "EST"/"PST" won't.
     final location = timezone.timeZoneDatabase.locations[name];
     if (location != null) {

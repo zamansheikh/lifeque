@@ -52,9 +52,7 @@ class PrayerSnack {
         // Clears the floating bottom nav so it doesn't bury it.
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 92),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Row(
           children: [
             Icon(kind.icon, size: 18, color: kind.accent),

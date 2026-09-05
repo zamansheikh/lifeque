@@ -73,54 +73,50 @@ class PrayerWidgetUI extends StatelessWidget {
         width: size.width,
         height: size.height,
         child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1E7A50),
-              Color(0xFF146C43),
-              Color(0xFF0E4A30),
-            ],
-            stops: [0.0, 0.4, 1.0],
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF1E7A50), Color(0xFF146C43), Color(0xFF0E4A30)],
+              stops: [0.0, 0.4, 1.0],
+            ),
+            borderRadius: BorderRadius.circular(20),
           ),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 52,
-              child: Opacity(
-                opacity: 0.28,
-                child: CustomPaint(painter: _SkylinePainter()),
+          child: Stack(
+            children: [
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 52,
+                child: Opacity(
+                  opacity: 0.28,
+                  child: CustomPaint(painter: _SkylinePainter()),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 11, 14, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _header(),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: _left()),
-                        const SizedBox(width: 8),
-                        _right(),
-                      ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 11, 14, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _header(),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: _left()),
+                          const SizedBox(width: 8),
+                          _right(),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );
@@ -320,31 +316,31 @@ class PrayerWidgetUI extends StatelessWidget {
   }
 
   Widget _statLine(String label, String value, Color valueColor) => Padding(
-        padding: const EdgeInsets.only(bottom: 2),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.65),
-                fontSize: 9.5,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 7),
-            Text(
-              value,
-              style: TextStyle(
-                color: valueColor,
-                fontSize: 9.5,
-                fontWeight: FontWeight.w800,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-            ),
-          ],
+    padding: const EdgeInsets.only(bottom: 2),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.65),
+            fontSize: 9.5,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      );
+        const SizedBox(width: 7),
+        Text(
+          value,
+          style: TextStyle(
+            color: valueColor,
+            fontSize: 9.5,
+            fontWeight: FontWeight.w800,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 /// The mosque-and-minaret skyline along the widget's bottom edge, scaled from

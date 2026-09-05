@@ -76,8 +76,10 @@ class HomeWidgetService {
   }
 
   static double _dayFraction(DateTime t) =>
-      (((t.hour * 60 + t.minute) - _dayStartMinutes) / _daySpanMinutes)
-          .clamp(0.0, 1.0);
+      (((t.hour * 60 + t.minute) - _dayStartMinutes) / _daySpanMinutes).clamp(
+        0.0,
+        1.0,
+      );
 
   static const _fard = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   static const _banglaPrayerNames = ['ফজর', 'যোহর', 'আসর', 'মাগরিব', 'এশা'];
@@ -104,7 +106,6 @@ class HomeWidgetService {
     final m = d.isNegative ? 0 : d.inMinutes;
     return m >= 60 ? '${m ~/ 60}h ${m % 60}m' : '${m}m';
   }
-
 
   Future<void> updateWidget() async {
     if (!isHomeWidgetSupported) {
@@ -175,13 +176,13 @@ class HomeWidgetService {
         orElse: () => 'Fajr',
       );
       final subject = current ?? next;
-      final windowEnd = endTimes[subject] ??
-          times['Fajr']!.add(const Duration(days: 1));
+      final windowEnd =
+          endTimes[subject] ?? times['Fajr']!.add(const Duration(days: 1));
       final nextTime = current == null
           ? times[next]!
           : (times[next]!.isAfter(date)
-              ? times[next]!
-              : times['Fajr']!.add(const Duration(days: 1)));
+                ? times[next]!
+                : times['Fajr']!.add(const Duration(days: 1)));
 
       // Prohibited-time state.
       final restricted = calculator.getRestrictedTimes();
@@ -196,19 +197,22 @@ class HomeWidgetService {
       final activeWindow = windows
           .where((w) => date.isAfter(w.start) && date.isBefore(w.end))
           .firstOrNull;
-      final nextWindow =
-          windows.where((w) => w.start.isAfter(date)).firstOrNull;
+      final nextWindow = windows
+          .where((w) => w.start.isAfter(date))
+          .firstOrNull;
       final avoidText = activeWindow != null
           ? '⛔ AVOID NOW · ${_short(activeWindow.end.difference(date))} left'
           : nextWindow != null
-              ? 'next avoid · ${nextWindow.name} ${_t12(nextWindow.start)}'
-              : 'all avoid-times passed';
+          ? 'next avoid · ${nextWindow.name} ${_t12(nextWindow.start)}'
+          : 'all avoid-times passed';
 
       // Render each widget at the size its host actually gave it.
       final prayerSize = await _cellSize('prayer_widget_image', _widgetSize);
       final mosqueSize = await _cellSize('mosque_widget_image', _widgetSize);
-      final timelineSize =
-          await _cellSize('day_timeline_widget_image', _timelineSize);
+      final timelineSize = await _cellSize(
+        'day_timeline_widget_image',
+        _timelineSize,
+      );
       final slimSize = await _cellSize('slim_bar_widget_image', _slimSize);
 
       final sunriseStr = _t12(times['Sunrise']!).toUpperCase();
@@ -221,15 +225,18 @@ class HomeWidgetService {
       await HomeWidget.renderFlutterWidget(
         PrayerWidgetUI(
           size: prayerSize,
-          hijriLine: '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} '
+          hijriLine:
+              '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} '
               '${hijri.hYear}, ${DateFormat('EEEE').format(date)}',
           secondaryDateLine:
               '${DateFormat('d MMMM').format(date)} · ${bangla.formatted}',
           updatedAt: updatedAt,
           prayerName: subject,
-          windowRange: '${_t12(times[subject]!).toUpperCase()} – '
+          windowRange:
+              '${_t12(times[subject]!).toUpperCase()} – '
               '${_t12(windowEnd).toUpperCase()}',
-          endsLine: 'Ends: ${_t12(windowEnd).toUpperCase()} · in '
+          endsLine:
+              'Ends: ${_t12(windowEnd).toUpperCase()} · in '
               '${_hms(windowEnd.difference(date))}',
           nextChip: '$next ${_t12(nextTime).toUpperCase()}',
           avoidText: avoidText,
@@ -285,7 +292,8 @@ class HomeWidgetService {
         SlimBarWidgetUI(
           size: slimSize,
           prayerName: subject,
-          windowRange: '${_t12(times[subject]!).toUpperCase()} – '
+          windowRange:
+              '${_t12(times[subject]!).toUpperCase()} – '
               '${_t12(windowEnd).toUpperCase()}',
           countdown: _hms(windowEnd.difference(date)),
           countdownLabel: current == null ? 'starts in' : 'waqt ends in',
@@ -304,7 +312,8 @@ class HomeWidgetService {
         date: date,
         times: times,
         current: subject,
-        dateLine: '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} ${hijri.hYear}, '
+        dateLine:
+            '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} ${hijri.hYear}, '
             '${DateFormat('EEEE').format(date)} · '
             '${DateFormat('d MMMM').format(date)}',
         updatedAt: updatedAt,
@@ -338,8 +347,9 @@ class HomeWidgetService {
       final chips = <JamaatChip>[];
       for (var i = 0; i < _fard.length; i++) {
         final prayer = _fard[i];
-        final saved =
-            _parseMosqueTime(await settings.getMosqueTime(prayer.toLowerCase()));
+        final saved = _parseMosqueTime(
+          await settings.getMosqueTime(prayer.toLowerCase()),
+        );
 
         // Ramadan mode derives Fajr and Maghrib jamaat from waqt + 15 min;
         // everything else falls back to the waqt itself when unset.
@@ -357,7 +367,8 @@ class HomeWidgetService {
         } else {
           // Nothing saved yet (fresh install): fall back to the customary
           // offset rather than the waqt itself, which no mosque prays at.
-          jamaat = JamaatDefaults.forPrayer(prayer, times[prayer]!) ??
+          jamaat =
+              JamaatDefaults.forPrayer(prayer, times[prayer]!) ??
               times[prayer]!;
         }
 
@@ -404,5 +415,4 @@ class HomeWidgetService {
       return null;
     }
   }
-
 }

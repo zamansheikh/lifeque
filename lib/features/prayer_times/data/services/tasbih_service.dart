@@ -48,8 +48,7 @@ class TasbihState {
       ? TasbihState(count: 0, round: round + 1, dhikrIndex: dhikrIndex + 1)
       : TasbihState(count: count + 1, round: round, dhikrIndex: dhikrIndex);
 
-  TasbihState get reset =>
-      const TasbihState(count: 0, round: 1, dhikrIndex: 0);
+  TasbihState get reset => const TasbihState(count: 0, round: 1, dhikrIndex: 0);
 
   double get progress => count / TasbihService.perRound;
 }

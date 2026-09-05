@@ -114,8 +114,11 @@ class _QiblaCardState extends State<QiblaCard>
               ),
             ],
           ),
-          child: const Icon(Icons.explore_rounded,
-              color: Colors.white, size: 22),
+          child: const Icon(
+            Icons.explore_rounded,
+            color: Colors.white,
+            size: 22,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -133,8 +136,8 @@ class _QiblaCardState extends State<QiblaCard>
               Text(
                 _hasCompass
                     ? (isAligned
-                        ? 'Aligned · point toward the Ka\'bah'
-                        : 'Rotate phone to align')
+                          ? 'Aligned · point toward the Ka\'bah'
+                          : 'Rotate phone to align')
                     : 'Bearing from your location',
                 style: TextStyle(
                   fontSize: 12,
@@ -183,9 +186,7 @@ class _QiblaCardState extends State<QiblaCard>
         ),
         boxShadow: [
           BoxShadow(
-            color: (isAligned
-                    ? IslamicColors.emeraldLight
-                    : Colors.black)
+            color: (isAligned ? IslamicColors.emeraldLight : Colors.black)
                 .withValues(alpha: isAligned ? 0.4 : 0.15),
             blurRadius: isAligned ? 30 : 18,
             spreadRadius: isAligned ? 4 : 0,
@@ -211,10 +212,7 @@ class _QiblaCardState extends State<QiblaCard>
               ),
             )
           else
-            CustomPaint(
-              size: const Size(260, 260),
-              painter: _DialPainter(),
-            ),
+            CustomPaint(size: const Size(260, 260), painter: _DialPainter()),
 
           // Qibla needle — emerald with gold tip pointing toward the Ka'bah
           if (_hasCompass)
@@ -240,16 +238,10 @@ class _QiblaCardState extends State<QiblaCard>
             height: 46,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [
-                  IslamicColors.midnight,
-                  IslamicColors.midnightDeep,
-                ],
+                colors: [IslamicColors.midnight, IslamicColors.midnightDeep],
               ),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: IslamicColors.goldLight,
-                width: 2,
-              ),
+              border: Border.all(color: IslamicColors.goldLight, width: 2),
               boxShadow: [
                 BoxShadow(
                   color: IslamicColors.goldGlow.withValues(alpha: 0.4),
@@ -258,10 +250,7 @@ class _QiblaCardState extends State<QiblaCard>
               ],
             ),
             child: const Center(
-              child: Text(
-                '🕋',
-                style: TextStyle(fontSize: 22),
-              ),
+              child: Text('🕋', style: TextStyle(fontSize: 22)),
             ),
           ),
         ],
@@ -277,9 +266,7 @@ class _QiblaCardState extends State<QiblaCard>
       decoration: BoxDecoration(
         color: IslamicColors.cream,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: IslamicColors.emerald.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: IslamicColors.emerald.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -304,8 +291,8 @@ class _QiblaCardState extends State<QiblaCard>
               value: _isCompassLoading
                   ? 'detecting…'
                   : _hasCompass
-                      ? 'live'
-                      : 'not available',
+                  ? 'live'
+                  : 'not available',
               accent: _hasCompass
                   ? IslamicColors.emeraldLight
                   : IslamicColors.warning,
@@ -340,11 +327,7 @@ class _QiblaCardState extends State<QiblaCard>
         Text(
           value,
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            color: c,
-          ),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: c),
         ),
       ],
     );
@@ -384,9 +367,11 @@ class _DialPainter extends CustomPainter {
       final inset = isCardinal ? 18.0 : (isMajor ? 12.0 : 6.0);
       final paint = isCardinal ? majorTick : tick;
       final a = (deg - 90) * math.pi / 180;
-      final p1 = center +
+      final p1 =
+          center +
           Offset(math.cos(a) * (radius - 8), math.sin(a) * (radius - 8));
-      final p2 = center +
+      final p2 =
+          center +
           Offset(
             math.cos(a) * (radius - 8 - inset),
             math.sin(a) * (radius - 8 - inset),
@@ -400,11 +385,9 @@ class _DialPainter extends CustomPainter {
       final letter = entry.$1;
       final deg = entry.$2;
       final a = (deg - 90) * math.pi / 180;
-      final pos = center +
-          Offset(
-            math.cos(a) * (radius - 42),
-            math.sin(a) * (radius - 42),
-          );
+      final pos =
+          center +
+          Offset(math.cos(a) * (radius - 42), math.sin(a) * (radius - 42));
       final tp = TextPainter(
         text: TextSpan(
           text: letter,

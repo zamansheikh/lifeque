@@ -60,8 +60,9 @@ class _ShareSheetState extends State<_ShareSheet> {
   Future<void> _share() async {
     setState(() => _busy = true);
     try {
-      final boundary = _boundaryKey.currentContext!.findRenderObject()
-          as RenderRepaintBoundary;
+      final boundary =
+          _boundaryKey.currentContext!.findRenderObject()
+              as RenderRepaintBoundary;
       // The card is laid out at 1080 logical px and painted at 1:1, so no
       // extra pixelRatio is needed to hit the 1080×1350 target.
       final image = await boundary.toImage(pixelRatio: 1);
@@ -78,7 +79,8 @@ class _ShareSheetState extends State<_ShareSheet> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
-          text: 'Prayer times · ${DateFormat('MMMM d, y').format(widget.date)}'
+          text:
+              'Prayer times · ${DateFormat('MMMM d, y').format(widget.date)}'
               ' · ${widget.locationName}',
         ),
       );
@@ -273,10 +275,7 @@ class PrayerShareCard extends StatelessWidget {
                       child: Text(
                         '\uFDFD',
                         textDirection: ui.TextDirection.rtl,
-                        style: PrayerPalette.arabic(
-                          fontSize: 150,
-                          height: 1.0,
-                        ),
+                        style: PrayerPalette.arabic(fontSize: 150, height: 1.0),
                       ),
                     ),
                   ),
@@ -358,10 +357,7 @@ class PrayerShareCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: _footerTile(
-                          '✦ IFTAR',
-                          _fmt(times['Maghrib']!),
-                        ),
+                        child: _footerTile('✦ IFTAR', _fmt(times['Maghrib']!)),
                       ),
                     ],
                   ),
@@ -412,42 +408,42 @@ class PrayerShareCard extends StatelessWidget {
   }
 
   Widget _divider() => Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 1.5,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    PrayerPalette.goldRule.withValues(alpha: 0),
-                    PrayerPalette.goldRule.withValues(alpha: 0.6),
-                  ],
-                ),
-              ),
+    children: [
+      Expanded(
+        child: Container(
+          height: 1.5,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                PrayerPalette.goldRule.withValues(alpha: 0),
+                PrayerPalette.goldRule.withValues(alpha: 0.6),
+              ],
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 18),
-            child: Text(
-              '✦',
-              style: TextStyle(color: PrayerPalette.goldDeep, fontSize: 26),
+        ),
+      ),
+      const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 18),
+        child: Text(
+          '✦',
+          style: TextStyle(color: PrayerPalette.goldDeep, fontSize: 26),
+        ),
+      ),
+      Expanded(
+        child: Container(
+          height: 1.5,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                PrayerPalette.goldRule.withValues(alpha: 0.6),
+                PrayerPalette.goldRule.withValues(alpha: 0),
+              ],
             ),
           ),
-          Expanded(
-            child: Container(
-              height: 1.5,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    PrayerPalette.goldRule.withValues(alpha: 0.6),
-                    PrayerPalette.goldRule.withValues(alpha: 0),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
+        ),
+      ),
+    ],
+  );
 
   /// Every prayer renders identically. The card is a timetable people send
   /// to others, so marking "now" would be wrong the moment it's forwarded.
@@ -470,11 +466,7 @@ class PrayerShareCard extends StatelessWidget {
         children: [
           SizedBox(
             width: 52,
-            child: Icon(
-              _glyphs[name],
-              size: 34,
-              color: PrayerPalette.goldDeep,
-            ),
+            child: Icon(_glyphs[name], size: 34, color: PrayerPalette.goldDeep),
           ),
           const SizedBox(width: 18),
           Text(
@@ -501,43 +493,41 @@ class PrayerShareCard extends StatelessWidget {
   }
 
   Widget _footerTile(String label, String value) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.75),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: PrayerPalette.goldRule.withValues(alpha: 0.3),
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.75),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: PrayerPalette.goldRule.withValues(alpha: 0.3)),
+    ),
+    child: Column(
+      children: [
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: PrayerPalette.goldDeep,
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
           ),
         ),
-        child: Column(
-          children: [
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
-                style: const TextStyle(
-                  color: PrayerPalette.goldDeep,
-                  fontSize: 19,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
-                ),
-              ),
+        const SizedBox(height: 5),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: PrayerPalette.ink,
+              fontSize: 27,
+              fontWeight: FontWeight.w800,
             ),
-            const SizedBox(height: 5),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                value,
-                style: const TextStyle(
-                  color: PrayerPalette.ink,
-                  fontSize: 27,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }
 
 /// The two stacked hill bands behind the card's heading.

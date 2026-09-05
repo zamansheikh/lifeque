@@ -8,7 +8,9 @@ import '../features/tasks/presentation/pages/add_edit_task_page.dart';
 import '../features/tasks/presentation/pages/task_detail_page.dart';
 import '../features/tasks/presentation/pages/birthday_list_page.dart';
 import '../features/tasks/presentation/pages/add_edit_birthday_page.dart';
-import '../features/tasks/domain/entities/task.dart' show TaskType;
+import '../features/tasks/presentation/pages/reminder_list_page.dart';
+import '../features/tasks/presentation/pages/add_edit_reminder_page.dart';
+import '../features/tasks/domain/entities/task.dart' show Task, TaskType;
 import '../features/todos/presentation/bloc/todo_bloc.dart';
 import '../features/todos/presentation/pages/todo_list_page.dart';
 import '../features/todos/presentation/pages/add_edit_todo_page.dart';
@@ -124,22 +126,40 @@ class AppRouter {
             AddEditBirthdayPage(taskId: state.pathParameters['id']!),
       ),
       GoRoute(
+        path: '/reminders',
+        name: 'reminders',
+        builder: (context, state) => const ReminderListPage(),
+      ),
+      GoRoute(
+        path: '/add-reminder',
+        name: 'add-reminder',
+        builder: (context, state) => const AddEditReminderPage(),
+      ),
+      GoRoute(
+        path: '/edit-reminder/:id',
+        name: 'edit-reminder',
+        builder: (context, state) =>
+            AddEditReminderPage(taskId: state.pathParameters['id']!),
+      ),
+      GoRoute(
         path: '/edit-task/:id',
         name: 'edit-task',
         builder: (context, state) {
           final taskId = state.pathParameters['id']!;
-          // Birthdays share the task store but not the task form. Routing on
-          // the stored type here means every "edit" entry point — the task
-          // detail page included — lands on the right one.
+          // Tasks, reminders and birthdays share one store but have three
+          // separate forms. Routing on the stored type here means every
+          // "edit" entry point — the task detail page included — lands on the
+          // right one without each caller having to know.
           final taskState = context.read<TaskBloc>().state;
-          final isBirthday =
-              taskState is TaskLoaded &&
-              taskState.tasks.any(
-                (t) => t.id == taskId && t.taskType == TaskType.birthday,
-              );
-          return isBirthday
-              ? AddEditBirthdayPage(taskId: taskId)
-              : AddEditTaskPage(taskId: taskId);
+          final match = taskState is TaskLoaded
+              ? taskState.tasks.where((t) => t.id == taskId)
+              : const <Task>[];
+          final type = match.isEmpty ? TaskType.task : match.first.taskType;
+          return switch (type) {
+            TaskType.birthday => AddEditBirthdayPage(taskId: taskId),
+            TaskType.reminder => AddEditReminderPage(taskId: taskId),
+            TaskType.task => AddEditTaskPage(taskId: taskId),
+          };
         },
       ),
       GoRoute(

@@ -34,10 +34,12 @@ class SkyBackground extends StatelessWidget {
           Positioned.fill(
             child: IgnorePointer(
               child: CustomPaint(
-                painter: _StarsPainter(brightness: theme == SkyTheme.isha ||
-                        theme == SkyTheme.preDawn
-                    ? 0.7
-                    : 0.15),
+                painter: _StarsPainter(
+                  brightness:
+                      theme == SkyTheme.isha || theme == SkyTheme.preDawn
+                      ? 0.7
+                      : 0.15,
+                ),
               ),
             ),
           ),

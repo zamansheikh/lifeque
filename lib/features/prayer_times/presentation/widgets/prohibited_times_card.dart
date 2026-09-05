@@ -110,8 +110,9 @@ class ProhibitedTimesCard extends StatelessWidget {
     final labelColor = chip.isActive
         ? Colors.white.withValues(alpha: 0.8)
         : PrayerPalette.dangerChipLabel;
-    final rangeColor =
-        chip.isActive ? Colors.white : PrayerPalette.dangerChipText;
+    final rangeColor = chip.isActive
+        ? Colors.white
+        : PrayerPalette.dangerChipText;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 9),

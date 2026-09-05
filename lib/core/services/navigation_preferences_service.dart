@@ -11,8 +11,13 @@ class NavigationPreferencesService {
     NavItem(route: '/', label: 'Tasks', iconData: Icons.task_alt_rounded),
     NavItem(
       route: '/todos',
-      label: 'To-Dos',
+      label: 'To Do List',
       iconData: Icons.checklist_rounded,
+    ),
+    NavItem(
+      route: '/reminders',
+      label: 'Reminders',
+      iconData: Icons.notifications_active_rounded,
     ),
     NavItem(
       route: '/birthdays',

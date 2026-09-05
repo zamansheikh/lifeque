@@ -74,11 +74,7 @@ class DayTimelineWidgetUI extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF123B2C),
-                Color(0xFF0E4A30),
-                Color(0xFF062316),
-              ],
+              colors: [Color(0xFF123B2C), Color(0xFF0E4A30), Color(0xFF062316)],
               stops: [0.0, 0.6, 1.0],
             ),
             borderRadius: BorderRadius.circular(20),
@@ -86,12 +82,7 @@ class DayTimelineWidgetUI extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _header(),
-              _track(),
-              _labels(),
-              _legend(),
-            ],
+            children: [_header(), _track(), _labels(), _legend()],
           ),
         ),
       ),
@@ -255,8 +246,10 @@ class DayTimelineWidgetUI extends StatelessWidget {
               for (final tick in ticks)
                 Positioned(
                   // Centre each label on its tick; 16 is half a label's width.
-                  left: (w * tick.position.clamp(0.0, 1.0) - 16)
-                      .clamp(0.0, w - 32),
+                  left: (w * tick.position.clamp(0.0, 1.0) - 16).clamp(
+                    0.0,
+                    w - 32,
+                  ),
                   width: 32,
                   child: Text(
                     tick.label,

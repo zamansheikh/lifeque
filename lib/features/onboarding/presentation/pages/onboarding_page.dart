@@ -41,7 +41,7 @@ const _slides = [
     heroIcon: Icons.auto_awesome_rounded,
     chips: [
       _FeatureChip(Icons.task_alt_rounded, 'Tasks'),
-      _FeatureChip(Icons.checklist_rounded, 'To-Dos'),
+      _FeatureChip(Icons.checklist_rounded, 'To Do List'),
       _FeatureChip(Icons.account_balance_wallet_rounded, 'Expenses'),
       _FeatureChip(Icons.medication_rounded, 'Medicines'),
       _FeatureChip(Icons.mosque_rounded, 'Prayer'),

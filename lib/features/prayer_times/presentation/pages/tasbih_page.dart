@@ -67,41 +67,41 @@ class _TasbihPageState extends State<TasbihPage>
     final confirmed = _state.count == 0 && _state.round == 1
         ? true
         : await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                title: const Text(
-                  'Reset the counter?',
-                  style: TextStyle(
-                    color: PrayerPalette.ink,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ),
-                content: Text(
-                  'This clears round ${_state.round} and starts again '
-                  'from SubhanAllah.',
-                  style: TextStyle(color: PrayerPalette.inkA(0.7)),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Keep counting'),
-                  ),
-                  FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: PrayerPalette.accent,
+                  title: const Text(
+                    'Reset the counter?',
+                    style: TextStyle(
+                      color: PrayerPalette.ink,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
                     ),
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Reset'),
                   ),
-                ],
-              ),
-            ) ??
-            false;
+                  content: Text(
+                    'This clears round ${_state.round} and starts again '
+                    'from SubhanAllah.',
+                    style: TextStyle(color: PrayerPalette.inkA(0.7)),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Keep counting'),
+                    ),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: PrayerPalette.accent,
+                      ),
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Reset'),
+                    ),
+                  ],
+                ),
+              ) ??
+              false;
     if (!confirmed) return;
     final next = _state.reset;
     setState(() => _state = next);
@@ -109,8 +109,7 @@ class _TasbihPageState extends State<TasbihPage>
   }
 
   /// Beads counted since the very first round — the session total.
-  int get _total =>
-      (_state.round - 1) * TasbihService.perRound + _state.count;
+  int get _total => (_state.round - 1) * TasbihService.perRound + _state.count;
 
   @override
   Widget build(BuildContext context) {
@@ -212,10 +211,8 @@ class _TasbihPageState extends State<TasbihPage>
       onTap: _tap,
       child: AnimatedBuilder(
         animation: _press,
-        builder: (context, child) => Transform.scale(
-          scale: 1 - _press.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: 1 - _press.value, child: child),
         child: SizedBox(
           width: 228,
           height: 228,
@@ -396,10 +393,7 @@ class _TasbihPageState extends State<TasbihPage>
           onTap: _reset,
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 22,
-              vertical: 11,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 11),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -480,9 +474,7 @@ class _TasbihRingPainter extends CustomPainter {
         at,
         i < count ? 2.2 : 1.6,
         Paint()
-          ..color = i < count
-              ? PrayerPalette.accent
-              : PrayerPalette.inkA(0.18),
+          ..color = i < count ? PrayerPalette.accent : PrayerPalette.inkA(0.18),
       );
     }
   }

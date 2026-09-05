@@ -87,8 +87,9 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                     _alarmService.toggleGlobalAlarms(value);
                   },
                   activeThumbColor: IslamicColors.goldLight,
-                  activeTrackColor:
-                      IslamicColors.goldDeep.withValues(alpha: 0.5),
+                  activeTrackColor: IslamicColors.goldDeep.withValues(
+                    alpha: 0.5,
+                  ),
                   inactiveThumbColor: Colors.white70,
                   inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -124,10 +125,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                                 IslamicColors.emeraldMid,
                                 IslamicColors.tealDeep,
                               ]
-                            : const [
-                                Color(0xFF424242),
-                                Color(0xFF2D2D2D),
-                              ],
+                            : const [Color(0xFF424242), Color(0xFF2D2D2D)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -139,10 +137,11 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: (globalEnabled
-                                  ? IslamicColors.emerald
-                                  : Colors.black)
-                              .withValues(alpha: 0.35),
+                          color:
+                              (globalEnabled
+                                      ? IslamicColors.emerald
+                                      : Colors.black)
+                                  .withValues(alpha: 0.35),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
@@ -159,8 +158,9 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                                 color: Colors.white.withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: IslamicColors.goldLight
-                                      .withValues(alpha: 0.5),
+                                  color: IslamicColors.goldLight.withValues(
+                                    alpha: 0.5,
+                                  ),
                                 ),
                               ),
                               child: const Icon(
@@ -190,8 +190,9 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                                         : 'Toggle on with the switch above',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: IslamicColors.goldLight
-                                          .withValues(alpha: 0.9),
+                                      color: IslamicColors.goldLight.withValues(
+                                        alpha: 0.9,
+                                      ),
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -296,8 +297,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          tilePadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           leading: Container(
             width: 44,
             height: 44,
@@ -370,9 +370,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
             child: Row(
               children: [
                 Icon(
-                  isActive
-                      ? Icons.alarm_on_rounded
-                      : Icons.alarm_off_rounded,
+                  isActive ? Icons.alarm_on_rounded : Icons.alarm_off_rounded,
                   size: 12,
                   color: isActive
                       ? IslamicColors.goldDeep
@@ -415,12 +413,9 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                     }
                   : null,
               activeThumbColor: IslamicColors.goldLight,
-              activeTrackColor:
-                  IslamicColors.goldDeep.withValues(alpha: 0.5),
-              inactiveThumbColor: IslamicColors.emerald
-                  .withValues(alpha: 0.4),
-              inactiveTrackColor: IslamicColors.emerald
-                  .withValues(alpha: 0.1),
+              activeTrackColor: IslamicColors.goldDeep.withValues(alpha: 0.5),
+              inactiveThumbColor: IslamicColors.emerald.withValues(alpha: 0.4),
+              inactiveTrackColor: IslamicColors.emerald.withValues(alpha: 0.1),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
@@ -444,8 +439,9 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: IslamicColors.goldLight
-                                .withValues(alpha: 0.25),
+                            color: IslamicColors.goldLight.withValues(
+                              alpha: 0.25,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -474,19 +470,17 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                         TextButton.icon(
                           onPressed: globalEnabled
                               ? () => _showAlarmConfigDialog(
-                                    prayer,
-                                    existingAlarm,
-                                  )
+                                  prayer,
+                                  existingAlarm,
+                                )
                               : null,
-                          icon: const Icon(
-                            Icons.edit_rounded,
-                            size: 16,
-                          ),
+                          icon: const Icon(Icons.edit_rounded, size: 16),
                           label: const Text('Edit'),
                           style: TextButton.styleFrom(
                             foregroundColor: IslamicColors.emerald,
-                            backgroundColor: IslamicColors.emerald
-                                .withValues(alpha: 0.08),
+                            backgroundColor: IslamicColors.emerald.withValues(
+                              alpha: 0.08,
+                            ),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 6,
@@ -504,15 +498,13 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                           onPressed: globalEnabled
                               ? () => _alarmService.removeAlarm(prayer)
                               : null,
-                          icon: const Icon(
-                            Icons.delete_rounded,
-                            size: 16,
-                          ),
+                          icon: const Icon(Icons.delete_rounded, size: 16),
                           label: const Text('Remove'),
                           style: TextButton.styleFrom(
                             foregroundColor: IslamicColors.warning,
-                            backgroundColor: IslamicColors.warning
-                                .withValues(alpha: 0.08),
+                            backgroundColor: IslamicColors.warning.withValues(
+                              alpha: 0.08,
+                            ),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 6,
@@ -548,8 +540,9 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
                     boxShadow: globalEnabled
                         ? [
                             BoxShadow(
-                              color: IslamicColors.emerald
-                                  .withValues(alpha: 0.35),
+                              color: IslamicColors.emerald.withValues(
+                                alpha: 0.35,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -874,8 +867,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                       color: Colors.white.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: IslamicColors.goldLight
-                            .withValues(alpha: 0.6),
+                        color: IslamicColors.goldLight.withValues(alpha: 0.6),
                       ),
                     ),
                     child: Icon(
@@ -899,8 +891,9 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                         Text(
                           'Configure reminder settings',
                           style: textTheme.bodyMedium?.copyWith(
-                            color: IslamicColors.goldLight
-                                .withValues(alpha: 0.95),
+                            color: IslamicColors.goldLight.withValues(
+                              alpha: 0.95,
+                            ),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -1211,8 +1204,9 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                       onPressed: () => Navigator.of(context).pop(),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        foregroundColor:
-                            IslamicColors.emerald.withValues(alpha: 0.7),
+                        foregroundColor: IslamicColors.emerald.withValues(
+                          alpha: 0.7,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -1241,13 +1235,13 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                         ),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: IslamicColors.goldLight
-                              .withValues(alpha: 0.5),
+                          color: IslamicColors.goldLight.withValues(alpha: 0.5),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: IslamicColors.emerald
-                                .withValues(alpha: 0.45),
+                            color: IslamicColors.emerald.withValues(
+                              alpha: 0.45,
+                            ),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -1258,8 +1252,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           foregroundColor: Colors.white,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           elevation: 0,
                           shadowColor: Colors.transparent,
                           shape: RoundedRectangleBorder(
