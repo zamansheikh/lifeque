@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:adhan/adhan.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:hijri/hijri_calendar.dart';
+import 'package:intl/intl.dart';
 import 'package:lifeque/core/utils/salah_time_calculator.dart';
 import 'package:lifeque/features/home_widget/services/home_widget_service.dart';
 
@@ -13,39 +16,33 @@ import '../../../islamic_resources/presentation/pages/islamic_resources_page.dar
     hide IslamicColors;
 import '../../data/services/prayer_completion_service.dart';
 import '../../data/services/prayer_settings_service.dart';
+import '../utils/bangla_date.dart';
 import '../utils/islamic_colors.dart';
-import '../utils/sky_theme.dart';
+import '../utils/prayer_palette.dart';
 import '../widgets/mosque_time_edit_sheet.dart';
-import '../widgets/prayer_countdown_hero.dart';
-import '../widgets/prayer_focus_card.dart';
-import '../widgets/daily_progress_strip.dart';
-import '../widgets/prayer_top_bar.dart';
+import '../widgets/nafal_times_card.dart';
+import '../widgets/prayer_focus_card.dart' show QuickAlarmChoice;
+import '../widgets/prayer_sky_header.dart';
+import '../widgets/prohibited_times_card.dart';
 import '../widgets/qibla_fab.dart';
+import '../widgets/ramadan_strip_card.dart';
 import '../widgets/restricted_times_card.dart';
-import '../widgets/sky_background.dart';
-import '../widgets/smart_alerts_bar.dart';
-import '../widgets/sunnah_times_card.dart';
+import '../widgets/salat_times_card.dart';
 import 'prayer_alarm_page.dart';
 
-/// "Prayer Compass" — the redesigned prayer-times experience.
+/// "Prayer Compass" — the prayer-times screen.
 ///
-/// One single page (no tabs). The visual layout is:
+/// One scrolling page (no tabs):
 ///   ┌─────────────────────────────┐
-///   │  SkyBackground (full bleed) │
-///   │   ┌─────────────────────┐   │
-///   │   │  PrayerTopBar       │   │
-///   │   ├─────────────────────┤   │
-///   │   │  Countdown + Arc    │   │
-///   │   │   (focused prayer)  │   │
-///   │   ├─────────────────────┤   │
-///   │   │  PrayerFocusCard    │   │
-///   │   │   (Waqt + Mosque)   │   │
-///   │   ├─────────────────────┤   │
-///   │   │  SmartAlertsBar     │   │
-///   │   └─────────────────────┘   │
-///   │             ╭───╮           │
-///   │             │qib│           │
-///   │             ╰───╯           │
+///   │  Dawn header (gradient)     │
+///   │   location · cycling date   │
+///   │   semicircular waqt gauge   │
+///   │   hill silhouette           │
+///   ├─────────────────────────────┤
+///   │  Salat Times card           │
+///   │  Ramadan strip (optional)   │
+///   │  Prohibited Times card      │
+///   │  Nafal Prayer Time card     │
 ///   └─────────────────────────────┘
 ///
 /// Horizontal swipe across the body changes the displayed day.
@@ -89,12 +86,11 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   // ABOVE the Scaffold it just built).
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // ── Focus + interactive state ───────────────────────────────────────────
-  /// Which prayer is shown in the focus card. By default the next upcoming
-  /// one on TODAY pages, or Fajr on other-day pages.
-  String? _focusedPrayer;
-  bool _userPickedFocus = false;
+  // ── Interactive state ───────────────────────────────────────────────────
   Timer? _tickTimer;
+
+  /// True once the body has scrolled off the top — drives the status-bar scrim.
+  final ValueNotifier<bool> _scrolled = ValueNotifier(false);
 
   Set<String> _completions = {};
   int _streak = 0;
@@ -123,6 +119,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     _tickTimer?.cancel();
     _alarmsSub?.cancel();
     _pageController.dispose();
+    _scrolled.dispose();
     super.dispose();
   }
 
@@ -340,26 +337,26 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: Color(0xFF0F1A40),
+        backgroundColor: PrayerPalette.canvas,
         body: Center(
-          child: CircularProgressIndicator(color: Colors.white),
+          child: CircularProgressIndicator(color: PrayerPalette.accent),
         ),
       );
     }
     if (_calculator == null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF0F1A40),
+        backgroundColor: PrayerPalette.canvas,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline,
-                  color: Colors.white70, size: 56),
+              Icon(Icons.error_outline,
+                  color: PrayerPalette.inkA(0.5), size: 56),
               const SizedBox(height: 12),
               Text(
                 _error ?? 'Unable to compute prayer times',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70),
+                style: TextStyle(color: PrayerPalette.inkA(0.7)),
               ),
               const SizedBox(height: 12),
               ElevatedButton(
@@ -372,40 +369,58 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       );
     }
 
-    // Drive the entire-page gradient from the focused prayer on today's
-    // current-window page; for other pages, from that page's "next" prayer.
-    final now = DateTime.now();
-    final isToday = _isSameDay(_selectedDate, now);
-    final tempCalc = _calculatorForDate(_selectedDate);
-    final times = tempCalc.getPrayerTimesMap();
-    final sky = isToday
-        ? SkyTheme.forNow(now: now, times: times)
-        : SkyTheme.forPrayer(_chooseFallbackFocus(times));
-
     return Scaffold(
       key: _scaffoldKey,
-      extendBodyBehindAppBar: true,
       drawer: const AppDrawer(currentRoute: '/prayer-times'),
       drawerScrimColor: Colors.black.withValues(alpha: 0.4),
-      backgroundColor: Colors.transparent,
+      backgroundColor: PrayerPalette.canvas,
       floatingActionButton: QiblaFab(calculator: _calculator),
-      body: SkyBackground(
-        theme: sky,
-        child: SafeArea(
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: (page) {
-              setState(() {
-                _selectedDate = _dateForPage(page);
-                _userPickedFocus = false;
-                _focusedPrayer = null;
-              });
-              _recomputeCalculator();
-              _loadDayState(_selectedDate);
-            },
-            itemBuilder: (context, page) =>
-                _buildDayContent(_dateForPage(page)),
-          ),
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.dark.copyWith(
+          statusBarColor: Colors.transparent,
+        ),
+        child: Stack(
+          children: [
+            NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                // Vertical only — the PageView's own horizontal notifications
+                // pass through here too. Depth is 1, not 0: the day ListView
+                // sits inside the PageView's viewport.
+                if (n.metrics.axis == Axis.vertical) {
+                  _scrolled.value = n.metrics.pixels > 4;
+                }
+                return false;
+              },
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (page) {
+                  setState(() => _selectedDate = _dateForPage(page));
+                  _recomputeCalculator();
+                  _loadDayState(_selectedDate);
+                },
+                itemBuilder: (context, page) =>
+                    _buildDayContent(_dateForPage(page)),
+              ),
+            ),
+            // The header gradient runs edge-to-edge behind the status bar, so
+            // at rest there is nothing to draw here. Once the page scrolls,
+            // cards would otherwise slide under the clock — fade in a scrim.
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _scrolled,
+                builder: (context, scrolled, _) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  height: MediaQuery.of(context).padding.top,
+                  color: scrolled
+                      ? PrayerPalette.canvas
+                      : Colors.transparent,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -425,11 +440,15 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         madhab: _selectedMadhab,
       );
 
-  String _chooseFallbackFocus(Map<String, DateTime> times) {
-    return 'Fajr';
-  }
-
   // ── Day content ─────────────────────────────────────────────────────────
+
+  static const List<String> _fardPrayers = [
+    'Fajr',
+    'Dhuhr',
+    'Asr',
+    'Maghrib',
+    'Isha',
+  ];
 
   Widget _buildDayContent(DateTime date) {
     final calc = _calculatorForDate(date);
@@ -437,163 +456,365 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final endTimes = calc.getEndTimes(calc.getStartTimes());
     final now = DateTime.now();
     final isToday = _isSameDay(date, now);
+    final current = isToday ? _currentPrayerName(times, now) : null;
 
-    // Pick the focused prayer: user-tapped, else next upcoming, else Fajr.
-    final autoFocus = _autoFocusFor(times, now, isToday);
-    final focus = (_userPickedFocus ? _focusedPrayer : null) ?? autoFocus;
+    final gauge = _gaugeFor(times, endTimes, now, isToday);
+    final restrictedNow = isToday ? calc.getCurrentRestrictedPeriod() : null;
 
-    // Pin the "next prayer" used by the countdown — if focus is the current
-    // active window (i.e. focus was Tap'd while it's already started),
-    // count down to the END of that window instead.
-    final focusTime = _resolveFocusTime(focus, times, now, isToday, calc);
-
-    // Mosque time for this prayer, derived from saved override or Ramadan mode.
-    final mosqueTime = _mosqueTimeFor(focus, date, times);
-    final isAutoFromRamadan =
-        _ramadanMode && (focus == 'Fajr' || focus == 'Maghrib');
-
-    // Makruh check for the alerts bar.
-    final restricted = isToday ? calc.getCurrentRestrictedPeriod() : null;
-
-    // Existing alarm for this prayer (drives the active chip).
-    final alarmCfg = _alarms.where((a) => a.prayerName == focus).isNotEmpty
-        ? _alarms.firstWhere((a) => a.prayerName == focus)
-        : null;
-    final activeChip = _quickChoiceFromConfig(alarmCfg);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-      child: Column(
-        children: [
-          PrayerTopBar(
-            locationName: _locationName,
-            date: date,
-            onMenu: () => _scaffoldKey.currentState?.openDrawer(),
-            onAlarms: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const PrayerAlarmPage(),
-              ),
+    return ListView(
+      padding: EdgeInsets.only(
+        bottom: 96 + MediaQuery.of(context).padding.bottom,
+      ),
+      physics: const BouncingScrollPhysics(),
+      children: [
+        PrayerSkyHeader(
+          locationName: _locationName,
+          dateLine: _dateCycleLine(date),
+          dateOpacity: _dateCycleOpacity(),
+          gaugeName: gauge.name,
+          gaugeLabel: gauge.label,
+          gaugeCountdown: gauge.countdown,
+          progress: gauge.progress,
+          onLocationTap: _showSettingsBottomSheet,
+          onMenu: () => _scaffoldKey.currentState?.openDrawer(),
+        ),
+        Transform.translate(
+          offset: const Offset(0, -14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SalatTimesCard(
+              rows: _salatRows(date, times, current),
+              summary: _salatSummary(isToday),
+              canMarkPrayed: isToday || date.isBefore(now),
+              onSetAlarm: _openAlarmPage,
+              onTogglePrayed: (prayer) => _togglePrayed(date, prayer),
+              onToggleAlarm: _toggleQuickAlarm,
+              onEditJamaat: (prayer) => _openMosqueEdit(prayer, times),
             ),
-            onSettings: _showSettingsBottomSheet,
-            onResources: () => Navigator.push(
+          ),
+        ),
+        if (_ramadanMode)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            child: _ramadanStrip(times, now),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+          child: ProhibitedTimesCard(
+            subtitle: _prohibitedSubtitle(calc, now, isToday, restrictedNow),
+            chips: _prohibitedChips(calc, now, isToday),
+            onSeeReference: () => _openRestrictedSheet(calc),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+          child: NafalTimesCard(
+            rows: _nafalRows(calc, date, times),
+            footnote: 'Last ⅓ of night begins: '
+                '${_fmt12(calc.getSunnahTimes().lastThirdOfTheNight)}',
+            onSeeReference: () => Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => const IslamicResourcesPage(),
               ),
             ),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(top: 16, bottom: 90),
-              child: Column(
-                children: [
-                  PrayerCountdownHero(
-                    prayerNames: const [
-                      'Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha',
-                    ],
-                    times: times,
-                    arcStart: times['Fajr']!,
-                    arcEnd: _calculatorForDate(
-                      date.add(const Duration(days: 1)),
-                    ).getPrayerTimesMap()['Fajr']!,
-                    now: now,
-                    focusedPrayer: focus,
-                    focusedPrayerTime: focusTime,
-                    prevPrayerName: _prevPrayer(times, now, isToday),
-                    currentPrayer: isToday
-                        ? _currentPrayerName(times, now)
-                        : null,
-                    isToday: isToday,
-                    onPrayerTapped: (name) {
-                      setState(() {
-                        _focusedPrayer = name;
-                        _userPickedFocus = true;
-                      });
-                    },
-                    restrictedPeriods: [
-                      for (final entry
-                          in calc.getRestrictedTimes().values)
-                        {
-                          'start': entry['start'] as DateTime,
-                          'end': entry['end'] as DateTime,
-                        },
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  if (isToday)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: DailyProgressStrip(
-                        prayed: _completions,
-                        streak: _streak,
-                      ),
-                    ),
-                  if (isToday) const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: PrayerFocusCard(
-                      prayer: focus,
-                      waqtTime: times[focus]!,
-                      mosqueTime: mosqueTime,
-                      windowEnd: endTimes[focus],
-                      isMosqueAutoFromRamadan: isAutoFromRamadan,
-                      isCurrentPrayer: isToday &&
-                          _currentPrayerName(times, now) == focus,
-                      isPrayed: _completions.contains(focus),
-                      canMarkPrayed: isToday || date.isBefore(now),
-                      activeAlarm: activeChip,
-                      onEditMosque: () => _openMosqueEdit(focus, times),
-                      onTogglePrayed: () => _togglePrayed(date, focus),
-                      onQuickAlarm: (c) => _applyQuickAlarm(focus, c),
-                      onCustomAlarm: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PrayerAlarmPage(),
-                        ),
-                      ),
-                      restrictedWindows: [
-                        for (final entry
-                            in calc.getRestrictedTimes().entries)
-                          RestrictedWindow(
-                            name: entry.key,
-                            start: entry.value['start'] as DateTime,
-                            end: entry.value['end'] as DateTime,
-                          ),
-                      ]..sort((a, b) => a.start.compareTo(b.start)),
-                      activeRestricted: isToday && restricted != null
-                          ? RestrictedWindow(
-                              name: restricted['name'] as String,
-                              start: restricted['start'] as DateTime,
-                              end: restricted['end'] as DateTime,
-                              remaining:
-                                  restricted['remaining'] as Duration,
-                            )
-                          : null,
-                      onRestrictedTap: () => _openRestrictedSheet(calc),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: SunnahTimesCard(calculator: calc),
-                  ),
-                  const SizedBox(height: 18),
-                  if (!isToday) _backToTodayButton(),
-                ],
-              ),
-            ),
-          ),
-          SmartAlertsBar(
-            makruhName: restricted?['name'] as String?,
-            makruhRemaining: restricted?['remaining'] as Duration?,
-            streakDays: isToday ? _streak : 0,
-            ramadanMode: _ramadanMode,
-          ),
-        ],
+        ),
+        if (!isToday) _backToTodayButton(),
+      ],
+    );
+  }
+
+  // ── Formatting helpers ──────────────────────────────────────────────────
+
+  /// `4:28 am`
+  String _fmt12(DateTime t) {
+    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+    final m = t.minute.toString().padLeft(2, '0');
+    return '$h:$m ${t.hour < 12 ? 'am' : 'pm'}';
+  }
+
+  /// `4:28` — no meridiem, for the Ramadan strip's split layout.
+  String _fmtBare(DateTime t) {
+    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+    return '$h:${t.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _meridiem(DateTime t) => t.hour < 12 ? 'am' : 'pm';
+
+  /// `01:23:45`
+  String _fmtHms(Duration d) {
+    final s = d.isNegative ? 0 : d.inSeconds;
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${two(s ~/ 3600)}:${two((s ~/ 60) % 60)}:${two(s % 60)}';
+  }
+
+  /// `2h 14m` / `43m`
+  String _fmtShort(Duration d) {
+    final m = d.isNegative ? 0 : d.inMinutes;
+    return m >= 60 ? '${m ~/ 60}h ${m % 60}m' : '${m}m';
+  }
+
+  // ── Cycling date line ───────────────────────────────────────────────────
+
+  /// Rotates Hijri → Gregorian → Bangla every 3 seconds, matching the design.
+  String _dateCycleLine(DateTime date) {
+    final dowEn = DateFormat('EEEE').format(date);
+    final hijri = HijriCalendar.fromDate(date);
+    final slot =
+        (DateTime.now().millisecondsSinceEpoch ~/ 3000) % 3;
+    switch (slot) {
+      case 0:
+        return '$dowEn, ${hijri.hDay} ${_hijriMonthName(hijri.hMonth)} '
+            '${hijri.hYear}';
+      case 1:
+        return '$dowEn, ${DateFormat('MMMM d, y').format(date)}';
+      default:
+        return '${BanglaDate.weekdayName(date)}, '
+            '${BanglaDate.fromDate(date).formatted}';
+    }
+  }
+
+  /// Dips just before each swap so the line cross-fades rather than jumping.
+  double _dateCycleOpacity() =>
+      DateTime.now().millisecondsSinceEpoch % 3000 < 400 ? 0.25 : 1.0;
+
+  static String _hijriMonthName(int m) => const [
+        'Muharram',
+        'Safar',
+        'Rabiʿ I',
+        'Rabiʿ II',
+        'Jumada I',
+        'Jumada II',
+        'Rajab',
+        'Shaʿban',
+        'Ramadan',
+        'Shawwal',
+        'Dhul Qaʿdah',
+        'Dhul Hijjah',
+      ][(m - 1).clamp(0, 11)];
+
+  // ── Gauge ───────────────────────────────────────────────────────────────
+
+  _GaugeData _gaugeFor(
+    Map<String, DateTime> times,
+    Map<String, DateTime> endTimes,
+    DateTime now,
+    bool isToday,
+  ) {
+    final current = isToday ? _currentPrayerName(times, now) : null;
+
+    if (current != null) {
+      // Inside a waqt: count down to its end, fill as it elapses.
+      final start = times[current]!;
+      final end = endTimes[current] ?? start.add(const Duration(hours: 1));
+      final span = end.difference(start).inMilliseconds;
+      final gone = now.difference(start).inMilliseconds;
+      return _GaugeData(
+        name: current,
+        label: 'Waqt ends in',
+        countdown: _fmtHms(end.difference(now)),
+        progress: span <= 0 ? 0 : (gone / span).clamp(0.0, 1.0),
+      );
+    }
+
+    // Before Fajr (or on another day): count down to the next start over a
+    // nominal three-hour approach window.
+    final next = _fardPrayers
+        .where((p) => times[p] != null && times[p]!.isAfter(now))
+        .firstOrNull;
+    final target = next != null
+        ? times[next]!
+        : times['Fajr']!.add(const Duration(days: 1));
+    final windowStart = target.subtract(const Duration(hours: 3));
+    final span = target.difference(windowStart).inMilliseconds;
+    final gone = now.difference(windowStart).inMilliseconds;
+    return _GaugeData(
+      name: next ?? 'Fajr',
+      label: isToday ? 'Starts in' : 'Starts at ${_fmt12(target)}',
+      countdown: isToday ? _fmtHms(target.difference(now)) : '--:--:--',
+      progress: span <= 0 ? 0 : (gone / span).clamp(0.0, 1.0),
+    );
+  }
+
+  // ── Salat rows ──────────────────────────────────────────────────────────
+
+  List<SalatRow> _salatRows(
+    DateTime date,
+    Map<String, DateTime> times,
+    String? current,
+  ) {
+    return [
+      for (final prayer in _fardPrayers)
+        SalatRow(
+          name: prayer,
+          time: _fmt12(times[prayer]!),
+          jamaat: () {
+            final m = _mosqueTimeFor(prayer, date, times);
+            return m == null ? null : _fmt12(m);
+          }(),
+          isCurrent: prayer == current,
+          isPrayed: _completions.contains(prayer),
+          alarmOn: _alarms.any((a) => a.prayerName == prayer && a.isEnabled),
+        ),
+    ];
+  }
+
+  String _salatSummary(bool isToday) {
+    final done = _fardPrayers.where(_completions.contains).length;
+    if (!isToday) return '$done/5 prayed';
+    return '$done/5 prayed today · 🔥 $_streak-day streak';
+  }
+
+  /// The bell toggles a plain on-time alarm; anything more specific lives in
+  /// the alarm page.
+  Future<void> _toggleQuickAlarm(String prayer) async {
+    final existing =
+        _alarms.where((a) => a.prayerName == prayer).firstOrNull;
+    if (existing != null && existing.isEnabled) {
+      await _alarmService.removeAlarm(prayer);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('🔕 $prayer alarm off'),
+          duration: const Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    await _applyQuickAlarm(prayer, QuickAlarmChoice.atTime);
+  }
+
+  void _openAlarmPage() => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const PrayerAlarmPage()),
+      );
+
+  // ── Ramadan strip ───────────────────────────────────────────────────────
+
+  Widget _ramadanStrip(Map<String, DateTime> times, DateTime now) {
+    final fajr = times['Fajr']!;
+    final maghrib = times['Maghrib']!;
+    final hijri = HijriCalendar.fromDate(now);
+    final heading = hijri.hMonth == 9
+        ? 'RAMADAN · DAY ${hijri.hDay}'
+        : 'RAMADAN MODE';
+    final iftarTarget = now.isBefore(maghrib)
+        ? maghrib
+        : maghrib.add(const Duration(days: 1));
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: RamadanStripCard(
+        heading: heading,
+        sahriTime: _fmtBare(fajr),
+        sahriMeridiem: _meridiem(fajr),
+        iftarTime: _fmtBare(maghrib),
+        iftarMeridiem: _meridiem(maghrib),
+        untilIftar: _fmtHms(iftarTarget.difference(now)),
       ),
     );
+  }
+
+  // ── Prohibited times ────────────────────────────────────────────────────
+
+  /// Windows in the order the design shows them: morning, noon, evening.
+  static const List<String> _restrictedOrder = [
+    'Sunrise Period',
+    'Zawal (Midday)',
+    'Sunset Period',
+  ];
+  static const List<String> _restrictedLabels = ['Morning', 'Noon', 'Evening'];
+
+  List<ProhibitedChip> _prohibitedChips(
+    SalahTimeCalculator calc,
+    DateTime now,
+    bool isToday,
+  ) {
+    final all = calc.getRestrictedTimes();
+    return [
+      for (var i = 0; i < _restrictedOrder.length; i++)
+        () {
+          final w = all[_restrictedOrder[i]]!;
+          final start = w['start'] as DateTime;
+          final end = w['end'] as DateTime;
+          return ProhibitedChip(
+            label: _restrictedLabels[i],
+            range: '${_fmtBare(start)} – ${_fmt12(end)}',
+            isActive: isToday && now.isAfter(start) && now.isBefore(end),
+          );
+        }(),
+    ];
+  }
+
+  String _prohibitedSubtitle(
+    SalahTimeCalculator calc,
+    DateTime now,
+    bool isToday,
+    Map<String, dynamic>? activeNow,
+  ) {
+    if (isToday && activeNow != null) {
+      final remaining = activeNow['remaining'] as Duration;
+      return '⛔ Active now · ${_fmtShort(remaining)} left — salat is '
+          'prohibited during these times.';
+    }
+    if (!isToday) {
+      return 'Salat is prohibited during these times.';
+    }
+    final upcoming = _restrictedOrder
+        .map((k) => calc.getRestrictedTimes()[k]!)
+        .where((w) => (w['start'] as DateTime).isAfter(now))
+        .firstOrNull;
+    if (upcoming == null) {
+      return 'Salat is prohibited during these times · '
+          'all have passed today.';
+    }
+    final start = upcoming['start'] as DateTime;
+    final idx = _restrictedOrder.indexWhere(
+      (k) => calc.getRestrictedTimes()[k]!['start'] == start,
+    );
+    final name = idx >= 0 ? _restrictedLabels[idx] : 'next';
+    return 'Salat is prohibited during these times · '
+        'next: $name ${_fmt12(start)}';
+  }
+
+  // ── Nafal times ─────────────────────────────────────────────────────────
+
+  List<NafalRow> _nafalRows(
+    SalahTimeCalculator calc,
+    DateTime date,
+    Map<String, DateTime> times,
+  ) {
+    final restricted = calc.getRestrictedTimes();
+    final sunriseEnd = restricted['Sunrise Period']!['end'] as DateTime;
+    final zawalStart = restricted['Zawal (Midday)']!['start'] as DateTime;
+    final tomorrowFajr = _calculatorForDate(
+      date.add(const Duration(days: 1)),
+    ).getPrayerTimesMap()['Fajr']!;
+
+    return [
+      NafalRow(
+        glyph: Icons.wb_sunny_outlined,
+        name: 'Ishraq / Duha',
+        range: '${_fmtBare(sunriseEnd)} – ${_fmt12(zawalStart)}',
+      ),
+      NafalRow(
+        glyph: Icons.contrast_rounded,
+        name: 'Zawal Start',
+        range: _fmt12(zawalStart),
+      ),
+      NafalRow(
+        glyph: Icons.cloud_outlined,
+        name: 'Awabin',
+        range: 'After Maghrib – ${_fmt12(times['Isha']!)}',
+      ),
+      NafalRow(
+        glyph: Icons.nightlight_outlined,
+        name: 'Tahajjud',
+        range: 'After Isha – ${_fmt12(tomorrowFajr)}',
+      ),
+    ];
   }
 
   Widget _backToTodayButton() {
@@ -619,71 +840,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   }
 
   // ── Focus + prayer math ─────────────────────────────────────────────────
-
-  String _autoFocusFor(
-    Map<String, DateTime> times,
-    DateTime now,
-    bool isToday,
-  ) {
-    if (!isToday) return 'Fajr';
-    for (final p in const ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) {
-      final t = times[p];
-      if (t != null && t.isAfter(now)) return p;
-    }
-    return 'Isha';
-  }
-
-  DateTime _resolveFocusTime(
-    String focus,
-    Map<String, DateTime> times,
-    DateTime now,
-    bool isToday,
-    SalahTimeCalculator calc,
-  ) {
-    final t = times[focus];
-    if (t == null) {
-      return now.add(const Duration(hours: 1));
-    }
-    // For days other than today, just return the start time.
-    if (!isToday) return t;
-
-    // Today: if the focus is currently the running prayer (waqt has started,
-    // window hasn't ended), aim the countdown at the NEXT prayer's start so
-    // it acts as a "until the window closes" cue.
-    if (_currentPrayerName(times, now) == focus && t.isBefore(now)) {
-      final order = const ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-      final idx = order.indexOf(focus);
-      if (idx >= 0 && idx + 1 < order.length) {
-        final next = times[order[idx + 1]];
-        if (next != null) return next;
-      }
-      // Isha → tomorrow's Fajr
-      if (focus == 'Isha') {
-        final tomorrow = _calculatorForDate(
-          _selectedDate.add(const Duration(days: 1)),
-        );
-        return tomorrow.getPrayerTimesMap()['Fajr']!;
-      }
-    }
-    // If the focus is in the past, return TODAY's instance (not tomorrow's).
-    // The hero renders this as "PASSED · was at X · Yh Zm ago" — a useless
-    // 16-hour countdown to tomorrow's same prayer is much worse UX.
-    return t;
-  }
-
-  String? _prevPrayer(
-    Map<String, DateTime> times,
-    DateTime now,
-    bool isToday,
-  ) {
-    if (!isToday) return null;
-    String? prev;
-    for (final p in const ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) {
-      final t = times[p];
-      if (t != null && t.isBefore(now)) prev = p;
-    }
-    return prev;
-  }
 
   String? _currentPrayerName(Map<String, DateTime> times, DateTime now) {
     String? current;
@@ -1450,4 +1606,19 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       _recomputeCalculator();
     }
   }
+}
+
+/// What the header gauge should display for the current moment.
+class _GaugeData {
+  final String name;
+  final String label;
+  final String countdown;
+  final double progress;
+
+  const _GaugeData({
+    required this.name,
+    required this.label,
+    required this.countdown,
+    required this.progress,
+  });
 }

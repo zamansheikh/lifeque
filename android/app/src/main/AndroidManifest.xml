@@ -88,6 +88,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Impeller's GLES backend has no raster context in a headless engine, so
+             HomeWidget.renderFlutterWidget (RenderRepaintBoundary.toImage) segfaults
+             when the WorkManager task or a widget tap renders from a background
+             isolate. Skia sets up an offscreen context and renders fine. Flutter is
+             removing this opt-out, so revisit when that lands. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
         <receiver android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
             android:exported="true">
             <intent-filter>
