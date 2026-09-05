@@ -69,46 +69,46 @@ class NotificationService {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    final DarwinInitializationSettings
-    initializationSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-      notificationCategories: [
-        DarwinNotificationCategory(
-          'task_category',
-          actions: [
-            DarwinNotificationAction.plain('mark_done', '✅ Mark Done'),
-            DarwinNotificationAction.plain('snooze_15', '⏰ Snooze 15m'),
-            DarwinNotificationAction.plain('view_details', '👁️ View Details'),
+    final DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+          notificationCategories: [
+            DarwinNotificationCategory(
+              'task_category',
+              actions: [
+                DarwinNotificationAction.plain('mark_done', 'Mark done'),
+                DarwinNotificationAction.plain('snooze_15', 'Snooze 15 min'),
+                DarwinNotificationAction.plain('view_details', 'View details'),
+              ],
+            ),
+            DarwinNotificationCategory(
+              'reminder_category',
+              actions: [
+                DarwinNotificationAction.plain('mark_done', 'Done'),
+                DarwinNotificationAction.plain('snooze_5', 'Snooze 5 min'),
+                DarwinNotificationAction.plain('snooze_60', 'Snooze 1 hour'),
+              ],
+            ),
+            DarwinNotificationCategory(
+              'medicine_category',
+              actions: [
+                DarwinNotificationAction.plain('take_medicine', 'Taken'),
+                DarwinNotificationAction.plain('skip_medicine', 'Skip dose'),
+                DarwinNotificationAction.plain('snooze_medicine', 'In 15 min'),
+              ],
+            ),
+            DarwinNotificationCategory(
+              'birthday_category',
+              actions: [
+                DarwinNotificationAction.plain('call_contact', 'Call'),
+                DarwinNotificationAction.plain('send_message', 'Send wishes'),
+                DarwinNotificationAction.plain('mark_done', 'Wished them'),
+              ],
+            ),
           ],
-        ),
-        DarwinNotificationCategory(
-          'reminder_category',
-          actions: [
-            DarwinNotificationAction.plain('mark_done', '✅ Done'),
-            DarwinNotificationAction.plain('snooze_5', '⏰ 5min'),
-            DarwinNotificationAction.plain('snooze_60', '⏰ 1hr'),
-          ],
-        ),
-        DarwinNotificationCategory(
-          'medicine_category',
-          actions: [
-            DarwinNotificationAction.plain('take_medicine', '✅ Take Now'),
-            DarwinNotificationAction.plain('skip_medicine', '⏭️ Skip'),
-            DarwinNotificationAction.plain('snooze_medicine', '⏰ Snooze 15min'),
-          ],
-        ),
-        DarwinNotificationCategory(
-          'birthday_category',
-          actions: [
-            DarwinNotificationAction.plain('call_contact', '📞 Call'),
-            DarwinNotificationAction.plain('send_message', '💬 Message'),
-            DarwinNotificationAction.plain('mark_done', '✅ Wished'),
-          ],
-        ),
-      ],
-    );
+        );
 
     final InitializationSettings initializationSettings =
         InitializationSettings(
@@ -337,7 +337,7 @@ class NotificationService {
             await cancelNotificationById(taskId);
 
             await _showActionFeedbackNotification(
-              'ℹ️ Task Deleted',
+              'Task deleted',
               'This task no longer exists',
               const Color(0xFF9E9E9E), // Grey
             );
@@ -350,7 +350,7 @@ class NotificationService {
           await cancelNotificationById(taskId);
 
           await _showActionFeedbackNotification(
-            'ℹ️ Task Unavailable',
+            'Task not found',
             'Task could not be found',
             const Color(0xFF9E9E9E), // Grey
           );
@@ -390,8 +390,8 @@ class NotificationService {
 
           // Show a completion feedback notification
           await _showActionFeedbackNotification(
-            '✅ Task Completed',
-            'Task "${task.title}" has been marked as done!',
+            'Completed',
+            '"${task.title}" is done',
             const Color(0xFF4CAF50), // Green
           );
           break;
@@ -401,7 +401,7 @@ class NotificationService {
           debugPrint('🔔 Snoozing for 5 minutes');
           await _snoozeNotification(taskId, 5);
           await _showActionFeedbackNotification(
-            '⏰ Snoozed',
+            'Snoozed',
             'Task snoozed for 5 minutes',
             const Color(0xFFFF9800), // Orange
           );
@@ -412,7 +412,7 @@ class NotificationService {
           debugPrint('🔔 Snoozing for 15 minutes');
           await _snoozeNotification(taskId, 15);
           await _showActionFeedbackNotification(
-            '⏰ Snoozed',
+            'Snoozed',
             'Task snoozed for 15 minutes',
             const Color(0xFFFF9800), // Orange
           );
@@ -423,7 +423,7 @@ class NotificationService {
           debugPrint('🔔 Snoozing for 1 hour');
           await _snoozeNotification(taskId, 60);
           await _showActionFeedbackNotification(
-            '⏰ Snoozed',
+            'Snoozed',
             'Task snoozed for 1 hour',
             const Color(0xFFFF9800), // Orange
           );
@@ -438,14 +438,14 @@ class NotificationService {
             navigationService.navigateToTaskDetail(taskId);
 
             await _showActionFeedbackNotification(
-              '👁️ Details',
+              'Opening',
               'Opening task details...',
               const Color(0xFF2196F3), // Blue
             );
           } catch (e) {
             debugPrint('🔔 Error navigating to task details: $e');
             await _showActionFeedbackNotification(
-              '❌ Navigation Error',
+              'Could not open',
               'Could not open task details',
               const Color(0xFFF44336), // Red
             );
@@ -462,8 +462,8 @@ class NotificationService {
             if (await canLaunchUrl(phoneUri)) {
               await launchUrl(phoneUri);
               await _showActionFeedbackNotification(
-                '📞 Phone App Opened',
-                'Phone app opened successfully',
+                'Opening phone',
+                'Dialler is ready',
                 const Color(0xFF4CAF50), // Green
               );
             } else {
@@ -472,7 +472,7 @@ class NotificationService {
           } catch (e) {
             debugPrint('🔔 Error opening phone app: $e');
             await _showActionFeedbackNotification(
-              '❌ Phone Error',
+              'Could not open phone',
               'Could not open phone app',
               const Color(0xFFF44336), // Red
             );
@@ -488,8 +488,8 @@ class NotificationService {
             if (await canLaunchUrl(smsUri)) {
               await launchUrl(smsUri);
               await _showActionFeedbackNotification(
-                '💬 Messaging App Opened',
-                'Messaging app opened with birthday wishes',
+                'Opening messages',
+                'Message drafted',
                 const Color(0xFF4CAF50), // Green
               );
             } else {
@@ -498,7 +498,7 @@ class NotificationService {
           } catch (e) {
             debugPrint('🔔 Error opening messaging app: $e');
             await _showActionFeedbackNotification(
-              '❌ Messaging Error',
+              'Could not open messages',
               'Could not open messaging app',
               const Color(0xFFF44336), // Red
             );
@@ -508,7 +508,7 @@ class NotificationService {
         default:
           debugPrint('🔔 Unknown action: $actionId');
           await _showActionFeedbackNotification(
-            '❌ Unknown Action',
+            'Unknown action',
             'Unknown action: $actionId',
             const Color(0xFFF44336), // Red
           );
@@ -516,7 +516,7 @@ class NotificationService {
     } catch (e) {
       debugPrint('🔔 Error handling notification action: $e');
       await _showActionFeedbackNotification(
-        '❌ Error',
+        'Something went wrong',
         'Failed to perform action: $e',
         const Color(0xFFF44336), // Red
       );
@@ -540,30 +540,27 @@ class NotificationService {
       tz.local,
     ).add(Duration(minutes: minutes));
 
-    String title;
-    String body;
-
-    switch (task.taskType) {
-      case TaskType.task:
-        title = '📋 Task Reminder: ${task.title}';
-        body = 'Snoozed for $minutes minutes - ${task.description}';
-        break;
-      case TaskType.reminder:
-        title = '⏰ Reminder: ${task.title}';
-        body = 'Snoozed for $minutes minutes - ${task.description}';
-        break;
-      case TaskType.birthday:
-        title = '🎂 Birthday Reminder: ${task.title}';
-        body = 'Snoozed for $minutes minutes - Don\'t forget to wish them!';
-        break;
-    }
+    // "Snoozed" is the header label now, so the body can be the description
+    // rather than restating what the header already says. A null description
+    // used to print the literal word "null" here.
+    final String title = task.title;
+    final description = task.description?.trim();
+    final String body = description != null && description.isNotEmpty
+        ? description
+        : 'Snoozed for $minutes minutes.';
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
       id: taskId.hashCode,
       title: title,
       body: body,
       scheduledDate: snoozeTime,
-      notificationDetails: _getNotificationDetails(task.taskType, taskId),
+      notificationDetails: _getNotificationDetails(
+        task.taskType,
+        taskId,
+        body: body,
+        kind: 'Snoozed',
+        when: snoozeTime,
+      ),
       payload: taskId, // Add task ID as payload
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
@@ -587,8 +584,10 @@ class NotificationService {
           'task_reminders',
           'Task Reminders',
           channelDescription: 'Action feedback notifications',
-          importance: Importance.high,
-          priority: Priority.high,
+          // Low: this is a three-second confirmation that an action landed,
+          // not something to interrupt whatever is on screen.
+          importance: Importance.low,
+          priority: Priority.low,
           autoCancel: true,
           ongoing: false,
           enableLights: true,
@@ -608,44 +607,106 @@ class NotificationService {
     );
   }
 
+  // ── How a notification looks ────────────────────────────────────────────
+  //
+  // Android already shows the app name and icon in the header, so the title is
+  // the thing itself — "Pay the electricity bill", not "📋 Task Reminder: Pay
+  // the electricity bill". What kind of thing it is goes in `subText`, the
+  // slot Android provides for exactly that, and the accent colour says it
+  // again at a glance. Emoji in titles and button labels added nothing those
+  // two didn't already carry, and made every notification read like a chat
+  // message.
+  //
+  // Group keys bundle several of a kind under one header instead of stacking
+  // up as unrelated rows.
+  static const String _groupTasks = 'lifeque.tasks';
+  static const String _groupReminders = 'lifeque.reminders';
+  static const String _groupBirthdays = 'lifeque.birthdays';
+  static const String _groupMedicines = 'lifeque.medicines';
+  static const String _groupTodos = 'lifeque.todos';
+
+  static const Color _taskColor = Color(0xFF2563EB);
+  static const Color _reminderColor = Color(0xFFD97706);
+  static const Color _birthdayColor = Color(0xFFDB2777);
+  static const Color _medicineColor = Color(0xFF059669);
+  static const Color _todoColor = Color(0xFF7C3AED);
+
+  /// The shared shape of an alerting notification.
+  ///
+  /// [kind] is the one-word label in the header ("Task", "Reminder"); [body]
+  /// is repeated as big text so a long description isn't truncated when the
+  /// notification is expanded; [when] makes the timestamp the moment the
+  /// notification is *about* rather than the moment it was posted.
+  AndroidNotificationDetails _androidAlert({
+    required String channelId,
+    required String channelName,
+    required String kind,
+    required Color color,
+    required String body,
+    required String group,
+    List<AndroidNotificationAction> actions = const [],
+    DateTime? when,
+  }) {
+    return AndroidNotificationDetails(
+      channelId,
+      channelName,
+      channelDescription: '$kind notifications',
+      importance: Importance.max,
+      priority: Priority.max,
+      autoCancel: true,
+      enableLights: true,
+      enableVibration: true,
+      playSound: true,
+      icon: '@mipmap/ic_launcher',
+      color: color,
+      visibility: NotificationVisibility.public,
+      category: AndroidNotificationCategory.reminder,
+      subText: kind,
+      groupKey: group,
+      when: when?.millisecondsSinceEpoch,
+      showWhen: when != null,
+      styleInformation: BigTextStyleInformation(body),
+      actions: actions,
+    );
+  }
+
+  /// Every action opens the app.
+  ///
+  /// Handling one silently would need a background isolate callback, and this
+  /// app doesn't register one — an action marked `showsUserInterface: false`
+  /// is simply dropped whenever the app isn't already in the foreground, which
+  /// looks exactly like a broken button.
+  static AndroidNotificationAction _action(String id, String label) =>
+      AndroidNotificationAction(
+        id,
+        label,
+        showsUserInterface: true,
+        cancelNotification: true,
+      );
+
   NotificationDetails _getNotificationDetails(
     TaskType taskType,
-    String taskId,
-  ) {
+    String taskId, {
+    String body = '',
+    String? kind,
+    DateTime? when,
+  }) {
     switch (taskType) {
       case TaskType.task:
         return NotificationDetails(
-          android: AndroidNotificationDetails(
-            'task_reminders',
-            'Task Reminders',
-            channelDescription: 'Task reminder notifications with actions',
-            importance: Importance.max,
-            priority: Priority.max,
-            ongoing: false,
-            autoCancel: true,
-            enableLights: true,
-            enableVibration: true,
-            playSound: true,
-            icon: '@mipmap/ic_launcher',
-            color: const Color(0xFF2196F3), // Blue for tasks
-            visibility: NotificationVisibility.public,
-            category: AndroidNotificationCategory.reminder,
+          android: _androidAlert(
+            channelId: 'task_reminders',
+            channelName: 'Task Reminders',
+            kind: kind ?? 'Task',
+            color: _taskColor,
+            body: body,
+            group: _groupTasks,
+            when: when,
+            // Two actions, not three: tapping the notification already opens
+            // the details, so a button for it was a button for nothing.
             actions: [
-              const AndroidNotificationAction(
-                'mark_done',
-                '✅ Mark Done',
-                showsUserInterface: true,
-              ),
-              const AndroidNotificationAction(
-                'snooze_15',
-                '⏰ Snooze 15m',
-                showsUserInterface: true,
-              ),
-              const AndroidNotificationAction(
-                'view_details',
-                '👁️ View Details',
-                showsUserInterface: true,
-              ),
+              _action('mark_done', 'Mark done'),
+              _action('snooze_15', 'Snooze 15 min'),
             ],
           ),
           iOS: const DarwinNotificationDetails(
@@ -658,37 +719,18 @@ class NotificationService {
 
       case TaskType.reminder:
         return NotificationDetails(
-          android: AndroidNotificationDetails(
-            'task_reminders',
-            'Task Reminders',
-            channelDescription: 'Reminder notifications with quick actions',
-            importance: Importance.max,
-            priority: Priority.max,
-            ongoing: false,
-            autoCancel: true,
-            enableLights: true,
-            enableVibration: true,
-            playSound: true,
-            icon: '@mipmap/ic_launcher',
-            color: const Color(0xFFFF9800), // Orange for reminders
-            visibility: NotificationVisibility.public,
-            category: AndroidNotificationCategory.reminder,
+          android: _androidAlert(
+            channelId: 'task_reminders',
+            channelName: 'Task Reminders',
+            kind: kind ?? 'Reminder',
+            color: _reminderColor,
+            body: body,
+            group: _groupReminders,
+            when: when,
             actions: [
-              const AndroidNotificationAction(
-                'mark_done',
-                '✅ Done',
-                showsUserInterface: true,
-              ),
-              const AndroidNotificationAction(
-                'snooze_5',
-                '⏰ 5min',
-                showsUserInterface: true,
-              ),
-              const AndroidNotificationAction(
-                'snooze_60',
-                '⏰ 1hr',
-                showsUserInterface: true,
-              ),
+              _action('mark_done', 'Done'),
+              _action('snooze_5', 'Snooze 5 min'),
+              _action('snooze_60', 'Snooze 1 hour'),
             ],
           ),
           iOS: const DarwinNotificationDetails(
@@ -701,43 +743,19 @@ class NotificationService {
 
       case TaskType.birthday:
         return NotificationDetails(
-          android: AndroidNotificationDetails(
-            'task_reminders',
-            'Task Reminders',
-            channelDescription: 'Birthday reminder notifications',
-            importance: Importance.max,
-            priority: Priority.max,
-            ongoing: false,
-            autoCancel: true,
-            enableLights: true,
-            enableVibration: true,
-            playSound: true,
-            icon: '@mipmap/ic_launcher',
-            color: const Color(0xFFE91E63), // Pink for birthdays
-            visibility: NotificationVisibility.public,
-            category: AndroidNotificationCategory.reminder,
-            styleInformation: const BigTextStyleInformation(
-              '🎉 Don\'t forget to wish them a happy birthday!',
-              htmlFormatBigText: false,
-              contentTitle: '🎂 Birthday Today!',
-              htmlFormatContentTitle: false,
-            ),
+          android: _androidAlert(
+            channelId: 'task_reminders',
+            channelName: 'Task Reminders',
+            kind: kind ?? 'Birthday',
+            color: _birthdayColor,
+            body: body,
+            group: _groupBirthdays,
+            when: when,
+            // Ordered by what you'd actually reach for first.
             actions: [
-              const AndroidNotificationAction(
-                'call_contact',
-                '📞 Call',
-                showsUserInterface: true,
-              ),
-              const AndroidNotificationAction(
-                'send_message',
-                '💬 Message',
-                showsUserInterface: true,
-              ),
-              const AndroidNotificationAction(
-                'mark_done',
-                '✅ Wished',
-                showsUserInterface: true,
-              ),
+              _action('send_message', 'Send wishes'),
+              _action('call_contact', 'Call'),
+              _action('mark_done', 'Wished them'),
             ],
           ),
           iOS: const DarwinNotificationDetails(
@@ -821,31 +839,24 @@ class NotificationService {
 
       // Only schedule if the notification time is in the future
       if (scheduledDate.isAfter(now)) {
-        String notificationTitle;
-        String notificationBody;
+        // The title is the task, full stop. What sort of alert it is — a
+        // daily nudge, a deadline warning — belongs in the header label
+        // beside the app name, not glued to the front of the title where it
+        // pushes the actual words off the end of the line.
+        final String notificationTitle = task.title;
+        final String notificationBody;
+        final String notificationKind;
 
-        // Generate context-aware content based on task type
         if (task.taskType == TaskType.reminder) {
-          notificationTitle = '⏰ Reminder: ${task.title}';
           notificationBody = _getReminderNotificationBody(task);
+          notificationKind = 'Reminder';
         } else {
-          // Regular task
-          notificationTitle = '📋 Task Reminder: ${task.title}';
           notificationBody = _getTaskNotificationBody(task);
-
-          // Customize based on notification type
-          switch (task.notificationType) {
-            case NotificationType.daily:
-              notificationTitle = '📋 Daily Reminder: ${task.title}';
-              break;
-            case NotificationType.beforeEnd:
-              notificationTitle = '⚠️ Task Due Soon: ${task.title}';
-              // Body already has deadline info from helper
-              break;
-            case NotificationType.specificTime:
-              // Use default title
-              break;
-          }
+          notificationKind = switch (task.notificationType) {
+            NotificationType.daily => 'Daily task',
+            NotificationType.beforeEnd => 'Task due soon',
+            NotificationType.specificTime => 'Task',
+          };
         }
 
         DateTimeComponents? dateTimeComponents;
@@ -859,7 +870,13 @@ class NotificationService {
           title: notificationTitle,
           body: notificationBody,
           scheduledDate: scheduledDate,
-          notificationDetails: _getNotificationDetails(task.taskType, task.id),
+          notificationDetails: _getNotificationDetails(
+            task.taskType,
+            task.id,
+            body: notificationBody,
+            kind: notificationKind,
+            when: scheduledNotificationTime,
+          ),
           payload: task.id, // Add task ID as payload
           matchDateTimeComponents: dateTimeComponents,
           androidScheduleMode: AndroidScheduleMode
@@ -888,7 +905,7 @@ class NotificationService {
           ).add(const Duration(seconds: 10));
           await _flutterLocalNotificationsPlugin.zonedSchedule(
             id: (task.id.hashCode + 999),
-            title: '🧪 Test Notification',
+            title: 'Test notification',
             body: 'This is a test to verify notifications work',
             scheduledDate: testTime,
             notificationDetails: const NotificationDetails(
@@ -946,26 +963,26 @@ class NotificationService {
         String title;
         String body;
 
+        // Title is the person; the body says when and why you're hearing
+        // about it now. "Tomorrow" and "In two hours" are the useful part.
+        title = task.title;
+        final String kind;
         switch (option) {
           case BirthdayNotificationOption.oneDayBefore:
-            title = '🎁 Gift Prep Reminder: ${task.title}';
-            body =
-                'Tomorrow is ${task.title}\'s birthday! Time to prepare gifts 🎁';
+            body = 'Birthday tomorrow — time to sort a gift if you need one.';
+            kind = 'Birthday tomorrow';
             break;
           case BirthdayNotificationOption.twoHoursBefore:
-            title = '🎂 Birthday Soon: ${task.title}';
-            body =
-                '${task.title}\'s birthday is in 2 hours! Final preparations 🎈';
+            body = 'Birthday in two hours.';
+            kind = 'Birthday today';
             break;
           case BirthdayNotificationOption.tenMinutesBefore:
-            title = '🎉 Almost Time: ${task.title}';
-            body =
-                '${task.title}\'s birthday is in 10 minutes! Get ready to celebrate! 🎊';
+            body = 'Birthday in ten minutes.';
+            kind = 'Birthday today';
             break;
           case BirthdayNotificationOption.exactTime:
-            title = '🎂 Happy Birthday ${task.title}! 🎉';
-            body =
-                'It\'s ${task.title}\'s birthday today! Don\'t forget to wish them well! 🎈🎊';
+            body = 'It\'s their birthday today. Send them something.';
+            kind = 'Birthday today';
             break;
         }
 
@@ -977,7 +994,13 @@ class NotificationService {
           title: title,
           body: body,
           scheduledDate: scheduledDate,
-          notificationDetails: _getNotificationDetails(task.taskType, task.id),
+          notificationDetails: _getNotificationDetails(
+            task.taskType,
+            task.id,
+            body: body,
+            kind: kind,
+            when: notificationTime,
+          ),
           payload: task.id,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         );
@@ -1006,16 +1029,24 @@ class NotificationService {
     String summaryText;
     String detailedContent;
 
-    // Customize content based on task type
+    // An ongoing notification sits in the shade all day, so it has to be
+    // readable at a glance and quiet the rest of the time. One line of status,
+    // a couple of lines when expanded, and no emoji competing with the app
+    // icon that is already right beside it.
+    final fmt = DateFormat('d MMM, HH:mm');
+
     switch (task.taskType) {
       case TaskType.task:
-        title = '📌 ${task.title}';
+        title = task.title;
         content =
-            '⏱️ ${task.timeLeftFormatted} • ${(task.progressPercentage * 100).toStringAsFixed(0)}% complete';
-        notificationColor = const Color(0xFF2196F3); // Blue
-        summaryText = 'Ongoing Task';
+            '${task.timeLeftFormatted} left · '
+            '${(task.progressPercentage * 100).toStringAsFixed(0)}% done';
+        notificationColor = _taskColor;
+        summaryText = 'Task';
         detailedContent =
-            '⏱️ Time left: ${task.timeLeftFormatted}\n📊 Progress: ${(task.progressPercentage * 100).toStringAsFixed(1)}%\n📅 Due: ${task.endDate.day}/${task.endDate.month}/${task.endDate.year}';
+            'Due ${fmt.format(task.endDate)}\n'
+            '${task.timeLeftFormatted} left · '
+            '${(task.progressPercentage * 100).toStringAsFixed(0)}% done';
         break;
 
       case TaskType.reminder:
@@ -1023,28 +1054,26 @@ class NotificationService {
         final timeUntil = task.endDate.difference(now);
         final isPast = now.isAfter(task.endDate);
 
-        title = '🔔 ${task.title}';
+        title = task.title;
         if (isPast) {
-          content = '⏰ Reminder time has passed!';
-          detailedContent =
-              '⚠️ This reminder was scheduled for:\n📅 ${task.endDate.day}/${task.endDate.month}/${task.endDate.year} at ${task.endDate.hour}:${task.endDate.minute.toString().padLeft(2, '0')}';
+          content = 'This one has passed';
+          detailedContent = 'Was set for ${fmt.format(task.endDate)}';
         } else {
           final days = timeUntil.inDays;
           final hours = timeUntil.inHours % 24;
           final minutes = timeUntil.inMinutes % 60;
 
           if (days > 0) {
-            content = '⏰ In ${days}d ${hours}h ${minutes}m';
+            content = 'In ${days}d ${hours}h';
           } else if (hours > 0) {
-            content = '⏰ In ${hours}h ${minutes}m';
+            content = 'In ${hours}h ${minutes}m';
           } else {
-            content = '⏰ In ${minutes}m';
+            content = 'In ${minutes}m';
           }
-          detailedContent =
-              '🕐 Reminder set for:\n📅 ${task.endDate.day}/${task.endDate.month}/${task.endDate.year} at ${task.endDate.hour}:${task.endDate.minute.toString().padLeft(2, '0')}\n⏰ Time remaining: $content';
+          detailedContent = '${fmt.format(task.endDate)}\n$content';
         }
-        notificationColor = const Color(0xFFFF9800); // Orange
-        summaryText = 'Active Reminder';
+        notificationColor = _reminderColor;
+        summaryText = 'Reminder';
         break;
 
       case TaskType.birthday:
@@ -1054,33 +1083,28 @@ class NotificationService {
           task.endDate.month,
           task.endDate.day,
         );
-        final birthdayNextYear = DateTime(
-          now.year + 1,
-          task.endDate.month,
-          task.endDate.day,
-        );
-        final nextBirthday = now.isAfter(birthdayThisYear)
-            ? birthdayNextYear
+        final today = DateTime(now.year, now.month, now.day);
+        final nextBirthday = today.isAfter(birthdayThisYear)
+            ? DateTime(now.year + 1, task.endDate.month, task.endDate.day)
             : birthdayThisYear;
-        final daysUntil = nextBirthday.difference(now).inDays;
-        final currentAge = now.year - task.endDate.year;
+        final daysUntil = nextBirthday.difference(today).inDays;
+        final turning = nextBirthday.year - task.endDate.year;
+        final age = task.endDate.year < now.year && turning > 0
+            ? ' · turning $turning'
+            : '';
 
-        title = '🎂 ${task.title}';
+        title = task.title;
         if (daysUntil == 0) {
-          content = '🎉 Birthday is TODAY! 🎉';
-          detailedContent =
-              '🎂 Today is ${task.title}\'s birthday!\n🎈 They are turning ${currentAge + 1} years old\n🎉 Don\'t forget to celebrate!';
+          content = 'Birthday today$age';
         } else if (daysUntil == 1) {
-          content = '🎈 Birthday is TOMORROW!';
-          detailedContent =
-              '🎂 ${task.title}\'s birthday is tomorrow!\n🎈 They will turn ${currentAge + (now.isAfter(birthdayThisYear) ? 1 : 0)} years old\n⏰ Time to prepare!';
+          content = 'Birthday tomorrow$age';
         } else {
-          content = '🎈 $daysUntil days until birthday';
-          detailedContent =
-              '🎂 ${task.title}\'s birthday:\n📅 ${nextBirthday.day}/${nextBirthday.month}/${nextBirthday.year}\n🎈 Will turn ${currentAge + (now.isAfter(birthdayThisYear) ? 1 : 0)} years old\n⏰ $daysUntil days remaining';
+          content = 'Birthday in $daysUntil days$age';
         }
-        notificationColor = const Color(0xFFE91E63); // Pink
-        summaryText = 'Birthday Reminder';
+        detailedContent =
+            '${DateFormat('d MMMM').format(nextBirthday)}\n$content';
+        notificationColor = _birthdayColor;
+        summaryText = 'Birthday';
         break;
     }
 
@@ -1112,15 +1136,18 @@ class NotificationService {
           color: notificationColor,
           icon: '@mipmap/ic_launcher',
           // Use a custom style to make it more prominent
+          subText: summaryText,
+          groupKey: switch (task.taskType) {
+            TaskType.task => _groupTasks,
+            TaskType.reminder => _groupReminders,
+            TaskType.birthday => _groupBirthdays,
+          },
           styleInformation: BigTextStyleInformation(
             detailedContent,
             htmlFormatBigText: false,
             contentTitle: title,
             htmlFormatContentTitle: false,
-            summaryText: summaryText,
-            htmlFormatSummaryText: false,
           ),
-          // Add action buttons for persistent notifications
           actions: _getPersistentNotificationActions(task.taskType),
         ),
         iOS: const DarwinNotificationDetails(
@@ -1133,52 +1160,23 @@ class NotificationService {
     );
   }
 
+  /// Actions on an ongoing notification, which is a control surface rather
+  /// than an alert. "Details" is dropped: the notification body already is
+  /// the detail, and tapping it opens the page.
   List<AndroidNotificationAction> _getPersistentNotificationActions(
     TaskType taskType,
   ) {
-    switch (taskType) {
-      case TaskType.task:
-        return [
-          const AndroidNotificationAction(
-            'mark_done',
-            '✅ Complete',
-            showsUserInterface: true,
-          ),
-          const AndroidNotificationAction(
-            'view_details',
-            '👁️ Details',
-            showsUserInterface: true,
-          ),
-        ];
-
-      case TaskType.reminder:
-        return [
-          const AndroidNotificationAction(
-            'mark_done',
-            '✅ Done',
-            showsUserInterface: true,
-          ),
-          const AndroidNotificationAction(
-            'snooze_15',
-            '⏰ Snooze',
-            showsUserInterface: true,
-          ),
-        ];
-
-      case TaskType.birthday:
-        return [
-          const AndroidNotificationAction(
-            'call_contact',
-            '📞 Call',
-            showsUserInterface: true,
-          ),
-          const AndroidNotificationAction(
-            'mark_done',
-            '✅ Wished',
-            showsUserInterface: true,
-          ),
-        ];
-    }
+    return switch (taskType) {
+      TaskType.task => [_action('mark_done', 'Complete')],
+      TaskType.reminder => [
+        _action('mark_done', 'Done'),
+        _action('snooze_15', 'Snooze 15 min'),
+      ],
+      TaskType.birthday => [
+        _action('send_message', 'Send wishes'),
+        _action('mark_done', 'Wished them'),
+      ],
+    };
   }
 
   Future<void> updatePersistentNotification(Task task) async {
@@ -1461,7 +1459,7 @@ class NotificationService {
     debugPrint('🧪 Showing immediate test notification');
     await _flutterLocalNotificationsPlugin.show(
       id: 999999,
-      title: '🧪 Test Notification',
+      title: 'Test notification',
       body: 'This is an immediate test notification to verify the system works',
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
@@ -1500,7 +1498,7 @@ class NotificationService {
     debugPrint('🧪 Showing test notification for real task: ${task.title}');
     await _flutterLocalNotificationsPlugin.show(
       id: task.id.hashCode + 50000, // Unique test ID
-      title: '🧪 Test: ${task.title}',
+      title: 'Test: ${task.title}',
       body: 'Test notification for real task - try the action buttons!',
       notificationDetails: _getNotificationDetails(task.taskType, task.id),
       payload: task.id,
@@ -1521,7 +1519,7 @@ class NotificationService {
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
       id: 999998,
-      title: '🧪 Scheduled Test Notification',
+      title: 'Scheduled test',
       body:
           'This test notification was scheduled 10 seconds ago - if you see this, scheduled notifications work!',
       scheduledDate: scheduledTime,
@@ -1570,7 +1568,7 @@ class NotificationService {
     try {
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         id: 123456, // Simple test ID
-        title: '🧪 Simple Test',
+        title: 'Simple test',
         body: 'This is a simple test notification scheduled for 10 seconds',
         scheduledDate: scheduledTime,
         notificationDetails: const NotificationDetails(
@@ -1907,35 +1905,21 @@ class NotificationService {
     try {
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         id: id,
-        title: '✅ ${todo.title}',
+        title: todo.title,
         body: body,
         scheduledDate: scheduledDate,
         notificationDetails: NotificationDetails(
-          android: AndroidNotificationDetails(
-            'todo_reminders',
-            'To-Do Reminders',
-            channelDescription: 'Reminders for the to-dos on your list',
-            importance: Importance.max,
-            priority: Priority.max,
-            enableLights: true,
-            enableVibration: true,
-            playSound: true,
-            visibility: NotificationVisibility.public,
-            category: AndroidNotificationCategory.reminder,
-            styleInformation: BigTextStyleInformation(body),
-            actions: const [
-              AndroidNotificationAction(
-                'todo_done',
-                'Mark as done',
-                showsUserInterface: false,
-                cancelNotification: true,
-              ),
-              AndroidNotificationAction(
-                'todo_snooze',
-                'Snooze 1 hour',
-                showsUserInterface: false,
-                cancelNotification: true,
-              ),
+          android: _androidAlert(
+            channelId: 'todo_reminders',
+            channelName: 'To-Do Reminders',
+            kind: 'To-do',
+            color: _todoColor,
+            body: body,
+            group: _groupTodos,
+            when: todo.reminderTime,
+            actions: [
+              _action('todo_done', 'Mark done'),
+              _action('todo_snooze', 'Snooze 1 hour'),
             ],
           ),
           iOS: const DarwinNotificationDetails(
@@ -1980,9 +1964,13 @@ class NotificationService {
       }
     }
 
-    parts.add(
-      '${todo.priority.displayName} priority · ${todo.category.displayName}',
-    );
+    // Category is worth a word; "Medium priority" on every single to-do is
+    // noise, so only an urgent one says so.
+    if (todo.priority == TodoPriority.urgent ||
+        todo.priority == TodoPriority.high) {
+      parts.add('${todo.priority.displayName} priority');
+    }
+    parts.add(todo.category.displayName);
     return parts.join(' · ');
   }
 
@@ -2020,7 +2008,7 @@ class NotificationService {
           (_) async {
             await cancelTodoNotification(todoId);
             await _showActionFeedbackNotification(
-              '✅ Done',
+              'Done',
               '"${todo.title}" is off your list',
               const Color(0xFF10B981),
             );
@@ -2040,7 +2028,7 @@ class NotificationService {
           (_) async {
             await scheduleTodoNotification(snoozed);
             await _showActionFeedbackNotification(
-              '💤 Snoozed',
+              'Snoozed',
               '"${todo.title}" will remind you again in an hour',
               const Color(0xFF3B82F6),
             );
@@ -2197,11 +2185,13 @@ class NotificationService {
 
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         id: notificationId,
-        title: '💊 Medicine Reminder',
-        body:
-            'Time to take ${medicine.name} (${medicine.dosage} ${medicine.dosageUnit})',
+        title: medicine.name,
+        body: '${medicine.dosage} ${medicine.dosageUnit}',
         scheduledDate: tz.TZDateTime.from(notificationDate, tz.local),
-        notificationDetails: _getMedicineNotificationDetails(medicine),
+        notificationDetails: _getMedicineNotificationDetails(
+          medicine,
+          notificationDate,
+        ),
         payload: 'medicine_${medicine.id}',
         matchDateTimeComponents:
             DateTimeComponents.time, // Repeat daily at same time
@@ -2218,47 +2208,23 @@ class NotificationService {
     }
   }
 
-  NotificationDetails _getMedicineNotificationDetails(dynamic medicine) {
-    final medicineBody = _getMedicineNotificationBody(medicine);
-
+  NotificationDetails _getMedicineNotificationDetails(
+    dynamic medicine, [
+    DateTime? when,
+  ]) {
     return NotificationDetails(
-      android: AndroidNotificationDetails(
-        'medicine_reminders',
-        'Medicine Reminders',
-        channelDescription: 'Notifications for medicine dose reminders',
-        importance: Importance.max,
-        priority: Priority.max,
-        ongoing: false,
-        autoCancel: true,
-        enableLights: true,
-        enableVibration: true,
-        playSound: true,
-        icon: '@mipmap/ic_launcher',
-        color: const Color(0xFF4CAF50), // Green for medicines
-        visibility: NotificationVisibility.public,
-        category: AndroidNotificationCategory.reminder,
-        styleInformation: BigTextStyleInformation(
-          medicineBody,
-          htmlFormatBigText: false,
-          contentTitle: '💊 ${medicine.name}',
-          htmlFormatContentTitle: false,
-        ),
+      android: _androidAlert(
+        channelId: 'medicine_reminders',
+        channelName: 'Medicine Reminders',
+        kind: 'Medicine',
+        color: _medicineColor,
+        body: _getMedicineNotificationBody(medicine),
+        group: _groupMedicines,
+        when: when,
         actions: [
-          const AndroidNotificationAction(
-            'take_medicine',
-            '✅ Take Now',
-            showsUserInterface: true,
-          ),
-          const AndroidNotificationAction(
-            'skip_medicine',
-            '⏭️ Skip',
-            showsUserInterface: true,
-          ),
-          const AndroidNotificationAction(
-            'snooze_medicine',
-            '⏰ Snooze 15min',
-            showsUserInterface: true,
-          ),
+          _action('take_medicine', 'Taken'),
+          _action('skip_medicine', 'Skip dose'),
+          _action('snooze_medicine', 'In 15 min'),
         ],
       ),
       iOS: const DarwinNotificationDetails(
@@ -2505,8 +2471,8 @@ class NotificationService {
           await _markCurrentPendingDoseAsTaken(medicineId, medicineCubit);
 
           await _showActionFeedbackNotification(
-            '✅ Dose Taken',
-            'Medicine dose marked as taken!',
+            'Dose taken',
+            'Marked as taken',
             const Color(0xFF4CAF50),
           );
           break;
@@ -2518,8 +2484,8 @@ class NotificationService {
           await _markCurrentPendingDoseAsSkipped(medicineId, medicineCubit);
 
           await _showActionFeedbackNotification(
-            '⏭️ Dose Skipped',
-            'Medicine dose skipped',
+            'Dose skipped',
+            'Marked as skipped',
             const Color(0xFFFF9800),
           );
           break;
@@ -2528,8 +2494,8 @@ class NotificationService {
           debugPrint('🩺 User snoozed dose from notification');
           await _snoozeMedicineNotification(medicineId, 15);
           await _showActionFeedbackNotification(
-            '⏰ Dose Snoozed',
-            'Reminder snoozed for 15 minutes',
+            'Snoozed',
+            'Back in 15 minutes',
             const Color(0xFF2196F3),
           );
           break;
@@ -2540,7 +2506,7 @@ class NotificationService {
     } catch (e) {
       debugPrint('🩺 Error handling medicine notification action: $e');
       await _showActionFeedbackNotification(
-        '❌ Error',
+        'Something went wrong',
         'Failed to perform action',
         const Color(0xFFF44336),
       );
@@ -2700,16 +2666,21 @@ class NotificationService {
       id:
           DateTime.now().millisecondsSinceEpoch %
           100000, // Unique ID for snoozed notification
-      title: '💊 Medicine Reminder (Snoozed)',
-      body: 'Don\'t forget to take your medicine - this reminder was snoozed',
+      title: 'Medicine dose',
+      body: 'Snoozed for $minutes minutes.',
       scheduledDate: snoozeTime,
-      notificationDetails: const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'medicine_reminders',
-          'Medicine Reminders',
-          channelDescription: 'Snoozed medicine reminders',
-          importance: Importance.max,
-          priority: Priority.max,
+      notificationDetails: NotificationDetails(
+        android: _androidAlert(
+          channelId: 'medicine_reminders',
+          channelName: 'Medicine Reminders',
+          kind: 'Snoozed',
+          color: _medicineColor,
+          body: 'Snoozed for $minutes minutes.',
+          group: _groupMedicines,
+          actions: [
+            _action('take_medicine', 'Taken'),
+            _action('skip_medicine', 'Skip dose'),
+          ],
         ),
       ),
       payload: 'medicine_$medicineId',
@@ -2749,26 +2720,23 @@ class NotificationService {
   String _getTaskNotificationBody(Task task) {
     final parts = <String>[];
 
-    // Add deadline info
+    // Deadline first — it is the reason the notification exists.
     final timeLeft = task.endDate.difference(DateTime.now());
-    if (timeLeft.inHours < 24 && timeLeft.inHours > 0) {
+    if (timeLeft.isNegative) {
+      parts.add('Overdue');
+    } else if (timeLeft.inMinutes < 60) {
+      parts.add('Due in ${timeLeft.inMinutes} min');
+    } else if (timeLeft.inHours < 24) {
       parts.add('Due in ${_formatDuration(timeLeft)}');
-    } else if (timeLeft.inMinutes < 60 && timeLeft.inMinutes > 0) {
-      parts.add('⚠️ Due in ${timeLeft.inMinutes}m');
-    } else if (timeLeft.isNegative) {
-      parts.add('⚠️ Overdue');
     } else {
-      parts.add(
-        'Deadline: ${DateFormat('MMM dd, h:mm a').format(task.endDate)}',
-      );
+      parts.add('Due ${DateFormat('d MMM, HH:mm').format(task.endDate)}');
     }
 
-    // Add progress if available
     if (task.progressPercentage > 0) {
-      parts.add('${(task.progressPercentage * 100).toInt()}% complete');
+      parts.add('${(task.progressPercentage * 100).toInt()}% done');
     }
 
-    String body = parts.join(' • ');
+    String body = parts.join(' · ');
 
     // Add description
     if (task.description != null && task.description!.isNotEmpty) {
@@ -2780,25 +2748,13 @@ class NotificationService {
 
   /// Generate context-aware notification body for reminders
   String _getReminderNotificationBody(Task task) {
-    final parts = <String>[];
+    // A reminder that has just gone off doesn't need to be told the time it
+    // went off in — Android stamps that on the notification itself. The note
+    // you left yourself is the useful part; the time is the fallback.
+    final description = task.description?.trim();
+    if (description != null && description.isNotEmpty) return description;
 
-    // Add urgency indicator
-    final timeUntil = task.endDate.difference(DateTime.now());
-    if (timeUntil.inHours < 1 && timeUntil.inMinutes > 0) {
-      parts.add('⚠️ Urgent');
-    }
-
-    // Add scheduled time
-    parts.add('Scheduled for ${DateFormat('h:mm a').format(task.endDate)}');
-
-    String body = parts.join(' • ');
-
-    // Add description
-    if (task.description != null && task.description!.isNotEmpty) {
-      body += '\n\n${task.description}';
-    }
-
-    return body;
+    return 'Set for ${DateFormat('HH:mm').format(task.endDate)}';
   }
 
   /// Generate context-aware notification body for medicines
@@ -2823,9 +2779,7 @@ class NotificationService {
       // Timing field might not exist
     }
 
-    String body = parts.isNotEmpty
-        ? parts.join(' • ')
-        : 'Time to take your medicine';
+    String body = parts.isNotEmpty ? parts.join(' · ') : 'Time for this dose';
 
     // Add dosage amount if available
     try {
