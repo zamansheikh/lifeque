@@ -154,12 +154,9 @@ class MosqueWidgetUI extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(width: 4),
-        Icon(
-          Icons.refresh_rounded,
-          size: 13,
-          color: Colors.white.withValues(alpha: 0.8),
-        ),
+        // Space for the host layout's real refresh button — see
+        // PrayerWidgetUI for why this isn't drawn here.
+        const SizedBox(width: 30),
       ],
     );
   }

@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF0D4F4F">
+    android:background="@drawable/widget_bg_green">
 
     <!-- Default content shown before Flutter renders the image -->
     <LinearLayout
@@ -42,7 +42,7 @@
         android:id="@+id/prayer_widget_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitXY"
+        android:scaleType="fitCenter"
         android:visibility="gone"
         android:contentDescription="Prayer Times Widget" />
 

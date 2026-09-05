@@ -4,4 +4,6 @@
     <string name="mosque_widget_label">Mosque Jamaat</string>
     <string name="prayer_widget_description">Shows current Waqt prayer times with Hijri date</string>
     <string name="mosque_widget_description">Shows mosque Jamaat times for all five prayers</string>
+    <string name="day_timeline_widget_label">Prayer day map</string>
+    <string name="slim_bar_widget_label">Next prayer bar</string>
 </resources>

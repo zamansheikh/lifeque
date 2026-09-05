@@ -177,12 +177,11 @@ class PrayerWidgetUI extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(width: 4),
-        Icon(
-          Icons.refresh_rounded,
-          size: 13,
-          color: Colors.white.withValues(alpha: 0.8),
-        ),
+        // The refresh control is a real tappable View in the host layout,
+        // anchored top-end. Leave its footprint clear rather than drawing a
+        // second one here — two icons appeared, and the live one covered
+        // the "Updated" text.
+        const SizedBox(width: 30),
       ],
     );
   }

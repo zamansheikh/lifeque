@@ -16,6 +16,8 @@ class MosqueTimesWidgetProvider : HomeWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray, widgetData: SharedPreferences) {
         appWidgetIds.forEach { widgetId ->
+            WidgetSizeReporter.report(context, appWidgetManager, widgetId, "mosque_widget_image")
+
             val views = RemoteViews(context.packageName, R.layout.mosque_widget_layout).apply {
                 // Load the rendered image from the path stored by home_widget
                 val imagePath = widgetData.getString("mosque_widget_image", null)
@@ -72,5 +74,16 @@ class MosqueTimesWidgetProvider : HomeWidgetProvider() {
             }
             appWidgetManager.updateAppWidget(widgetId, views)
         }
+    }
+
+    /** Keeps the reported size current when the user resizes the widget. */
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: android.os.Bundle
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        WidgetSizeReporter.report(context, appWidgetManager, appWidgetId, "mosque_widget_image")
     }
 }

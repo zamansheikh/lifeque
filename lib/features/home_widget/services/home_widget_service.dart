@@ -5,7 +5,9 @@ import 'package:home_widget/home_widget.dart';
 import 'package:lifeque/core/utils/salah_time_calculator.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_ui.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_placeholder.dart';
+import 'package:lifeque/features/home_widget/presentation/widgets/day_timeline_widget_ui.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/mosque_widget_ui.dart';
+import 'package:lifeque/features/home_widget/presentation/widgets/slim_bar_widget_ui.dart';
 import 'package:lifeque/features/prayer_times/data/services/prayer_settings_service.dart';
 import 'package:lifeque/features/prayer_times/presentation/utils/bangla_date.dart';
 import 'package:intl/intl.dart';
@@ -38,7 +40,42 @@ class HomeWidgetService {
       'com.programmernexus.lifeque.PrayerTimesWidgetProvider';
   static const String _mosqueQualifiedName =
       'com.programmernexus.lifeque.MosqueTimesWidgetProvider';
+  static const String _timelineQualifiedName =
+      'com.programmernexus.lifeque.DayTimelineWidgetProvider';
+  static const String _slimQualifiedName =
+      'com.programmernexus.lifeque.SlimBarWidgetProvider';
   static const Size _widgetSize = Size(380, 180);
+  static const Size _timelineSize = Size(380, 132);
+  static const Size _slimSize = Size(380, 64);
+
+  /// The day track spans 04:00 → 20:00, so every prayer of a normal day
+  /// lands inside it without wasting width on the empty small hours.
+  static const _dayStartMinutes = 240;
+  static const _daySpanMinutes = 960;
+
+  /// The cell size each provider last reported, or [fallback] before one has.
+  ///
+  /// Rendering at the real cell size means the PNG lands 1:1 in the widget —
+  /// no stretching from fitXY and no letterbox from fitCenter, on any device.
+  Future<Size> _cellSize(String key, Size fallback) async {
+    try {
+      final raw = await HomeWidget.getWidgetData<String>('${key}_size');
+      if (raw == null) return fallback;
+      final parts = raw.split('x');
+      if (parts.length != 2) return fallback;
+      final w = double.tryParse(parts[0]);
+      final h = double.tryParse(parts[1]);
+      if (w == null || h == null || w < 60 || h < 40) return fallback;
+      return Size(w, h);
+    } catch (e) {
+      debugPrint('🕌 Could not read cell size for $key: $e');
+      return fallback;
+    }
+  }
+
+  static double _dayFraction(DateTime t) =>
+      (((t.hour * 60 + t.minute) - _dayStartMinutes) / _daySpanMinutes)
+          .clamp(0.0, 1.0);
 
   static const _fard = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   static const _banglaPrayerNames = ['ফজর', 'যোহর', 'আসর', 'মাগরিব', 'এশা'];
@@ -169,6 +206,13 @@ class HomeWidgetService {
               ? 'next avoid · ${nextWindow.name} ${_t12(nextWindow.start)}'
               : 'all avoid-times passed';
 
+      // Render each widget at the size its host actually gave it.
+      final prayerSize = await _cellSize('prayer_widget_image', _widgetSize);
+      final mosqueSize = await _cellSize('mosque_widget_image', _widgetSize);
+      final timelineSize =
+          await _cellSize('day_timeline_widget_image', _timelineSize);
+      final slimSize = await _cellSize('slim_bar_widget_image', _slimSize);
+
       final sunriseStr = _t12(times['Sunrise']!).toUpperCase();
       final sunsetStr = _t12(times['Maghrib']!).toUpperCase();
       final sahriStr = _t12(times['Fajr']!).toUpperCase();
@@ -178,7 +222,7 @@ class HomeWidgetService {
       // ── Render the current-waqt widget ──
       await HomeWidget.renderFlutterWidget(
         PrayerWidgetUI(
-          size: _widgetSize,
+          size: prayerSize,
           hijriLine: '${hijri.hDay} ${_hijriMonth(hijri.hMonth)} '
               '${hijri.hYear}, ${DateFormat('EEEE').format(date)}',
           secondaryDateLine:
@@ -198,15 +242,66 @@ class HomeWidgetService {
           iftar: iftarStr,
         ),
         key: 'prayer_widget_image',
-        logicalSize: _widgetSize,
+        logicalSize: prayerSize,
         pixelRatio: 3.0,
       );
 
       await HomeWidget.updateWidget(qualifiedAndroidName: _prayerQualifiedName);
       debugPrint('✅ Prayer widget updated successfully');
 
+      // ── Render the day-timeline widget ──
+      await HomeWidget.renderFlutterWidget(
+        DayTimelineWidgetUI(
+          size: timelineSize,
+          now: _dayFraction(date),
+          avoidText: avoidText,
+          avoidActive: activeWindow != null,
+          blocks: [
+            for (final w in windows)
+              TimelineBlock(
+                start: _dayFraction(w.start),
+                end: _dayFraction(w.end),
+              ),
+          ],
+          ticks: [
+            for (final p in _fard)
+              TimelineTick(
+                position: _dayFraction(times[p]!),
+                label: p.substring(0, 3).toUpperCase(),
+                passed: !times[p]!.isAfter(date),
+                isCurrent: p == subject,
+              ),
+          ],
+        ),
+        key: 'day_timeline_widget_image',
+        logicalSize: timelineSize,
+        pixelRatio: 3.0,
+      );
+      await HomeWidget.updateWidget(
+        qualifiedAndroidName: _timelineQualifiedName,
+      );
+      debugPrint('✅ Day timeline widget updated successfully');
+
+      // ── Render the slim bar widget ──
+      await HomeWidget.renderFlutterWidget(
+        SlimBarWidgetUI(
+          size: slimSize,
+          prayerName: subject,
+          windowRange: '${_t12(times[subject]!).toUpperCase()} – '
+              '${_t12(windowEnd).toUpperCase()}',
+          countdown: _hms(windowEnd.difference(date)),
+          countdownLabel: current == null ? 'starts in' : 'waqt ends in',
+        ),
+        key: 'slim_bar_widget_image',
+        logicalSize: slimSize,
+        pixelRatio: 3.0,
+      );
+      await HomeWidget.updateWidget(qualifiedAndroidName: _slimQualifiedName);
+      debugPrint('✅ Slim bar widget updated successfully');
+
       // ── Render the mosque jamaat widget ──
       await _updateMosqueWidget(
+        size: mosqueSize,
         settings: settings,
         date: date,
         times: times,
@@ -227,6 +322,7 @@ class HomeWidgetService {
   }
 
   Future<void> _updateMosqueWidget({
+    required Size size,
     required PrayerSettingsService settings,
     required DateTime date,
     required Map<String, DateTime> times,
@@ -275,7 +371,7 @@ class HomeWidgetService {
 
       await HomeWidget.renderFlutterWidget(
         MosqueWidgetUI(
-          size: _widgetSize,
+          size: size,
           dateLine: dateLine,
           updatedAt: updatedAt,
           sunrise: sunrise,
@@ -285,7 +381,7 @@ class HomeWidgetService {
           jamaat: chips,
         ),
         key: 'mosque_widget_image',
-        logicalSize: _widgetSize,
+        logicalSize: size,
         pixelRatio: 3.0,
       );
 
