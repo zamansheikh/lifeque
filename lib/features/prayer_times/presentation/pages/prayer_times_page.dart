@@ -24,7 +24,6 @@ import '../widgets/mosque_time_edit_sheet.dart';
 import '../widgets/nafal_times_card.dart';
 import '../widgets/prayer_alarm_sheet.dart';
 import '../widgets/prayer_snack.dart';
-import 'prayer_alarm_page.dart';
 import '../widgets/prayer_focus_card.dart' show QuickAlarmChoice;
 import '../widgets/prayer_sky_header.dart';
 import '../widgets/prohibited_times_card.dart';
@@ -689,42 +688,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     await _applyQuickAlarm(prayer, QuickAlarmChoice.atTime);
   }
 
-  /// The design's quick grid: one row per prayer, four offset chips each.
-  /// Sound and duration still live on the full alarm page.
+  /// Everything alarm-related lives in this one sheet — timing, adhan sound
+  /// and ring length. It talks to PrayerAlarmService directly.
   void _openAlarmSheet() {
-    PrayerAlarmSheet.show(
-      context,
-      prayers: _fardPrayers,
-      current: {
-        for (final prayer in _fardPrayers)
-          prayer: _offsetFor(prayer),
-      },
-      onOpenFullSettings: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const PrayerAlarmPage()),
-      ),
-      onSet: (prayer, offset) async {
-        if (offset == AlarmOffset.off) {
-          await _alarmService.removeAlarm(prayer);
-          return;
-        }
-        final choice = QuickAlarmChoice.values.firstWhere(
-          (c) => c.minutesAfterStart == offset.minutes,
-          orElse: () => QuickAlarmChoice.atTime,
-        );
-        await _applyQuickAlarm(prayer, choice, announce: false);
-      },
-    );
-  }
-
-  AlarmOffset _offsetFor(String prayer) {
-    final config = _alarms.where((a) => a.prayerName == prayer).firstOrNull;
-    if (config == null || !config.isEnabled) return AlarmOffset.off;
-    if (config.type != PrayerAlarmType.afterPrayerStart) return AlarmOffset.off;
-    for (final offset in AlarmOffset.values) {
-      if (offset.minutes == config.minutesAfterStart) return offset;
-    }
-    return AlarmOffset.onTime;
+    PrayerAlarmSheet.show(context, prayers: _fardPrayers);
   }
 
   // ── Ramadan strip ───────────────────────────────────────────────────────

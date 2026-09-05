@@ -9,8 +9,8 @@ import '../../../islamic_resources/presentation/pages/islamic_resources_page.dar
 import '../../data/services/prayer_settings_service.dart';
 import '../utils/prayer_palette.dart';
 import '../widgets/after_prayer_duas_sheet.dart';
+import '../widgets/prayer_alarm_sheet.dart';
 import '../widgets/prayer_snack.dart';
-import 'prayer_alarm_page.dart';
 import 'prayer_stats_page.dart';
 
 /// "More" tab: shortcuts into stats/resources/duas, the adhan voice picker,
@@ -116,9 +116,9 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
             icon: Icons.alarm_rounded,
             title: 'Prayer alarms',
             subtitle: 'Per-prayer timing, adhan sound & duration',
-            onTap: () => Navigator.push(
+            onTap: () => PrayerAlarmSheet.show(
               context,
-              MaterialPageRoute(builder: (_) => const PrayerAlarmPage()),
+              prayers: const ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'],
             ),
           ),
           const SizedBox(height: 8),
