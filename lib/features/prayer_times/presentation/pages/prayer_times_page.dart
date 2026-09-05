@@ -7,7 +7,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:lifeque/core/utils/salah_time_calculator.dart';
+import 'package:lifeque/features/home_widget/presentation/widgets/add_widget_sheet.dart';
 import 'package:lifeque/features/home_widget/services/home_widget_service.dart';
+import 'package:lifeque/features/home_widget/services/widget_suggestion_service.dart';
 
 import '../../../../core/services/prayer_alarm_service.dart';
 import '../../../../core/utils/alarm_sound_utils.dart';
@@ -107,6 +109,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     _tickTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
+    _maybeSuggestWidget();
   }
 
   @override
@@ -116,6 +119,20 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     _pageController.dispose();
     _scrolled.dispose();
     super.dispose();
+  }
+
+  /// Once prayer times are actually set up, offer to put them on the home
+  /// screen — the way a weather or calendar app does. Shown at most once;
+  /// [WidgetSuggestionService] holds the "asked already" state.
+  Future<void> _maybeSuggestWidget() async {
+    // Let the screen settle first so the sheet doesn't fight the first frame.
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+    final location = await _settingsService.getSavedLocation();
+    final should = await WidgetSuggestionService.instance
+        .shouldSuggest(hasLocation: location != null);
+    if (!should || !mounted) return;
+    await AddWidgetSheet.show(context, isSuggestion: true);
   }
 
   // ── Loaders ─────────────────────────────────────────────────────────────
