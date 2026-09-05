@@ -77,4 +77,33 @@ class PrayerCompletionService {
     }
     return streak;
   }
+
+  /// How many of the five prayers were logged on [date].
+  Future<int> countFor(DateTime date) async =>
+      (await getCompletions(date)).length;
+
+  /// Prayed-counts for the [days] days ending today, oldest first.
+  ///
+  /// Backs both the weekly bar chart and the 30-day heatmap, so it reads the
+  /// whole store once rather than hitting SharedPreferences per day.
+  Future<List<int>> recentCounts(int days) async {
+    final all = await _readAll();
+    final today = DateTime.now();
+    return [
+      for (var i = days - 1; i >= 0; i--)
+        ((all[_dateKey(today.subtract(Duration(days: i)))] as List?)
+                    ?.cast<String>() ??
+                const [])
+            .toSet()
+            .length,
+    ];
+  }
+
+  /// Share of the last [days] days' prayers that were logged, 0..1.
+  Future<double> completionRate(int days) async {
+    final counts = await recentCounts(days);
+    if (counts.isEmpty) return 0;
+    final total = counts.fold<int>(0, (a, b) => a + b);
+    return total / (counts.length * _prayers.length);
+  }
 }

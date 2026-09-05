@@ -41,6 +41,39 @@ class PrayerPalette {
   /// [accent] at a given opacity.
   static Color accentA(double alpha) => accent.withValues(alpha: alpha);
 
+  // Friday (Jumu'ah) rows in the calendar.
+  static const fridayBg = Color(0xFFFBF6E3);
+  static const fridayText = Color(0xFF8A6A14);
+  static const goldDeep = Color(0xFFC79A2A);
+  static const goldRule = Color(0xFFD4AF37);
+
+  // 30-day completion heatmap, lightest → densest.
+  static const heat0 = Color(0xFFE3EFE7);
+  static const heat3 = Color(0xFFA9D8C2);
+  static const heat4 = Color(0xFF63B995);
+  static const heat5 = accent;
+
+  static Color heatFor(int prayed) => switch (prayed) {
+        >= 5 => heat5,
+        4 => heat4,
+        3 => heat3,
+        _ => heat0,
+      };
+
+  // Home-screen widget surfaces (dark, sit on the launcher wallpaper).
+  static const widgetGreenFrom = Color(0xFF1E7A50);
+  static const widgetGreenMid = Color(0xFF146C43);
+  static const widgetGreenTo = Color(0xFF0E4A30);
+  static const widgetNavyFrom = Color(0xFF16324A);
+  static const widgetNavyMid = Color(0xFF122A3E);
+  static const widgetNavyTo = Color(0xFF0C1E2E);
+  static const widgetInkFrom = ink;
+  static const widgetInkMid = Color(0xFF0E4A30);
+  static const widgetInkTo = Color(0xFF062316);
+
+  static const alert = Color(0xFFEF4444);
+  static const alertLight = Color(0xFFFCA5A5);
+
   static const cardRadius = 20.0;
 
   static List<BoxShadow> get cardShadow => [

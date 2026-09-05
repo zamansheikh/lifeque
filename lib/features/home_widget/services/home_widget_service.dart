@@ -7,7 +7,7 @@ import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_
 import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_placeholder.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/mosque_widget_ui.dart';
 import 'package:lifeque/features/prayer_times/data/services/prayer_settings_service.dart';
-import 'package:adhan/adhan.dart';
+import 'package:lifeque/features/prayer_times/presentation/utils/bangla_date.dart';
 import 'package:intl/intl.dart';
 import 'package:hijri/hijri_calendar.dart';
 
@@ -39,6 +39,37 @@ class HomeWidgetService {
   static const String _mosqueQualifiedName =
       'com.programmernexus.lifeque.MosqueTimesWidgetProvider';
   static const Size _widgetSize = Size(380, 180);
+
+  static const _fard = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+  static const _banglaPrayerNames = ['ফজর', 'যোহর', 'আসর', 'মাগরিব', 'এশা'];
+  static const _restrictedOrder = [
+    'Sunrise Period',
+    'Zawal (Midday)',
+    'Sunset Period',
+  ];
+  static const _restrictedLabels = ['Sunrise', 'Zawal', 'Sunset'];
+
+  static String _t12(DateTime t) {
+    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+    return '$h:${t.minute.toString().padLeft(2, '0')} '
+        '${t.hour < 12 ? 'am' : 'pm'}';
+  }
+
+  static String _hms(Duration d) {
+    final s = d.isNegative ? 0 : d.inSeconds;
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${two(s ~/ 3600)}:${two((s ~/ 60) % 60)}:${two(s % 60)}';
+  }
+
+  static String _short(Duration d) {
+    final m = d.isNegative ? 0 : d.inMinutes;
+    return m >= 60 ? '${m ~/ 60}h ${m % 60}m' : '${m}m';
+  }
+
+  static String _hijriMonth(int m) => const [
+        'Muharram', 'Safar', 'Rabiʿ I', 'Rabiʿ II', 'Jumada I', 'Jumada II',
+        'Rajab', 'Shaʿban', 'Ramadan', 'Shawwal', 'Dhul Qaʿdah', 'Dhul Hijjah',
+      ][(m - 1).clamp(0, 11)];
 
   Future<void> updateWidget() async {
     if (!isHomeWidgetSupported) {
@@ -85,7 +116,6 @@ class HomeWidgetService {
       final method = await settings.getCalculationMethod();
       final madhab = await settings.getMadhab();
 
-      // Calculate Prayer Times
       final date = DateTime.now();
       final calculator = SalahTimeCalculator(
         latitude: locationData.latitude,
@@ -95,83 +125,76 @@ class HomeWidgetService {
         madhab: madhab,
       );
 
-      final prayerTimes = calculator.getPrayerTimes();
-      final currentPrayer = calculator.getCurrentPrayer() ?? Prayer.none;
-      final nextPrayer = calculator.getNextPrayer() ?? Prayer.none;
+      final times = calculator.getPrayerTimesMap();
+      final endTimes = calculator.getEndTimes(calculator.getStartTimes());
+      final hijri = HijriCalendar.fromDate(date);
+      final bangla = BanglaDate.fromDate(date);
 
-      // Format Data
-      final hijriDate = HijriCalendar.fromDate(date);
-      final hijriString =
-          '${hijriDate.hDay} ${hijriDate.longMonthName}, ${DateFormat('EEEE').format(date)}';
-      final gregorianString = DateFormat('d MMMM').format(date);
-
-      final currentPrayerName = currentPrayer.displayName;
-
-      // Time Range
-      String timeRange = '';
-      if (currentPrayer != Prayer.none) {
-        final currentStart = prayerTimes.timeForPrayer(currentPrayer);
-        final nextStart = prayerTimes.timeForPrayer(nextPrayer);
-
-        if (currentStart != null && nextStart != null) {
-          timeRange =
-              '${DateFormat('h:mm a').format(currentStart)} - ${DateFormat('h:mm a').format(nextStart)}';
-        } else if (currentPrayer == Prayer.isha) {
-          final ishaStart = prayerTimes.isha;
-          timeRange = DateFormat('h:mm a').format(ishaStart);
-        }
+      // The prayer the widget is about: the running waqt, else the next one.
+      String? current;
+      for (final p in _fard) {
+        if (times[p]!.isBefore(date)) current = p;
       }
+      final next = _fard.firstWhere(
+        (p) => times[p]!.isAfter(date),
+        orElse: () => 'Fajr',
+      );
+      final subject = current ?? next;
+      final windowEnd = endTimes[subject] ??
+          times['Fajr']!.add(const Duration(days: 1));
+      final nextTime = current == null
+          ? times[next]!
+          : (times[next]!.isAfter(date)
+              ? times[next]!
+              : times['Fajr']!.add(const Duration(days: 1)));
 
-      // ── End Time ──
-      final startTimes = calculator.getStartTimes();
-      final endTimes = calculator.getEndTimes(startTimes);
-      String? endTimeStr;
-      if (currentPrayer != Prayer.none) {
-        final endTime = endTimes[currentPrayerName];
-        if (endTime != null) {
-          endTimeStr = DateFormat('h:mm a').format(endTime);
-        }
-      }
+      // Prohibited-time state.
+      final restricted = calculator.getRestrictedTimes();
+      final windows = [
+        for (final key in _restrictedOrder)
+          (
+            name: _restrictedLabels[_restrictedOrder.indexOf(key)],
+            start: restricted[key]!['start'] as DateTime,
+            end: restricted[key]!['end'] as DateTime,
+          ),
+      ];
+      final activeWindow = windows
+          .where((w) => date.isAfter(w.start) && date.isBefore(w.end))
+          .firstOrNull;
+      final nextWindow =
+          windows.where((w) => w.start.isAfter(date)).firstOrNull;
+      final avoidText = activeWindow != null
+          ? '⛔ AVOID NOW · ${_short(activeWindow.end.difference(date))} left'
+          : nextWindow != null
+              ? 'next avoid · ${nextWindow.name} ${_t12(nextWindow.start)}'
+              : 'all avoid-times passed';
 
-      // ── Next Prayer ──
-      String? nextPrayerNameStr;
-      String? nextPrayerTimeStr;
-      if (nextPrayer != Prayer.none) {
-        nextPrayerNameStr = nextPrayer.displayName;
-        final nextTime = prayerTimes.timeForPrayer(nextPrayer);
-        if (nextTime != null) {
-          nextPrayerTimeStr = DateFormat('h:mm a').format(nextTime);
-        }
-      }
+      final sunriseStr = _t12(times['Sunrise']!).toUpperCase();
+      final sunsetStr = _t12(times['Maghrib']!).toUpperCase();
+      final sahriStr = _t12(times['Fajr']!).toUpperCase();
+      final iftarStr = _t12(times['Maghrib']!).toUpperCase();
+      final updatedAt = _t12(date).toUpperCase();
 
-      // ── Prohibited Time ──
-      String? activeProhibited;
-      final restrictedTimes = calculator.getRestrictedTimes();
-      final now = DateTime.now();
-      for (final entry in restrictedTimes.entries) {
-        final start = entry.value['start'] as DateTime;
-        final end = entry.value['end'] as DateTime;
-        if (now.isAfter(start) && now.isBefore(end)) {
-          activeProhibited =
-              '${entry.key}: ${DateFormat('h:mm').format(start)} - ${DateFormat('h:mm a').format(end)}';
-          break;
-        }
-      }
-
-      // ── Render Prayer Times Widget ──
+      // ── Render the current-waqt widget ──
       await HomeWidget.renderFlutterWidget(
         PrayerWidgetUI(
-          hijriDate: hijriString,
-          gregorianDate: gregorianString,
-          currentPrayerName: currentPrayerName,
-          timeRange: timeRange,
-          prayerTimes: prayerTimes,
-          nextPrayer: nextPrayer,
-          locationName: locationData.locationName,
-          endTimeStr: endTimeStr,
-          nextPrayerName: nextPrayerNameStr,
-          nextPrayerTimeStr: nextPrayerTimeStr,
-          activeProhibited: activeProhibited,
+          hijriLine: '${hijri.hDay} ${_hijriMonth(hijri.hMonth)} '
+              '${hijri.hYear}, ${DateFormat('EEEE').format(date)}',
+          secondaryDateLine:
+              '${DateFormat('d MMMM').format(date)} · ${bangla.formatted}',
+          updatedAt: updatedAt,
+          prayerName: subject,
+          windowRange: '${_t12(times[subject]!).toUpperCase()} – '
+              '${_t12(windowEnd).toUpperCase()}',
+          endsLine: 'Ends: ${_t12(windowEnd).toUpperCase()} · in '
+              '${_hms(windowEnd.difference(date))}',
+          nextChip: '$next ${_t12(nextTime).toUpperCase()}',
+          avoidText: avoidText,
+          avoidActive: activeWindow != null,
+          sunrise: sunriseStr,
+          sunset: sunsetStr,
+          sahri: sahriStr,
+          iftar: iftarStr,
         ),
         key: 'prayer_widget_image',
         logicalSize: _widgetSize,
@@ -181,15 +204,20 @@ class HomeWidgetService {
       await HomeWidget.updateWidget(qualifiedAndroidName: _prayerQualifiedName);
       debugPrint('✅ Prayer widget updated successfully');
 
-      // ── Render Mosque Times Widget ──
+      // ── Render the mosque jamaat widget ──
       await _updateMosqueWidget(
         settings: settings,
-        calculator: calculator,
-        hijriString: hijriString,
-        gregorianString: gregorianString,
-        currentPrayerName: currentPrayerName,
-        prayerTimes: prayerTimes,
-        activeProhibited: activeProhibited,
+        date: date,
+        times: times,
+        current: subject,
+        dateLine: '${hijri.hDay} ${_hijriMonth(hijri.hMonth)} ${hijri.hYear}, '
+            '${DateFormat('EEEE').format(date)} · '
+            '${DateFormat('d MMMM').format(date)}',
+        updatedAt: updatedAt,
+        sunrise: sunriseStr,
+        sunset: sunsetStr,
+        sahri: sahriStr,
+        iftar: iftarStr,
       );
     } catch (e, stack) {
       debugPrint('❌ Error updating home widget: $e');
@@ -199,60 +227,60 @@ class HomeWidgetService {
 
   Future<void> _updateMosqueWidget({
     required PrayerSettingsService settings,
-    required SalahTimeCalculator calculator,
-    required String hijriString,
-    required String gregorianString,
-    required String currentPrayerName,
-    required PrayerTimes prayerTimes,
-    String? activeProhibited,
+    required DateTime date,
+    required Map<String, DateTime> times,
+    required String current,
+    required String dateLine,
+    required String updatedAt,
+    required String sunrise,
+    required String sunset,
+    required String sahri,
+    required String iftar,
   }) async {
     try {
-      // Load mosque times from settings
-      final fajrStr = await settings.getMosqueTime('fajr');
-      final dhuhrStr = await settings.getMosqueTime('dhuhr');
-      final asrStr = await settings.getMosqueTime('asr');
-      final ishaStr = await settings.getMosqueTime('isha');
+      final ramadan = await settings.getRamadanMode();
 
-      // Format mosque times for display
-      final isRamadan = await settings.getRamadanMode();
+      final chips = <JamaatChip>[];
+      for (var i = 0; i < _fard.length; i++) {
+        final prayer = _fard[i];
+        final saved =
+            _parseMosqueTime(await settings.getMosqueTime(prayer.toLowerCase()));
 
-      // Format mosque times
-      String fajrDisplay;
-      if (isRamadan) {
-        final fTime = prayerTimes.fajr.add(const Duration(minutes: 15));
-        fajrDisplay = DateFormat('h:mm a').format(fTime);
-      } else {
-        fajrDisplay = _formatMosqueTime(fajrStr) ?? '5:00 AM';
+        // Ramadan mode derives Fajr and Maghrib jamaat from waqt + 15 min;
+        // everything else falls back to the waqt itself when unset.
+        final DateTime jamaat;
+        if (ramadan && (prayer == 'Fajr' || prayer == 'Maghrib')) {
+          jamaat = times[prayer]!.add(const Duration(minutes: 15));
+        } else if (saved != null) {
+          jamaat = DateTime(
+            date.year,
+            date.month,
+            date.day,
+            saved.$1,
+            saved.$2,
+          );
+        } else {
+          jamaat = times[prayer]!;
+        }
+
+        chips.add(
+          JamaatChip(
+            label: _banglaPrayerNames[i],
+            time: _t12(jamaat).toUpperCase(),
+            isCurrent: prayer == current,
+          ),
+        );
       }
-
-      String maghribDisplay;
-      if (isRamadan) {
-        final mTime = prayerTimes.maghrib.add(const Duration(minutes: 15));
-        maghribDisplay = DateFormat('h:mm a').format(mTime);
-      } else {
-        maghribDisplay = DateFormat('h:mm a').format(prayerTimes.maghrib);
-      }
-
-      final Map<String, String> mosqueTimes = {
-        'Fajr': fajrDisplay,
-        'Dhuhr': _formatMosqueTime(dhuhrStr) ?? '1:30 PM',
-        'Asr': _formatMosqueTime(asrStr) ?? '4:30 PM',
-        'Maghrib': maghribDisplay,
-        'Isha': _formatMosqueTime(ishaStr) ?? '8:00 PM',
-      };
 
       await HomeWidget.renderFlutterWidget(
         MosqueWidgetUI(
-          hijriDate: hijriString,
-          gregorianDate: gregorianString,
-          locationName: '',
-          mosqueTimes: mosqueTimes,
-          currentPrayer: currentPrayerName,
-          sunrise: prayerTimes.sunrise,
-          sunset: prayerTimes.maghrib,
-          sahri: prayerTimes.fajr,
-          iftar: prayerTimes.maghrib,
-          activeProhibited: activeProhibited,
+          dateLine: dateLine,
+          updatedAt: updatedAt,
+          sunrise: sunrise,
+          sunset: sunset,
+          sahri: sahri,
+          iftar: iftar,
+          jamaat: chips,
         ),
         key: 'mosque_widget_image',
         logicalSize: _widgetSize,
@@ -267,17 +295,15 @@ class HomeWidgetService {
     }
   }
 
-  String? _formatMosqueTime(String? timeStr) {
-    if (timeStr == null) return null;
+  /// `13:30` → `(13, 30)`.
+  (int, int)? _parseMosqueTime(String? raw) {
+    if (raw == null) return null;
     try {
-      final parts = timeStr.split(':');
-      final hour = int.parse(parts[0]);
-      final minute = int.parse(parts[1]);
-      final now = DateTime.now();
-      final dt = DateTime(now.year, now.month, now.day, hour, minute);
-      return DateFormat('h:mm a').format(dt);
-    } catch (e) {
+      final parts = raw.split(':');
+      return (int.parse(parts[0]), int.parse(parts[1]));
+    } catch (_) {
       return null;
     }
   }
+
 }

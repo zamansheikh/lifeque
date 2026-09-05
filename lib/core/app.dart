@@ -23,7 +23,7 @@ import '../features/expenses/domain/entities/monthly_budget.dart';
 import '../features/expenses/domain/entities/category_budget.dart';
 import '../features/expenses/domain/entities/expense_category.dart';
 import '../features/expenses/domain/entities/expense_session.dart';
-import '../features/prayer_times/presentation/pages/prayer_times_page.dart';
+import '../features/prayer_times/presentation/pages/prayer_shell_page.dart';
 import '../features/study/presentation/pages/study_timer_page.dart';
 import '../features/permissions/presentation/pages/permission_screen.dart';
 import '../features/splash/presentation/pages/splash_screen.dart';
@@ -80,7 +80,7 @@ class AppRouter {
       GoRoute(
         path: '/prayer-times',
         name: 'prayer-times',
-        builder: (context, state) => const PrayerTimesPage(),
+        builder: (context, state) => const PrayerShellPage(),
       ),
       GoRoute(
         path: '/study-timer',

@@ -11,7 +11,6 @@ import 'package:lifeque/features/home_widget/services/home_widget_service.dart';
 
 import '../../../../core/services/prayer_alarm_service.dart';
 import '../../../../core/utils/alarm_sound_utils.dart';
-import '../../../../core/widgets/app_drawer.dart';
 import '../../../islamic_resources/presentation/pages/islamic_resources_page.dart'
     hide IslamicColors;
 import '../../data/services/prayer_completion_service.dart';
@@ -21,14 +20,13 @@ import '../utils/islamic_colors.dart';
 import '../utils/prayer_palette.dart';
 import '../widgets/mosque_time_edit_sheet.dart';
 import '../widgets/nafal_times_card.dart';
+import '../widgets/prayer_alarm_sheet.dart';
 import '../widgets/prayer_focus_card.dart' show QuickAlarmChoice;
 import '../widgets/prayer_sky_header.dart';
 import '../widgets/prohibited_times_card.dart';
-import '../widgets/qibla_fab.dart';
 import '../widgets/ramadan_strip_card.dart';
 import '../widgets/restricted_times_card.dart';
 import '../widgets/salat_times_card.dart';
-import 'prayer_alarm_page.dart';
 
 /// "Prayer Compass" — the prayer-times screen.
 ///
@@ -80,11 +78,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   static const int _todayPage = 10000;
   late final PageController _pageController =
       PageController(initialPage: _todayPage);
-
-  // Scaffold key — needed to open the drawer from anywhere inside the body
-  // (Scaffold.of(context) doesn't work here because the State's context sits
-  // ABOVE the Scaffold it just built).
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // ── Interactive state ───────────────────────────────────────────────────
   Timer? _tickTimer;
@@ -336,46 +329,34 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: PrayerPalette.canvas,
-        body: Center(
-          child: CircularProgressIndicator(color: PrayerPalette.accent),
-        ),
+      return const Center(
+        child: CircularProgressIndicator(color: PrayerPalette.accent),
       );
     }
     if (_calculator == null) {
-      return Scaffold(
-        backgroundColor: PrayerPalette.canvas,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline,
-                  color: PrayerPalette.inkA(0.5), size: 56),
-              const SizedBox(height: 12),
-              Text(
-                _error ?? 'Unable to compute prayer times',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: PrayerPalette.inkA(0.7)),
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: _loadFromSavedData,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline,
+                color: PrayerPalette.inkA(0.5), size: 56),
+            const SizedBox(height: 12),
+            Text(
+              _error ?? 'Unable to compute prayer times',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: PrayerPalette.inkA(0.7)),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _loadFromSavedData,
+              child: const Text('Retry'),
+            ),
+          ],
         ),
       );
     }
 
-    return Scaffold(
-      key: _scaffoldKey,
-      drawer: const AppDrawer(currentRoute: '/prayer-times'),
-      drawerScrimColor: Colors.black.withValues(alpha: 0.4),
-      backgroundColor: PrayerPalette.canvas,
-      floatingActionButton: QiblaFab(calculator: _calculator),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.dark.copyWith(
           statusBarColor: Colors.transparent,
         ),
@@ -419,9 +400,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                       : Colors.transparent,
                 ),
               ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -462,9 +442,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final restrictedNow = isToday ? calc.getCurrentRestrictedPeriod() : null;
 
     return ListView(
-      padding: EdgeInsets.only(
-        bottom: 96 + MediaQuery.of(context).padding.bottom,
-      ),
+      padding: const EdgeInsets.only(bottom: 12),
       physics: const BouncingScrollPhysics(),
       children: [
         PrayerSkyHeader(
@@ -476,7 +454,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           gaugeCountdown: gauge.countdown,
           progress: gauge.progress,
           onLocationTap: _showSettingsBottomSheet,
-          onMenu: () => _scaffoldKey.currentState?.openDrawer(),
+          onMenu: () => Scaffold.of(context).openDrawer(),
         ),
         Transform.translate(
           offset: const Offset(0, -14),
@@ -486,7 +464,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               rows: _salatRows(date, times, current),
               summary: _salatSummary(isToday),
               canMarkPrayed: isToday || date.isBefore(now),
-              onSetAlarm: _openAlarmPage,
+              onSetAlarm: _openAlarmSheet,
               onTogglePrayed: (prayer) => _togglePrayed(date, prayer),
               onToggleAlarm: _toggleQuickAlarm,
               onEditJamaat: (prayer) => _openMosqueEdit(prayer, times),
@@ -686,10 +664,39 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     await _applyQuickAlarm(prayer, QuickAlarmChoice.atTime);
   }
 
-  void _openAlarmPage() => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const PrayerAlarmPage()),
-      );
+  /// The design's quick grid: one row per prayer, four offset chips each.
+  /// Sound and duration still live on the full alarm page.
+  void _openAlarmSheet() {
+    PrayerAlarmSheet.show(
+      context,
+      prayers: _fardPrayers,
+      current: {
+        for (final prayer in _fardPrayers)
+          prayer: _offsetFor(prayer),
+      },
+      onSet: (prayer, offset) async {
+        if (offset == AlarmOffset.off) {
+          await _alarmService.removeAlarm(prayer);
+          return;
+        }
+        final choice = QuickAlarmChoice.values.firstWhere(
+          (c) => c.minutesAfterStart == offset.minutes,
+          orElse: () => QuickAlarmChoice.atTime,
+        );
+        await _applyQuickAlarm(prayer, choice, announce: false);
+      },
+    );
+  }
+
+  AlarmOffset _offsetFor(String prayer) {
+    final config = _alarms.where((a) => a.prayerName == prayer).firstOrNull;
+    if (config == null || !config.isEnabled) return AlarmOffset.off;
+    if (config.type != PrayerAlarmType.afterPrayerStart) return AlarmOffset.off;
+    for (final offset in AlarmOffset.values) {
+      if (offset.minutes == config.minutesAfterStart) return offset;
+    }
+    return AlarmOffset.onTime;
+  }
 
   // ── Ramadan strip ───────────────────────────────────────────────────────
 
@@ -1024,7 +1031,11 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     return null;
   }
 
-  Future<void> _applyQuickAlarm(String prayer, QuickAlarmChoice choice) async {
+  Future<void> _applyQuickAlarm(
+    String prayer,
+    QuickAlarmChoice choice, {
+    bool announce = true,
+  }) async {
     final existing = _alarms.where((a) => a.prayerName == prayer).isNotEmpty
         ? _alarms.firstWhere((a) => a.prayerName == prayer)
         : null;
@@ -1057,7 +1068,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     } else {
       await _alarmService.addAlarm(config);
     }
-    if (!mounted) return;
+    if (!announce || !mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('⏰ $prayer · ${choice.label.toLowerCase()}'),

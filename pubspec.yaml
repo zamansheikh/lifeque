@@ -76,6 +76,8 @@ dependencies:
   hijri: ^3.0.0
   workmanager: ^0.10.9
   google_fonts: ^8.0.2
+  share_plus: ^13.3.0
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:

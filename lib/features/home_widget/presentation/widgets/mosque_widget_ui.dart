@@ -1,238 +1,97 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
+/// One jamaat chip: the prayer's Bengali name and the mosque's congregation
+/// time. The current waqt's chip inverts to gold.
+class JamaatChip {
+  /// Bengali label, e.g. `ফজর`.
+  final String label;
+
+  /// e.g. `4:39 AM`.
+  final String time;
+
+  final bool isCurrent;
+
+  const JamaatChip({
+    required this.label,
+    required this.time,
+    required this.isCurrent,
+  });
+}
+
+/// Variant 2 of the home-screen widget set: the mosque's jamaat timetable in
+/// Bengali, over a sun/fast times strip.
 class MosqueWidgetUI extends StatelessWidget {
-  final String hijriDate;
-  final String gregorianDate;
-  final String locationName;
-  final Map<String, String> mosqueTimes;
-  final String? currentPrayer;
-  final DateTime? sunrise;
-  final DateTime? sunset;
-  final DateTime? sahri;
-  final DateTime? iftar;
-  final String? activeProhibited;
+  /// e.g. `23 Rabiʿ I 1448, Saturday · 5 September`.
+  final String dateLine;
+
+  /// Wall-clock time this render happened, e.g. `4:31 PM`.
+  final String updatedAt;
+
+  final String sunrise;
+  final String sunset;
+  final String sahri;
+  final String iftar;
+
+  final List<JamaatChip> jamaat;
 
   const MosqueWidgetUI({
     super.key,
-    required this.hijriDate,
-    required this.gregorianDate,
-    required this.locationName,
-    required this.mosqueTimes,
-    this.currentPrayer,
-    this.sunrise,
-    this.sunset,
-    this.sahri,
-    this.iftar,
-    this.activeProhibited,
+    required this.dateLine,
+    required this.updatedAt,
+    required this.sunrise,
+    required this.sunset,
+    required this.sahri,
+    required this.iftar,
+    required this.jamaat,
   });
+
+  static const _gold = Color(0xFFF5D27A);
+  static const _navyInk = Color(0xFF12314A);
 
   @override
   Widget build(BuildContext context) {
-    final tf = DateFormat('h:mm a');
-
-    return Container(
-      width: 380,
-      height: 180,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1A237E), Color(0xFF283593), Color(0xFF3949AB)],
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 11, 14, 12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF16324A),
+              Color(0xFF122A3E),
+              Color(0xFF0C1E2E),
+            ],
+            stops: [0.0, 0.55, 1.0],
+          ),
+          borderRadius: BorderRadius.circular(20),
         ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Mosque silhouette at bottom
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: -2,
-              child: CustomPaint(
-                size: const Size(380, 40),
-                painter: _MosqueSilhouettePainter(),
-              ),
+            _header(),
+            const SizedBox(height: 9),
+            Row(
+              children: [
+                Expanded(child: _sunTile(Icons.wb_sunny_outlined, 'Sunrise', sunrise)),
+                const SizedBox(width: 5),
+                Expanded(child: _sunTile(Icons.wb_twilight_rounded, 'Sunset', sunset)),
+                const SizedBox(width: 5),
+                Expanded(child: _sunTile(Icons.nightlight_outlined, 'Sahri', sahri)),
+                const SizedBox(width: 5),
+                Expanded(child: _sunTile(Icons.dinner_dining_outlined, 'Iftar', iftar)),
+              ],
             ),
-
-            // Main content
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Top row: Title + Info badges ──
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Left: Title + date
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(3),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Icon(
-                                    Icons.access_time_filled,
-                                    color: Color(0xFFFFD54F),
-                                    size: 12,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                const Text(
-                                  'Mosque Jamaat',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 1),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 24),
-                              child: Text(
-                                '$hijriDate  •  $gregorianDate',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.55),
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Right: Updated + info
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 24),
-                            child: Text(
-                              'Updated: ${tf.format(DateTime.now())}',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.45),
-                                fontSize: 8,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  // ── Middle: Sunrise / Sunset / Sahri / Iftar row ──
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (sunrise != null)
-                        _buildInfoChip('☀️', 'Sunrise', tf.format(sunrise!)),
-                      if (sunset != null) ...[
-                        const SizedBox(width: 6),
-                        _buildInfoChip('🌅', 'Sunset', tf.format(sunset!)),
-                      ],
-                      if (sahri != null) ...[
-                        const SizedBox(width: 6),
-                        _buildInfoChip('🍽', 'Sahri', tf.format(sahri!)),
-                      ],
-                      if (iftar != null) ...[
-                        const SizedBox(width: 6),
-                        _buildInfoChip('🌙', 'Iftar', tf.format(iftar!)),
-                      ],
-                    ],
-                  ),
-
-                  const Spacer(),
-
-                  // ── Prayer times row ──
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildPrayerColumn(
-                        'Fajr',
-                        'ফজর',
-                        mosqueTimes['Fajr'] ?? '--',
-                      ),
-                      _buildDivider(),
-                      _buildPrayerColumn(
-                        'Dhuhr',
-                        'যোহর',
-                        mosqueTimes['Dhuhr'] ?? '--',
-                      ),
-                      _buildDivider(),
-                      _buildPrayerColumn(
-                        'Asr',
-                        'আছর',
-                        mosqueTimes['Asr'] ?? '--',
-                      ),
-                      _buildDivider(),
-                      _buildPrayerColumn(
-                        'Maghrib',
-                        'মাগরিব',
-                        mosqueTimes['Maghrib'] ?? '--',
-                      ),
-                      _buildDivider(),
-                      _buildPrayerColumn(
-                        'Isha',
-                        'এশা',
-                        mosqueTimes['Isha'] ?? '--',
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 2),
-
-                  // ── Prohibited time banner ──
-                  if (activeProhibited != null)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade900.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.block,
-                            size: 9,
-                            color: Colors.red.shade200,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            '🚫 $activeProhibited',
-                            style: TextStyle(
-                              color: Colors.red.shade200,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  if (activeProhibited == null) const SizedBox(height: 4),
+            const SizedBox(height: 9),
+            Row(
+              children: [
+                for (var i = 0; i < jamaat.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 5),
+                  Expanded(child: _jamaatChip(jamaat[i])),
                 ],
-              ),
+              ],
             ),
           ],
         ),
@@ -240,148 +99,148 @@ class MosqueWidgetUI extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoChip(String emoji, String label, String time) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 9)),
-          const SizedBox(width: 3),
-          Column(
-            mainAxisSize: MainAxisSize.min,
+  Widget _header() {
+    return Row(
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: _gold,
+          ),
+          child: const Icon(Icons.schedule_rounded, size: 13, color: _navyInk),
+        ),
+        const SizedBox(width: 7),
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                label,
+              const Text(
+                'Mosque Jamaat',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5),
-                  fontSize: 7,
-                  fontWeight: FontWeight.w400,
+                  color: Colors.white,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               Text(
-                time,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
+                dateLine,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.55),
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPrayerColumn(String name, String bangla, String time) {
-    final isCurrent = currentPrayer?.toLowerCase() == name.toLowerCase();
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
+        ),
+        const SizedBox(width: 6),
         Text(
-          bangla,
+          'Updated: $updatedAt',
           style: TextStyle(
-            color: isCurrent
-                ? const Color(0xFFFFD54F)
-                : Colors.white.withValues(alpha: 0.6),
-            fontSize: 9,
-            fontWeight: FontWeight.w500,
+            color: Colors.white.withValues(alpha: 0.5),
+            fontSize: 8,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 2),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-          decoration: isCurrent
-              ? BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                )
-              : null,
-          child: Text(
-            time,
-            style: TextStyle(
-              color: isCurrent ? const Color(0xFFFFD54F) : Colors.white,
-              fontSize: 12,
-              fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w700,
-            ),
-          ),
+        const SizedBox(width: 4),
+        Icon(
+          Icons.refresh_rounded,
+          size: 13,
+          color: Colors.white.withValues(alpha: 0.8),
         ),
       ],
     );
   }
 
-  Widget _buildDivider() {
-    return Container(
-      width: 1,
-      height: 26,
-      color: Colors.white.withValues(alpha: 0.15),
-    );
-  }
-}
+  Widget _sunTile(IconData icon, String label, String value) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.09),
+          borderRadius: BorderRadius.circular(9),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 10, color: Colors.white.withValues(alpha: 0.75)),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.55),
+                      fontSize: 7,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
 
-/// Paints a simple mosque silhouette at the bottom of the widget
-class _MosqueSilhouettePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF0D1442)
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-
-    path.moveTo(0, size.height);
-    path.lineTo(0, size.height * 0.6);
-
-    path.lineTo(size.width * 0.05, size.height * 0.6);
-    path.quadraticBezierTo(
-      size.width * 0.08,
-      size.height * 0.2,
-      size.width * 0.11,
-      size.height * 0.6,
-    );
-
-    path.lineTo(size.width * 0.14, size.height * 0.6);
-    path.lineTo(size.width * 0.145, size.height * 0.15);
-    path.lineTo(size.width * 0.155, size.height * 0.05);
-    path.lineTo(size.width * 0.165, size.height * 0.15);
-    path.lineTo(size.width * 0.17, size.height * 0.6);
-
-    path.lineTo(size.width * 0.22, size.height * 0.6);
-    path.quadraticBezierTo(
-      size.width * 0.30,
-      size.height * -0.3,
-      size.width * 0.38,
-      size.height * 0.6,
-    );
-
-    path.lineTo(size.width * 0.41, size.height * 0.6);
-    path.lineTo(size.width * 0.415, size.height * 0.15);
-    path.lineTo(size.width * 0.425, size.height * 0.05);
-    path.lineTo(size.width * 0.435, size.height * 0.15);
-    path.lineTo(size.width * 0.44, size.height * 0.6);
-
-    path.lineTo(size.width * 0.47, size.height * 0.6);
-    path.quadraticBezierTo(
-      size.width * 0.50,
-      size.height * 0.2,
-      size.width * 0.53,
-      size.height * 0.6,
-    );
-
-    path.lineTo(size.width, size.height * 0.6);
-    path.lineTo(size.width, size.height);
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget _jamaatChip(JamaatChip chip) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+        decoration: BoxDecoration(
+          color: chip.isCurrent
+              ? _gold
+              : Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(
+            color: chip.isCurrent
+                ? _gold
+                : Colors.white.withValues(alpha: 0.12),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              chip.label,
+              maxLines: 1,
+              style: TextStyle(
+                color: chip.isCurrent
+                    ? _navyInk
+                    : Colors.white.withValues(alpha: 0.6),
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 2),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                chip.time,
+                style: TextStyle(
+                  color: chip.isCurrent ? _navyInk : Colors.white,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
 }
