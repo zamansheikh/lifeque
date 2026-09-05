@@ -36,6 +36,8 @@ Future<void> homeWidgetBackgroundCallback(Uri? uri) async {
       uri.toString().contains('refreshwidget')) {
     debugPrint('🕌 Widget refresh triggered by tap - URI: $uri');
     try {
+      // Fresh isolate — the plugin's App Group id has to be set again here.
+      await initHomeWidget();
       // Create a fresh instance of the service
       final service = HomeWidgetService();
       debugPrint(
@@ -107,8 +109,20 @@ void main() async {
   // Note: Permissions will be handled by splash screen / permission screen
   debugPrint('🔔 Permission requests moved to dedicated permission flow');
 
-  // Register home widget background callback for tap-to-refresh
-  HomeWidget.registerInteractivityCallback(homeWidgetBackgroundCallback);
+  // Register home widget background callback for tap-to-refresh. Guarded
+  // because iOS has no widget extension / App Group yet — calling into the
+  // plugin there throws PlatformException(-7, AppGroupId not set), and since
+  // this call is not awaited it would surface as an unhandled exception.
+  if (isHomeWidgetSupported) {
+    try {
+      await initHomeWidget();
+      await HomeWidget.registerInteractivityCallback(
+        homeWidgetBackgroundCallback,
+      );
+    } catch (e) {
+      debugPrint('🕌 ❌ Home widget callback registration failed: $e');
+    }
+  }
 
   // Initialize background service for periodic widget updates
   await BackgroundService().initialize();
@@ -145,6 +159,7 @@ void _initLocalTimezone() {
 void _updateHomeWidget() {
   Future.delayed(const Duration(seconds: 5), () async {
     try {
+      if (!isHomeWidgetSupported) return;
       debugPrint('🕌 Updating home screen widget...');
       await HomeWidgetService().updateWidget();
     } catch (e) {

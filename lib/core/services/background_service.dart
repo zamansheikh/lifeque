@@ -33,7 +33,8 @@ void callbackDispatcher() {
           timezone.setLocalLocation(timezone.getLocation('Asia/Dhaka'));
         }
 
-        // Update the widget
+        // Update the widget (no-ops on platforms without widget support)
+        await initHomeWidget();
         final service = HomeWidgetService();
         await service.updateWidget();
 

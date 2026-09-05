@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:in_app_update/in_app_update.dart';
 
@@ -8,6 +10,9 @@ class InAppUpdateService {
 
   /// Check for available updates from Google Play Store
   static Future<AppUpdateInfo?> checkForUpdates() async {
+    // Play in-app updates are Android-only; the plugin has no iOS
+    // implementation, so calling it there just throws MissingPluginException.
+    if (!Platform.isAndroid) return null;
     try {
       debugPrint('🔄 Checking for app updates from Google Play Store...');
 

@@ -148,13 +148,15 @@ class _NavTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: isSelected ? colorScheme.primary.withValues(alpha: 0.1) : null,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      // The tint lives on the ListTile itself (tileColor) rather than on a
+      // wrapping DecoratedBox — a decorated ancestor would paint over the
+      // tile's own background and ink splashes.
       child: ListTile(
+        tileColor: isSelected
+            ? colorScheme.primary.withValues(alpha: 0.1)
+            : null,
         leading: Icon(
           item.iconData,
           color: isSelected ? colorScheme.primary : Colors.grey.shade600,

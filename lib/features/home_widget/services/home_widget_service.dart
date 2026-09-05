@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:lifeque/core/utils/salah_time_calculator.dart';
@@ -9,6 +11,28 @@ import 'package:adhan/adhan.dart';
 import 'package:intl/intl.dart';
 import 'package:hijri/hijri_calendar.dart';
 
+/// App Group id shared between the Runner app and an iOS WidgetKit extension.
+///
+/// iOS home-screen widgets need both a widget extension target and an App
+/// Group container; the Runner project currently has neither, so every
+/// `home_widget` call on iOS fails with `AppGroupId not set`. Once the
+/// extension and the App Group capability are added in Xcode, set this to the
+/// group id (e.g. `group.com.programmernexus.lifeque`) and iOS widget updates
+/// turn on with no other code changes.
+const String? kIosWidgetAppGroupId = null;
+
+/// Whether home-screen widgets can be driven on the current platform.
+bool get isHomeWidgetSupported =>
+    Platform.isAndroid || (Platform.isIOS && kIosWidgetAppGroupId != null);
+
+/// Hand the App Group id to the plugin before any other widget call.
+/// No-op on Android and on iOS builds without a configured group.
+Future<void> initHomeWidget() async {
+  if (Platform.isIOS && kIosWidgetAppGroupId != null) {
+    await HomeWidget.setAppGroupId(kIosWidgetAppGroupId!);
+  }
+}
+
 class HomeWidgetService {
   static const String _prayerQualifiedName =
       'com.programmernexus.lifeque.PrayerTimesWidgetProvider';
@@ -17,6 +41,10 @@ class HomeWidgetService {
   static const Size _widgetSize = Size(380, 180);
 
   Future<void> updateWidget() async {
+    if (!isHomeWidgetSupported) {
+      debugPrint('🕌 Home widgets not supported on this platform — skipping');
+      return;
+    }
     try {
       final settings = PrayerSettingsService.instance;
       await settings.init();
