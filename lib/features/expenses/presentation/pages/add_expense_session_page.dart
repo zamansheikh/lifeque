@@ -24,8 +24,19 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
   final _titleController = TextEditingController();
   final _notesController = TextEditingController();
   final List<ExpenseItemForm> _items = [];
+
+  // The quick-add row at the top of the item list: type a name, tab to the
+  // price, hit enter, and the keyboard never goes away. Everything optional —
+  // category, "already bought", even the price — lives behind a tap on the
+  // finished row instead of standing between you and the next item.
+  final _quickNameController = TextEditingController();
+  final _quickAmountController = TextEditingController();
+  final _quickNameFocus = FocusNode();
+  final _quickAmountFocus = FocusNode();
+
   DateTime _selectedDate = DateTime.now();
   int? _expandedIndex; // which item is currently expanded
+  bool _showNote = false;
   bool get _isEditing => widget.session != null;
 
   late AnimationController _animationController;
@@ -53,6 +64,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
     if (_isEditing) {
       _titleController.text = widget.session!.title;
       _notesController.text = widget.session!.notes ?? '';
+      _showNote = _notesController.text.isNotEmpty;
       _selectedDate = widget.session!.date;
 
       // Load existing items — all collapsed in edit mode
@@ -66,8 +78,6 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
         itemForm.customCategoryName = item.customCategoryName;
         _items.add(itemForm);
       }
-      // Expand the last one for easy editing
-      if (_items.isNotEmpty) _expandedIndex = _items.length - 1;
     }
 
     _animationController.forward();
@@ -77,6 +87,10 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
   void dispose() {
     _titleController.dispose();
     _notesController.dispose();
+    _quickNameController.dispose();
+    _quickAmountController.dispose();
+    _quickNameFocus.dispose();
+    _quickAmountFocus.dispose();
     _animationController.dispose();
     for (final item in _items) {
       item.dispose();
@@ -84,23 +98,38 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
     super.dispose();
   }
 
-  void _addItem() {
+  /// Takes whatever is in the quick-add row and turns it into an item.
+  ///
+  /// Only the name is required — a price you don't know yet can be filled in
+  /// later by tapping the row, which is the point: you can rattle off a whole
+  /// list first and price it afterwards.
+  void _quickAdd() {
+    final name = _quickNameController.text.trim();
+    if (name.isEmpty) {
+      _quickNameFocus.requestFocus();
+      return;
+    }
+
+    final form = ExpenseItemForm()
+      ..nameController.text = name
+      ..amountController.text = _quickAmountController.text.trim();
+
+    // Category is optional, so guess it from the name rather than asking.
+    // The picker on the row can always correct it.
+    final guess = _suggestCategoriesForName(name);
+    if (guess.isNotEmpty) form.category = guess.first;
+
     setState(() {
-      _items.add(ExpenseItemForm());
-      _expandedIndex = _items.length - 1; // expand the new item
+      _items.add(form);
+      _expandedIndex = null;
+      _quickNameController.clear();
+      _quickAmountController.clear();
     });
+    _quickNameFocus.requestFocus();
   }
 
   void _confirmItem(int index) {
-    // Validate the item inline, then collapse it
-    final item = _items[index];
-    if (item.nameController.text.trim().isEmpty ||
-        double.tryParse(item.amountController.text) == null) {
-      return; // don't collapse if incomplete
-    }
-    setState(() {
-      _expandedIndex = null;
-    });
+    setState(() => _expandedIndex = null);
   }
 
   void _removeItem(int index) {
@@ -138,6 +167,10 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
   }
 
   void _saveSession() {
+    // Typing a name and hitting Save without pressing + is an easy mistake to
+    // make, and losing that item would be a rotten reward for it.
+    if (_quickNameController.text.trim().isNotEmpty) _quickAdd();
+
     if (_formKey.currentState!.validate() && _items.isNotEmpty) {
       // ID strategy:
       //   • Existing items (loaded with originalId) keep their original id
@@ -153,7 +186,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
           ExpenseItem(
             id: itemForm.originalId ?? '${nowMs}_${newCounter++}',
             name: itemForm.nameController.text.trim(),
-            amount: double.parse(itemForm.amountController.text),
+            amount: double.tryParse(itemForm.amountController.text) ?? 0,
             isPurchased: itemForm.isPurchased,
             purchasedAt: itemForm.isPurchased ? DateTime.now() : null,
             category: itemForm.category,
@@ -299,449 +332,254 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(16),
               children: [
-                // Session Details Card
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        spreadRadius: 0,
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(7),
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFF3B82F6),
-                                        Color(0xFF2563EB),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(9),
-                                  ),
-                                  child: const Icon(
-                                    Icons.receipt_long_rounded,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                const Text(
-                                  'List details',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-
-                        // Title Field
-                        _buildEnhancedTextField(
-                          controller: _titleController,
-                          label: 'List name',
-                          hint: 'e.g. Weekly bazar, Grocery run',
-                          icon: Icons.title_rounded,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Give this list a name';
-                            }
-                            return null;
-                          },
-                        ),
-
-                        const SizedBox(height: 8),
-
-                        // Date Field
-                        GestureDetector(
-                          onTap: _selectDate,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.grey.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF2563EB,
-                                    ).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(7),
-                                  ),
-                                  child: const Icon(
-                                    Icons.calendar_today_rounded,
-                                    color: Color(0xFF2563EB),
-                                    size: 15,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  _formatDate(_selectedDate),
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                                const Spacer(),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  color: Colors.grey[400],
-                                  size: 18,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 8),
-                        _buildEnhancedTextField(
-                          controller: _notesController,
-                          label: 'Note (optional)',
-                          hint: 'Anything worth remembering',
-                          icon: Icons.notes_rounded,
-                          maxLines: 1,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
+                _listCard(),
                 const SizedBox(height: 12),
-
-                // Items Section
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        spreadRadius: 0,
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF10B981),
-                                    Color(0xFF059669),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.shopping_cart_rounded,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            const Text(
-                              'Items',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        if (_items.isEmpty) ...[
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Colors.grey.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF3B82F6,
-                                    ).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Icon(
-                                    Icons.add_shopping_cart_rounded,
-                                    size: 40,
-                                    color: Color(0xFF3B82F6),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'No items added yet',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Color(0xFF1E293B),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'List each thing you plan to buy, with its price',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFF3B82F6),
-                                        Color(0xFF2563EB),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: ElevatedButton.icon(
-                                    onPressed: _addItem,
-                                    icon: const Icon(
-                                      Icons.add_rounded,
-                                      size: 18,
-                                    ),
-                                    label: const Text('Add item'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.transparent,
-                                      foregroundColor: Colors.white,
-                                      elevation: 0,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 14,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ] else ...[
-                          ...List.generate(_items.length, (index) {
-                            final isExpanded = _expandedIndex == index;
-                            return AnimatedContainer(
-                              duration: const Duration(milliseconds: 250),
-                              margin: const EdgeInsets.only(bottom: 8),
-                              child: isExpanded
-                                  ? _buildExpandedItemForm(index)
-                                  : _buildCollapsedItemRow(index),
-                            );
-                          }),
-                          // Add Another Item button
-                          const SizedBox(height: 6),
-                          Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                // Confirm current expanded item before adding new
-                                if (_expandedIndex != null) {
-                                  _confirmItem(_expandedIndex!);
-                                }
-                                _addItem();
-                              },
-                              icon: const Icon(Icons.add_rounded, size: 18),
-                              label: const Text('Add another item'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 14,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Enhanced Summary Card
-                if (_items.isNotEmpty)
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF2563EB).withValues(alpha: 0.3),
-                          spreadRadius: 0,
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.summarize_rounded,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                              const SizedBox(width: 12),
-                              const Text(
-                                'Summary',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      const Icon(
-                                        Icons.inventory_2_rounded,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        '${_items.length}',
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const Text(
-                                        'Items',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      const Icon(
-                                        Icons.account_balance_wallet_rounded,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        '৳${_calculateTotal().toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const Text(
-                                        'Total',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 16),
+                _itemsCard(),
+                const SizedBox(height: 28),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── The list itself ────────────────────────────────────────────────────
+  // Name and date only. The note is the one optional field here, so it stays
+  // folded away behind a chip until somebody actually wants it.
+  Widget _listCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildEnhancedTextField(
+              controller: _titleController,
+              label: 'List name',
+              hint: 'e.g. Weekly bazar, Grocery run',
+              icon: Icons.title_rounded,
+              autofocus: !_isEditing,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Give this list a name';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                _chip(
+                  icon: Icons.calendar_today_rounded,
+                  label: _formatDate(_selectedDate),
+                  onTap: _selectDate,
+                ),
+                const SizedBox(width: 8),
+                if (!_showNote)
+                  _chip(
+                    icon: Icons.add_rounded,
+                    label: 'Note',
+                    onTap: () => setState(() => _showNote = true),
+                    subdued: true,
+                  ),
+              ],
+            ),
+            if (_showNote) ...[
+              const SizedBox(height: 10),
+              _buildEnhancedTextField(
+                controller: _notesController,
+                label: 'Note (optional)',
+                hint: 'Anything worth remembering',
+                icon: Icons.notes_rounded,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _chip({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool subdued = false,
+  }) {
+    final color = subdued ? const Color(0xFF64748B) : const Color(0xFF2563EB);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: color),
+              const SizedBox(width: 7),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Items ──────────────────────────────────────────────────────────────
+  Widget _itemsCard() {
+    final total = _calculateTotal();
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF10B981), Color(0xFF059669)],
+                    ),
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: const Icon(
+                    Icons.shopping_cart_rounded,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Items',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                const Spacer(),
+                if (_items.isNotEmpty)
+                  Text(
+                    '${_items.length} · ৳${total.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF2563EB),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _quickAddRow(),
+            if (_items.isEmpty) ...[
+              const SizedBox(height: 14),
+              Center(
+                child: Text(
+                  'Type a name, add a price if you know it, press +',
+                  style: TextStyle(fontSize: 12.5, color: Colors.grey[500]),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 6),
+            ] else ...[
+              const SizedBox(height: 10),
+              ...List.generate(_items.length, (index) {
+                final isExpanded = _expandedIndex == index;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: isExpanded
+                      ? _buildExpandedItemForm(index)
+                      : _buildCollapsedItemRow(index),
+                );
+              }),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Name → price → enter. The row clears itself and hands focus back to the
+  /// name field, so a whole basket goes in without ever leaving the keyboard.
+  Widget _quickAddRow() {
+    final ready = _quickNameController.text.trim().isNotEmpty;
+    return _entryRow(
+      highlight: true,
+      name: TextField(
+        controller: _quickNameController,
+        focusNode: _quickNameFocus,
+        textInputAction: TextInputAction.next,
+        textCapitalization: TextCapitalization.sentences,
+        onSubmitted: (_) => _quickAmountFocus.requestFocus(),
+        onChanged: (_) => setState(() {}),
+        style: _entryNameStyle,
+        decoration: _entryDecoration('Add an item'),
+      ),
+      price: TextField(
+        controller: _quickAmountController,
+        focusNode: _quickAmountFocus,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        textInputAction: TextInputAction.done,
+        textAlign: TextAlign.end,
+        onSubmitted: (_) => _quickAdd(),
+        style: _entryPriceStyle,
+        decoration: _entryDecoration('0'),
+      ),
+      trailing: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: _quickAdd,
+          child: Container(
+            width: _actionHeight,
+            height: _actionHeight,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: ready
+                    ? [const Color(0xFF3B82F6), const Color(0xFF2563EB)]
+                    : [const Color(0xFFCBD5E1), const Color(0xFFCBD5E1)],
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.add_rounded, color: Colors.white, size: 22),
           ),
         ),
       ),
@@ -755,6 +593,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
     required IconData icon,
     String? Function(String?)? validator,
     int maxLines = 1,
+    bool autofocus = false,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -766,6 +605,8 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
         controller: controller,
         validator: validator,
         maxLines: maxLines,
+        autofocus: autofocus,
+        textCapitalization: TextCapitalization.sentences,
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -926,16 +767,19 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
   // ── Expanded item form with category suggestions ─────────────────────────
   Widget _buildExpandedItemForm(int index) {
     final item = _items[index];
-    final suggested = _suggestCategoriesForName(item.nameController.text);
+    // Anything already showing in the Category row below would be a chip that
+    // repeats the control right under it, so drop it from the suggestions.
+    final suggested = _suggestCategoriesForName(item.nameController.text)
+        .where((c) => item.customCategoryName != null || c != item.category)
+        .toList();
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
-          width: 1.5,
+          color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
         ),
         boxShadow: [
           BoxShadow(
@@ -948,306 +792,145 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Item header row
+          // Header. Both buttons are _actionHeight tall so they line up —
+          // an icon button and a text button left to their own devices come
+          // out different heights.
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Item ${index + 1}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                    color: Colors.white,
-                  ),
+              const Text(
+                'Editing item',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
                 ),
               ),
               const Spacer(),
-              // Confirm / collapse button
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: IconButton(
-                  onPressed: () => _confirmItem(index),
-                  icon: const Icon(
-                    Icons.check_rounded,
-                    color: Color(0xFF10B981),
-                    size: 18,
-                  ),
-                  tooltip: 'Done',
-                  constraints: const BoxConstraints(),
-                  padding: const EdgeInsets.all(8),
-                ),
+              _headerAction(
+                icon: Icons.delete_rounded,
+                color: const Color(0xFFDC2626),
+                tooltip: 'Remove item',
+                onTap: () => _removeItem(index),
               ),
-              const SizedBox(width: 6),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: IconButton(
-                  onPressed: () => _removeItem(index),
-                  icon: Icon(
-                    Icons.delete_rounded,
-                    color: Colors.red[600],
-                    size: 18,
-                  ),
-                  tooltip: 'Remove item',
-                  constraints: const BoxConstraints(),
-                  padding: const EdgeInsets.all(8),
-                ),
+              const SizedBox(width: 8),
+              _headerAction(
+                icon: Icons.check_rounded,
+                color: const Color(0xFF059669),
+                label: 'Done',
+                onTap: () => _confirmItem(index),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-          // Name + Amount row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 3,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.grey.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: TextFormField(
-                    controller: item.nameController,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      labelText: 'Item name',
-                      hintText: 'e.g., Rice, Bus fare',
-                      hintStyle: TextStyle(
-                        color: Colors.grey[400],
-                        fontWeight: FontWeight.w400,
-                      ),
-                      prefixIcon: Container(
-                        margin: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Icon(
-                          Icons.shopping_basket_rounded,
-                          color: Color(0xFF10B981),
-                          size: 16,
-                        ),
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Required';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
+          // Same row, same divider, same ৳ as the add row above it.
+          _entryRow(
+            name: TextFormField(
+              controller: item.nameController,
+              textCapitalization: TextCapitalization.sentences,
+              onChanged: (_) => setState(() {}),
+              style: _entryNameStyle,
+              decoration: _entryDecoration('Item name'),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Required';
+                return null;
+              },
+            ),
+            price: TextFormField(
+              controller: item.amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                flex: 2,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.grey.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: TextFormField(
-                    controller: item.amountController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      // "Price" rather than "Amount": it is short enough to
-                      // survive next to the prefix in this half-width field,
-                      // where "Amount" was being clipped to "Amou…".
-                      labelText: 'Price',
-                      hintText: '0',
-                      hintStyle: TextStyle(
-                        color: Colors.grey[400],
-                        fontWeight: FontWeight.w400,
-                      ),
-                      // The taka sign, not the lira icon that used to sit here
-                      // while every figure around it was quoted in ৳.
-                      prefixIcon: Container(
-                        margin: const EdgeInsets.all(8),
-                        width: 26,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          '৳',
-                          style: TextStyle(
-                            color: Color(0xFF3B82F6),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      prefixIconConstraints: const BoxConstraints(
-                        minWidth: 42,
-                        minHeight: 42,
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Required';
-                      }
-                      if (double.tryParse(value) == null ||
-                          double.parse(value) <= 0) {
-                        return 'Invalid';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ),
-            ],
+              textAlign: TextAlign.end,
+              onChanged: (_) => setState(() {}),
+              style: _entryPriceStyle,
+              decoration: _entryDecoration('0'),
+              // Blank is allowed and saves as ৳0: pricing the basket later is
+              // the whole point of adding items this fast.
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return null;
+                if (double.tryParse(value) == null) return 'Invalid';
+                return null;
+              },
+            ),
           ),
 
-          // ── Category Suggestion Chips ──────────────────────────────────
+          // ── Category suggestions ──
           if (suggested.isNotEmpty &&
               item.nameController.text.trim().isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 13,
-                  color: Color(0xFFF59E0B),
-                ),
-                const SizedBox(width: 4),
-                const Text(
-                  'Suggestions',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: suggested.map((cat) {
-                        final isSelected = item.category == cat;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: GestureDetector(
-                            onTap: () => setState(() => item.category = cat),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 150),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? cat.color.withValues(alpha: 0.15)
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? cat.color
-                                      : cat.color.withValues(alpha: 0.4),
-                                  width: isSelected ? 1.5 : 1,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(cat.icon, size: 12, color: cat.color),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    cat.displayName,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: cat.color,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w700
-                                          : FontWeight.w500,
-                                    ),
-                                  ),
-                                  if (isSelected) ...[
-                                    const SizedBox(width: 3),
-                                    Icon(
-                                      Icons.check_rounded,
-                                      size: 11,
-                                      color: cat.color,
-                                    ),
-                                  ],
-                                ],
-                              ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 30,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: suggested.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 6),
+                itemBuilder: (context, i) {
+                  final cat = suggested[i];
+                  final isSelected =
+                      item.category == cat && item.customCategoryName == null;
+                  return GestureDetector(
+                    onTap: () => setState(() {
+                      item.category = cat;
+                      item.customCategoryName = null;
+                    }),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 11),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? cat.color.withValues(alpha: 0.14)
+                            : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isSelected
+                              ? cat.color
+                              : cat.color.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(cat.icon, size: 13, color: cat.color),
+                          const SizedBox(width: 5),
+                          Text(
+                            cat.displayName,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: cat.color,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                             ),
                           ),
-                        );
-                      }).toList(),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-              ],
+                  );
+                },
+              ),
             ),
           ],
 
           const SizedBox(height: 10),
-
-          // Category Picker
           _buildCategoryPicker(item),
+          const SizedBox(height: 8),
 
-          const SizedBox(height: 10),
-
-          // Purchased toggle
+          // Already bought
           GestureDetector(
             onTap: () => setState(() => item.isPurchased = !item.isPurchased),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
               decoration: BoxDecoration(
                 color: item.isPurchased
                     ? const Color(0xFF10B981).withValues(alpha: 0.08)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: item.isPurchased
-                      ? const Color(0xFF10B981).withValues(alpha: 0.4)
-                      : Colors.grey.withValues(alpha: 0.2),
+                      ? const Color(0xFF10B981).withValues(alpha: 0.45)
+                      : Colors.grey.withValues(alpha: 0.25),
                 ),
               ),
               child: Row(
@@ -1283,7 +966,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: item.isPurchased
-                          ? const Color(0xFF10B981)
+                          ? const Color(0xFF059669)
                           : const Color(0xFF64748B),
                     ),
                   ),
@@ -1291,6 +974,118 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  /// Header buttons for the expanded item: one fixed height, so a bare icon
+  /// and an icon-plus-label end up the same size as each other.
+  static const double _actionHeight = 36;
+
+  Widget _headerAction({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    String? label,
+    String? tooltip,
+  }) {
+    final button = Material(
+      color: color.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Container(
+          height: _actionHeight,
+          constraints: BoxConstraints(minWidth: _actionHeight),
+          padding: EdgeInsets.symmetric(horizontal: label == null ? 0 : 12),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: color),
+              if (label != null) ...[
+                const SizedBox(width: 5),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+    return tooltip == null ? button : Tooltip(message: tooltip, child: button);
+  }
+
+  // ── One shared name-and-price row ──────────────────────────────────────
+  // The quick-add row and the expanded item both use this, so they read as
+  // the same control: name on the left, a hairline divider, then ৳ and the
+  // price. Without the divider the two values ran together.
+  static const _entryNameStyle = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    color: Color(0xFF1E293B),
+  );
+
+  static const _entryPriceStyle = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w700,
+    color: Color(0xFF1E293B),
+  );
+
+  InputDecoration _entryDecoration(String hint) => InputDecoration(
+    isDense: true,
+    border: InputBorder.none,
+    enabledBorder: InputBorder.none,
+    focusedBorder: InputBorder.none,
+    errorBorder: InputBorder.none,
+    focusedErrorBorder: InputBorder.none,
+    contentPadding: EdgeInsets.zero,
+    hintText: hint,
+    hintStyle: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.w500),
+  );
+
+  Widget _entryRow({
+    required Widget name,
+    required Widget price,
+    Widget? trailing,
+    bool highlight = false,
+  }) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(12, 12, trailing == null ? 12 : 5, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: highlight
+              ? const Color(0xFF3B82F6).withValues(alpha: 0.35)
+              : Colors.grey.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: name),
+          const SizedBox(width: 10),
+          Container(width: 1, height: 22, color: const Color(0xFFE2E8F0)),
+          const SizedBox(width: 10),
+          Text(
+            '৳',
+            style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 3),
+          SizedBox(width: 58, child: price),
+          if (trailing != null) ...[const SizedBox(width: 5), trailing],
         ],
       ),
     );
@@ -1320,11 +1115,11 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
     return GestureDetector(
       onTap: () => _showCategoryPickerSheet(item),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.25)),
         ),
         child: Row(
           children: [
@@ -1864,6 +1659,12 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
       'Nov',
       'Dec',
     ];
+    final now = DateTime.now();
+    if (date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day) {
+      return 'Today';
+    }
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
