@@ -10,4 +10,4 @@
     android:widgetCategory="home_screen"
     android:label="Mosque Jamaat"
     android:description="@string/mosque_widget_description"
-    android:previewLayout="@layout/mosque_widget_layout" />
+    android:previewLayout="@layout/mosque_widget_preview" />

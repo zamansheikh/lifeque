@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A prayer marker on the day-map preview track. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#FFF5D27A" />
+    <size android:width="10dp" android:height="10dp" />
+</shape>
