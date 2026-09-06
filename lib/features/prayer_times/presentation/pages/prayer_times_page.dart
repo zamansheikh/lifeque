@@ -28,11 +28,13 @@ import '../widgets/nafal_times_card.dart';
 import '../widgets/prayer_alarm_sheet.dart';
 import '../widgets/prayer_snack.dart';
 import '../widgets/prayer_focus_card.dart' show QuickAlarmChoice;
+import '../widgets/prayer_progress_card.dart';
 import '../widgets/prayer_sky_header.dart';
 import '../widgets/prohibited_times_card.dart';
 import '../widgets/ramadan_strip_card.dart';
 import '../widgets/restricted_times_card.dart';
 import '../widgets/salat_times_card.dart';
+import 'prayer_stats_page.dart';
 
 /// "Prayer Compass" — the prayer-times screen.
 ///
@@ -94,6 +96,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
   Set<String> _completions = {};
   int _streak = 0;
+
+  /// Seven daily fard counts, oldest first, last entry = today.
+  List<int> _weekCounts = const [];
   List<PrayerAlarmConfig> _alarms = const [];
   StreamSubscription<List<PrayerAlarmConfig>>? _alarmsSub;
 
@@ -220,10 +225,12 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final isToday = _isSameDay(date, DateTime.now());
     final completions = await _completionService.getCompletions(date);
     final streak = isToday ? await _completionService.getCurrentStreak() : 0;
+    final week = await _completionService.recentCounts(7);
     if (!mounted) return;
     setState(() {
       _completions = completions;
       _streak = streak;
+      _weekCounts = week;
     });
   }
 
@@ -536,7 +543,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: SalatTimesCard(
                 rows: _salatRows(date, times, endTimes, current),
-                summary: _salatSummary(isToday),
                 canMarkPrayed: isToday || date.isBefore(now),
                 onSetAlarm: _openAlarmSheet,
                 onTogglePrayed: (prayer) => _togglePrayed(date, prayer),
@@ -556,6 +562,17 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               subtitle: _prohibitedSubtitle(calc, now, isToday, restrictedNow),
               chips: _prohibitedChips(calc, now, isToday),
               onSeeReference: () => _openRestrictedSheet(calc),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+            child: PrayerProgressCard(
+              prayed: _fardPrayers.where(_completions.contains).length,
+              total: _fardPrayers.length,
+              streak: _streak,
+              week: _weekCounts,
+              isToday: isToday,
+              onTap: _openStats,
             ),
           ),
           Padding(
@@ -796,10 +813,15 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     ];
   }
 
-  String _salatSummary(bool isToday) {
-    final done = _fardPrayers.where(_completions.contains).length;
-    if (!isToday) return '$done/5 prayed';
-    return '$done/5 prayed today · 🔥 $_streak-day streak';
+  /// The progress card is the way into the history. Reloading on the way
+  /// back keeps the ring in step with anything logged over there.
+  Future<void> _openStats() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PrayerStatsPage()),
+    );
+    if (!mounted) return;
+    await _loadDayState(_selectedDate);
   }
 
   /// The bell toggles a plain on-time alarm; anything more specific lives in

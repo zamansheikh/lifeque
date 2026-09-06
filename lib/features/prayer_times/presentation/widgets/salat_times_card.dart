@@ -37,9 +37,6 @@ class SalatRow {
 class SalatTimesCard extends StatelessWidget {
   final List<SalatRow> rows;
 
-  /// e.g. `3/5 prayed today · 🔥 12-day streak`.
-  final String summary;
-
   final bool canMarkPrayed;
 
   final VoidCallback onSetAlarm;
@@ -50,7 +47,6 @@ class SalatTimesCard extends StatelessWidget {
   const SalatTimesCard({
     super.key,
     required this.rows,
-    required this.summary,
     required this.canMarkPrayed,
     required this.onSetAlarm,
     required this.onTogglePrayed,
@@ -61,7 +57,7 @@ class SalatTimesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
@@ -99,33 +95,22 @@ class SalatTimesCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          for (final row in rows) _row(row),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 9),
-            child: Text(
-              summary,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: PrayerPalette.inkA(0.55),
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          for (var i = 0; i < rows.length; i++)
+            _row(rows[i], isLast: i == rows.length - 1),
         ],
       ),
     );
   }
 
-  Widget _row(SalatRow row) {
+  Widget _row(SalatRow row, {required bool isLast}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
         color: row.isCurrent ? PrayerPalette.accentA(0.10) : Colors.transparent,
         borderRadius: BorderRadius.circular(14),
-        border: Border(bottom: BorderSide(color: PrayerPalette.inkA(0.05))),
+        border: isLast
+            ? null
+            : Border(bottom: BorderSide(color: PrayerPalette.inkA(0.05))),
       ),
       child: Row(
         children: [
