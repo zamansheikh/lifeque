@@ -3363,4 +3363,15 @@ class LEn extends L {
 
   @override
   String get widgetNextPrayer => 'Next prayer';
+
+  @override
+  String get whatsNewTitle => 'What\'s new';
+
+  @override
+  String get whatsNewGotIt => 'Got it';
+
+  @override
+  String whatsNewVersion(String version) {
+    return 'Version $version';
+  }
 }

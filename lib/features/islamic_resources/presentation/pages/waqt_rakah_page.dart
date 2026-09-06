@@ -377,17 +377,13 @@ class _RakahTable extends StatelessWidget {
     );
   }
 
-  /// The rak'ah counts read as numbers, so they follow the reader's numerals.
-  String _localDigits(String s) =>
-      s.replaceAllMapped(RegExp(r'\d'), (m) => N.plain(int.parse(m[0]!)));
-
   Widget _dCell(String text, double width, Color color, {bool bold = false}) {
     return SizedBox(
       width: width,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         child: Text(
-          _localDigits(text),
+          N.digits(text),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 13,

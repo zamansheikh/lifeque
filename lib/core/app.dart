@@ -39,6 +39,7 @@ import '../features/prayer_times/presentation/pages/prayer_shell_page.dart';
 import '../features/study/presentation/pages/study_timer_page.dart';
 import '../features/permissions/presentation/pages/permission_screen.dart';
 import '../features/splash/presentation/pages/splash_screen.dart';
+import '../features/whats_new/presentation/whats_new_sheet.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
 import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import 'services/navigation_service.dart';
@@ -76,6 +77,7 @@ class AppRouter {
               di.sl<SharedPreferences>(),
             );
             context.go(svc.getHomeRoute());
+            WhatsNewSheet.scheduleAfterLaunch();
           },
         ),
       ),

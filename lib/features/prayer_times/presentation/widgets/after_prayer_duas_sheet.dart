@@ -45,11 +45,6 @@ class AfterPrayerDuasSheet {
     ),
   ];
 
-  /// The repetition counts read as numbers, so they follow the reader's
-  /// numerals rather than staying Latin under a Bangla interface.
-  static String _localDigits(String s) =>
-      s.replaceAllMapped(RegExp(r'\d'), (m) => N.plain(int.parse(m[0]!)));
-
   static String _afterSalam(L l) => l.adhkarSectionAfterSalam;
   static String _tasbih(L l) => l.adhkarSectionTasbih;
   static String _protection(L l) => l.adhkarSectionProtection;
@@ -138,7 +133,7 @@ class AfterPrayerDuasSheet {
             ),
             const Spacer(),
             Text(
-              _localDigits(dua.count),
+              N.digits(dua.count),
               style: TextStyle(
                 color: PrayerPalette.inkA(0.5),
                 fontSize: 10,

@@ -22,6 +22,15 @@ class N {
   static String plain(num value) =>
       (NumberFormat.decimalPattern()..turnOffGrouping()).format(value);
 
+  /// Localises the digits inside a string that is not itself a number —
+  /// `"1.0.0"` → `"১.০.০"`, `"4+2"` → `"৪+২"`.
+  ///
+  /// For figures that arrive already formatted, where the separators carry
+  /// meaning and must survive: version names, dose counts like `33 · 33 · 34`,
+  /// rak'ah tables.
+  static String digits(String text) =>
+      text.replaceAllMapped(RegExp(r'\d'), (m) => plain(int.parse(m[0]!)));
+
   /// Two-digit clock-style padding that still localises: `7` → `07` / `০৭`.
   static String padded2(int value) => of(value).padLeft(2, of(0));
 }

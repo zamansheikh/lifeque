@@ -960,5 +960,8 @@
   "widgetLoadingPrayer": "নামাজের সময় আনতে অ্যাপ খুলুন",
   "widgetLoadingJamaat": "জামাতের সময় আনতে অ্যাপ খুলুন",
   "widgetLoadingDayMap": "দিনের নকশা আনতে অ্যাপ খুলুন",
-  "widgetNextPrayer": "পরের নামাজ"
+  "widgetNextPrayer": "পরের নামাজ",
+  "whatsNewTitle": "নতুন যা আছে",
+  "whatsNewGotIt": "বুঝেছি",
+  "whatsNewVersion": "সংস্করণ {version}"
 }

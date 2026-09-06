@@ -3350,4 +3350,15 @@ class LBn extends L {
 
   @override
   String get widgetNextPrayer => 'পরের নামাজ';
+
+  @override
+  String get whatsNewTitle => 'নতুন যা আছে';
+
+  @override
+  String get whatsNewGotIt => 'বুঝেছি';
+
+  @override
+  String whatsNewVersion(String version) {
+    return 'সংস্করণ $version';
+  }
 }

@@ -5862,6 +5862,24 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Next prayer'**
   String get widgetNextPrayer;
+
+  /// No description provided for @whatsNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get whatsNewTitle;
+
+  /// No description provided for @whatsNewGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get whatsNewGotIt;
+
+  /// No description provided for @whatsNewVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String whatsNewVersion(String version);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

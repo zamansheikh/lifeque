@@ -1708,5 +1708,15 @@
   "widgetLoadingPrayer": "Open app to load prayer times",
   "widgetLoadingJamaat": "Open app to load jamaat times",
   "widgetLoadingDayMap": "Open app to load the day map",
-  "widgetNextPrayer": "Next prayer"
+  "widgetNextPrayer": "Next prayer",
+  "whatsNewTitle": "What's new",
+  "whatsNewGotIt": "Got it",
+  "whatsNewVersion": "Version {version}",
+  "@whatsNewVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -18,7 +18,10 @@ void main() {
 
   group('a dose is unresolved when', () {
     test('its time went by longer ago than the grace period', () {
-      expect(isDoseUnresolved(doseAt(DateTime(2026, 9, 6, 14, 0)), now), isTrue);
+      expect(
+        isDoseUnresolved(doseAt(DateTime(2026, 9, 6, 14, 0)), now),
+        isTrue,
+      );
     });
 
     test('it is from days back and was never answered', () {
@@ -48,10 +51,7 @@ void main() {
         isFalse,
       );
       // One minute past the edge, and it counts.
-      expect(
-        isDoseUnresolved(doseAt(DateTime(2026, 9, 7, 0, 7)), now),
-        isTrue,
-      );
+      expect(isDoseUnresolved(doseAt(DateTime(2026, 9, 7, 0, 7)), now), isTrue);
     });
 
     test('it has already been answered', () {

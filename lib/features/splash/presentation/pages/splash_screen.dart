@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../whats_new/presentation/whats_new_sheet.dart';
+
 import '../../../../l10n/app_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -92,9 +94,11 @@ class _SplashScreenState extends State<SplashScreen>
           context.go('/onboarding');
         } else if (allPermissionsGranted) {
           debugPrint('✅ All permissions granted, navigating to home');
-          context.go(
-            NavigationService.takePendingWidgetRoute() ?? svc.getHomeRoute(),
-          );
+          final pending = NavigationService.takePendingWidgetRoute();
+          context.go(pending ?? svc.getHomeRoute());
+          // Not when a widget tap sent us somewhere specific — the user asked
+          // for that screen, not for news about the update.
+          if (pending == null) WhatsNewSheet.scheduleAfterLaunch();
         } else {
           debugPrint('⚠️ Permissions needed, navigating to permission screen');
           context.go('/permissions');
