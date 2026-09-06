@@ -898,5 +898,13 @@
   "medMsgDeleted": "ওষুধ মুছে ফেলা হয়েছে",
   "medMsgDoseTaken": "নেওয়া হয়েছে বলে চিহ্নিত",
   "medMsgDoseSkipped": "ডোজ বাদ দেওয়া হয়েছে",
-  "medMsgDoseMissed": "মিস বলে চিহ্নিত"
+  "medMsgDoseMissed": "মিস বলে চিহ্নিত",
+  "medTodayDoses": "আজকের ডোজ",
+  "medActiveCourses": "চলমান কোর্স",
+  "medNoDosesToday": "এই দিনে কোনো ডোজ নেই।",
+  "medAllDoneToday": "আজকের সব শেষ",
+  "medOverdue": "সময় পেরিয়েছে",
+  "medUndo": "ফিরিয়ে নিন",
+  "medDoseProgress": "{total}টির মধ্যে {taken}টি নেওয়া হয়েছে",
+  "medDaysLeft": "{count, plural, other{আর {count} দিন}}"
 }

@@ -83,9 +83,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   String _selectedDosageUnit = 'mg';
   String? _personId;
 
-  /// A blank duration means "ongoing" — a year is long enough to behave like
-  /// no end date without letting the scheduler run forever.
-  static const int _ongoingDays = 365;
+  static const int _ongoingDays = Medicine.ongoingDurationDays;
 
   int get _durationInDays =>
       int.tryParse(_durationController.text.trim()) ?? _ongoingDays;

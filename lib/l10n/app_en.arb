@@ -1561,5 +1561,33 @@
         "format": "decimalPattern"
       }
     }
+  },
+  "medTodayDoses": "Today's doses",
+  "medActiveCourses": "Ongoing courses",
+  "medNoDosesToday": "Nothing scheduled for this day.",
+  "medAllDoneToday": "All done for today",
+  "medOverdue": "Overdue",
+  "medUndo": "Undo",
+  "medDoseProgress": "{taken} of {total} taken",
+  "@medDoseProgress": {
+    "placeholders": {
+      "taken": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "medDaysLeft": "{count, plural, =1{1 day left} other{{count} days left}}",
+  "@medDaysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
   }
 }

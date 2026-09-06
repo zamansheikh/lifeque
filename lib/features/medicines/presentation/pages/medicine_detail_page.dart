@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../utils/medicine_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -153,9 +155,9 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
           status: _statusLabel(context, medicine),
           title: medicine.name,
           subtitle:
-              '${medicine.dosageDisplay} · '
+              '${doseLabel(medicine.dosage, medicine.dosageUnit)} · '
               '${l.medTimesADay(medicine.timesPerDay)} · '
-              '${medicine.mealTimingDisplayName}',
+              '${mealTimingLabel(context, medicine.mealTiming)}',
           description: medicine.description,
         ),
         const SizedBox(height: 12),
@@ -182,7 +184,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
               children: [
                 Expanded(
                   child: DetailStat(
-                    value: '${state.taken}',
+                    value: N.of(state.taken),
                     label: l.medDoseTaken,
                     icon: Icons.check_circle_rounded,
                     color: const Color(0xFF10B981),
@@ -191,7 +193,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: DetailStat(
-                    value: '${state.pending}',
+                    value: N.of(state.pending),
                     label: l.medDoseToCome,
                     icon: Icons.schedule_rounded,
                     color: const Color(0xFF06B6D4),
@@ -200,7 +202,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: DetailStat(
-                    value: '${state.skipped}',
+                    value: N.of(state.skipped),
                     label: l.medDoseSkipped,
                     icon: Icons.skip_next_rounded,
                     color: const Color(0xFFF59E0B),
@@ -209,7 +211,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: DetailStat(
-                    value: '${state.missed}',
+                    value: N.of(state.missed),
                     label: l.medDoseMissed,
                     icon: Icons.cancel_rounded,
                     color: const Color(0xFFEF4444),
@@ -360,7 +362,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                 borderRadius: BorderRadius.circular(9),
               ),
               child: Text(
-                '$taken/${sorted.length}',
+                '${N.of(taken)}/${N.of(sorted.length)}',
                 style: TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w800,

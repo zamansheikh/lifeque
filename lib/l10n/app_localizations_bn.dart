@@ -3102,4 +3102,48 @@ class LBn extends L {
 
   @override
   String get medMsgDoseMissed => 'মিস বলে চিহ্নিত';
+
+  @override
+  String get medTodayDoses => 'আজকের ডোজ';
+
+  @override
+  String get medActiveCourses => 'চলমান কোর্স';
+
+  @override
+  String get medNoDosesToday => 'এই দিনে কোনো ডোজ নেই।';
+
+  @override
+  String get medAllDoneToday => 'আজকের সব শেষ';
+
+  @override
+  String get medOverdue => 'সময় পেরিয়েছে';
+
+  @override
+  String get medUndo => 'ফিরিয়ে নিন';
+
+  @override
+  String medDoseProgress(int taken, int total) {
+    final intl.NumberFormat takenNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String takenString = takenNumberFormat.format(taken);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$totalStringটির মধ্যে $takenStringটি নেওয়া হয়েছে';
+  }
+
+  @override
+  String medDaysLeft(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'আর $countString দিন',
+    );
+    return '$_temp0';
+  }
 }

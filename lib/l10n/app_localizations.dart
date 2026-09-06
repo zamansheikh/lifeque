@@ -5490,6 +5490,54 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Marked as missed'**
   String get medMsgDoseMissed;
+
+  /// No description provided for @medTodayDoses.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s doses'**
+  String get medTodayDoses;
+
+  /// No description provided for @medActiveCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing courses'**
+  String get medActiveCourses;
+
+  /// No description provided for @medNoDosesToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing scheduled for this day.'**
+  String get medNoDosesToday;
+
+  /// No description provided for @medAllDoneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'All done for today'**
+  String get medAllDoneToday;
+
+  /// No description provided for @medOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get medOverdue;
+
+  /// No description provided for @medUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get medUndo;
+
+  /// No description provided for @medDoseProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{taken} of {total} taken'**
+  String medDoseProgress(int taken, int total);
+
+  /// No description provided for @medDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day left} other{{count} days left}}'**
+  String medDaysLeft(int count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

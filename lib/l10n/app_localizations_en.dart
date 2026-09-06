@@ -3111,4 +3111,49 @@ class LEn extends L {
 
   @override
   String get medMsgDoseMissed => 'Marked as missed';
+
+  @override
+  String get medTodayDoses => 'Today\'s doses';
+
+  @override
+  String get medActiveCourses => 'Ongoing courses';
+
+  @override
+  String get medNoDosesToday => 'Nothing scheduled for this day.';
+
+  @override
+  String get medAllDoneToday => 'All done for today';
+
+  @override
+  String get medOverdue => 'Overdue';
+
+  @override
+  String get medUndo => 'Undo';
+
+  @override
+  String medDoseProgress(int taken, int total) {
+    final intl.NumberFormat takenNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String takenString = takenNumberFormat.format(taken);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return '$takenString of $totalString taken';
+  }
+
+  @override
+  String medDaysLeft(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString days left',
+      one: '1 day left',
+    );
+    return '$_temp0';
+  }
 }

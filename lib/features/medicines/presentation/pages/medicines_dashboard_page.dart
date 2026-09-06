@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/utils/local_numbers.dart';
 import '../../../../core/utils/local_clock.dart';
 import 'package:intl/intl.dart';
 import '../utils/medicine_l10n.dart';
@@ -148,6 +147,11 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
                 ? all
                 : all.where((m) => m.personId == _personFilter).toList();
 
+            final visibleIds = active.map((m) => m.id).toSet();
+            final visibleDoses = state.todayDoses
+                .where((d) => visibleIds.contains(d.medicineId))
+                .toList();
+
             if (all.isEmpty) {
               return _EmptyState(
                 onAdd: () async {
@@ -173,7 +177,7 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
                       _refresh();
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   if (people.length > 1) ...[
                     CarePersonFilterBar(
                       people: people,
@@ -182,19 +186,63 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  _SummaryBar(doses: state.todayDoses),
-                  const SizedBox(height: 24),
+
+                  // The doses due, first. This is what the page is for; the
+                  // course list used to sit above it and buried the one thing
+                  // anyone opens the app to do.
+                  _ProgressStrip(doses: visibleDoses),
+                  const SizedBox(height: 18),
+                  _SectionTitle(L.of(context).medTodayDoses),
+                  const SizedBox(height: 8),
+                  if (visibleDoses.isEmpty)
+                    _Placeholder(
+                      icon: Icons.event_available_rounded,
+                      text: active.isEmpty && _personFilter != null
+                          ? L
+                                .of(context)
+                                .medNothingForPerson(
+                                  people
+                                      .firstWhere((p) => p.id == _personFilter)
+                                      .name,
+                                )
+                          : L.of(context).medNoDosesToday,
+                    )
+                  else
+                    ...(visibleDoses..sort(
+                          (a, b) => a.scheduledTime.compareTo(b.scheduledTime),
+                        ))
+                        .map(
+                          (dose) => _DoseRow(
+                            dose: dose,
+                            medicine: active.firstWhere(
+                              (m) => m.id == dose.medicineId,
+                              orElse: () => active.first,
+                            ),
+                            showPerson: people.length > 1,
+                          ),
+                        ),
+
+                  const SizedBox(height: 26),
+                  _SectionTitle(L.of(context).medActiveCourses),
+                  const SizedBox(height: 8),
                   if (active.isEmpty)
-                    _NothingForPerson(
-                      name: people
-                          .firstWhere((p) => p.id == _personFilter)
-                          .name,
+                    _Placeholder(
+                      icon: Icons.medication_outlined,
+                      text: L
+                          .of(context)
+                          .medNothingForPerson(
+                            people
+                                .firstWhere((p) => p.id == _personFilter)
+                                .name,
+                          ),
                     )
                   else
                     ...active.map(
-                      (m) => _MedicineProgressCard(
+                      (m) => _CourseRow(
                         medicine: m,
                         doses: state.dosesForMedicine(m.id),
+                        showPerson: people.length > 1,
+                        onChanged: _refresh,
                       ),
                     ),
                 ],
@@ -220,29 +268,409 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
 }
 
 /// Shown when a person filter is on but that person has nothing active.
-class _NothingForPerson extends StatelessWidget {
-  const _NothingForPerson({required this.name});
 
-  final String name;
+// ─── Building blocks of the redesigned dashboard ─────────────────────────────
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: Text(
+      text,
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w800,
+        color: Color(0xFF1E293B),
+      ),
+    ),
+  );
+}
+
+class _Placeholder extends StatelessWidget {
+  const _Placeholder({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(32, 20, 32, 20),
+    child: Column(
+      children: [
+        Icon(icon, size: 34, color: Colors.grey.shade400),
+        const SizedBox(height: 10),
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13.5, color: Colors.grey.shade600),
+        ),
+      ],
+    ),
+  );
+}
+
+/// One line of progress instead of the full-width card that used to push the
+/// doses themselves below the fold.
+class _ProgressStrip extends StatelessWidget {
+  const _ProgressStrip({required this.doses});
+
+  final List<MedicineDose> doses;
 
   @override
   Widget build(BuildContext context) {
+    final total = doses.length;
+    final taken = doses.where((d) => d.status == DoseStatus.taken).length;
+    final done = total > 0 && taken == total;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 28, 32, 40),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.medication_outlined,
-            size: 40,
-            color: Colors.grey.shade400,
+          Row(
+            children: [
+              Icon(
+                done ? Icons.task_alt_rounded : Icons.medication_liquid_rounded,
+                size: 17,
+                color: done ? const Color(0xFF10B981) : const Color(0xFF3B82F6),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  done
+                      ? L.of(context).medAllDoneToday
+                      : L.of(context).medDoseProgress(taken, total),
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: done
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFF475569),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            L.of(context).medNothingForPerson(name),
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: total == 0 ? 0 : taken / total,
+              minHeight: 6,
+              backgroundColor: const Color(0xFFE2E8F0),
+              valueColor: AlwaysStoppedAnimation(
+                done ? const Color(0xFF10B981) : const Color(0xFF3B82F6),
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A single dose: when, what, for whom, and one tap to tick it off.
+class _DoseRow extends StatelessWidget {
+  const _DoseRow({
+    required this.dose,
+    required this.medicine,
+    required this.showPerson,
+  });
+
+  final MedicineDose dose;
+  final Medicine medicine;
+  final bool showPerson;
+
+  @override
+  Widget build(BuildContext context) {
+    final pending = dose.status == DoseStatus.pending;
+    final overdue = pending && dose.scheduledTime.isBefore(DateTime.now());
+    final person = showPerson
+        ? di.sl<CarePersonService>().findById(medicine.personId)
+        : null;
+    final accent = switch (dose.status) {
+      DoseStatus.taken => const Color(0xFF10B981),
+      DoseStatus.skipped => const Color(0xFFF59E0B),
+      DoseStatus.missed => const Color(0xFFEF4444),
+      DoseStatus.pending =>
+        overdue ? const Color(0xFFEF4444) : const Color(0xFF3B82F6),
+    };
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: overdue
+              ? accent.withValues(alpha: 0.35)
+              : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Time first — a dose list is read down the clock.
+          SizedBox(
+            width: 74,
+            child: Text(
+              Clock.h12(dose.scheduledTime),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: accent,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  medicine.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1E293B),
+                    decoration: dose.status == DoseStatus.taken
+                        ? TextDecoration.lineThrough
+                        : null,
+                    decorationColor: const Color(0xFF94A3B8),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  [
+                    doseLabel(medicine.dosage, medicine.dosageUnit),
+                    if (medicine.mealTiming != MealTiming.anytime)
+                      mealTimingLabel(context, medicine.mealTiming),
+                    if (overdue) L.of(context).medOverdue,
+                  ].join(' · '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: overdue ? accent : const Color(0xFF94A3B8),
+                    fontWeight: overdue ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+                if (person != null) ...[
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      CarePersonAvatar(person: person, size: 16),
+                      const SizedBox(width: 5),
+                      Text(
+                        person.name,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: person.color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (pending)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _DoseAction(
+                  icon: Icons.skip_next_rounded,
+                  color: const Color(0xFFF59E0B),
+                  tooltip: L.of(context).medSkipAction,
+                  onTap: () => context.read<MedicineCubit>().markDoseAsSkipped(
+                    dose.id,
+                    medicine.id,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                _DoseAction(
+                  icon: Icons.check_rounded,
+                  color: const Color(0xFF10B981),
+                  filled: true,
+                  tooltip: L.of(context).medDoseTaken,
+                  onTap: () => context.read<MedicineCubit>().markDoseAsTaken(
+                    dose.id,
+                    medicine.id,
+                  ),
+                ),
+              ],
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: Icon(
+                switch (dose.status) {
+                  DoseStatus.taken => Icons.check_circle_rounded,
+                  DoseStatus.skipped => Icons.remove_circle_rounded,
+                  _ => Icons.cancel_rounded,
+                },
+                color: accent,
+                size: 22,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DoseAction extends StatelessWidget {
+  const _DoseAction({
+    required this.icon,
+    required this.color,
+    required this.tooltip,
+    required this.onTap,
+    this.filled = false,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: filled ? color : color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onTap,
+          child: SizedBox(
+            width: 40,
+            height: 38,
+            child: Icon(icon, size: 21, color: filled ? Colors.white : color),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A course at a glance. The detail page carries the rest.
+class _CourseRow extends StatelessWidget {
+  const _CourseRow({
+    required this.medicine,
+    required this.doses,
+    required this.showPerson,
+    required this.onChanged,
+  });
+
+  final Medicine medicine;
+  final List<MedicineDose> doses;
+  final bool showPerson;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final person = showPerson
+        ? di.sl<CarePersonService>().findById(medicine.personId)
+        : null;
+    final left = medicine.calculatedEndDate
+        .difference(DateTime.now())
+        .inDays
+        .clamp(0, 100000);
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => MedicineDetailPage(medicine: medicine),
+              ),
+            );
+            onChanged();
+          },
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: (person?.color ?? const Color(0xFF3B82F6))
+                        .withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.medication_rounded,
+                    size: 21,
+                    color: person?.color ?? const Color(0xFF3B82F6),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        medicine.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        [
+                          doseLabel(medicine.dosage, medicine.dosageUnit),
+                          L.of(context).medTimesADay(medicine.timesPerDay),
+                          // An open-ended course has no meaningful countdown.
+                          if (medicine.isOngoing)
+                            L.of(context).medOngoing
+                          else
+                            L.of(context).medDaysLeft(left),
+                        ].join(' · '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF94A3B8),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (person != null) ...[
+                  const SizedBox(width: 8),
+                  CarePersonAvatar(person: person, size: 26),
+                ],
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFFCBD5E1),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -417,918 +845,6 @@ class _DayHeader extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SummaryBar extends StatelessWidget {
-  final List<MedicineDose> doses;
-  const _SummaryBar({required this.doses});
-  @override
-  Widget build(BuildContext context) {
-    final taken = doses.where((d) => d.status == DoseStatus.taken).length;
-    final skipped = doses.where((d) => d.status == DoseStatus.skipped).length;
-    final missed = doses.where((d) => d.status == DoseStatus.missed).length;
-    final pending = doses.where((d) => d.status == DoseStatus.pending).length;
-    final total = doses.length;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            L.of(context).medTodayOverview,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: _CountChip(
-                  label: L.of(context).medDoseTaken,
-                  value: taken,
-                  color: const Color(0xFF10B981),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _CountChip(
-                  label: L.of(context).medDosePending,
-                  value: pending,
-                  color: const Color(0xFF06B6D4),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _CountChip(
-                  label: L.of(context).medDoseSkipped,
-                  value: skipped,
-                  color: const Color(0xFFF59E0B),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _CountChip(
-                  label: L.of(context).medDoseMissed,
-                  value: missed,
-                  color: const Color(0xFFEF4444),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Container(
-            height: 8,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: total == 0 ? 0 : taken / total,
-                backgroundColor: Colors.transparent,
-                valueColor: const AlwaysStoppedAnimation(Color(0xFF10B981)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '${L.of(context).medProgress}: ${N.percent(total == 0 ? 0 : ((taken / total) * 100).round())}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-              fontSize: 16,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CountChip extends StatelessWidget {
-  final String label;
-  final int value;
-  final Color color;
-  const _CountChip({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            N.of(value),
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              fontSize: 20,
-            ),
-          ),
-          const SizedBox(height: 4),
-          // Bangla labels run longer than the English they were sized for, so
-          // they scale down instead of overflowing the tile.
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.white.withValues(alpha: 0.9),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MedicineProgressCard extends StatelessWidget {
-  final Medicine medicine;
-  final List<MedicineDose> doses;
-  const _MedicineProgressCard({required this.medicine, required this.doses});
-
-  /// Whose medicine this is. Absent when nobody is set, or when only one
-  /// person exists — with a single person the badge says nothing.
-  Widget? _personBadge(String? personId) {
-    final service = di.sl<CarePersonService>();
-    if (service.getAll().length < 2) return null;
-    final person = service.findById(personId);
-    if (person == null) return null;
-    return Padding(
-      padding: const EdgeInsets.only(top: 5),
-      child: Row(
-        children: [
-          CarePersonAvatar(person: person, size: 18),
-          const SizedBox(width: 6),
-          Text(
-            person.name,
-            style: TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-              color: person.color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Today stats for this medicine
-    final taken = doses.where((d) => d.status == DoseStatus.taken).length;
-    final pending = doses.where((d) => d.status == DoseStatus.pending).length;
-    final skipped = doses.where((d) => d.status == DoseStatus.skipped).length;
-    final missed = doses.where((d) => d.status == DoseStatus.missed).length;
-    final totalToday = doses.length;
-    final pct = totalToday == 0 ? 0.0 : taken / totalToday;
-
-    // Next pending / upcoming
-    final now = DateTime.now();
-    final upcoming =
-        doses
-            .where((d) => d.status == DoseStatus.pending)
-            .where((d) => d.scheduledTime.isAfter(now))
-            .toList()
-          ..sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
-    final next = upcoming.isNotEmpty ? upcoming.first : null;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: InkWell(
-        onTap: () async {
-          // Navigate to detail; when returning ensure dashboard state is reloaded.
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => MedicineDetailPage(medicine: medicine),
-            ),
-          );
-          if (context.mounted) {
-            // Reload dashboard for the current (today) date so we exit any detail state.
-            context.read<MedicineCubit>().loadDashboard();
-          }
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF64748B).withValues(alpha: 0.1),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.medication_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          medicine.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                        ?_personBadge(medicine.personId),
-                        const SizedBox(height: 6),
-                        Text(
-                          '${doseLabel(medicine.dosage, medicine.dosageUnit)}'
-                          ' • ${L.of(context).medTimesADay(medicine.timesPerDay)}',
-                          style: const TextStyle(
-                            color: Color(0xFF64748B),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          mealTimingLabel(context, medicine.mealTiming),
-                          style: const TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    children: [
-                      _TodayStatusPill(taken: taken, total: totalToday),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: IconButton(
-                          tooltip: L.of(context).medDetails,
-                          icon: const Icon(
-                            Icons.more_vert_rounded,
-                            size: 20,
-                            color: Color(0xFF64748B),
-                          ),
-                          onPressed: () => _showDetails(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: LinearProgressIndicator(
-                    value: pct,
-                    backgroundColor: Colors.transparent,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Color(0xFF10B981),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: [
-                  _modernChip(
-                    Icons.check_circle_rounded,
-                    '${L.of(context).medDoseTaken} ${N.of(taken)}',
-                    const Color(0xFF10B981),
-                  ),
-                  _modernChip(
-                    Icons.schedule_rounded,
-                    '${L.of(context).medDosePending} ${N.of(pending)}',
-                    const Color(0xFF06B6D4),
-                  ),
-                  if (skipped > 0)
-                    _modernChip(
-                      Icons.skip_next_rounded,
-                      '${L.of(context).medDoseSkipped} ${N.of(skipped)}',
-                      const Color(0xFFF59E0B),
-                    ),
-                  if (missed > 0)
-                    _modernChip(
-                      Icons.error_rounded,
-                      '${L.of(context).medDoseMissed} ${N.of(missed)}',
-                      const Color(0xFFEF4444),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: next == null
-                        ? Text(
-                            L.of(context).medDoseTaken,
-                            style: TextStyle(
-                              color: Color(0xFF10B981),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          )
-                        : Text(
-                            L
-                                .of(context)
-                                .medNextDose(Clock.h12(next.scheduledTime)),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                  ),
-                  _ActionButtons(medicine: medicine, doses: doses),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _modernChip(IconData icon, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _modernStatusCount(String label, int value, Color color) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            N.of(value),
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: color,
-              fontSize: 16,
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: color,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showDetails(BuildContext context) {
-    final totalCourseDoses = medicine.totalDoses;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final taken = doses.where((d) => d.status == DoseStatus.taken).length;
-        final skipped = doses
-            .where((d) => d.status == DoseStatus.skipped)
-            .length;
-        final missed = doses.where((d) => d.status == DoseStatus.missed).length;
-        final pending = doses
-            .where((d) => d.status == DoseStatus.pending)
-            .length;
-        return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-              top: 20,
-              left: 20,
-              right: 20,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Handle bar
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            medicine.name,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${doseLabel(medicine.dosage, medicine.dosageUnit)}'
-                            ' • ${medicineTypeLabel(context, medicine.type)}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: IconButton(
-                        tooltip: L.of(context).medEditAction,
-                        icon: const Icon(Icons.edit, color: Colors.white),
-                        onPressed: () async {
-                          Navigator.pop(ctx);
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  AddEditMedicinePage(medicineId: medicine.id),
-                            ),
-                          );
-                          if (context.mounted) {
-                            context.read<MedicineCubit>().loadDashboard();
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF2F2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFFECACA)),
-                      ),
-                      child: IconButton(
-                        tooltip: L.of(context).medDeleteAction,
-                        icon: const Icon(
-                          Icons.delete,
-                          color: Color(0xFFDC2626),
-                        ),
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              title: Text(
-                                L.of(context).medDeleteTitle,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1E293B),
-                                ),
-                              ),
-                              content: Text(
-                                L.of(context).medDeleteBody,
-                                style: TextStyle(color: Color(0xFF64748B)),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: Text(
-                                    L.of(context).permCancel,
-                                    style: TextStyle(
-                                      color: Color(0xFF64748B),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFDC2626),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, true),
-                                    child: Text(
-                                      L.of(context).medDeleteAction,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (confirm == true) {
-                            if (!context.mounted) return;
-                            Navigator.pop(ctx);
-                            context.read<MedicineCubit>().deleteMedicine(
-                              medicine.id,
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF64748B).withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        L.of(context).medCourseDetails,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _modernChip(
-                            Icons.calendar_today,
-                            L
-                                .of(context)
-                                .medStartedOn(
-                                  DateFormat(
-                                    'd MMM',
-                                  ).format(medicine.startDate),
-                                ),
-                            const Color(0xFF3B82F6),
-                          ),
-                          _modernChip(
-                            Icons.event,
-                            L
-                                .of(context)
-                                .medEndsOn(
-                                  DateFormat(
-                                    'd MMM',
-                                  ).format(medicine.calculatedEndDate),
-                                ),
-                            const Color(0xFF3B82F6),
-                          ),
-                          _modernChip(
-                            Icons.timelapse,
-                            L.of(context).medDaysCount(medicine.durationInDays),
-                            const Color(0xFF8B5CF6),
-                          ),
-                          _modernChip(
-                            Icons.list_alt,
-                            L.of(context).medTotalDoses(totalCourseDoses),
-                            const Color(0xFF8B5CF6),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF64748B).withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        L.of(context).medTodayProgress,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _modernStatusCount(
-                            'Taken',
-                            taken,
-                            const Color(0xFF10B981),
-                          ),
-                          _modernStatusCount(
-                            'Pending',
-                            pending,
-                            const Color(0xFF3B82F6),
-                          ),
-                          _modernStatusCount(
-                            'Skipped',
-                            skipped,
-                            const Color(0xFFF59E0B),
-                          ),
-                          _modernStatusCount(
-                            'Missed',
-                            missed,
-                            const Color(0xFFEF4444),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextButton.icon(
-                      onPressed: () => Navigator.pop(ctx),
-                      icon: const Icon(Icons.close, color: Colors.white),
-                      label: Text(
-                        L.of(context).medClose,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _TodayStatusPill extends StatelessWidget {
-  final int taken;
-  final int total;
-  const _TodayStatusPill({required this.taken, required this.total});
-  @override
-  Widget build(BuildContext context) {
-    final pct = total == 0 ? 0 : (taken / total * 100).round();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF10B981).withValues(alpha: 0.1),
-            const Color(0xFF059669).withValues(alpha: 0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF10B981).withValues(alpha: 0.2),
-        ),
-      ),
-      child: Text(
-        N.percent(pct),
-        style: const TextStyle(
-          color: Color(0xFF059669),
-          fontWeight: FontWeight.w700,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionButtons extends StatelessWidget {
-  final Medicine medicine;
-  final List<MedicineDose> doses;
-  const _ActionButtons({required this.medicine, required this.doses});
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<MedicineCubit>();
-    // Find earliest pending dose for actions
-    final pending = doses.where((d) => d.status == DoseStatus.pending).toList()
-      ..sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
-    final target = pending.isNotEmpty ? pending.first : null;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: target == null
-                ? const Color(0xFFF1F5F9)
-                : const Color(0xFF10B981).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: target == null
-                  ? const Color(0xFFE2E8F0)
-                  : const Color(0xFF10B981).withValues(alpha: 0.3),
-            ),
-          ),
-          child: IconButton(
-            tooltip: 'Taken',
-            onPressed: target == null
-                ? null
-                : () => cubit.markDoseAsTaken(target.id, medicine.id),
-            icon: Icon(
-              Icons.check_circle_rounded,
-              color: target == null
-                  ? const Color(0xFF94A3B8)
-                  : const Color(0xFF10B981),
-              size: 20,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: target == null
-                ? const Color(0xFFF1F5F9)
-                : const Color(0xFFF59E0B).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: target == null
-                  ? const Color(0xFFE2E8F0)
-                  : const Color(0xFFF59E0B).withValues(alpha: 0.3),
-            ),
-          ),
-          child: IconButton(
-            tooltip: L.of(context).medSkipAction,
-            onPressed: target == null
-                ? null
-                : () => cubit.markDoseAsSkipped(target.id, medicine.id),
-            icon: Icon(
-              Icons.skip_next_rounded,
-              color: target == null
-                  ? const Color(0xFF94A3B8)
-                  : const Color(0xFFF59E0B),
-              size: 20,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: target == null
-                ? const Color(0xFFF1F5F9)
-                : const Color(0xFFEF4444).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: target == null
-                  ? const Color(0xFFE2E8F0)
-                  : const Color(0xFFEF4444).withValues(alpha: 0.3),
-            ),
-          ),
-          child: IconButton(
-            tooltip: L.of(context).medMissAction,
-            onPressed: target == null
-                ? null
-                : () => cubit.markDoseAsMissed(target.id, medicine.id),
-            icon: Icon(
-              Icons.cancel_rounded,
-              color: target == null
-                  ? const Color(0xFF94A3B8)
-                  : const Color(0xFFEF4444),
-              size: 20,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

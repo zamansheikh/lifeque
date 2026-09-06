@@ -16,6 +16,13 @@ enum MealTiming { beforeMeal, afterMeal, withMeal, onEmptyStomach, anytime }
 enum MedicineStatus { active, completed, paused, cancelled }
 
 class Medicine extends Equatable {
+  /// Duration stored for a course with no end date the user cared to give.
+  /// Long enough to behave like "ongoing" without letting the daily scheduler
+  /// run forever, and recognised by the UI so it never shows as "364 days".
+  static const int ongoingDurationDays = 365;
+
+  bool get isOngoing => durationInDays >= ongoingDurationDays;
+
   final String id;
   final String name;
   final String? description;
