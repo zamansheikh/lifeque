@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/navigation_preferences_service.dart';
@@ -83,7 +85,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Your Personal Life Manager',
+                    L.of(context).drawerTagline,
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 14,
@@ -163,7 +165,7 @@ class _NavTile extends StatelessWidget {
           size: 24,
         ),
         title: Text(
-          item.label,
+          item.labelFor(context),
           style: TextStyle(
             color: isSelected ? colorScheme.primary : Colors.grey.shade800,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,

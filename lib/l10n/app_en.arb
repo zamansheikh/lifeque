@@ -1,0 +1,74 @@
+{
+  "@@locale": "en",
+
+  "appName": "LifeQue",
+  "@appName": { "description": "Product name. Not translated." },
+
+  "navTasks": "Tasks",
+  "navTodoList": "To Do List",
+  "navReminders": "Reminders",
+  "navBirthdays": "Birthdays",
+  "navExpenses": "Expense Tracker",
+  "navMedicines": "Medicines",
+  "navPrayerTimes": "Prayer Times",
+  "navStudyTimer": "Study Timer",
+  "navSettings": "Settings",
+  "drawerTagline": "Your Personal Life Manager",
+
+  "commonSave": "Save",
+  "commonCancel": "Cancel",
+  "commonDelete": "Delete",
+  "commonEdit": "Edit",
+  "commonRetry": "Try again",
+  "commonMore": "More",
+  "commonDone": "Done",
+  "commonToday": "Today",
+  "commonTomorrow": "Tomorrow",
+  "commonYesterday": "Yesterday",
+  "commonNow": "Now",
+  "commonOff": "Off",
+  "commonNone": "None",
+
+  "settingsTitle": "Settings",
+  "settingsSectionGeneral": "General",
+  "settingsSectionApp": "App",
+  "settingsSectionLegal": "Legal",
+  "settingsNavigationOrder": "Navigation Order",
+  "settingsNavigationOrderSubtitle": "Home: {page}",
+  "@settingsNavigationOrderSubtitle": {
+    "placeholders": { "page": { "type": "String" } }
+  },
+  "settingsLanguage": "Language",
+  "settingsCheckUpdates": "Check for Updates",
+  "settingsCheckUpdatesSubtitle": "See if a newer version is available",
+  "settingsAbout": "About LifeQue",
+  "settingsAboutSubtitle": "Version info, developer & links",
+  "settingsPrivacy": "Privacy Policy",
+  "settingsPrivacySubtitle": "How we handle your data",
+  "settingsTerms": "Terms & Conditions",
+  "settingsTermsSubtitle": "Usage terms of the app",
+  "settingsMadeBy": "Made with ❤️ by Zaman Sheikh",
+
+  "navOrderTitle": "Navigation Order",
+  "navOrderSubtitle": "Drag to reorder. First item = home page.",
+  "navOrderHomePage": "Home page:  {page}",
+  "@navOrderHomePage": {
+    "placeholders": { "page": { "type": "String" } }
+  },
+  "navOrderHomeBadge": "Home page",
+  "navOrderSave": "Save Order",
+  "navOrderSaved": "Navigation order saved",
+
+  "languageComingSoon": "{language} · coming soon",
+  "@languageComingSoon": {
+    "placeholders": { "language": { "type": "String" } }
+  },
+  "languageSet": "Language set to {language}",
+  "@languageSet": {
+    "placeholders": { "language": { "type": "String" } }
+  },
+  "languageSavedPending": "{language} is saved. The app stays in English until the translation ships.",
+  "@languageSavedPending": {
+    "placeholders": { "language": { "type": "String" } }
+  }
+}

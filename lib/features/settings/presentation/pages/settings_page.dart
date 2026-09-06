@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/services/in_app_update_service.dart';
 import '../../../../core/services/language_preference_service.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/navigation_preferences_service.dart';
 import '../../../../injection_container.dart' as di;
 
@@ -20,7 +21,8 @@ class _SettingsPageState extends State<SettingsPage> {
   late List<NavItem> _items;
 
   final _languageService = LanguagePreferenceService.instance;
-  AppLanguage _language = AppLanguage.english;
+
+  AppLanguage get _language => _languageService.current;
 
   static const _privacyPolicyUrl =
       'https://zamansheikh.github.io/lifeque/privacy-policy.html';
@@ -32,13 +34,6 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     _svc = NavigationPreferencesService(di.sl<SharedPreferences>());
     _items = _svc.getOrderedItems();
-    _loadLanguage();
-  }
-
-  Future<void> _loadLanguage() async {
-    final language = await _languageService.getLanguage();
-    if (!mounted) return;
-    setState(() => _language = language);
   }
 
   // ── Navigation Order Bottom Sheet ──────────────────────────────
@@ -99,15 +94,15 @@ class _SettingsPageState extends State<SettingsPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Navigation Order',
-                                  style: TextStyle(
+                                Text(
+                                  L.of(ctx).navOrderTitle,
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 Text(
-                                  'Drag to reorder. First item = home page.',
+                                  L.of(ctx).navOrderSubtitle,
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: Colors.grey.shade600,
@@ -144,7 +139,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                'Home page:  ${tempItems.first.label}',
+                                L.of(ctx).navOrderHomePage(
+                                  tempItems.first.labelFor(ctx),
+                                ),
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -208,7 +205,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                                 side: BorderSide(color: Colors.grey.shade300),
                               ),
-                              child: const Text('Cancel'),
+                              child: Text(L.of(ctx).commonCancel),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -227,9 +224,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: const Text(
-                                      'Navigation order saved',
-                                    ),
+                                    content: Text(L.of(context).navOrderSaved),
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
@@ -238,7 +233,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 );
                               },
                               icon: const Icon(Icons.check_rounded, size: 18),
-                              label: const Text('Save Order'),
+                              label: Text(L.of(ctx).navOrderSave),
                               style: FilledButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 14,
@@ -310,10 +305,10 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Language',
-                          style: TextStyle(
+                          L.of(ctx).settingsLanguage,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
@@ -358,9 +353,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
       subtitle: Text(
-        language.isTranslated
-            ? language.label
-            : '${language.label} · coming soon',
+        language.label,
         style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600),
       ),
     );
@@ -375,15 +368,10 @@ class _SettingsPageState extends State<SettingsPage> {
     Navigator.pop(sheetContext);
     if (!mounted) return;
 
-    setState(() => _language = language);
+    setState(() {});
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          language.isTranslated
-              ? 'Language set to ${language.nativeLabel}'
-              : '${language.nativeLabel} is saved. The app stays in English '
-                    'until the translation ships.',
-        ),
+        content: Text(L.of(context).languageSet(language.nativeLabel)),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -714,6 +702,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = L.of(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -726,31 +715,33 @@ class _SettingsPageState extends State<SettingsPage> {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Settings',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+        title: Text(
+          l.settingsTitle,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
           // ── General section ─────────────────────────────────────
-          _SectionHeader(label: 'General', color: colorScheme.primary),
+          _SectionHeader(label: l.settingsSectionGeneral, color: colorScheme.primary),
           _SettingsGroup(
             children: [
               _SettingsTile(
                 icon: Icons.swap_vert_rounded,
                 iconColor: colorScheme.primary,
                 iconBgColor: colorScheme.primary.withValues(alpha: 0.1),
-                title: 'Navigation Order',
-                subtitle: 'Home: ${_items.first.label}',
+                title: l.settingsNavigationOrder,
+                subtitle: l.settingsNavigationOrderSubtitle(
+                  _items.first.labelFor(context),
+                ),
                 onTap: _showNavigationOrderSheet,
               ),
               _SettingsTile(
                 icon: Icons.translate_rounded,
                 iconColor: Colors.purple.shade600,
                 iconBgColor: Colors.purple.withValues(alpha: 0.1),
-                title: 'Language',
+                title: l.settingsLanguage,
                 subtitle: _language.nativeLabel,
                 onTap: _showLanguageSheet,
               ),
@@ -760,23 +751,23 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 24),
 
           // ── App section ─────────────────────────────────────────
-          _SectionHeader(label: 'App', color: colorScheme.primary),
+          _SectionHeader(label: l.settingsSectionApp, color: colorScheme.primary),
           _SettingsGroup(
             children: [
               _SettingsTile(
                 icon: Icons.system_update_rounded,
                 iconColor: Colors.teal.shade600,
                 iconBgColor: Colors.teal.withValues(alpha: 0.1),
-                title: 'Check for Updates',
-                subtitle: 'See if a newer version is available',
+                title: l.settingsCheckUpdates,
+                subtitle: l.settingsCheckUpdatesSubtitle,
                 onTap: _checkForUpdates,
               ),
               _SettingsTile(
                 icon: Icons.info_outline_rounded,
                 iconColor: colorScheme.primary,
                 iconBgColor: colorScheme.primary.withValues(alpha: 0.1),
-                title: 'About LifeQue',
-                subtitle: 'Version info, developer & links',
+                title: l.settingsAbout,
+                subtitle: l.settingsAboutSubtitle,
                 onTap: () => _showAboutSheet(context),
               ),
             ],
@@ -785,15 +776,15 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 24),
 
           // ── Legal section ───────────────────────────────────────
-          _SectionHeader(label: 'Legal', color: colorScheme.primary),
+          _SectionHeader(label: l.settingsSectionLegal, color: colorScheme.primary),
           _SettingsGroup(
             children: [
               _SettingsTile(
                 icon: Icons.privacy_tip_outlined,
                 iconColor: Colors.indigo.shade600,
                 iconBgColor: Colors.indigo.withValues(alpha: 0.1),
-                title: 'Privacy Policy',
-                subtitle: 'How we handle your data',
+                title: l.settingsPrivacy,
+                subtitle: l.settingsPrivacySubtitle,
                 onTap: () => _launchUrl(_privacyPolicyUrl),
                 isExternal: true,
               ),
@@ -801,8 +792,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 icon: Icons.description_outlined,
                 iconColor: Colors.orange.shade700,
                 iconBgColor: Colors.orange.withValues(alpha: 0.1),
-                title: 'Terms & Conditions',
-                subtitle: 'Usage terms of the app',
+                title: l.settingsTerms,
+                subtitle: l.settingsTermsSubtitle,
                 onTap: () => _launchUrl(_termsUrl),
                 isExternal: true,
               ),
@@ -814,7 +805,7 @@ class _SettingsPageState extends State<SettingsPage> {
           // ── Footer ──────────────────────────────────────────────
           Center(
             child: Text(
-              'Made with ❤️ by Zaman Sheikh',
+              l.settingsMadeBy,
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.grey.shade400,

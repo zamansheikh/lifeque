@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persists the user's drawer-item order and the default home page.
@@ -87,4 +89,26 @@ class NavItem {
     required this.label,
     required this.iconData,
   });
+}
+
+/// The display name for a destination in the current language.
+///
+/// [NavItem.label] stays English because the saved order is keyed by route and
+/// the list is a const — the translation is looked up at paint time instead.
+extension NavItemL10n on NavItem {
+  String labelFor(BuildContext context) {
+    final l = L.of(context);
+    return switch (route) {
+      '/' => l.navTasks,
+      '/todos' => l.navTodoList,
+      '/reminders' => l.navReminders,
+      '/birthdays' => l.navBirthdays,
+      '/expenses' => l.navExpenses,
+      '/medicines' => l.navMedicines,
+      '/prayer-times' => l.navPrayerTimes,
+      '/study-timer' => l.navStudyTimer,
+      '/settings' => l.navSettings,
+      _ => label,
+    };
+  }
 }

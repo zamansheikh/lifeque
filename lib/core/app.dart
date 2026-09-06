@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
+import '../l10n/app_localizations.dart';
+import 'services/language_preference_service.dart';
 import '../features/home_widget/services/home_widget_service.dart';
 import 'package:home_widget/home_widget.dart';
 import 'dart:async';
@@ -345,45 +349,59 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(create: (_) => di.sl<MedicineCubit>()),
         BlocProvider(create: (_) => di.sl<ExpenseBloc>()..add(LoadSessions())),
       ],
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        title: 'LifeQue',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          // Bengali glyphs resolve from Hind Siliguri wherever the primary
-          // face lacks them, so Bangla dates sit with the Latin text instead
-          // of falling back to a system face with different metrics. Set as a
-          // fallback rather than the family so Latin is untouched.
-          fontFamilyFallback: const ['NotoSerifBengali'],
-          appBarTheme: const AppBarTheme(
-            systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness: Brightness.dark,
-              statusBarBrightness: Brightness.light,
-            ),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-          ),
-          scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        ),
-        builder: (context, child) {
-          return UpdateChecker(
-            child: AnnotatedRegion<SystemUiOverlayStyle>(
-              value: const SystemUiOverlayStyle(
+      // The whole app is rebuilt when the language changes, so a switch in
+      // Settings repaints the screen you are on rather than waiting for the
+      // next launch.
+      child: ValueListenableBuilder<AppLanguage>(
+        valueListenable: LanguagePreferenceService.instance.language,
+        builder: (context, language, _) => MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          title: 'LifeQue',
+          locale: language.locale,
+          supportedLocales: L.supportedLocales,
+          localizationsDelegates: const [
+            L.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+            // Bengali glyphs resolve from Hind Siliguri wherever the primary
+            // face lacks them, so Bangla dates sit with the Latin text instead
+            // of falling back to a system face with different metrics. Set as a
+            // fallback rather than the family so Latin is untouched.
+            fontFamilyFallback: const ['NotoSerifBengali'],
+            appBarTheme: const AppBarTheme(
+              systemOverlayStyle: SystemUiOverlayStyle(
                 statusBarColor: Colors.transparent,
                 statusBarIconBrightness: Brightness.dark,
                 statusBarBrightness: Brightness.light,
-                systemNavigationBarColor: Colors.white,
-                systemNavigationBarIconBrightness: Brightness.dark,
               ),
-              child: child ?? const SizedBox(),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
             ),
-          );
-        },
-        routerConfig: AppRouter.router,
+            scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+          ),
+          builder: (context, child) {
+            return UpdateChecker(
+              child: AnnotatedRegion<SystemUiOverlayStyle>(
+                value: const SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: Brightness.dark,
+                  statusBarBrightness: Brightness.light,
+                  systemNavigationBarColor: Colors.white,
+                  systemNavigationBarIconBrightness: Brightness.dark,
+                ),
+                child: child ?? const SizedBox(),
+              ),
+            );
+          },
+          routerConfig: AppRouter.router,
+        ),
       ),
     );
   }

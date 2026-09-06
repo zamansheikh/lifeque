@@ -4,6 +4,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as timezone;
 import 'package:alarm/alarm.dart';
 import 'core/app.dart';
+import 'core/services/language_preference_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/prayer_alarm_service.dart';
 // import 'core/services/update_service.dart'; // Commented out - using in-app updates now
@@ -137,6 +138,10 @@ void main() async {
   _updateHomeWidget();
 
   debugPrint('🎯 Running app...');
+  // Before the first frame, so the app opens in the chosen language rather
+  // than flashing English.
+  await LanguagePreferenceService.instance.load();
+
   runApp(const MyApp());
 }
 
