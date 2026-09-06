@@ -348,32 +348,84 @@ class _DuaCarousel extends StatefulWidget {
 }
 
 class _DuaCarouselState extends State<_DuaCarousel> {
-  int _currentIndex = 0;
+  final PageController _controller = PageController();
 
-  /// Which way the last move went, so the incoming card enters from that side.
-  bool _forward = true;
+  /// Fractional scroll position, so the card can grow toward the next du'a
+  /// while the finger is still moving rather than snapping at the end.
+  double _page = 0;
 
-  void _next() {
-    if (_currentIndex < widget.duas.length - 1) {
-      setState(() {
-        _forward = true;
-        _currentIndex++;
-      });
-    }
-  }
+  /// Natural height of each du'a, filled in as the pages get laid out. A
+  /// PageView hands its children a fixed height, so the only way to size the
+  /// card to the du'a on screen is to measure them.
+  late final List<double?> _heights = List<double?>.filled(
+    widget.duas.length,
+    null,
+  );
 
-  void _prev() {
-    if (_currentIndex > 0) {
-      setState(() {
-        _forward = false;
-        _currentIndex--;
-      });
-    }
+  /// Until the first page reports its height there is nothing to size the
+  /// PageView to, so the first du'a is rendered on its own.
+  bool _sized = false;
+
+  int get _currentIndex => _page.round().clamp(0, widget.duas.length - 1);
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onScroll);
   }
 
   @override
+  void dispose() {
+    _controller
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final page = _controller.page;
+    if (page != null && page != _page) setState(() => _page = page);
+  }
+
+  void _report(int index, double height) {
+    if (_heights[index] == height) return;
+    setState(() {
+      _heights[index] = height;
+      _sized = true;
+    });
+  }
+
+  /// Height between the two pages the view is currently straddling.
+  double get _height {
+    final last = widget.duas.length - 1;
+    final low = _page.floor().clamp(0, last);
+    final high = _page.ceil().clamp(0, last);
+    final from = _heights[low] ?? _heights[_currentIndex] ?? 0;
+    final to = _heights[high] ?? from;
+    return from + (to - from) * (_page - low);
+  }
+
+  void _goTo(int index) => _controller.animateToPage(
+    index,
+    duration: const Duration(milliseconds: 380),
+    curve: Curves.easeOutCubic,
+  );
+
+  void _next() {
+    if (_currentIndex < widget.duas.length - 1) _goTo(_currentIndex + 1);
+  }
+
+  void _prev() {
+    if (_currentIndex > 0) _goTo(_currentIndex - 1);
+  }
+
+  Widget _page0(int index) => _MeasureHeight(
+    onChange: (height) => _report(index, height),
+    child: _DuaContent(dua: widget.duas[index]),
+  );
+
+  @override
   Widget build(BuildContext context) {
-    final dua = widget.duas[_currentIndex];
     final hasMultiple = widget.duas.length > 1;
 
     return Container(
@@ -424,7 +476,9 @@ class _DuaCarouselState extends State<_DuaCarousel> {
                 ),
                 IconButton(
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(text: dua.arabic));
+                    Clipboard.setData(
+                      ClipboardData(text: widget.duas[_currentIndex].arabic),
+                    );
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(L.of(context).guideCopiedArabic)),
                     );
@@ -440,50 +494,24 @@ class _DuaCarouselState extends State<_DuaCarousel> {
           ),
           const Divider(color: IslamicColors.gold, height: 1),
 
-          // Content with swipe + auto-resize
-          GestureDetector(
-            onHorizontalDragEnd: (details) {
-              if (details.primaryVelocity == null) return;
-              if (details.primaryVelocity! < -100) _next();
-              if (details.primaryVelocity! > 100) _prev();
-            },
-            child: AnimatedSize(
-              duration: const Duration(milliseconds: 340),
-              curve: Curves.easeOutCubic,
-              alignment: Alignment.topCenter,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 260),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                // The default layout stacks both children, so the box jumps to
-                // whichever du'a is taller and then settles — very visible
-                // between two du'as of different lengths. Laying out only the
-                // incoming child lets AnimatedSize glide between the two
-                // heights while the outgoing one fades out over the top.
-                layoutBuilder: (currentChild, previousChildren) => Stack(
-                  alignment: Alignment.topCenter,
-                  children: [
-                    for (final child in previousChildren)
-                      Positioned(left: 0, right: 0, top: 0, child: child),
-                    ?currentChild,
-                  ],
+          // The du'as themselves, as a carousel the finger can drag.
+          if (!_sized)
+            _page0(0)
+          else
+            SizedBox(
+              height: _height,
+              child: PageView.builder(
+                controller: _controller,
+                itemCount: widget.duas.length,
+                itemBuilder: (context, index) => SingleChildScrollView(
+                  // Gives the page unbounded height so it lays out at its
+                  // natural size and can be measured; the PageView never
+                  // scrolls it, the outer box is sized to fit.
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: _page0(index),
                 ),
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: animation.drive(
-                      Tween<Offset>(
-                        begin: Offset(_forward ? 0.06 : -0.06, 0),
-                        end: Offset.zero,
-                      ),
-                    ),
-                    child: child,
-                  ),
-                ),
-                child: _DuaContent(key: ValueKey(_currentIndex), dua: dua),
               ),
             ),
-          ),
 
           // Indicators + navigation
           if (hasMultiple) ...[
@@ -544,8 +572,47 @@ class _DuaCarouselState extends State<_DuaCarousel> {
   }
 }
 
+/// Reports its child's laid-out height once per layout.
+class _MeasureHeight extends StatefulWidget {
+  const _MeasureHeight({required this.child, required this.onChange});
+
+  final Widget child;
+  final ValueChanged<double> onChange;
+
+  @override
+  State<_MeasureHeight> createState() => _MeasureHeightState();
+}
+
+class _MeasureHeightState extends State<_MeasureHeight> {
+  final GlobalKey _key = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _measureAfterLayout();
+  }
+
+  @override
+  void didUpdateWidget(_MeasureHeight old) {
+    super.didUpdateWidget(old);
+    _measureAfterLayout();
+  }
+
+  void _measureAfterLayout() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final box = _key.currentContext?.findRenderObject() as RenderBox?;
+      if (box != null && box.hasSize) widget.onChange(box.size.height);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      SizedBox(key: _key, width: double.infinity, child: widget.child);
+}
+
 class _DuaContent extends StatelessWidget {
-  const _DuaContent({super.key, required this.dua});
+  const _DuaContent({required this.dua});
   final SalahDua dua;
 
   @override

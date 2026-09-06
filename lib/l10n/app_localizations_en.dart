@@ -2686,4 +2686,94 @@ class LEn extends L {
 
   @override
   String get onbChipCustomise => 'Customise';
+
+  @override
+  String get permNotifTitle => 'Never Miss a\nReminder';
+
+  @override
+  String get permNotifBody =>
+      'LifeQue keeps you on track with timely alerts\nfor tasks, medicines, prayers & more.';
+
+  @override
+  String get permNotifBenefit1 => 'Task & deadline reminders';
+
+  @override
+  String get permNotifBenefit2 => 'Medicine schedules on time';
+
+  @override
+  String get permNotifBenefit3 => 'Prayer time notifications';
+
+  @override
+  String get permNotifBenefit4 => 'Birthday & event alerts';
+
+  @override
+  String get permNotifCta => 'Enable Notifications';
+
+  @override
+  String get permBatteryTitle => 'Keep Reminders\nAlive';
+
+  @override
+  String get permBatteryBody =>
+      'Android may stop background apps to save battery.\nAllow LifeQue to run so nothing slips through.';
+
+  @override
+  String get permBatteryBenefit1 => 'Prevent missed reminders';
+
+  @override
+  String get permBatteryBenefit2 => 'Syncs prayer times silently';
+
+  @override
+  String get permBatteryBenefit3 => 'Minimal battery impact';
+
+  @override
+  String get permBatteryBenefit4 => 'Recommended by Android';
+
+  @override
+  String get permBatteryCta => 'Allow Background Activity';
+
+  @override
+  String get permNotifDenied =>
+      'Notification permission was denied. Please enable notifications in your device settings.';
+
+  @override
+  String get permOpenSettings => 'Open Settings';
+
+  @override
+  String get permCancel => 'Cancel';
+
+  @override
+  String get permBatteryDialogTitle => 'Battery Optimization';
+
+  @override
+  String get permBatteryDialogBody =>
+      'For reliable reminders:\n\n1. Find \"LifeQue\" in the list\n2. Select \"Don\'t optimize\"\n3. Confirm your choice\n\nThis uses minimal battery.';
+
+  @override
+  String get permMaybeLater => 'Maybe later';
+
+  @override
+  String get permAllSet => 'You\'re All Set!';
+
+  @override
+  String get permAlmostThere => 'Almost There!';
+
+  @override
+  String get permReadyBody =>
+      'LifeQue is ready to help you stay\norganised and never miss a thing.';
+
+  @override
+  String get permLaterBody =>
+      'You can always enable missing\npermissions later in Settings.';
+
+  @override
+  String get permStatusNotifications => 'Notifications';
+
+  @override
+  String get permStatusBackground => 'Background Activity';
+
+  @override
+  String get permStart => 'Start Using LifeQue';
+
+  @override
+  String get permAlreadyEnabled => 'Already Enabled';
 }

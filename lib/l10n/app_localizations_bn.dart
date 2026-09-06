@@ -2680,4 +2680,94 @@ class LBn extends L {
 
   @override
   String get onbChipCustomise => 'নিজের মতো সাজান';
+
+  @override
+  String get permNotifTitle => 'কোনো রিমাইন্ডার\nআর মিস হবে না';
+
+  @override
+  String get permNotifBody =>
+      'কাজ, ওষুধ, নামাজসহ সবকিছুর জন্য সময়মতো\nজানিয়ে দেবে লাইফকিউ।';
+
+  @override
+  String get permNotifBenefit1 => 'কাজ ও সময়সীমার রিমাইন্ডার';
+
+  @override
+  String get permNotifBenefit2 => 'সময়মতো ওষুধের সময়সূচি';
+
+  @override
+  String get permNotifBenefit3 => 'নামাজের সময়ের নোটিফিকেশন';
+
+  @override
+  String get permNotifBenefit4 => 'জন্মদিন ও ইভেন্টের অ্যালার্ট';
+
+  @override
+  String get permNotifCta => 'নোটিফিকেশন চালু করুন';
+
+  @override
+  String get permBatteryTitle => 'রিমাইন্ডার যেন\nবন্ধ না হয়';
+
+  @override
+  String get permBatteryBody =>
+      'ব্যাটারি বাঁচাতে অ্যান্ড্রয়েড ব্যাকগ্রাউন্ড অ্যাপ বন্ধ করে দিতে পারে।\nলাইফকিউ চালু রাখার অনুমতি দিন, যেন কিছু বাদ না যায়।';
+
+  @override
+  String get permBatteryBenefit1 => 'রিমাইন্ডার মিস হওয়া ঠেকায়';
+
+  @override
+  String get permBatteryBenefit2 => 'নীরবে নামাজের সময় হালনাগাদ করে';
+
+  @override
+  String get permBatteryBenefit3 => 'ব্যাটারি খরচ খুবই কম';
+
+  @override
+  String get permBatteryBenefit4 => 'অ্যান্ড্রয়েডের সুপারিশকৃত';
+
+  @override
+  String get permBatteryCta => 'ব্যাকগ্রাউন্ডে চলার অনুমতি দিন';
+
+  @override
+  String get permNotifDenied =>
+      'নোটিফিকেশনের অনুমতি দেওয়া হয়নি। ফোনের সেটিংস থেকে নোটিফিকেশন চালু করুন।';
+
+  @override
+  String get permOpenSettings => 'সেটিংস খুলুন';
+
+  @override
+  String get permCancel => 'বাতিল';
+
+  @override
+  String get permBatteryDialogTitle => 'ব্যাটারি অপটিমাইজেশন';
+
+  @override
+  String get permBatteryDialogBody =>
+      'রিমাইন্ডার ঠিকভাবে পেতে:\n\n১. তালিকা থেকে “LifeQue” খুঁজুন\n২. “Don\'t optimize” বেছে নিন\n৩. নিশ্চিত করুন\n\nএতে ব্যাটারি খরচ খুবই কম হয়।';
+
+  @override
+  String get permMaybeLater => 'পরে দেখব';
+
+  @override
+  String get permAllSet => 'সব প্রস্তুত!';
+
+  @override
+  String get permAlmostThere => 'প্রায় হয়ে গেছে!';
+
+  @override
+  String get permReadyBody =>
+      'সবকিছু গুছিয়ে রাখতে ও কিছু যেন বাদ না যায়,\nলাইফকিউ এখন প্রস্তুত।';
+
+  @override
+  String get permLaterBody =>
+      'বাকি অনুমতিগুলো পরে যেকোনো সময়\nসেটিংস থেকে চালু করতে পারবেন।';
+
+  @override
+  String get permStatusNotifications => 'নোটিফিকেশন';
+
+  @override
+  String get permStatusBackground => 'ব্যাকগ্রাউন্ড অ্যাক্টিভিটি';
+
+  @override
+  String get permStart => 'লাইফকিউ ব্যবহার শুরু করুন';
+
+  @override
+  String get permAlreadyEnabled => 'আগেই চালু আছে';
 }

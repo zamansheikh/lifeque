@@ -4782,6 +4782,174 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Customise'**
   String get onbChipCustomise;
+
+  /// No description provided for @permNotifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Never Miss a\nReminder'**
+  String get permNotifTitle;
+
+  /// No description provided for @permNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'LifeQue keeps you on track with timely alerts\nfor tasks, medicines, prayers & more.'**
+  String get permNotifBody;
+
+  /// No description provided for @permNotifBenefit1.
+  ///
+  /// In en, this message translates to:
+  /// **'Task & deadline reminders'**
+  String get permNotifBenefit1;
+
+  /// No description provided for @permNotifBenefit2.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine schedules on time'**
+  String get permNotifBenefit2;
+
+  /// No description provided for @permNotifBenefit3.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer time notifications'**
+  String get permNotifBenefit3;
+
+  /// No description provided for @permNotifBenefit4.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday & event alerts'**
+  String get permNotifBenefit4;
+
+  /// No description provided for @permNotifCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Notifications'**
+  String get permNotifCta;
+
+  /// No description provided for @permBatteryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep Reminders\nAlive'**
+  String get permBatteryTitle;
+
+  /// No description provided for @permBatteryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Android may stop background apps to save battery.\nAllow LifeQue to run so nothing slips through.'**
+  String get permBatteryBody;
+
+  /// No description provided for @permBatteryBenefit1.
+  ///
+  /// In en, this message translates to:
+  /// **'Prevent missed reminders'**
+  String get permBatteryBenefit1;
+
+  /// No description provided for @permBatteryBenefit2.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncs prayer times silently'**
+  String get permBatteryBenefit2;
+
+  /// No description provided for @permBatteryBenefit3.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal battery impact'**
+  String get permBatteryBenefit3;
+
+  /// No description provided for @permBatteryBenefit4.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended by Android'**
+  String get permBatteryBenefit4;
+
+  /// No description provided for @permBatteryCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Background Activity'**
+  String get permBatteryCta;
+
+  /// No description provided for @permNotifDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission was denied. Please enable notifications in your device settings.'**
+  String get permNotifDenied;
+
+  /// No description provided for @permOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get permOpenSettings;
+
+  /// No description provided for @permCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get permCancel;
+
+  /// No description provided for @permBatteryDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery Optimization'**
+  String get permBatteryDialogTitle;
+
+  /// No description provided for @permBatteryDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'For reliable reminders:\n\n1. Find \"LifeQue\" in the list\n2. Select \"Don\'t optimize\"\n3. Confirm your choice\n\nThis uses minimal battery.'**
+  String get permBatteryDialogBody;
+
+  /// No description provided for @permMaybeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get permMaybeLater;
+
+  /// No description provided for @permAllSet.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re All Set!'**
+  String get permAllSet;
+
+  /// No description provided for @permAlmostThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost There!'**
+  String get permAlmostThere;
+
+  /// No description provided for @permReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'LifeQue is ready to help you stay\norganised and never miss a thing.'**
+  String get permReadyBody;
+
+  /// No description provided for @permLaterBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You can always enable missing\npermissions later in Settings.'**
+  String get permLaterBody;
+
+  /// No description provided for @permStatusNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get permStatusNotifications;
+
+  /// No description provided for @permStatusBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Background Activity'**
+  String get permStatusBackground;
+
+  /// No description provided for @permStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Using LifeQue'**
+  String get permStart;
+
+  /// No description provided for @permAlreadyEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Already Enabled'**
+  String get permAlreadyEnabled;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

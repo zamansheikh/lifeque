@@ -5,6 +5,8 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../../../l10n/app_localizations.dart';
+
 // ─── Brand palette (matches onboarding) ────────────────────────────────────
 const _kPrimary = Color(0xFF2563EB);
 const _kPrimaryLight = Color(0xFF60A5FA);
@@ -13,12 +15,13 @@ const _kAccent = Color(0xFF06B6D4);
 // ─── Step data ──────────────────────────────────────────────────────────────
 
 class _PermStep {
-  final String title;
-  final String subtitle;
+  /// Resolved when the step paints, so the step data can stay const.
+  final String Function(L) title;
+  final String Function(L) subtitle;
   final IconData heroIcon;
   final Color heroColor;
   final List<_Benefit> benefits;
-  final String ctaLabel;
+  final String Function(L) ctaLabel;
 
   const _PermStep({
     required this.title,
@@ -32,39 +35,55 @@ class _PermStep {
 
 class _Benefit {
   final IconData icon;
-  final String text;
+
+  /// Resolved when the card paints, so the step data can stay const.
+  final String Function(L) text;
   const _Benefit(this.icon, this.text);
 }
 
 const _notificationStep = _PermStep(
-  title: 'Never Miss a\nReminder',
-  subtitle:
-      'LifeQue keeps you on track with timely alerts\nfor tasks, medicines, prayers & more.',
+  title: _notifTitle,
+  subtitle: _notifBody,
   heroIcon: Icons.notifications_active_rounded,
   heroColor: _kPrimary,
   benefits: [
-    _Benefit(Icons.alarm_rounded, 'Task & deadline reminders'),
-    _Benefit(Icons.medication_rounded, 'Medicine schedules on time'),
-    _Benefit(Icons.mosque_rounded, 'Prayer time notifications'),
-    _Benefit(Icons.cake_rounded, 'Birthday & event alerts'),
+    _Benefit(Icons.alarm_rounded, _notifBenefit1),
+    _Benefit(Icons.medication_rounded, _notifBenefit2),
+    _Benefit(Icons.mosque_rounded, _notifBenefit3),
+    _Benefit(Icons.cake_rounded, _notifBenefit4),
   ],
-  ctaLabel: 'Enable Notifications',
+  ctaLabel: _notifCta,
 );
 
+String _notifTitle(L l) => l.permNotifTitle;
+String _notifBody(L l) => l.permNotifBody;
+String _notifBenefit1(L l) => l.permNotifBenefit1;
+String _notifBenefit2(L l) => l.permNotifBenefit2;
+String _notifBenefit3(L l) => l.permNotifBenefit3;
+String _notifBenefit4(L l) => l.permNotifBenefit4;
+String _notifCta(L l) => l.permNotifCta;
+
 const _batteryStep = _PermStep(
-  title: 'Keep Reminders\nAlive',
-  subtitle:
-      'Android may stop background apps to save battery.\nAllow LifeQue to run so nothing slips through.',
+  title: _batteryTitle,
+  subtitle: _batteryBody,
   heroIcon: Icons.battery_charging_full_rounded,
   heroColor: Color(0xFF16A34A),
   benefits: [
-    _Benefit(Icons.timer_off_rounded, 'Prevent missed reminders'),
-    _Benefit(Icons.sync_rounded, 'Syncs prayer times silently'),
-    _Benefit(Icons.bolt_rounded, 'Minimal battery impact'),
-    _Benefit(Icons.verified_rounded, 'Recommended by Android'),
+    _Benefit(Icons.timer_off_rounded, _batteryBenefit1),
+    _Benefit(Icons.sync_rounded, _batteryBenefit2),
+    _Benefit(Icons.bolt_rounded, _batteryBenefit3),
+    _Benefit(Icons.verified_rounded, _batteryBenefit4),
   ],
-  ctaLabel: 'Allow Background Activity',
+  ctaLabel: _batteryCta,
 );
+
+String _batteryTitle(L l) => l.permBatteryTitle;
+String _batteryBody(L l) => l.permBatteryBody;
+String _batteryBenefit1(L l) => l.permBatteryBenefit1;
+String _batteryBenefit2(L l) => l.permBatteryBenefit2;
+String _batteryBenefit3(L l) => l.permBatteryBenefit3;
+String _batteryBenefit4(L l) => l.permBatteryBenefit4;
+String _batteryCta(L l) => l.permBatteryCta;
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
@@ -153,11 +172,12 @@ class _PermissionScreenState extends State<PermissionScreen>
   }
 
   Future<void> _requestNotification() async {
+    // Read before awaiting — the bundle lookup needs a live context.
+    final deniedMessage = L.of(context).permNotifDenied;
     final current = await Permission.notification.status;
+    if (!mounted) return;
     if (current.isPermanentlyDenied) {
-      _showOpenSettingsDialog(
-        'Notification permission was denied. Please enable notifications in your device settings.',
-      );
+      _showOpenSettingsDialog(deniedMessage);
       return;
     }
 
@@ -215,14 +235,14 @@ class _PermissionScreenState extends State<PermissionScreen>
               ),
             ),
             const SizedBox(width: 12),
-            const Text('Open Settings'),
+            Text(L.of(context).permOpenSettings),
           ],
         ),
         content: Text(msg, style: const TextStyle(height: 1.5)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(L.of(context).permCancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -231,7 +251,7 @@ class _PermissionScreenState extends State<PermissionScreen>
               await Future.delayed(const Duration(seconds: 1));
               if (mounted) _recheckAll();
             },
-            child: const Text('Open Settings'),
+            child: Text(L.of(context).permOpenSettings),
           ),
         ],
       ),
@@ -258,21 +278,17 @@ class _PermissionScreenState extends State<PermissionScreen>
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(child: Text('Battery Optimization')),
+            Expanded(child: Text(L.of(context).permBatteryDialogTitle)),
           ],
         ),
-        content: const Text(
-          'For reliable reminders:\n\n'
-          '1. Find "LifeQue" in the list\n'
-          '2. Select "Don\'t optimize"\n'
-          '3. Confirm your choice\n\n'
-          'This uses minimal battery.',
-          style: TextStyle(height: 1.5),
+        content: Text(
+          L.of(context).permBatteryDialogBody,
+          style: const TextStyle(height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(L.of(context).permCancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -281,7 +297,7 @@ class _PermissionScreenState extends State<PermissionScreen>
               await Future.delayed(const Duration(seconds: 2));
               if (mounted) _recheckAll();
             },
-            child: const Text('Open Settings'),
+            child: Text(L.of(context).permOpenSettings),
           ),
         ],
       ),
@@ -513,7 +529,7 @@ class _PermStepView extends StatelessWidget {
                   child: Opacity(
                     opacity: t.clamp(0.0, 1.0),
                     child: Text(
-                      step.title,
+                      step.title(L.of(context)),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 30,
@@ -540,7 +556,7 @@ class _PermStepView extends StatelessWidget {
                 return Opacity(
                   opacity: t.clamp(0.0, 1.0),
                   child: Text(
-                    step.subtitle,
+                    step.subtitle(L.of(context)),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -606,7 +622,7 @@ class _PermStepView extends StatelessWidget {
                                 onPressed: onRequest,
                                 icon: Icon(step.heroIcon, size: 20),
                                 label: Text(
-                                  step.ctaLabel,
+                                  step.ctaLabel(L.of(context)),
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
@@ -633,9 +649,9 @@ class _PermStepView extends StatelessWidget {
                               vertical: 10,
                             ),
                           ),
-                          child: const Text(
-                            'Maybe later',
-                            style: TextStyle(
+                          child: Text(
+                            L.of(context).permMaybeLater,
+                            style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -738,7 +754,9 @@ class _CelebrationView extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        allGranted ? "You're All Set!" : 'Almost There!',
+                        allGranted
+                            ? L.of(context).permAllSet
+                            : L.of(context).permAlmostThere,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 30,
@@ -751,8 +769,8 @@ class _CelebrationView extends StatelessWidget {
                       const SizedBox(height: 12),
                       Text(
                         allGranted
-                            ? 'LifeQue is ready to help you stay\norganised and never miss a thing.'
-                            : 'You can always enable missing\npermissions later in Settings.',
+                            ? L.of(context).permReadyBody
+                            : L.of(context).permLaterBody,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15,
@@ -791,14 +809,14 @@ class _CelebrationView extends StatelessWidget {
                       children: [
                         _StatusRow(
                           icon: Icons.notifications_active_rounded,
-                          label: 'Notifications',
+                          label: L.of(context).permStatusNotifications,
                           granted: notificationGranted,
                         ),
                         const SizedBox(height: 12),
                         if (Platform.isAndroid)
                           _StatusRow(
                             icon: Icons.battery_charging_full_rounded,
-                            label: 'Background Activity',
+                            label: L.of(context).permStatusBackground,
                             granted: allGranted,
                           ),
                       ],
@@ -826,9 +844,9 @@ class _CelebrationView extends StatelessWidget {
                     child: FilledButton.icon(
                       onPressed: onContinue,
                       icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-                      label: const Text(
-                        'Start Using LifeQue',
-                        style: TextStyle(
+                      label: Text(
+                        L.of(context).permStart,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
@@ -910,7 +928,7 @@ class _BenefitRow extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Text(
-              benefit.text,
+              benefit.text(L.of(context)),
               style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
@@ -939,14 +957,18 @@ class _GrantedButton extends StatelessWidget {
           color: const Color(0xFF22C55E).withValues(alpha: 0.3),
         ),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle_rounded, color: Color(0xFF22C55E), size: 22),
-          SizedBox(width: 10),
+          const Icon(
+            Icons.check_circle_rounded,
+            color: Color(0xFF22C55E),
+            size: 22,
+          ),
+          const SizedBox(width: 10),
           Text(
-            'Already Enabled',
-            style: TextStyle(
+            L.of(context).permAlreadyEnabled,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Color(0xFF22C55E),
