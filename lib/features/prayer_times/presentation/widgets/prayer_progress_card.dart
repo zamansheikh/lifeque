@@ -235,7 +235,10 @@ class PrayerProgressCard extends StatelessWidget {
             heightFactor: count == 0 ? 0 : (count / 5).clamp(0.22, 1.0),
             child: Container(
               decoration: BoxDecoration(
-                color: PrayerPalette.heatFor(count),
+                // Not PrayerPalette.heatFor — its lightest step is the same
+                // colour as this bar's own track, so a 1- or 2-prayer day
+                // would paint itself invisible.
+                color: _fillFor(count),
                 borderRadius: BorderRadius.circular(7),
               ),
             ),
@@ -256,6 +259,15 @@ class PrayerProgressCard extends StatelessWidget {
     );
   }
 }
+
+/// Bar colour deepens with the day's count so a glance reads density, not
+/// just presence.
+Color _fillFor(int count) => switch (count) {
+  >= 5 => PrayerPalette.accent,
+  4 => PrayerPalette.accentA(0.75),
+  3 => PrayerPalette.accentA(0.6),
+  _ => PrayerPalette.accentA(0.45),
+};
 
 /// Thin progress ring: a full faint track with the completed share drawn over
 /// it, starting at 12 o'clock.
