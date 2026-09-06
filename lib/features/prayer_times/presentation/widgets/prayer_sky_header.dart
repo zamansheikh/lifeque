@@ -255,8 +255,8 @@ class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          width: 230,
-          height: 126,
+          width: 264,
+          height: 142,
           child: PageView.builder(
             controller: _gaugePages,
             itemCount: widget.gauges.length,
@@ -301,25 +301,37 @@ class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  gauge.name,
-                  maxLines: 1,
-                  style: const TextStyle(
-                    color: PrayerPalette.ink,
-                    fontSize: 23,
-                    fontWeight: FontWeight.w800,
+              // Width-capped to the arc's clear span at this height, so a
+              // long name scales down rather than colliding with the stroke.
+              SizedBox(
+                width: 150,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    gauge.name,
+                    maxLines: 1,
+                    style: const TextStyle(
+                      color: PrayerPalette.ink,
+                      fontSize: 23,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 1),
-              Text(
-                gauge.label,
-                style: TextStyle(
-                  color: PrayerPalette.inkA(0.65),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+              SizedBox(
+                width: 190,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    gauge.label,
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: PrayerPalette.inkA(0.65),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 1),
@@ -366,8 +378,10 @@ class _GaugePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const radius = 90.0;
-    final center = Offset(size.width / 2, 116);
+    // Sized so the widest prayer name still clears the arc where it crosses
+    // the title's row — "Tahajjud" was running into it at the old radius.
+    const radius = 104.0;
+    final center = Offset(size.width / 2, 130);
     final rect = Rect.fromCircle(center: center, radius: radius);
 
     final track = Paint()
