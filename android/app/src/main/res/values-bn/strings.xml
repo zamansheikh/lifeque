@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Names and blurbs shown in the launcher's own widget picker.
+
+  These follow the *system* language, not the app's, because the picker is a
+  system surface rendered before our code runs. The placeholder text inside the
+  widgets themselves follows the app language instead, pushed across from
+  Flutter — see the *_placeholder_* keys the providers read.
+-->
+<resources>
+    <string name="prayer_widget_label">নামাজের সময়</string>
+    <string name="mosque_widget_label">মসজিদের জামাত</string>
+    <string name="prayer_widget_description">হিজরি তারিখসহ চলতি ওয়াক্তের নামাজের সময় দেখায়</string>
+    <string name="mosque_widget_description">পাঁচ ওয়াক্তের জামাতের সময় দেখায়</string>
+    <string name="day_timeline_widget_label">সারা দিনের নামাজ</string>
+    <string name="slim_bar_widget_label">পরের নামাজের বার</string>
+    <string name="day_timeline_widget_description">পুরো দিন এক লাইনে, নিষিদ্ধ সময় চিহ্নিত করে</string>
+    <string name="slim_bar_widget_description">এক লাইনে: চলতি নামাজ ও কত সময় বাকি</string>
+</resources>

@@ -3338,4 +3338,16 @@ class LBn extends L {
   String widgetEndsIn(String time, String left) {
     return 'শেষ: $time · আর $left';
   }
+
+  @override
+  String get widgetLoadingPrayer => 'নামাজের সময় আনতে অ্যাপ খুলুন';
+
+  @override
+  String get widgetLoadingJamaat => 'জামাতের সময় আনতে অ্যাপ খুলুন';
+
+  @override
+  String get widgetLoadingDayMap => 'দিনের নকশা আনতে অ্যাপ খুলুন';
+
+  @override
+  String get widgetNextPrayer => 'পরের নামাজ';
 }

@@ -5838,6 +5838,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Ends: {time} · in {left}'**
   String widgetEndsIn(String time, String left);
+
+  /// No description provided for @widgetLoadingPrayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Open app to load prayer times'**
+  String get widgetLoadingPrayer;
+
+  /// No description provided for @widgetLoadingJamaat.
+  ///
+  /// In en, this message translates to:
+  /// **'Open app to load jamaat times'**
+  String get widgetLoadingJamaat;
+
+  /// No description provided for @widgetLoadingDayMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Open app to load the day map'**
+  String get widgetLoadingDayMap;
+
+  /// No description provided for @widgetNextPrayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Next prayer'**
+  String get widgetNextPrayer;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

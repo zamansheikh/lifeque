@@ -20,6 +20,15 @@ class MosqueTimesWidgetProvider : HomeWidgetProvider() {
             WidgetSizeReporter.report(context, appWidgetManager, widgetId, "mosque_widget_image")
 
             val views = RemoteViews(context.packageName, R.layout.mosque_widget_layout).apply {
+                // The "not loaded yet" wording comes from Flutter so it
+                // follows the language chosen in the app, not the one the
+                // phone happens to be set to. Falls back to the layout's
+                // own text if the app has not written it yet.
+                widgetData.getString("placeholder_mosque_title", null)
+                    ?.let { setTextViewText(R.id.mosque_placeholder_title, it) }
+                widgetData.getString("placeholder_mosque_body", null)
+                    ?.let { setTextViewText(R.id.mosque_placeholder_body, it) }
+
                 // Load the rendered image from the path stored by home_widget
                 val imagePath = widgetData.getString("mosque_widget_image", null)
                 var imageLoaded = false

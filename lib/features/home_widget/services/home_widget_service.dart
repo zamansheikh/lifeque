@@ -122,12 +122,45 @@ class HomeWidgetService {
     return m >= 60 ? '${m ~/ 60}h ${m % 60}m' : '${m}m';
   }
 
+  /// Hands the native providers the words for their "not loaded yet" state.
+  ///
+  /// Those live in an Android layout, so by default they would follow the
+  /// *system* language — a phone set to English would show English placeholders
+  /// even with the app in Bangla. Pushing them across the same SharedPreferences
+  /// the widget data already travels through keeps them on the app's language.
+  Future<void> _savePlaceholderText() async {
+    final l = appStrings;
+    await Future.wait([
+      HomeWidget.saveWidgetData(
+        'placeholder_prayer_title',
+        l.widgetPrayerTimes,
+      ),
+      HomeWidget.saveWidgetData(
+        'placeholder_prayer_body',
+        l.widgetLoadingPrayer,
+      ),
+      HomeWidget.saveWidgetData(
+        'placeholder_mosque_title',
+        l.widgetMosqueJamaat,
+      ),
+      HomeWidget.saveWidgetData(
+        'placeholder_mosque_body',
+        l.widgetLoadingJamaat,
+      ),
+      HomeWidget.saveWidgetData('placeholder_day_title', l.widgetDayMap),
+      HomeWidget.saveWidgetData('placeholder_day_body', l.widgetLoadingDayMap),
+      HomeWidget.saveWidgetData('placeholder_slim_title', l.widgetNextPrayer),
+      HomeWidget.saveWidgetData('placeholder_slim_body', l.widgetLoadingPrayer),
+    ]);
+  }
+
   Future<void> updateWidget() async {
     if (!isHomeWidgetSupported) {
       debugPrint('🕌 Home widgets not supported on this platform — skipping');
       return;
     }
     try {
+      await _savePlaceholderText();
       final bundle = await _buildAll(measured: true);
 
       if (bundle == null) {

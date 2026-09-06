@@ -25,6 +25,15 @@ class DayTimelineWidgetProvider : HomeWidgetProvider() {
             WidgetSizeReporter.report(context, appWidgetManager, widgetId, "day_timeline_widget_image")
 
             val views = RemoteViews(context.packageName, R.layout.day_timeline_widget_layout).apply {
+                // The "not loaded yet" wording comes from Flutter so it
+                // follows the language chosen in the app, not the one the
+                // phone happens to be set to. Falls back to the layout's
+                // own text if the app has not written it yet.
+                widgetData.getString("placeholder_day_title", null)
+                    ?.let { setTextViewText(R.id.day_timeline_placeholder_title, it) }
+                widgetData.getString("placeholder_day_body", null)
+                    ?.let { setTextViewText(R.id.day_timeline_placeholder_body, it) }
+
                 val imagePath = widgetData.getString("day_timeline_widget_image", null)
                 val file = imagePath?.let { java.io.File(it) }
                     ?.takeIf { it.exists() }

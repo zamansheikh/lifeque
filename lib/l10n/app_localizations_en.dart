@@ -3351,4 +3351,16 @@ class LEn extends L {
   String widgetEndsIn(String time, String left) {
     return 'Ends: $time · in $left';
   }
+
+  @override
+  String get widgetLoadingPrayer => 'Open app to load prayer times';
+
+  @override
+  String get widgetLoadingJamaat => 'Open app to load jamaat times';
+
+  @override
+  String get widgetLoadingDayMap => 'Open app to load the day map';
+
+  @override
+  String get widgetNextPrayer => 'Next prayer';
 }

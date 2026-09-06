@@ -956,5 +956,9 @@
   "widgetZawal": "জাওয়াল",
   "widgetAvoidNow": "⛔ এখন নিষিদ্ধ · আর {left}",
   "widgetNextAvoid": "পরের নিষিদ্ধ · {name} {time}",
-  "widgetEndsIn": "শেষ: {time} · আর {left}"
+  "widgetEndsIn": "শেষ: {time} · আর {left}",
+  "widgetLoadingPrayer": "নামাজের সময় আনতে অ্যাপ খুলুন",
+  "widgetLoadingJamaat": "জামাতের সময় আনতে অ্যাপ খুলুন",
+  "widgetLoadingDayMap": "দিনের নকশা আনতে অ্যাপ খুলুন",
+  "widgetNextPrayer": "পরের নামাজ"
 }

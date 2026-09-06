@@ -1704,5 +1704,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "widgetLoadingPrayer": "Open app to load prayer times",
+  "widgetLoadingJamaat": "Open app to load jamaat times",
+  "widgetLoadingDayMap": "Open app to load the day map",
+  "widgetNextPrayer": "Next prayer"
 }

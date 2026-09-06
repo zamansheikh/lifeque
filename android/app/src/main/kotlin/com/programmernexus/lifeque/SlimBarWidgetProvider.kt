@@ -25,6 +25,15 @@ class SlimBarWidgetProvider : HomeWidgetProvider() {
             WidgetSizeReporter.report(context, appWidgetManager, widgetId, "slim_bar_widget_image")
 
             val views = RemoteViews(context.packageName, R.layout.slim_bar_widget_layout).apply {
+                // The "not loaded yet" wording comes from Flutter so it
+                // follows the language chosen in the app, not the one the
+                // phone happens to be set to. Falls back to the layout's
+                // own text if the app has not written it yet.
+                widgetData.getString("placeholder_slim_title", null)
+                    ?.let { setTextViewText(R.id.slim_bar_placeholder_title, it) }
+                widgetData.getString("placeholder_slim_body", null)
+                    ?.let { setTextViewText(R.id.slim_bar_placeholder_body, it) }
+
                 val imagePath = widgetData.getString("slim_bar_widget_image", null)
                 val file = imagePath?.let { java.io.File(it) }
                     ?.takeIf { it.exists() }

@@ -17,6 +17,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/slim_bar_placeholder_title"
+            android:fontFamily="@font/noto_serif_bengali"
             android:text="Next prayer"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
@@ -25,6 +27,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/slim_bar_placeholder_body"
+            android:fontFamily="@font/noto_serif_bengali"
             android:text="Open app to load prayer times"
             android:textColor="#99FFFFFF"
             android:textSize="11sp"
