@@ -6,8 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.view.View
 import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 /// Hosts the Flutter-rendered "Next prayer bar" image.
@@ -36,17 +38,18 @@ class SlimBarWidgetProvider : HomeWidgetProvider() {
                     }
                 }
 
-                // Tapping anywhere opens the app.
-                context.packageManager.getLaunchIntentForPackage(context.packageName)?.let {
-                    it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    setOnClickPendingIntent(
-                        R.id.slim_bar_widget_root,
-                        PendingIntent.getActivity(
-                            context, 0, it,
-                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                        )
+                // Tapping opens the app *on the prayer screen*, not on whatever
+                // the user's home page happens to be. Every one of these
+                // widgets is about prayer times, so landing on the task list
+                // made you navigate there yourself every time.
+                setOnClickPendingIntent(
+                    R.id.slim_bar_widget_root,
+                    HomeWidgetLaunchIntent.getActivity(
+                        context,
+                        MainActivity::class.java,
+                        Uri.parse(WidgetRoutes.PRAYER)
                     )
-                }
+                )
             }
             appWidgetManager.updateAppWidget(widgetId, views)
         }

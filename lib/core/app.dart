@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../features/home_widget/services/home_widget_service.dart';
+import 'package:home_widget/home_widget.dart';
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -251,8 +254,74 @@ class AppRouter {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  StreamSubscription<Uri?>? _widgetTaps;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenForWidgetTaps();
+  }
+
+  @override
+  void dispose() {
+    _widgetTaps?.cancel();
+    super.dispose();
+  }
+
+  /// Sends a home-screen widget tap to the screen the widget is about.
+  ///
+  /// The widgets used to fire a plain launcher intent, which drops you on
+  /// whichever page you have set as your home — the task list, for most
+  /// people. Every one of these widgets is about prayer times, so that meant
+  /// navigating there yourself every single time.
+  Future<void> _listenForWidgetTaps() async {
+    if (!isHomeWidgetSupported) return;
+
+    // Subscribed first, and without awaiting anything: `widgetClicked` is a
+    // plain broadcast stream, so an event delivered before this line would be
+    // dropped rather than queued.
+    _widgetTaps = HomeWidget.widgetClicked.listen(
+      _openWidgetRoute,
+      onError: (Object e) => debugPrint('🕌 Widget tap stream error: $e'),
+    );
+
+    try {
+      // A tap that started the app cold. MainActivity.onNewIntent keeps
+      // getIntent() pointing at the widget's intent, which is what this reads.
+      final launchedFrom = await HomeWidget.initiallyLaunchedFromHomeWidget();
+      _openWidgetRoute(launchedFrom);
+    } catch (e) {
+      debugPrint('🕌 Could not read the launch widget uri: $e');
+    }
+  }
+
+  void _openWidgetRoute(Uri? uri) {
+    if (uri == null || uri.scheme != 'lifeque') return;
+    // The Kotlin side sends lifeque://prayer-times; the host is the route.
+    final route = '/${uri.host}';
+    debugPrint('🕌 Widget tapped, wants $route');
+
+    // Park it. On a cold launch the splash screen navigates to the user's
+    // home page when its checks finish, which would land on top of anything
+    // we go to now; it reads this instead.
+    NavigationService.pendingWidgetRoute = route;
+
+    final location = AppRouter.router.state.uri.path;
+    if (location != '/splash' && location != '/') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final pending = NavigationService.takePendingWidgetRoute();
+        if (pending != null) AppRouter.router.go(pending);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

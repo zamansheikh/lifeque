@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/navigation_preferences_service.dart';
+import '../../../../core/services/navigation_service.dart';
 import '../../../../injection_container.dart' as di;
 
 class SplashScreen extends StatefulWidget {
@@ -67,7 +68,9 @@ class _SplashScreenState extends State<SplashScreen>
       // Navigate immediately to home without permission checks
       if (mounted) {
         final svc = NavigationPreferencesService(di.sl<SharedPreferences>());
-        context.go(svc.getHomeRoute());
+        context.go(
+          NavigationService.takePendingWidgetRoute() ?? svc.getHomeRoute(),
+        );
       }
       return;
     }
@@ -87,7 +90,9 @@ class _SplashScreenState extends State<SplashScreen>
           context.go('/onboarding');
         } else if (allPermissionsGranted) {
           debugPrint('✅ All permissions granted, navigating to home');
-          context.go(svc.getHomeRoute());
+          context.go(
+            NavigationService.takePendingWidgetRoute() ?? svc.getHomeRoute(),
+          );
         } else {
           debugPrint('⚠️ Permissions needed, navigating to permission screen');
           context.go('/permissions');

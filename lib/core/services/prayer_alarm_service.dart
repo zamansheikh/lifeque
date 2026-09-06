@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_set.dart';
@@ -101,14 +102,24 @@ class PrayerAlarmConfig {
                   : json['fixedTime'],
             )
           : null,
-      isEnabled: json['isEnabled'] ?? true,
+      isEnabled: _asBool(json['isEnabled'], true),
       soundPath: json['soundPath'] ?? 'assets/audio/alarm_sound_1.mp3',
       alarmDurationMinutes: json['alarmDurationMinutes'] is String
           ? int.parse(json['alarmDurationMinutes'])
           : (json['alarmDurationMinutes'] ?? 2),
       // Alarms saved before vibration was configurable buzzed by default.
-      vibrate: json['vibrate'] ?? true,
+      vibrate: _asBool(json['vibrate'], true),
     );
+  }
+
+  /// Booleans have been persisted both as real bools and as the strings
+  /// "true"/"false" by different versions of the storage format. Handing a
+  /// String straight to a bool parameter threw, and the throw was swallowed by
+  /// a catch that then wiped every saved alarm.
+  static bool _asBool(Object? value, bool fallback) {
+    if (value is bool) return value;
+    if (value is String) return value.toLowerCase() == 'true';
+    return fallback;
   }
 }
 
@@ -219,42 +230,57 @@ class PrayerAlarmService {
   }
 
   Future<void> _loadAlarms() async {
+    final prefs = await SharedPreferences.getInstance();
+    final alarmsData = prefs.getStringList(_prefsKey) ?? [];
+
+    final loaded = <PrayerAlarmConfig>[];
+    for (final entry in alarmsData) {
+      final config = _decodeAlarm(entry);
+      if (config != null) {
+        loaded.add(config);
+      } else {
+        developer.log('PrayerAlarmService: Skipping unreadable alarm entry');
+      }
+    }
+
+    _alarms = loaded;
+    _alarmsController.add(_alarms);
+  }
+
+  /// Reads one stored alarm, in either the current JSON format or the legacy
+  /// `key:value|key:value` one.
+  ///
+  /// A single bad row is skipped rather than treated as a reason to delete
+  /// everything. The old code wrapped the whole load in a try/catch whose
+  /// handler called [clearAllAlarms] — so one unparseable field silently wiped
+  /// every alarm the user had set, which is why they came back "reset to
+  /// normal" after closing the app.
+  PrayerAlarmConfig? _decodeAlarm(String stored) {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final alarmsData = prefs.getStringList(_prefsKey) ?? [];
+      final decoded = jsonDecode(stored);
+      if (decoded is Map<String, dynamic>) {
+        return PrayerAlarmConfig.fromJson(decoded);
+      }
+    } catch (_) {
+      // Not JSON — fall through to the legacy reader below.
+    }
 
-      _alarms = alarmsData.map((alarmString) {
-        final data = <String, dynamic>{};
-        final parts = alarmString.split('|');
-        for (final part in parts) {
-          final keyValue = part.split(':');
-          if (keyValue.length == 2) {
-            final key = keyValue[0];
-            final value = keyValue[1];
-            if (key == 'type' ||
-                key == 'minutesBeforeEnd' ||
-                key == 'minutesAfterStart' ||
-                key == 'alarmDurationMinutes') {
-              data[key] = int.parse(value);
-            } else if (key == 'fixedTime') {
-              data[key] = value != 'null' ? int.parse(value) : null;
-            } else if (key == 'isEnabled') {
-              data[key] = value == 'true';
-            } else {
-              data[key] = value;
-            }
-          }
-        }
-        return PrayerAlarmConfig.fromJson(data);
-      }).toList();
-
-      _alarmsController.add(_alarms);
+    try {
+      final data = <String, dynamic>{};
+      for (final part in stored.split('|')) {
+        final separator = part.indexOf(':');
+        if (separator <= 0) continue;
+        // indexOf, not split: a value containing a colon used to make the
+        // pair three elements long and get dropped entirely.
+        final key = part.substring(0, separator);
+        final value = part.substring(separator + 1);
+        data[key] = value == 'null' ? null : value;
+      }
+      if (data['prayerName'] == null || data['type'] == null) return null;
+      return PrayerAlarmConfig.fromJson(data);
     } catch (e) {
-      developer.log(
-        'PrayerAlarmService: Error loading alarms, clearing data: $e',
-      );
-      // Clear corrupted data and start fresh
-      await clearAllAlarms();
+      developer.log('PrayerAlarmService: Could not read alarm "$stored": $e');
+      return null;
     }
   }
 
@@ -283,10 +309,11 @@ class PrayerAlarmService {
 
   Future<void> _saveAlarms() async {
     final prefs = await SharedPreferences.getInstance();
-    final alarmsJson = _alarms.map((alarm) {
-      final data = alarm.toJson();
-      return data.entries.map((e) => '${e.key}:${e.value}').join('|');
-    }).toList();
+    // Real JSON. The old "key:value|key:value" format lost any value
+    // containing a colon or a pipe, and round-tripped every bool as a string.
+    final alarmsJson = _alarms
+        .map((alarm) => jsonEncode(alarm.toJson()))
+        .toList();
 
     await prefs.setStringList(_prefsKey, alarmsJson);
     _alarmsController.add(_alarms);

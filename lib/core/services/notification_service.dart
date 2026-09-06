@@ -55,24 +55,30 @@ class NotificationService {
   // ── Channels ────────────────────────────────────────────────────────────
   //
   // Android freezes a channel's sound the moment it is created: changing it
-  // later is ignored until the app is reinstalled. So giving the app its own
-  // tone means new channel ids, and deleting the old ones so the app's
-  // notification settings don't list each channel twice.
-  static const String channelTasks = 'task_reminders_v2';
-  static const String channelMedicines = 'medicine_reminders_v2';
-  static const String channelTodos = 'todo_reminders_v2';
+  // later is ignored until the app is reinstalled. So changing the sound means
+  // new channel ids, and retiring the old ones so the app's notification
+  // settings don't list each channel twice.
+  static const String channelTasks = 'task_reminders_v3';
+  static const String channelMedicines = 'medicine_reminders_v3';
+  static const String channelTodos = 'todo_reminders_v3';
   static const String channelPersistent = 'persistent_tasks';
+
+  /// Confirmations after a notification action ("Completed", "Snoozed").
+  ///
+  /// These need a channel of their own because on Android 8+ the *channel*
+  /// owns the sound: `playSound: false` in the notification details is
+  /// ignored. Posting confirmations on the task channel is what made "task
+  /// done" chime. A three-second acknowledgement should be silent.
+  static const String channelFeedback = 'action_feedback';
 
   static const List<String> _retiredChannels = [
     'task_reminders',
     'medicine_reminders',
     'todo_reminders',
+    'task_reminders_v2',
+    'medicine_reminders_v2',
+    'todo_reminders_v2',
   ];
-
-  /// `res/raw/notification_tone.mp3` — a two-second cut of the app's own
-  /// alarm tone, short enough not to outstay its welcome.
-  static const AndroidNotificationSound _tone =
-      RawResourceAndroidNotificationSound('notification_tone');
 
   /// Payload prefix that marks a notification as belonging to a to-do.
   /// Everything without a known prefix is still treated as a task id, so this
@@ -183,9 +189,10 @@ class NotificationService {
         >();
     if (platform == null) return;
 
-    // Anything that alerts you gets the app's own tone; the ongoing
-    // "pinned" channel stays silent, because a progress readout that chimed
-    // every time it refreshed would be unbearable.
+    // Alerting channels use the phone's own notification sound. An earlier
+    // version shipped a cut of the app's *alarm* tone here, which made every
+    // reminder sound like an alarm going off. Ongoing and confirmation
+    // channels stay silent.
     const channels = [
       AndroidNotificationChannel(
         channelTasks,
@@ -195,8 +202,7 @@ class NotificationService {
         enableLights: true,
         enableVibration: true,
         playSound: true,
-        sound: _tone,
-        audioAttributesUsage: AudioAttributesUsage.notificationEvent,
+        audioAttributesUsage: AudioAttributesUsage.notification,
         showBadge: true,
       ),
       AndroidNotificationChannel(
@@ -207,8 +213,7 @@ class NotificationService {
         enableLights: true,
         enableVibration: true,
         playSound: true,
-        sound: _tone,
-        audioAttributesUsage: AudioAttributesUsage.notificationEvent,
+        audioAttributesUsage: AudioAttributesUsage.notification,
         showBadge: true,
       ),
       AndroidNotificationChannel(
@@ -219,9 +224,18 @@ class NotificationService {
         enableLights: true,
         enableVibration: true,
         playSound: true,
-        sound: _tone,
-        audioAttributesUsage: AudioAttributesUsage.notificationEvent,
+        audioAttributesUsage: AudioAttributesUsage.notification,
         showBadge: true,
+      ),
+      AndroidNotificationChannel(
+        channelFeedback,
+        'Action Confirmations',
+        description: 'Brief confirmations after a notification action',
+        importance: Importance.low,
+        enableLights: false,
+        enableVibration: false,
+        playSound: false,
+        showBadge: false,
       ),
       AndroidNotificationChannel(
         channelPersistent,
@@ -251,7 +265,7 @@ class NotificationService {
       }
     }
 
-    debugPrint('🔔 📺 Notification channels created with the app tone');
+    debugPrint('🔔 📺 Notification channels created');
   }
 
   void _onNotificationTapped(NotificationResponse notificationResponse) {
@@ -650,11 +664,9 @@ class NotificationService {
       body: message,
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
-          channelTasks,
-          'Task Reminders',
-          channelDescription: 'Action feedback notifications',
-          // Low: this is a three-second confirmation that an action landed,
-          // not something to interrupt whatever is on screen.
+          channelFeedback,
+          'Action Confirmations',
+          channelDescription: 'Brief confirmations after a notification action',
           importance: Importance.low,
           priority: Priority.low,
           autoCancel: true,
@@ -726,9 +738,6 @@ class NotificationService {
       enableLights: true,
       enableVibration: true,
       playSound: true,
-      // Redundant on Android 8+, where the channel owns the sound, but it is
-      // what pre-8 devices read.
-      sound: _tone,
       icon: '@mipmap/ic_launcher',
       color: color,
       visibility: NotificationVisibility.public,

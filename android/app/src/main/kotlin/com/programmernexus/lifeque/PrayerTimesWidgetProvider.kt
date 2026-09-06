@@ -10,6 +10,7 @@ import android.net.Uri
 import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetBackgroundIntent
+import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class PrayerTimesWidgetProvider : HomeWidgetProvider() {
@@ -52,18 +53,18 @@ class PrayerTimesWidgetProvider : HomeWidgetProvider() {
                     }
                 }
 
-                // ── Main image tap → launch the app ──
-                val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                if (launchIntent != null) {
-                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    val launchPending = PendingIntent.getActivity(
+                // Tapping opens the app *on the prayer screen*, not on whatever
+                // the user's home page happens to be. Every one of these
+                // widgets is about prayer times, so landing on the task list
+                // made you navigate there yourself every time.
+                setOnClickPendingIntent(
+                    R.id.prayer_widget_image,
+                    HomeWidgetLaunchIntent.getActivity(
                         context,
-                        0,
-                        launchIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                        MainActivity::class.java,
+                        Uri.parse(WidgetRoutes.PRAYER)
                     )
-                    setOnClickPendingIntent(R.id.prayer_widget_image, launchPending)
-                }
+                )
 
                 // ── Refresh button tap → trigger Dart background callback to re-render ──
                 val refreshPending = HomeWidgetBackgroundIntent.getBroadcast(

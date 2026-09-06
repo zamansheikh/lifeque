@@ -10,6 +10,22 @@ class NavigationService {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
+  /// Where a home-screen widget tap wants to land, if the app is still
+  /// starting up.
+  ///
+  /// A cold tap can't just navigate: the app opens on the splash screen, which
+  /// does its own permission checks and then `go`es to the user's home page —
+  /// overwriting anything navigated to before it finishes. So the route is
+  /// parked here and the splash uses it instead of the home route.
+  static String? pendingWidgetRoute;
+
+  /// Takes the parked route, if any, and clears it.
+  static String? takePendingWidgetRoute() {
+    final route = pendingWidgetRoute;
+    pendingWidgetRoute = null;
+    return route;
+  }
+
   // Get the current context
   BuildContext? get currentContext => navigatorKey.currentContext;
 
