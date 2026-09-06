@@ -508,7 +508,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final isToday = _isSameDay(date, now);
     final current = isToday ? _currentPrayerName(times, now) : null;
 
-    final gauge = _gaugeFor(times, endTimes, now, isToday);
+    final gauges = _gaugesFor(calc, date, times, endTimes, now, isToday);
     final restrictedNow = isToday ? calc.getCurrentRestrictedPeriod() : null;
 
     return RefreshIndicator(
@@ -526,10 +526,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           PrayerSkyHeader(
             locationName: _locationName,
             dateLines: _dateLines(date),
-            gaugeName: gauge.name,
-            gaugeLabel: gauge.label,
-            gaugeCountdown: gauge.countdown,
-            progress: gauge.progress,
+            gauges: gauges,
             onLocationTap: _showSettingsBottomSheet,
             onMenu: () => Scaffold.of(context).openDrawer(),
           ),
@@ -538,7 +535,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: SalatTimesCard(
-                rows: _salatRows(date, times, current),
+                rows: _salatRows(date, times, endTimes, current),
                 summary: _salatSummary(isToday),
                 canMarkPrayed: isToday || date.isBefore(now),
                 onSetAlarm: _openAlarmSheet,
@@ -638,7 +635,28 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
   // ── Gauge ───────────────────────────────────────────────────────────────
 
-  _GaugeData _gaugeFor(
+  /// The gauge pages: the fard waqt you are in (or waiting for), then
+  /// Tahajjud.
+  ///
+  /// Tahajjud earns a page because in the small hours it is the thing people
+  /// are actually up for, and the single-gauge design had nowhere to say so.
+  List<GaugeData> _gaugesFor(
+    SalahTimeCalculator calc,
+    DateTime date,
+    Map<String, DateTime> times,
+    Map<String, DateTime> endTimes,
+    DateTime now,
+    bool isToday,
+  ) {
+    return [
+      _fardGauge(calc, date, times, endTimes, now, isToday),
+      _tahajjudGauge(calc, date, now, isToday),
+    ];
+  }
+
+  GaugeData _fardGauge(
+    SalahTimeCalculator calc,
+    DateTime date,
     Map<String, DateTime> times,
     Map<String, DateTime> endTimes,
     DateTime now,
@@ -648,11 +666,26 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
     if (current != null) {
       // Inside a waqt: count down to its end, fill as it elapses.
-      final start = times[current]!;
-      final end = endTimes[current] ?? start.add(const Duration(hours: 1));
+      //
+      // Before Fajr the running Isha began last night, so its start and end
+      // both come from yesterday's reckoning — today's Isha entry is tonight's,
+      // still hours away.
+      final DateTime start;
+      final DateTime end;
+      if (current == 'Isha' && now.isBefore(times['Fajr']!)) {
+        final yesterday = _calculatorForDate(
+          date.subtract(const Duration(days: 1)),
+        );
+        start = yesterday.getPrayerTimesMap()['Isha']!;
+        end = times['Fajr']!;
+      } else {
+        start = times[current]!;
+        end = endTimes[current] ?? start.add(const Duration(hours: 1));
+      }
+
       final span = end.difference(start).inMilliseconds;
       final gone = now.difference(start).inMilliseconds;
-      return _GaugeData(
+      return GaugeData(
         name: current,
         label: 'Waqt ends in',
         countdown: _fmtHms(end.difference(now)),
@@ -660,8 +693,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       );
     }
 
-    // Before Fajr (or on another day): count down to the next start over a
-    // nominal three-hour approach window.
+    // Another day: count down to the next start over a nominal three-hour
+    // approach window.
     final next = _fardPrayers
         .where((p) => times[p] != null && times[p]!.isAfter(now))
         .firstOrNull;
@@ -671,10 +704,69 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final windowStart = target.subtract(const Duration(hours: 3));
     final span = target.difference(windowStart).inMilliseconds;
     final gone = now.difference(windowStart).inMilliseconds;
-    return _GaugeData(
+    return GaugeData(
       name: next ?? 'Fajr',
       label: isToday ? 'Starts in' : 'Starts at ${_fmt12(target)}',
       countdown: isToday ? _fmtHms(target.difference(now)) : '--:--:--',
+      progress: span <= 0 ? 0 : (gone / span).clamp(0.0, 1.0),
+    );
+  }
+
+  /// The last third of the night, which runs until Fajr.
+  ///
+  /// Between midnight and Fajr the window in progress belongs to *last*
+  /// night's reckoning — adhan derives it from a day's maghrib to the next
+  /// day's fajr, so asking today for it before dawn returns tonight's.
+  GaugeData _tahajjudGauge(
+    SalahTimeCalculator calc,
+    DateTime date,
+    DateTime now,
+    bool isToday,
+  ) {
+    final fajrToday = calc.getPrayerTimesMap()['Fajr']!;
+    final beforeDawn = isToday && now.isBefore(fajrToday);
+
+    final source = beforeDawn
+        ? _calculatorForDate(date.subtract(const Duration(days: 1)))
+        : calc;
+    final start = source.getSunnahTimes().lastThirdOfTheNight;
+    final end = beforeDawn
+        ? fajrToday
+        : _calculatorForDate(
+            date.add(const Duration(days: 1)),
+          ).getPrayerTimesMap()['Fajr']!;
+
+    if (!isToday) {
+      return GaugeData(
+        name: 'Tahajjud',
+        label: 'Begins at ${_fmt12(start)}',
+        countdown: '--:--:--',
+        progress: 0,
+      );
+    }
+
+    if (now.isAfter(start) && now.isBefore(end)) {
+      final span = end.difference(start).inMilliseconds;
+      final gone = now.difference(start).inMilliseconds;
+      return GaugeData(
+        name: 'Tahajjud',
+        label: 'Ends at Fajr, in',
+        countdown: _fmtHms(end.difference(now)),
+        progress: span <= 0 ? 0 : (gone / span).clamp(0.0, 1.0),
+      );
+    }
+
+    // Not in it yet — count down to when the last third opens tonight.
+    final target = start.isAfter(now)
+        ? start
+        : calc.getSunnahTimes().lastThirdOfTheNight;
+    final windowStart = target.subtract(const Duration(hours: 3));
+    final span = target.difference(windowStart).inMilliseconds;
+    final gone = now.difference(windowStart).inMilliseconds;
+    return GaugeData(
+      name: 'Tahajjud',
+      label: 'Begins in',
+      countdown: _fmtHms(target.difference(now)),
       progress: span <= 0 ? 0 : (gone / span).clamp(0.0, 1.0),
     );
   }
@@ -684,6 +776,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   List<SalatRow> _salatRows(
     DateTime date,
     Map<String, DateTime> times,
+    Map<String, DateTime> endTimes,
     String? current,
   ) {
     return [
@@ -691,6 +784,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         SalatRow(
           name: prayer,
           time: _fmt12(times[prayer]!),
+          endTime: endTimes[prayer] == null ? null : _fmt12(endTimes[prayer]!),
           jamaat: () {
             final m = _mosqueTimeFor(prayer, date, times);
             return m == null ? null : _fmt12(m);
@@ -882,6 +976,13 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   // ── Focus + prayer math ─────────────────────────────────────────────────
 
   String? _currentPrayerName(Map<String, DateTime> times, DateTime now) {
+    // Past midnight but before Fajr, the waqt that is actually running is
+    // Isha — it started last night and runs until this morning's Fajr. Walking
+    // only today's prayers found nothing had started yet and reported "Fajr
+    // starts in", while Isha still had hours left on it.
+    final fajr = times['Fajr'];
+    if (fajr != null && now.isBefore(fajr)) return 'Isha';
+
     String? current;
     for (final p in const ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) {
       final t = times[p];
@@ -1596,16 +1697,3 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 }
 
 /// What the header gauge should display for the current moment.
-class _GaugeData {
-  final String name;
-  final String label;
-  final String countdown;
-  final double progress;
-
-  const _GaugeData({
-    required this.name,
-    required this.label,
-    required this.countdown,
-    required this.progress,
-  });
-}

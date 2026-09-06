@@ -9,6 +9,11 @@ class SalatRow {
   /// Waqt start, formatted e.g. `11:54 am`.
   final String time;
 
+  /// Waqt end, formatted the same way. Knowing a prayer starts at 11:54 is
+  /// only half the question — how long you have left to pray it is the other
+  /// half, and the card was only ever answering the first.
+  final String? endTime;
+
   /// Jamaat time, formatted e.g. `1:30 pm`. Null hides the chip's time.
   final String? jamaat;
 
@@ -19,6 +24,7 @@ class SalatRow {
   const SalatRow({
     required this.name,
     required this.time,
+    required this.endTime,
     required this.jamaat,
     required this.isCurrent,
     required this.isPrayed,
@@ -177,14 +183,32 @@ class SalatTimesCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            row.time,
-            style: const TextStyle(
-              color: PrayerPalette.ink,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                row.time,
+                style: const TextStyle(
+                  color: PrayerPalette.ink,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+              if (row.endTime != null) ...[
+                const SizedBox(height: 1),
+                Text(
+                  'till ${row.endTime}',
+                  style: TextStyle(
+                    color: PrayerPalette.inkA(0.5),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(width: 10),
           _bell(row),

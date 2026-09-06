@@ -14,17 +14,9 @@ class PrayerSkyHeader extends StatefulWidget {
   /// swipeable carousel that also advances on its own.
   final List<String> dateLines;
 
-  /// Prayer the gauge is describing, e.g. `Dhuhr`.
-  final String gaugeName;
-
-  /// e.g. `Waqt ends in` or `Starts in`.
-  final String gaugeLabel;
-
-  /// Countdown as `HH:MM:SS`.
-  final String gaugeCountdown;
-
-  /// How much of the window has elapsed, 0..1.
-  final double progress;
+  /// Gauge pages, shown in a swipeable carousel with dots — the fard waqt
+  /// first, then Tahajjud.
+  final List<GaugeData> gauges;
 
   final VoidCallback onLocationTap;
   final VoidCallback onMenu;
@@ -33,10 +25,7 @@ class PrayerSkyHeader extends StatefulWidget {
     super.key,
     required this.locationName,
     required this.dateLines,
-    required this.gaugeName,
-    required this.gaugeLabel,
-    required this.gaugeCountdown,
-    required this.progress,
+    required this.gauges,
     required this.onLocationTap,
     required this.onMenu,
   });
@@ -47,8 +36,10 @@ class PrayerSkyHeader extends StatefulWidget {
 
 class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
   late final PageController _dates = PageController();
+  late final PageController _gaugePages = PageController();
   Timer? _advance;
   int _page = 0;
+  int _gaugePage = 0;
 
   /// Left inset that lines the date strip up with the location text: the
   /// menu button plus the gap beside it.
@@ -64,6 +55,7 @@ class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
   void dispose() {
     _advance?.cancel();
     _dates.dispose();
+    _gaugePages.dispose();
     super.dispose();
   }
 
@@ -259,55 +251,110 @@ class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
   }
 
   Widget _gauge() {
-    return SizedBox(
-      width: 230,
-      height: 126,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _GaugePainter(progress: widget.progress),
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 230,
+          height: 126,
+          child: PageView.builder(
+            controller: _gaugePages,
+            itemCount: widget.gauges.length,
+            // No auto-advance here, unlike the date strip. Those are three
+            // spellings of one unchanging date; these are live countdowns, and
+            // sliding the one you are watching out from under you is worse
+            // than making you swipe for the other.
+            onPageChanged: (i) => setState(() => _gaugePage = i),
+            itemBuilder: (context, i) => _gaugeFace(widget.gauges[i]),
           ),
-          Positioned.fill(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  widget.gaugeName,
+        ),
+        if (widget.gauges.length > 1) ...[
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var i = 0; i < widget.gauges.length; i++)
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                  width: i == _gaugePage ? 12 : 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: PrayerPalette.inkA(i == _gaugePage ? 0.55 : 0.2),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _gaugeFace(GaugeData gauge) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: CustomPaint(painter: _GaugePainter(progress: gauge.progress)),
+        ),
+        Positioned.fill(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  gauge.name,
+                  maxLines: 1,
                   style: const TextStyle(
                     color: PrayerPalette.ink,
                     fontSize: 23,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 1),
-                Text(
-                  widget.gaugeLabel,
-                  style: TextStyle(
-                    color: PrayerPalette.inkA(0.65),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                gauge.label,
+                style: TextStyle(
+                  color: PrayerPalette.inkA(0.65),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 1),
-                Text(
-                  widget.gaugeCountdown,
-                  style: const TextStyle(
-                    color: PrayerPalette.ink,
-                    fontSize: 29,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                gauge.countdown,
+                style: const TextStyle(
+                  color: PrayerPalette.ink,
+                  fontSize: 29,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  fontFeatures: [FontFeature.tabularFigures()],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
+}
+
+/// One page of the gauge carousel: which prayer, what the countdown means,
+/// the countdown itself, and how far through the window we are.
+class GaugeData {
+  final String name;
+  final String label;
+  final String countdown;
+  final double progress;
+
+  const GaugeData({
+    required this.name,
+    required this.label,
+    required this.countdown,
+    required this.progress,
+  });
 }
 
 /// Semicircular track + progress arc. Mirrors the design's
