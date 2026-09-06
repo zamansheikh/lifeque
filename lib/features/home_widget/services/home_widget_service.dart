@@ -117,24 +117,31 @@ class HomeWidgetService {
 
       if (bundle == null) {
         // No saved location yet — nothing truthful to draw.
-        debugPrint('🕌 Location not set — rendering placeholder widget');
-        for (final key in const [
-          'prayer_widget_image',
-          'mosque_widget_image',
-        ]) {
+        //
+        // Rendered at each widget's *measured* cell size, the same as the real
+        // ones. Rendering every placeholder at the nominal 380×180 left the
+        // PNG letterboxed inside its ImageView on any other cell shape, which
+        // is what made it look like a widget inside a widget. All four get one
+        // now, so none is left showing the bare XML fallback.
+        debugPrint('🕌 Location not set — rendering placeholder widgets');
+        const placeholders = [
+          ('prayer_widget_image', _widgetSize, _prayerQualifiedName),
+          ('mosque_widget_image', _widgetSize, _mosqueQualifiedName),
+          ('day_timeline_widget_image', _timelineSize, _timelineQualifiedName),
+          ('slim_bar_widget_image', _slimSize, _slimQualifiedName),
+        ];
+
+        for (final (key, fallback, provider) in placeholders) {
+          final size = await _cellSize(key, fallback);
           await HomeWidget.renderFlutterWidget(
-            const PrayerWidgetPlaceholder(),
+            PrayerWidgetPlaceholder(size: size),
             key: key,
-            logicalSize: _widgetSize,
+            logicalSize: size,
             pixelRatio: 3.0,
           );
+          await HomeWidget.updateWidget(qualifiedAndroidName: provider);
         }
-        await HomeWidget.updateWidget(
-          qualifiedAndroidName: _prayerQualifiedName,
-        );
-        await HomeWidget.updateWidget(
-          qualifiedAndroidName: _mosqueQualifiedName,
-        );
+
         debugPrint('✅ Placeholder widgets rendered');
         return;
       }

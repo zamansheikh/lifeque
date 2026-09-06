@@ -305,11 +305,40 @@ class NotificationService {
     }
   }
 
+  /// Recently handled (action, payload) pairs, so the same tap isn't acted on
+  /// twice.
+  final Map<String, DateTime> _handledActions = {};
+  static const Duration _actionDedupeWindow = Duration(seconds: 5);
+
+  /// True if this exact action has just been handled.
+  ///
+  /// On a cold start the plugin delivers the response through
+  /// `onDidReceiveNotificationResponse` *and* `_checkLaunchedFromNotification`
+  /// replays it half a second later, so every action ran twice: two
+  /// confirmation notifications, and two snoozed reminders where the user
+  /// asked for one. A genuine second tap can't happen — the actions carry
+  /// `cancelNotification: true`, so the notification is gone after the first.
+  bool _alreadyHandled(String actionId, String payload) {
+    final key = '$actionId|$payload';
+    final now = DateTime.now();
+    _handledActions.removeWhere(
+      (_, at) => now.difference(at) > _actionDedupeWindow,
+    );
+    if (_handledActions.containsKey(key)) return true;
+    _handledActions[key] = now;
+    return false;
+  }
+
   Future<void> _handleNotificationAction(
     String actionId,
     String payload,
   ) async {
     debugPrint('🔔 Handling action: $actionId for payload: $payload');
+
+    if (_alreadyHandled(actionId, payload)) {
+      debugPrint('🔔 Ignoring duplicate delivery of $actionId for $payload');
+      return;
+    }
 
     // Add retry mechanism for cold app starts
     await _ensureServicesReady();
@@ -333,59 +362,39 @@ class NotificationService {
       return;
     }
 
-    // Handle task notifications (existing code)
     final taskId = payload; // For tasks, payload is the task ID
-    debugPrint('🔔 Current active tasks count: ${_activeTasks.length}');
-    debugPrint('🔔 Active task IDs: ${_activeTasks.map((t) => t.id).toList()}');
 
-    // Force reload tasks to ensure we have the latest data
+    // Nudge the UI to refresh, but don't depend on it: forceReloadTasks only
+    // *dispatches* LoadTasks, it doesn't wait for the read to finish.
     await forceReloadTasks();
 
     try {
-      final taskBloc = di.sl<TaskBloc>();
+      // Ask storage, not the caches.
+      //
+      // Opening the app cold, straight from a notification, leaves
+      // `_activeTasks` empty and TaskBloc on TaskInitial — the load hasn't
+      // finished yet. The old code read that as "the task is gone", cancelled
+      // the notification and told the user it had been deleted, while the
+      // database had the answer the whole time. With the app already running
+      // the caches happened to be warm, which is exactly why this only ever
+      // showed up on a cold start.
+      final task = await _findTask(taskId);
 
-      // Get the current task from the active tasks list
-      Task? task;
-      try {
-        task = _activeTasks.firstWhere((task) => task.id == taskId);
-        debugPrint('🔔 Found task: ${task.title} (${task.taskType})');
-      } catch (e) {
-        debugPrint(
-          '🔔 ⚠️ Task $taskId not found in active tasks, trying to get from bloc state',
+      if (task == null) {
+        debugPrint('🔔 ❌ Task $taskId really is gone');
+        await cancelNotificationById(taskId);
+        await _showActionFeedbackNotification(
+          'Task not found',
+          'It looks like this one was deleted',
+          const Color(0xFF9E9E9E),
         );
-
-        // Try to get task from bloc state as fallback
-        final currentState = taskBloc.state;
-        if (currentState is TaskLoaded) {
-          try {
-            task = currentState.tasks.firstWhere((t) => t.id == taskId);
-            debugPrint('🔔 Found task in bloc state: ${task.title}');
-          } catch (e2) {
-            debugPrint('🔔 ❌ Task $taskId not found anywhere - likely deleted');
-            // Cancel the notification since the task doesn't exist
-            await cancelNotificationById(taskId);
-
-            await _showActionFeedbackNotification(
-              'Task deleted',
-              'This task no longer exists',
-              const Color(0xFF9E9E9E), // Grey
-            );
-            return;
-          }
-        } else {
-          debugPrint('🔔 ❌ TaskBloc not in loaded state: $currentState');
-          // If we can't find it and bloc is not loaded, it might be deleted or just not loaded yet.
-          // But since we force reloaded above, if it's not there, it's likely gone.
-          await cancelNotificationById(taskId);
-
-          await _showActionFeedbackNotification(
-            'Task not found',
-            'Task could not be found',
-            const Color(0xFF9E9E9E), // Grey
-          );
-          return;
-        }
+        return;
       }
+
+      // Safe by this point: _ensureServicesReady above only returns once this
+      // resolves. UpdateTaskEvent writes through the repository and reloads,
+      // so it works even with the bloc still on TaskInitial.
+      final taskBloc = di.sl<TaskBloc>();
 
       debugPrint('🔔 Processing action $actionId for task ${task.title}');
 
@@ -428,7 +437,7 @@ class NotificationService {
         case 'snooze_5':
           // Snooze for 5 minutes
           debugPrint('🔔 Snoozing for 5 minutes');
-          await _snoozeNotification(taskId, 5);
+          await _snoozeNotification(task, 5);
           await _showActionFeedbackNotification(
             'Snoozed',
             'Task snoozed for 5 minutes',
@@ -439,7 +448,7 @@ class NotificationService {
         case 'snooze_15':
           // Snooze for 15 minutes
           debugPrint('🔔 Snoozing for 15 minutes');
-          await _snoozeNotification(taskId, 15);
+          await _snoozeNotification(task, 15);
           await _showActionFeedbackNotification(
             'Snoozed',
             'Task snoozed for 15 minutes',
@@ -450,7 +459,7 @@ class NotificationService {
         case 'snooze_60':
           // Snooze for 1 hour
           debugPrint('🔔 Snoozing for 1 hour');
-          await _snoozeNotification(taskId, 60);
+          await _snoozeNotification(task, 60);
           await _showActionFeedbackNotification(
             'Snoozed',
             'Task snoozed for 1 hour',
@@ -552,14 +561,45 @@ class NotificationService {
     }
   }
 
-  Future<void> _snoozeNotification(String taskId, int minutes) async {
-    debugPrint('🔔 Snoozing notification for $taskId by $minutes minutes');
+  /// The task behind a notification, read from storage first.
+  ///
+  /// The in-memory lists are only a fallback for the case where the
+  /// repository itself can't be reached — they are empty on a cold start and
+  /// must never be the thing that decides a task no longer exists.
+  Future<Task?> _findTask(String taskId) async {
+    try {
+      final result = await di.sl<TaskRepository>().getTaskById(taskId);
+      final stored = result.fold((failure) {
+        debugPrint('🔔 Repository had no task $taskId: $failure');
+        return null;
+      }, (task) => task);
+      if (stored != null) return stored;
+    } catch (e) {
+      debugPrint('🔔 Repository lookup failed for $taskId: $e');
+    }
 
-    // Find the task to get its details
-    final task = _activeTasks.firstWhere(
-      (t) => t.id == taskId,
-      orElse: () => throw Exception('Task not found for snoozing'),
-    );
+    for (final cached in _activeTasks) {
+      if (cached.id == taskId) return cached;
+    }
+
+    try {
+      final state = di.sl<TaskBloc>().state;
+      if (state is TaskLoaded) {
+        return state.tasks.where((t) => t.id == taskId).firstOrNull;
+      }
+    } catch (e) {
+      debugPrint('🔔 Bloc lookup failed for $taskId: $e');
+    }
+    return null;
+  }
+
+  /// Takes the task itself rather than an id: the caller has already resolved
+  /// it from storage, and re-reading `_activeTasks` here used to throw
+  /// "Task not found for snoozing" on a cold start for the same reason the
+  /// lookup above did.
+  Future<void> _snoozeNotification(Task task, int minutes) async {
+    final taskId = task.id;
+    debugPrint('🔔 Snoozing notification for $taskId by $minutes minutes');
 
     // Cancel current notification
     await _flutterLocalNotificationsPlugin.cancel(id: taskId.hashCode);
@@ -929,34 +969,6 @@ class NotificationService {
             '🔔 📋 Pending: ID=${notification.id}, Title=${notification.title}',
           );
         }
-
-        // Also schedule a test notification 10 seconds from now to verify system works
-        if (task.title.toLowerCase().contains('test')) {
-          final testTime = tz.TZDateTime.now(
-            tz.local,
-          ).add(const Duration(seconds: 10));
-          await _flutterLocalNotificationsPlugin.zonedSchedule(
-            id: (task.id.hashCode + 999),
-            title: 'Test notification',
-            body: 'This is a test to verify notifications work',
-            scheduledDate: testTime,
-            notificationDetails: const NotificationDetails(
-              android: AndroidNotificationDetails(
-                channelTasks,
-                'Task Reminders',
-                channelDescription: 'Test notification',
-                importance: Importance.max,
-                priority: Priority.max,
-                enableLights: true,
-                enableVibration: true,
-                playSound: true,
-                visibility: NotificationVisibility.public,
-              ),
-            ),
-            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-          );
-          debugPrint('🧪 Test notification scheduled for 10 seconds from now');
-        }
       } else {
         debugPrint('🔔 Scheduled time is not in the future, not scheduling');
       }
@@ -1220,20 +1232,25 @@ class NotificationService {
   }
 
   Future<void> cancelTaskNotification(Task task) async {
-    // Cancel the main notification
-    await _flutterLocalNotificationsPlugin.cancel(id: task.id.hashCode);
-
-    // For birthday tasks, cancel all multiple notifications
-    if (task.taskType == TaskType.birthday &&
-        task.birthdayNotificationSchedule.isNotEmpty) {
-      for (int i = 0; i < task.birthdayNotificationSchedule.length; i++) {
-        final notificationId = task.id.hashCode + (i * 1000);
-        await _flutterLocalNotificationsPlugin.cancel(id: notificationId);
-        debugPrint('🎂 Cancelled birthday notification ID: $notificationId');
-      }
-    }
-
+    await _cancelEveryNotificationFor(task.id);
     await cancelPersistentNotification(task);
+  }
+
+  /// Clears every notification id a task could own.
+  ///
+  /// Birthdays occupy one id per scheduled reminder (`hash + i * 1000`), and
+  /// both cancel paths used to sweep only as far as the *current* schedule:
+  /// turning a reminder off left the id it had already claimed still armed, so
+  /// the reminder you just unchecked went off anyway. Deleting a birthday was
+  /// worse — that path didn't clear the extra ids at all, so a person you had
+  /// removed still wished you happy birthday. Sweeping the whole possible
+  /// range is four cheap calls and can't leave anything behind.
+  Future<void> _cancelEveryNotificationFor(String taskId) async {
+    final base = taskId.hashCode;
+    await _flutterLocalNotificationsPlugin.cancel(id: base);
+    for (var i = 0; i < BirthdayNotificationOption.values.length; i++) {
+      await _flutterLocalNotificationsPlugin.cancel(id: base + (i * 1000));
+    }
   }
 
   Future<void> cancelPersistentNotification(Task task) async {
@@ -1243,14 +1260,9 @@ class NotificationService {
   /// Cancel notification by ID only (useful when task object is not available)
   Future<void> cancelNotificationById(String taskId) async {
     debugPrint('🔔 Cancelling notification for task ID: $taskId');
-    // Cancel main notification
-    await _flutterLocalNotificationsPlugin.cancel(id: taskId.hashCode);
-    // Cancel persistent notification
+    await _cancelEveryNotificationFor(taskId);
+    // The pinned notification lives well clear of the birthday block.
     await _flutterLocalNotificationsPlugin.cancel(id: taskId.hashCode + 10000);
-
-    // We can't easily cancel birthday notifications without knowing the schedule length,
-    // but we can try to cancel a reasonable range if needed, or just rely on sync.
-    // For now, main and persistent are the most important.
   }
 
   Future<void> startRealTimeUpdates(List<Task> tasks) async {
