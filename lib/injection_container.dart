@@ -6,6 +6,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/navigation_service.dart';
 import 'core/services/in_app_update_service.dart';
 import 'features/expenses/data/services/custom_category_service.dart';
+import 'features/medicines/data/services/care_person_service.dart';
 import 'features/tasks/data/datasources/task_local_data_source.dart';
 import 'features/tasks/data/repositories/task_repository_impl.dart';
 import 'features/tasks/domain/repositories/task_repository.dart';
@@ -224,6 +225,7 @@ Future<void> init() async {
 
   // Custom categories
   sl.registerLazySingleton(() => CustomCategoryService(sl()));
+  sl.registerLazySingleton(() => CarePersonService(sl()));
 
   //! Features - Notifications
   sl.registerLazySingleton<NotificationRepository>(

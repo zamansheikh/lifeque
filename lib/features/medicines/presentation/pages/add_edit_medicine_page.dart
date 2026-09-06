@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/utils/local_clock.dart';
+import '../../../../core/utils/local_numbers.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/medicine.dart';
 import '../bloc/medicine_cubit.dart';
+import '../widgets/care_person_picker.dart';
 import '../bloc/medicine_state.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -75,8 +77,18 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   MealTiming _selectedMealTiming = MealTiming.anytime;
   int _timesPerDay = 1;
   DateTime _startDate = DateTime.now();
-  List<TimeOfDay> _notificationTimes = [TimeOfDay.now()];
+  // Seeded with the default slot for one-a-day rather than the current
+  // time, which is never what anyone means.
+  List<TimeOfDay> _notificationTimes = const [TimeOfDay(hour: 20, minute: 0)];
   String _selectedDosageUnit = 'mg';
+  String? _personId;
+
+  /// A blank duration means "ongoing" — a year is long enough to behave like
+  /// no end date without letting the scheduler run forever.
+  static const int _ongoingDays = 365;
+
+  int get _durationInDays =>
+      int.tryParse(_durationController.text.trim()) ?? _ongoingDays;
 
   // Store loaded medicine data when editing
   Medicine? _loadedMedicine;
@@ -100,16 +112,24 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   void _populateFields(Medicine medicine) {
     _nameController.text = medicine.name;
     _descriptionController.text = medicine.description ?? '';
-    _dosageController.text = medicine.dosage.toString();
+    // A double renders as "1.0"; nobody writes a dose that way.
+    _dosageController.text = medicine.dosage == medicine.dosage.roundToDouble()
+        ? medicine.dosage.round().toString()
+        : medicine.dosage.toString();
     _dosageUnitController.text = medicine.dosageUnit;
     _selectedDosageUnit = medicine.dosageUnit;
-    _durationController.text = medicine.durationInDays.toString();
+    // An ongoing course carries the sentinel duration; showing it back as
+    // "365" would turn a blank the user left into a number they never typed.
+    _durationController.text = medicine.durationInDays == _ongoingDays
+        ? ''
+        : medicine.durationInDays.toString();
     _doctorController.text = medicine.doctorName ?? '';
     _notesController.text = medicine.notes ?? '';
 
     _selectedType = medicine.type;
     _selectedMealTiming = medicine.mealTiming;
     _timesPerDay = medicine.timesPerDay;
+    _personId = medicine.personId;
     _startDate = medicine.startDate;
 
     _notificationTimes = medicine.notificationTimes.map((timeString) {
@@ -356,6 +376,14 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Who the course is for, before anything else: it changes how the
+          // rest of the form reads, and it is the one thing you cannot infer.
+          CarePersonSelector(
+            selectedId: _personId,
+            onChanged: (id) => setState(() => _personId = id),
+          ),
+          const SizedBox(height: 16),
+
           // Medicine Name
           TextFormField(
             controller: _nameController,
@@ -487,10 +515,11 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                     ),
                   ),
                   validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return L.of(context).expRequired;
-                    }
-                    if (double.tryParse(value!) == null) {
+                    // Blank is allowed — a dose of 1 is the sane default and
+                    // asking for it up front is the main thing that made
+                    // adding a medicine feel like paperwork.
+                    if (value == null || value.trim().isEmpty) return null;
+                    if (double.tryParse(value) == null) {
                       return L.of(context).medInvalidNumber;
                     }
                     return null;
@@ -580,7 +609,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                       ),
                       child: Center(
                         child: Text(
-                          '$times',
+                          N.of(times),
 
                           style: TextStyle(
                             fontSize: 18,
@@ -667,7 +696,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                       fontSize: 12,
                       color: Color(0xFF64748B),
                     ),
-                    hintText: '14',
+                    hintText: L.of(context).medOngoing,
                     prefixIcon: const Icon(
                       Icons.timer,
                       color: Color(0xFF3B82F6),
@@ -683,10 +712,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                     ),
                   ),
                   validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return L.of(context).expRequired;
-                    }
-                    if (int.tryParse(value!) == null || int.parse(value) <= 0) {
+                    // Blank means an ongoing course with no end date.
+                    if (value == null || value.trim().isEmpty) return null;
+                    final days = int.tryParse(value);
+                    if (days == null || days <= 0) {
                       return L.of(context).medInvalidNumber;
                     }
                     return null;
@@ -915,7 +944,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
             : _descriptionController.text.trim(),
         type: _selectedType,
         mealTiming: _selectedMealTiming,
-        dosage: double.parse(_dosageController.text),
+        dosage: double.tryParse(_dosageController.text.trim()) ?? 1,
         dosageUnit: _selectedDosageUnit,
         timesPerDay: _timesPerDay,
         notificationTimes: _notificationTimes
@@ -924,15 +953,14 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
             )
             .toList(),
-        durationInDays: int.parse(_durationController.text),
+        durationInDays: _durationInDays,
         startDate: _startDate,
-        endDate: _startDate.add(
-          Duration(days: int.parse(_durationController.text)),
-        ),
+        endDate: _startDate.add(Duration(days: _durationInDays)),
         status: MedicineStatus.active,
         doctorName: _doctorController.text.trim().isEmpty
             ? null
             : _doctorController.text.trim(),
+        personId: _personId,
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),

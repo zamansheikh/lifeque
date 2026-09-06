@@ -5238,6 +5238,258 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Showing matches from every month — the summary above still covers {month} only.'**
   String expSearchAllMonths(String month);
+
+  /// No description provided for @medPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'For whom'**
+  String get medPerson;
+
+  /// No description provided for @medPersonEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get medPersonEveryone;
+
+  /// No description provided for @medPersonUnassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get medPersonUnassigned;
+
+  /// No description provided for @medAddPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Add person'**
+  String get medAddPerson;
+
+  /// No description provided for @medPersonName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get medPersonName;
+
+  /// No description provided for @medPersonNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Abba, Amma, Rafi'**
+  String get medPersonNameHint;
+
+  /// No description provided for @medPersonRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get medPersonRename;
+
+  /// No description provided for @medPersonRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get medPersonRemove;
+
+  /// No description provided for @medPersonRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicines for this person stay, but become unassigned.'**
+  String get medPersonRemoveBody;
+
+  /// No description provided for @medPersonManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage people'**
+  String get medPersonManage;
+
+  /// No description provided for @medNoPeopleYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the people you keep medicine for — you, a parent, a child.'**
+  String get medNoPeopleYet;
+
+  /// No description provided for @medDurationOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Days (optional)'**
+  String get medDurationOptional;
+
+  /// No description provided for @medDosageOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose (optional)'**
+  String get medDosageOptional;
+
+  /// No description provided for @medOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing'**
+  String get medOngoing;
+
+  /// No description provided for @medNothingForPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'No medicine for {name} yet.'**
+  String medNothingForPerson(String name);
+
+  /// No description provided for @medNotifTitleFor.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {medicine}'**
+  String medNotifTitleFor(String name, String medicine);
+
+  /// No description provided for @medNotifTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken'**
+  String get medNotifTaken;
+
+  /// No description provided for @medNotifSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip dose'**
+  String get medNotifSkip;
+
+  /// No description provided for @medNotifSnooze.
+  ///
+  /// In en, this message translates to:
+  /// **'In 15 min'**
+  String get medNotifSnooze;
+
+  /// No description provided for @medNotifTimeFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Time for this dose'**
+  String get medNotifTimeFor;
+
+  /// No description provided for @medTodayOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Overview'**
+  String get medTodayOverview;
+
+  /// No description provided for @medTodayProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Progress'**
+  String get medTodayProgress;
+
+  /// No description provided for @medDosePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get medDosePending;
+
+  /// No description provided for @medProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get medProgress;
+
+  /// No description provided for @medNextDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {time}'**
+  String medNextDose(String time);
+
+  /// No description provided for @medDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get medDetails;
+
+  /// No description provided for @medEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get medEditAction;
+
+  /// No description provided for @medDeleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get medDeleteAction;
+
+  /// No description provided for @medClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get medClose;
+
+  /// No description provided for @medCourseDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Course Details'**
+  String get medCourseDetails;
+
+  /// No description provided for @medStartedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Start {date}'**
+  String medStartedOn(String date);
+
+  /// No description provided for @medEndsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'End {date}'**
+  String medEndsOn(String date);
+
+  /// No description provided for @medDaysCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days'**
+  String medDaysCount(int count);
+
+  /// No description provided for @medTotalDoses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} doses total'**
+  String medTotalDoses(int count);
+
+  /// No description provided for @medSkipAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get medSkipAction;
+
+  /// No description provided for @medMissAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Miss'**
+  String get medMissAction;
+
+  /// No description provided for @medMsgAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine added'**
+  String get medMsgAdded;
+
+  /// No description provided for @medMsgUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine updated'**
+  String get medMsgUpdated;
+
+  /// No description provided for @medMsgDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine deleted'**
+  String get medMsgDeleted;
+
+  /// No description provided for @medMsgDoseTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as taken'**
+  String get medMsgDoseTaken;
+
+  /// No description provided for @medMsgDoseSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose skipped'**
+  String get medMsgDoseSkipped;
+
+  /// No description provided for @medMsgDoseMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as missed'**
+  String get medMsgDoseMissed;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

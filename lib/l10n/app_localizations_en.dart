@@ -2961,4 +2961,154 @@ class LEn extends L {
   String expSearchAllMonths(String month) {
     return 'Showing matches from every month — the summary above still covers $month only.';
   }
+
+  @override
+  String get medPerson => 'For whom';
+
+  @override
+  String get medPersonEveryone => 'Everyone';
+
+  @override
+  String get medPersonUnassigned => 'Not set';
+
+  @override
+  String get medAddPerson => 'Add person';
+
+  @override
+  String get medPersonName => 'Name';
+
+  @override
+  String get medPersonNameHint => 'e.g. Abba, Amma, Rafi';
+
+  @override
+  String get medPersonRename => 'Rename';
+
+  @override
+  String get medPersonRemove => 'Remove';
+
+  @override
+  String get medPersonRemoveBody =>
+      'Medicines for this person stay, but become unassigned.';
+
+  @override
+  String get medPersonManage => 'Manage people';
+
+  @override
+  String get medNoPeopleYet =>
+      'Add the people you keep medicine for — you, a parent, a child.';
+
+  @override
+  String get medDurationOptional => 'Days (optional)';
+
+  @override
+  String get medDosageOptional => 'Dose (optional)';
+
+  @override
+  String get medOngoing => 'Ongoing';
+
+  @override
+  String medNothingForPerson(String name) {
+    return 'No medicine for $name yet.';
+  }
+
+  @override
+  String medNotifTitleFor(String name, String medicine) {
+    return '$name · $medicine';
+  }
+
+  @override
+  String get medNotifTaken => 'Taken';
+
+  @override
+  String get medNotifSkip => 'Skip dose';
+
+  @override
+  String get medNotifSnooze => 'In 15 min';
+
+  @override
+  String get medNotifTimeFor => 'Time for this dose';
+
+  @override
+  String get medTodayOverview => 'Today\'s Overview';
+
+  @override
+  String get medTodayProgress => 'Today\'s Progress';
+
+  @override
+  String get medDosePending => 'Pending';
+
+  @override
+  String get medProgress => 'Progress';
+
+  @override
+  String medNextDose(String time) {
+    return 'Next: $time';
+  }
+
+  @override
+  String get medDetails => 'Details';
+
+  @override
+  String get medEditAction => 'Edit';
+
+  @override
+  String get medDeleteAction => 'Delete';
+
+  @override
+  String get medClose => 'Close';
+
+  @override
+  String get medCourseDetails => 'Course Details';
+
+  @override
+  String medStartedOn(String date) {
+    return 'Start $date';
+  }
+
+  @override
+  String medEndsOn(String date) {
+    return 'End $date';
+  }
+
+  @override
+  String medDaysCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString days';
+  }
+
+  @override
+  String medTotalDoses(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString doses total';
+  }
+
+  @override
+  String get medSkipAction => 'Skip';
+
+  @override
+  String get medMissAction => 'Miss';
+
+  @override
+  String get medMsgAdded => 'Medicine added';
+
+  @override
+  String get medMsgUpdated => 'Medicine updated';
+
+  @override
+  String get medMsgDeleted => 'Medicine deleted';
+
+  @override
+  String get medMsgDoseTaken => 'Marked as taken';
+
+  @override
+  String get medMsgDoseSkipped => 'Dose skipped';
+
+  @override
+  String get medMsgDoseMissed => 'Marked as missed';
 }

@@ -4,8 +4,7 @@ import '../../../../core/error/exceptions.dart' as app_exceptions;
 
 class DatabaseHelper {
   static const String _databaseName = 'remind_me.db';
-  static const int _databaseVersion =
-      8; // Increased for pin notification timing
+  static const int _databaseVersion = 9; // Increased for per-person medicines
 
   // Public getter for database version
   static int get databaseVersion => _databaseVersion;
@@ -13,6 +12,10 @@ class DatabaseHelper {
   static const String tableTask = 'tasks';
   static const String tableMedicine = 'medicines';
   static const String tableMedicineDose = 'medicine_doses';
+
+  /// Who a course of medicine is for. Null means it predates the field, or
+  /// the user has not said — both read as "unassigned".
+  static const String columnMedicinePersonId = 'person_id';
 
   // Task table columns
   static const String columnId = 'id';
@@ -124,6 +127,7 @@ class DatabaseHelper {
           $columnStatus TEXT NOT NULL DEFAULT 'active',
           $columnDoctorName TEXT,
           $columnNotes TEXT,
+          $columnMedicinePersonId TEXT,
           $columnCreatedAt INTEGER NOT NULL,
           $columnUpdatedAt INTEGER NOT NULL
         )
@@ -199,6 +203,7 @@ class DatabaseHelper {
           $columnStatus TEXT NOT NULL DEFAULT 'active',
           $columnDoctorName TEXT,
           $columnNotes TEXT,
+          $columnMedicinePersonId TEXT,
           $columnCreatedAt INTEGER NOT NULL,
           $columnUpdatedAt INTEGER NOT NULL
         )
@@ -267,6 +272,13 @@ class DatabaseHelper {
       // Add pin notification timing column
       await db.execute('''
         ALTER TABLE $tableTask ADD COLUMN $columnPinNotificationTiming INTEGER NOT NULL DEFAULT 0
+      ''');
+    }
+    if (oldVersion < 9) {
+      // Medicines can now belong to a person. Existing rows stay null, which
+      // the UI shows as unassigned rather than inventing an owner for them.
+      await db.execute('''
+        ALTER TABLE $tableMedicine ADD COLUMN $columnMedicinePersonId TEXT
       ''');
     }
   }

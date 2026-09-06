@@ -18,6 +18,7 @@ class MedicineModel extends Medicine {
     super.status = MedicineStatus.active,
     super.doctorName,
     super.notes,
+    super.personId,
     required super.createdAt,
     required super.updatedAt,
   });
@@ -48,6 +49,7 @@ class MedicineModel extends Medicine {
       ),
       doctorName: json['doctorName'],
       notes: json['notes'],
+      personId: json['personId'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
     );
@@ -95,6 +97,7 @@ class MedicineModel extends Medicine {
       'status': status.toString().split('.').last,
       'doctorName': doctorName,
       'notes': notes,
+      'personId': personId,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -130,6 +133,7 @@ class MedicineModel extends Medicine {
       'status': map['status'],
       'doctorName': map['doctorName'],
       'notes': map['notes'],
+      'personId': map['personId'],
       'createdAt': map['createdAt'] is int
           ? DateTime.fromMillisecondsSinceEpoch(
               map['createdAt'],
@@ -162,6 +166,7 @@ class MedicineModel extends Medicine {
       status: medicine.status,
       doctorName: medicine.doctorName,
       notes: medicine.notes,
+      personId: medicine.personId,
       createdAt: medicine.createdAt,
       updatedAt: medicine.updatedAt,
     );
@@ -184,6 +189,7 @@ class MedicineModel extends Medicine {
       status: status,
       doctorName: doctorName,
       notes: notes,
+      personId: personId,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

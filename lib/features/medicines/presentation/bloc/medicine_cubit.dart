@@ -9,6 +9,26 @@ import '../../domain/usecases/manage_medicine.dart';
 import '../../domain/usecases/manage_doses.dart';
 import 'medicine_state.dart';
 
+/// Codes for the messages the UI shows after an operation.
+///
+/// The cubit has no context, so it names the outcome and the page turns it
+/// into words — otherwise every one of these would be stuck in English.
+enum MedicineMessage {
+  added,
+  updated,
+  deleted,
+  doseTaken,
+  doseSkipped,
+  doseMissed;
+
+  static MedicineMessage? parse(String value) {
+    for (final message in MedicineMessage.values) {
+      if (message.name == value) return message;
+    }
+    return null;
+  }
+}
+
 class MedicineCubit extends Cubit<MedicineState> {
   final GetAllMedicines getAllMedicinesUseCase;
   final GetActiveMedicines getActiveMedicinesUseCase;
@@ -97,11 +117,7 @@ class MedicineCubit extends Cubit<MedicineState> {
           (_) async {
             // Schedule notifications for the new medicine
             await notificationService.scheduleMedicineNotifications(medicine);
-            emit(
-              const MedicineOperationSuccess(
-                message: 'Medicine added successfully with doses generated',
-              ),
-            );
+            emit(MedicineOperationSuccess(message: MedicineMessage.added.name));
             loadAllMedicines(); // Refresh the list
           },
         );
@@ -122,11 +138,7 @@ class MedicineCubit extends Cubit<MedicineState> {
         if (medicine.isActive) {
           await notificationService.scheduleMedicineNotifications(medicine);
         }
-        emit(
-          const MedicineOperationSuccess(
-            message: 'Medicine updated successfully',
-          ),
-        );
+        emit(MedicineOperationSuccess(message: MedicineMessage.updated.name));
         loadAllMedicines(); // Refresh the list
       },
     );
@@ -140,11 +152,7 @@ class MedicineCubit extends Cubit<MedicineState> {
       (_) async {
         // Cancel notifications for the deleted medicine
         await notificationService.cancelMedicineNotifications(id);
-        emit(
-          const MedicineOperationSuccess(
-            message: 'Medicine deleted successfully',
-          ),
-        );
+        emit(MedicineOperationSuccess(message: MedicineMessage.deleted.name));
         loadAllMedicines(); // Refresh the list
       },
     );
@@ -177,7 +185,7 @@ class MedicineCubit extends Cubit<MedicineState> {
     result.fold(
       (failure) => emit(DoseError(message: _getFailureMessage(failure))),
       (_) async {
-        emit(const DoseOperationSuccess(message: 'Dose marked as taken'));
+        emit(DoseOperationSuccess(message: MedicineMessage.doseTaken.name));
         // Silent refresh of dashboard (don't emit loading) by calling loadDashboard logic inline
         _silentDashboardRefresh();
       },
@@ -191,7 +199,7 @@ class MedicineCubit extends Cubit<MedicineState> {
     result.fold(
       (failure) => emit(DoseError(message: _getFailureMessage(failure))),
       (_) async {
-        emit(const DoseOperationSuccess(message: 'Dose marked as skipped'));
+        emit(DoseOperationSuccess(message: MedicineMessage.doseSkipped.name));
         _silentDashboardRefresh();
       },
     );
@@ -204,7 +212,7 @@ class MedicineCubit extends Cubit<MedicineState> {
     result.fold(
       (failure) => emit(DoseError(message: _getFailureMessage(failure))),
       (_) async {
-        emit(const DoseOperationSuccess(message: 'Dose marked as missed'));
+        emit(DoseOperationSuccess(message: MedicineMessage.doseMissed.name));
         _silentDashboardRefresh();
       },
     );

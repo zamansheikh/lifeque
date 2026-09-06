@@ -1465,5 +1465,101 @@
         "type": "String"
       }
     }
+  },
+  "medPerson": "For whom",
+  "medPersonEveryone": "Everyone",
+  "medPersonUnassigned": "Not set",
+  "medAddPerson": "Add person",
+  "medPersonName": "Name",
+  "medPersonNameHint": "e.g. Abba, Amma, Rafi",
+  "medPersonRename": "Rename",
+  "medPersonRemove": "Remove",
+  "medPersonRemoveBody": "Medicines for this person stay, but become unassigned.",
+  "medPersonManage": "Manage people",
+  "medNoPeopleYet": "Add the people you keep medicine for — you, a parent, a child.",
+  "medDurationOptional": "Days (optional)",
+  "medDosageOptional": "Dose (optional)",
+  "medOngoing": "Ongoing",
+  "medNothingForPerson": "No medicine for {name} yet.",
+  "medNotifTitleFor": "{name} · {medicine}",
+  "medNotifTaken": "Taken",
+  "medNotifSkip": "Skip dose",
+  "medNotifSnooze": "In 15 min",
+  "medNotifTimeFor": "Time for this dose",
+  "@medNothingForPerson": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@medNotifTitleFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "medicine": {
+        "type": "String"
+      }
+    }
+  },
+  "medTodayOverview": "Today's Overview",
+  "medTodayProgress": "Today's Progress",
+  "medDosePending": "Pending",
+  "medProgress": "Progress",
+  "medNextDose": "Next: {time}",
+  "medDetails": "Details",
+  "medEditAction": "Edit",
+  "medDeleteAction": "Delete",
+  "medClose": "Close",
+  "medCourseDetails": "Course Details",
+  "medStartedOn": "Start {date}",
+  "medEndsOn": "End {date}",
+  "medDaysCount": "{count} days",
+  "medTotalDoses": "{count} doses total",
+  "medSkipAction": "Skip",
+  "medMissAction": "Miss",
+  "medMsgAdded": "Medicine added",
+  "medMsgUpdated": "Medicine updated",
+  "medMsgDeleted": "Medicine deleted",
+  "medMsgDoseTaken": "Marked as taken",
+  "medMsgDoseSkipped": "Dose skipped",
+  "medMsgDoseMissed": "Marked as missed",
+  "@medNextDose": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@medStartedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@medEndsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@medDaysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "@medTotalDoses": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
   }
 }

@@ -31,6 +31,10 @@ class Medicine extends Equatable {
   final MedicineStatus status;
   final String? doctorName;
   final String? notes;
+
+  /// Who this course is for. Null for medicines added before people existed,
+  /// or when the user has not said.
+  final String? personId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -50,6 +54,7 @@ class Medicine extends Equatable {
     this.status = MedicineStatus.active,
     this.doctorName,
     this.notes,
+    this.personId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -204,6 +209,7 @@ class Medicine extends Equatable {
     MedicineStatus? status,
     String? doctorName,
     String? notes,
+    String? personId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -223,6 +229,7 @@ class Medicine extends Equatable {
       status: status ?? this.status,
       doctorName: doctorName ?? this.doctorName,
       notes: notes ?? this.notes,
+      personId: personId ?? this.personId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
@@ -245,6 +252,7 @@ class Medicine extends Equatable {
     status,
     doctorName,
     notes,
+    personId,
     createdAt,
     updatedAt,
   ];

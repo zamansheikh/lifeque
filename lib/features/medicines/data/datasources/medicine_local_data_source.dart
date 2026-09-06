@@ -334,6 +334,7 @@ class MedicineLocalDataSourceImpl implements MedicineLocalDataSource {
       DatabaseHelper.columnStatus: json['status'],
       DatabaseHelper.columnDoctorName: json['doctorName'],
       DatabaseHelper.columnNotes: json['notes'],
+      DatabaseHelper.columnMedicinePersonId: json['personId'],
       DatabaseHelper.columnCreatedAt: DateTime.parse(
         json['createdAt'],
       ).millisecondsSinceEpoch,
@@ -368,6 +369,7 @@ class MedicineLocalDataSourceImpl implements MedicineLocalDataSource {
       'status': dbMap[DatabaseHelper.columnStatus],
       'doctorName': dbMap[DatabaseHelper.columnDoctorName],
       'notes': dbMap[DatabaseHelper.columnNotes],
+      'personId': dbMap[DatabaseHelper.columnMedicinePersonId],
       'createdAt': DateTime.fromMillisecondsSinceEpoch(
         dbMap[DatabaseHelper.columnCreatedAt],
       ).toIso8601String(),

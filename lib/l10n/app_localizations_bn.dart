@@ -2952,4 +2952,154 @@ class LBn extends L {
   String expSearchAllMonths(String month) {
     return 'সব মাসের ফলাফল দেখানো হচ্ছে — উপরের সারসংক্ষেপ কেবল $month মাসের।';
   }
+
+  @override
+  String get medPerson => 'কার জন্য';
+
+  @override
+  String get medPersonEveryone => 'সবাই';
+
+  @override
+  String get medPersonUnassigned => 'নির্ধারিত নয়';
+
+  @override
+  String get medAddPerson => 'ব্যক্তি যোগ করুন';
+
+  @override
+  String get medPersonName => 'নাম';
+
+  @override
+  String get medPersonNameHint => 'যেমন, আব্বা, আম্মা, রাফি';
+
+  @override
+  String get medPersonRename => 'নাম বদলান';
+
+  @override
+  String get medPersonRemove => 'সরান';
+
+  @override
+  String get medPersonRemoveBody =>
+      'এই ব্যক্তির ওষুধগুলো থেকে যাবে, তবে আর কারও নামে থাকবে না।';
+
+  @override
+  String get medPersonManage => 'ব্যক্তি ব্যবস্থাপনা';
+
+  @override
+  String get medNoPeopleYet =>
+      'যাদের ওষুধের হিসাব রাখেন তাদের যোগ করুন — নিজে, বাবা-মা, সন্তান।';
+
+  @override
+  String get medDurationOptional => 'কত দিন (ঐচ্ছিক)';
+
+  @override
+  String get medDosageOptional => 'মাত্রা (ঐচ্ছিক)';
+
+  @override
+  String get medOngoing => 'চলমান';
+
+  @override
+  String medNothingForPerson(String name) {
+    return '$name-এর জন্য এখনো কোনো ওষুধ নেই।';
+  }
+
+  @override
+  String medNotifTitleFor(String name, String medicine) {
+    return '$name · $medicine';
+  }
+
+  @override
+  String get medNotifTaken => 'নেওয়া হয়েছে';
+
+  @override
+  String get medNotifSkip => 'বাদ দিন';
+
+  @override
+  String get medNotifSnooze => '১৫ মিনিট পরে';
+
+  @override
+  String get medNotifTimeFor => 'এই ডোজের সময় হয়েছে';
+
+  @override
+  String get medTodayOverview => 'আজকের সারসংক্ষেপ';
+
+  @override
+  String get medTodayProgress => 'আজকের অগ্রগতি';
+
+  @override
+  String get medDosePending => 'বাকি আছে';
+
+  @override
+  String get medProgress => 'অগ্রগতি';
+
+  @override
+  String medNextDose(String time) {
+    return 'পরবর্তী: $time';
+  }
+
+  @override
+  String get medDetails => 'বিস্তারিত';
+
+  @override
+  String get medEditAction => 'সম্পাদনা';
+
+  @override
+  String get medDeleteAction => 'মুছুন';
+
+  @override
+  String get medClose => 'বন্ধ করুন';
+
+  @override
+  String get medCourseDetails => 'কোর্সের বিবরণ';
+
+  @override
+  String medStartedOn(String date) {
+    return 'শুরু $date';
+  }
+
+  @override
+  String medEndsOn(String date) {
+    return 'শেষ $date';
+  }
+
+  @override
+  String medDaysCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString দিন';
+  }
+
+  @override
+  String medTotalDoses(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'মোট $countString ডোজ';
+  }
+
+  @override
+  String get medSkipAction => 'বাদ দিন';
+
+  @override
+  String get medMissAction => 'মিস';
+
+  @override
+  String get medMsgAdded => 'ওষুধ যোগ হয়েছে';
+
+  @override
+  String get medMsgUpdated => 'ওষুধ হালনাগাদ হয়েছে';
+
+  @override
+  String get medMsgDeleted => 'ওষুধ মুছে ফেলা হয়েছে';
+
+  @override
+  String get medMsgDoseTaken => 'নেওয়া হয়েছে বলে চিহ্নিত';
+
+  @override
+  String get medMsgDoseSkipped => 'ডোজ বাদ দেওয়া হয়েছে';
+
+  @override
+  String get medMsgDoseMissed => 'মিস বলে চিহ্নিত';
 }

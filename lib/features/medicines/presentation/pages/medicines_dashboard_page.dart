@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../../../../core/utils/local_clock.dart';
+import 'package:intl/intl.dart';
+import '../utils/medicine_l10n.dart';
+import '../widgets/care_person_picker.dart';
+import '../../data/services/care_person_service.dart';
+import '../../../../injection_container.dart' as di;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../domain/entities/medicine.dart';
@@ -18,10 +25,30 @@ class MedicinesDashboardPage extends StatefulWidget {
 class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
   DateTime _selectedDate = DateTime.now();
   bool _requestedReload = false; // prevent multiple queued refreshes
+
+  /// Null means everyone. Held here rather than in the cubit because it only
+  /// narrows what is already loaded — no refetch, no flicker.
+  String? _personFilter;
   @override
   void initState() {
     super.initState();
     context.read<MedicineCubit>().loadDashboard(date: _selectedDate);
+  }
+
+  /// Turns the cubit's outcome code into words. An unrecognised value is
+  /// passed through, so a message the cubit has not been taught yet still
+  /// shows rather than vanishing.
+  String _successText(BuildContext context, String raw) {
+    final l = L.of(context);
+    return switch (MedicineMessage.parse(raw)) {
+      MedicineMessage.added => l.medMsgAdded,
+      MedicineMessage.updated => l.medMsgUpdated,
+      MedicineMessage.deleted => l.medMsgDeleted,
+      MedicineMessage.doseTaken => l.medMsgDoseTaken,
+      MedicineMessage.doseSkipped => l.medMsgDoseSkipped,
+      MedicineMessage.doseMissed => l.medMsgDoseMissed,
+      null => raw,
+    };
   }
 
   void _refresh() =>
@@ -94,11 +121,14 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
             );
           } else if (state is DoseOperationSuccess ||
               state is MedicineOperationSuccess) {
-            final msg = state is DoseOperationSuccess
+            final raw = state is DoseOperationSuccess
                 ? state.message
                 : (state as MedicineOperationSuccess).message;
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(msg), backgroundColor: Colors.green),
+              SnackBar(
+                content: Text(_successText(context, raw)),
+                backgroundColor: Colors.green,
+              ),
             );
           }
         },
@@ -107,10 +137,18 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (state is MedicineDashboardLoaded) {
-            final active = state.medicines
+            final people = di.sl<CarePersonService>().getAll();
+            final all = state.medicines
                 .where((m) => m.status == MedicineStatus.active)
                 .toList();
-            if (active.isEmpty) {
+            // A person who has been deleted leaves their medicines behind, so
+            // fall back to everyone rather than showing an empty screen.
+            final filterIsLive = people.any((p) => p.id == _personFilter);
+            final active = (_personFilter == null || !filterIsLive)
+                ? all
+                : all.where((m) => m.personId == _personFilter).toList();
+
+            if (all.isEmpty) {
               return _EmptyState(
                 onAdd: () async {
                   await Navigator.of(context).push(
@@ -136,14 +174,29 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
                     },
                   ),
                   const SizedBox(height: 16),
+                  if (people.length > 1) ...[
+                    CarePersonFilterBar(
+                      people: people,
+                      selectedId: filterIsLive ? _personFilter : null,
+                      onChanged: (id) => setState(() => _personFilter = id),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   _SummaryBar(doses: state.todayDoses),
                   const SizedBox(height: 24),
-                  ...active.map(
-                    (m) => _MedicineProgressCard(
-                      medicine: m,
-                      doses: state.dosesForMedicine(m.id),
+                  if (active.isEmpty)
+                    _NothingForPerson(
+                      name: people
+                          .firstWhere((p) => p.id == _personFilter)
+                          .name,
+                    )
+                  else
+                    ...active.map(
+                      (m) => _MedicineProgressCard(
+                        medicine: m,
+                        doses: state.dosesForMedicine(m.id),
+                      ),
                     ),
-                  ),
                 ],
               ),
             );
@@ -161,6 +214,35 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
           }
           return const Center(child: CircularProgressIndicator());
         },
+      ),
+    );
+  }
+}
+
+/// Shown when a person filter is on but that person has nothing active.
+class _NothingForPerson extends StatelessWidget {
+  const _NothingForPerson({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 28, 32, 40),
+      child: Column(
+        children: [
+          Icon(
+            Icons.medication_outlined,
+            size: 40,
+            color: Colors.grey.shade400,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            L.of(context).medNothingForPerson(name),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+          ),
+        ],
       ),
     );
   }
@@ -278,7 +360,7 @@ class _DayHeader extends StatelessWidget {
   const _DayHeader({required this.date, required this.onChange});
   @override
   Widget build(BuildContext context) {
-    final formatted = '${date.day}/${date.month}/${date.year}';
+    final formatted = DateFormat('d MMM y').format(date);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -370,8 +452,8 @@ class _SummaryBar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Today\'s Overview',
+          Text(
+            L.of(context).medTodayOverview,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -380,27 +462,37 @@ class _SummaryBar extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _CountChip(
-                label: 'Taken',
-                value: taken,
-                color: const Color(0xFF10B981),
+              Expanded(
+                child: _CountChip(
+                  label: L.of(context).medDoseTaken,
+                  value: taken,
+                  color: const Color(0xFF10B981),
+                ),
               ),
-              _CountChip(
-                label: 'Pending',
-                value: pending,
-                color: const Color(0xFF06B6D4),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _CountChip(
+                  label: L.of(context).medDosePending,
+                  value: pending,
+                  color: const Color(0xFF06B6D4),
+                ),
               ),
-              _CountChip(
-                label: 'Skipped',
-                value: skipped,
-                color: const Color(0xFFF59E0B),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _CountChip(
+                  label: L.of(context).medDoseSkipped,
+                  value: skipped,
+                  color: const Color(0xFFF59E0B),
+                ),
               ),
-              _CountChip(
-                label: 'Missed',
-                value: missed,
-                color: const Color(0xFFEF4444),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _CountChip(
+                  label: L.of(context).medDoseMissed,
+                  value: missed,
+                  color: const Color(0xFFEF4444),
+                ),
               ),
             ],
           ),
@@ -422,7 +514,7 @@ class _SummaryBar extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Progress: ${total == 0 ? 0 : ((taken / total) * 100).round()}%',
+            '${L.of(context).medProgress}: ${N.percent(total == 0 ? 0 : ((taken / total) * 100).round())}',
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w500,
@@ -447,7 +539,7 @@ class _CountChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
@@ -456,7 +548,7 @@ class _CountChip extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            '$value',
+            N.of(value),
             style: const TextStyle(
               fontWeight: FontWeight.w700,
               color: Colors.white,
@@ -464,12 +556,18 @@ class _CountChip extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.white.withValues(alpha: 0.9),
-              fontWeight: FontWeight.w500,
+          // Bangla labels run longer than the English they were sized for, so
+          // they scale down instead of overflowing the tile.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.9),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -482,6 +580,32 @@ class _MedicineProgressCard extends StatelessWidget {
   final Medicine medicine;
   final List<MedicineDose> doses;
   const _MedicineProgressCard({required this.medicine, required this.doses});
+
+  /// Whose medicine this is. Absent when nobody is set, or when only one
+  /// person exists — with a single person the badge says nothing.
+  Widget? _personBadge(String? personId) {
+    final service = di.sl<CarePersonService>();
+    if (service.getAll().length < 2) return null;
+    final person = service.findById(personId);
+    if (person == null) return null;
+    return Padding(
+      padding: const EdgeInsets.only(top: 5),
+      child: Row(
+        children: [
+          CarePersonAvatar(person: person, size: 18),
+          const SizedBox(width: 6),
+          Text(
+            person.name,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: person.color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -568,9 +692,11 @@ class _MedicineProgressCard extends StatelessWidget {
                             color: Color(0xFF1E293B),
                           ),
                         ),
+                        ?_personBadge(medicine.personId),
                         const SizedBox(height: 6),
                         Text(
-                          '${medicine.dosage} ${medicine.dosageUnit} • ${medicine.timesPerDay}x daily',
+                          '${doseLabel(medicine.dosage, medicine.dosageUnit)}'
+                          ' • ${L.of(context).medTimesADay(medicine.timesPerDay)}',
                           style: const TextStyle(
                             color: Color(0xFF64748B),
                             fontSize: 14,
@@ -579,7 +705,7 @@ class _MedicineProgressCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          medicine.mealTimingDisplayName,
+                          mealTimingLabel(context, medicine.mealTiming),
                           style: const TextStyle(
                             color: Color(0xFF94A3B8),
                             fontSize: 13,
@@ -598,7 +724,7 @@ class _MedicineProgressCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: IconButton(
-                          tooltip: 'Details',
+                          tooltip: L.of(context).medDetails,
                           icon: const Icon(
                             Icons.more_vert_rounded,
                             size: 20,
@@ -636,24 +762,24 @@ class _MedicineProgressCard extends StatelessWidget {
                 children: [
                   _modernChip(
                     Icons.check_circle_rounded,
-                    'Taken $taken',
+                    '${L.of(context).medDoseTaken} ${N.of(taken)}',
                     const Color(0xFF10B981),
                   ),
                   _modernChip(
                     Icons.schedule_rounded,
-                    'Pending $pending',
+                    '${L.of(context).medDosePending} ${N.of(pending)}',
                     const Color(0xFF06B6D4),
                   ),
                   if (skipped > 0)
                     _modernChip(
                       Icons.skip_next_rounded,
-                      'Skipped $skipped',
+                      '${L.of(context).medDoseSkipped} ${N.of(skipped)}',
                       const Color(0xFFF59E0B),
                     ),
                   if (missed > 0)
                     _modernChip(
                       Icons.error_rounded,
-                      'Missed $missed',
+                      '${L.of(context).medDoseMissed} ${N.of(missed)}',
                       const Color(0xFFEF4444),
                     ),
                 ],
@@ -671,7 +797,9 @@ class _MedicineProgressCard extends StatelessWidget {
                             ),
                           )
                         : Text(
-                            'Next: ${_fmt(next.scheduledTime)}',
+                            L
+                                .of(context)
+                                .medNextDose(Clock.h12(next.scheduledTime)),
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF1E293B),
@@ -687,9 +815,6 @@ class _MedicineProgressCard extends StatelessWidget {
       ),
     );
   }
-
-  String _fmt(DateTime dt) =>
-      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
   Widget _modernChip(IconData icon, String label, Color color) {
     return Container(
@@ -727,7 +852,7 @@ class _MedicineProgressCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
-            '$value',
+            N.of(value),
             style: TextStyle(
               fontWeight: FontWeight.w700,
               color: color,
@@ -807,7 +932,8 @@ class _MedicineProgressCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${medicine.dosage} ${medicine.dosageUnit} • ${medicine.typeDisplayName}',
+                            '${doseLabel(medicine.dosage, medicine.dosageUnit)}'
+                            ' • ${medicineTypeLabel(context, medicine.type)}',
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -827,7 +953,7 @@ class _MedicineProgressCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: IconButton(
-                        tooltip: 'Edit',
+                        tooltip: L.of(context).medEditAction,
                         icon: const Icon(Icons.edit, color: Colors.white),
                         onPressed: () async {
                           Navigator.pop(ctx);
@@ -851,7 +977,7 @@ class _MedicineProgressCard extends StatelessWidget {
                         border: Border.all(color: const Color(0xFFFECACA)),
                       ),
                       child: IconButton(
-                        tooltip: 'Delete',
+                        tooltip: L.of(context).medDeleteAction,
                         icon: const Icon(
                           Icons.delete,
                           color: Color(0xFFDC2626),
@@ -863,23 +989,23 @@ class _MedicineProgressCard extends StatelessWidget {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              title: const Text(
-                                'Delete Medicine',
+                              title: Text(
+                                L.of(context).medDeleteTitle,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF1E293B),
                                 ),
                               ),
-                              content: const Text(
-                                'Are you sure you want to delete this medicine and its doses?',
+                              content: Text(
+                                L.of(context).medDeleteBody,
                                 style: TextStyle(color: Color(0xFF64748B)),
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () =>
                                       Navigator.pop(context, false),
-                                  child: const Text(
-                                    'Cancel',
+                                  child: Text(
+                                    L.of(context).permCancel,
                                     style: TextStyle(
                                       color: Color(0xFF64748B),
                                       fontWeight: FontWeight.w600,
@@ -894,8 +1020,8 @@ class _MedicineProgressCard extends StatelessWidget {
                                   child: TextButton(
                                     onPressed: () =>
                                         Navigator.pop(context, true),
-                                    child: const Text(
-                                      'Delete',
+                                    child: Text(
+                                      L.of(context).medDeleteAction,
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w600,
@@ -935,8 +1061,8 @@ class _MedicineProgressCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Course Details',
+                      Text(
+                        L.of(context).medCourseDetails,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -950,22 +1076,34 @@ class _MedicineProgressCard extends StatelessWidget {
                         children: [
                           _modernChip(
                             Icons.calendar_today,
-                            'Start ${medicine.startDate.day}/${medicine.startDate.month}',
+                            L
+                                .of(context)
+                                .medStartedOn(
+                                  DateFormat(
+                                    'd MMM',
+                                  ).format(medicine.startDate),
+                                ),
                             const Color(0xFF3B82F6),
                           ),
                           _modernChip(
                             Icons.event,
-                            'End ${medicine.calculatedEndDate.day}/${medicine.calculatedEndDate.month}',
+                            L
+                                .of(context)
+                                .medEndsOn(
+                                  DateFormat(
+                                    'd MMM',
+                                  ).format(medicine.calculatedEndDate),
+                                ),
                             const Color(0xFF3B82F6),
                           ),
                           _modernChip(
                             Icons.timelapse,
-                            '${medicine.durationInDays} days',
+                            L.of(context).medDaysCount(medicine.durationInDays),
                             const Color(0xFF8B5CF6),
                           ),
                           _modernChip(
                             Icons.list_alt,
-                            '$totalCourseDoses doses total',
+                            L.of(context).medTotalDoses(totalCourseDoses),
                             const Color(0xFF8B5CF6),
                           ),
                         ],
@@ -990,8 +1128,8 @@ class _MedicineProgressCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Today\'s Progress',
+                      Text(
+                        L.of(context).medTodayProgress,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -1042,8 +1180,8 @@ class _MedicineProgressCard extends StatelessWidget {
                     child: TextButton.icon(
                       onPressed: () => Navigator.pop(ctx),
                       icon: const Icon(Icons.close, color: Colors.white),
-                      label: const Text(
-                        'Close',
+                      label: Text(
+                        L.of(context).medClose,
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -1083,7 +1221,7 @@ class _TodayStatusPill extends StatelessWidget {
         ),
       ),
       child: Text(
-        '$pct%',
+        N.percent(pct),
         style: const TextStyle(
           color: Color(0xFF059669),
           fontWeight: FontWeight.w700,
@@ -1150,7 +1288,7 @@ class _ActionButtons extends StatelessWidget {
             ),
           ),
           child: IconButton(
-            tooltip: 'Skip',
+            tooltip: L.of(context).medSkipAction,
             onPressed: target == null
                 ? null
                 : () => cubit.markDoseAsSkipped(target.id, medicine.id),
@@ -1177,7 +1315,7 @@ class _ActionButtons extends StatelessWidget {
             ),
           ),
           child: IconButton(
-            tooltip: 'Miss',
+            tooltip: L.of(context).medMissAction,
             onPressed: target == null
                 ? null
                 : () => cubit.markDoseAsMissed(target.id, medicine.id),

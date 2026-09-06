@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -18,6 +19,10 @@ import '../../features/medicines/domain/repositories/medicine_repository.dart';
 import '../../features/tasks/domain/repositories/task_repository.dart';
 import 'navigation_service.dart';
 import '../../injection_container.dart' as di;
+import '../../features/medicines/data/services/care_person_service.dart';
+import '../../features/medicines/domain/entities/medicine.dart';
+import '../../features/medicines/presentation/utils/medicine_l10n.dart';
+import '../../l10n/app_localizations.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -2151,13 +2156,13 @@ class NotificationService {
     }
   }
 
-  Future<void> scheduleMedicineNotifications(dynamic medicine) async {
+  Future<void> scheduleMedicineNotifications(Medicine medicine) async {
     debugPrint('🩺 Scheduling notifications for medicine: ${medicine.name}');
 
     // Cancel existing notifications for this medicine
     await cancelMedicineNotifications(medicine.id);
 
-    if (medicine.status.toString() != 'MedicineStatus.active') {
+    if (medicine.status != MedicineStatus.active) {
       debugPrint('🩺 Medicine is not active, skipping notifications');
       return;
     }
@@ -2196,7 +2201,7 @@ class NotificationService {
   }
 
   Future<int?> _scheduleTimeBasedMedicineNotification(
-    dynamic medicine,
+    Medicine medicine,
     String timeString,
   ) async {
     try {
@@ -2238,8 +2243,8 @@ class NotificationService {
 
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         id: notificationId,
-        title: medicine.name,
-        body: '${medicine.dosage} ${medicine.dosageUnit}',
+        title: _medicineNotificationTitle(medicine),
+        body: _getMedicineNotificationBody(medicine),
         scheduledDate: tz.TZDateTime.from(notificationDate, tz.local),
         notificationDetails: _getMedicineNotificationDetails(
           medicine,
@@ -2262,7 +2267,7 @@ class NotificationService {
   }
 
   NotificationDetails _getMedicineNotificationDetails(
-    dynamic medicine, [
+    Medicine medicine, [
     DateTime? when,
   ]) {
     return NotificationDetails(
@@ -2275,9 +2280,9 @@ class NotificationService {
         group: _groupMedicines,
         when: when,
         actions: [
-          _action('take_medicine', 'Taken'),
-          _action('skip_medicine', 'Skip dose'),
-          _action('snooze_medicine', 'In 15 min'),
+          _action('take_medicine', _l.medNotifTaken),
+          _action('skip_medicine', _l.medNotifSkip),
+          _action('snooze_medicine', _l.medNotifSnooze),
         ],
       ),
       iOS: const DarwinNotificationDetails(
@@ -2810,40 +2815,51 @@ class NotificationService {
     return 'Set for ${DateFormat('HH:mm').format(task.endDate)}';
   }
 
-  /// Generate context-aware notification body for medicines
-  String _getMedicineNotificationBody(dynamic medicine) {
-    final parts = <String>[];
+  /// The string bundle for the app's current language.
+  ///
+  /// Notifications are built far from the widget tree, so there is no context
+  /// to read — `Intl.defaultLocale` is set alongside the app language and is
+  /// the same source `Clock` and `N` use.
+  L get _l => lookupL(Locale((Intl.defaultLocale ?? 'en').split('_').first));
 
-    // Add dosage info if available
-    try {
-      if (medicine.dosage != null && medicine.dosage.toString().isNotEmpty) {
-        parts.add('Take ${medicine.dosage}');
-      }
-    } catch (e) {
-      // Dosage field might not exist
-    }
-
-    // Add timing instruction if available
-    try {
-      if (medicine.timing != null && medicine.timing.toString().isNotEmpty) {
-        parts.add(medicine.timing.toString());
-      }
-    } catch (e) {
-      // Timing field might not exist
-    }
-
-    String body = parts.isNotEmpty ? parts.join(' · ') : 'Time for this dose';
-
-    // Add dosage amount if available
-    try {
-      if (medicine.dosageAmount != null &&
-          medicine.dosageAmount.toString().isNotEmpty) {
-        body += '\nDosage: ${medicine.dosageAmount}';
-      }
-    } catch (e) {
-      // Dosage amount field might not exist
-    }
-
-    return body;
+  /// What a medicine reminder should say.
+  ///
+  /// This used to read `medicine.timing` and `medicine.dosageAmount` off a
+  /// `dynamic` inside a try/catch — neither field exists on Medicine, so both
+  /// silently failed and every reminder said "Take 500.0" with no unit and no
+  /// meal instruction. Typed now, so the next rename breaks the build instead.
+  String _getMedicineNotificationBody(Medicine medicine) {
+    final parts = <String>[
+      doseLabel(medicine.dosage, medicine.dosageUnit),
+      // The one thing worth putting on a lock screen: whether it goes with
+      // food. Skipped when it says "anytime", which adds nothing.
+      if (medicine.mealTiming != MealTiming.anytime)
+        _mealTimingText(medicine.mealTiming),
+    ];
+    return parts.isEmpty ? _l.medNotifTimeFor : parts.join(' · ');
   }
+
+  String _mealTimingText(MealTiming timing) => switch (timing) {
+    MealTiming.beforeMeal => _l.medBeforeMeal,
+    MealTiming.afterMeal => _l.medAfterMeal,
+    MealTiming.withMeal => _l.medWithMeal,
+    MealTiming.onEmptyStomach => _l.medEmptyStomach,
+    MealTiming.anytime => _l.medAnytime,
+  };
+
+  /// Title for a medicine reminder — prefixed with the person when the phone
+  /// keeps medicine for more than one, so a shared handset says whose dose it
+  /// is before you unlock it.
+  String _medicineNotificationTitle(Medicine medicine) {
+    final service = _carePeople;
+    if (service == null) return medicine.name;
+    if (service.getAll().length < 2) return medicine.name;
+    final person = service.findById(medicine.personId);
+    if (person == null) return medicine.name;
+    return _l.medNotifTitleFor(person.name, medicine.name);
+  }
+
+  CarePersonService? get _carePeople => di.sl.isRegistered<CarePersonService>()
+      ? di.sl<CarePersonService>()
+      : null;
 }
