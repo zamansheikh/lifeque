@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../islamic_resources_page.dart';
 import 'salah_step_model.dart';
+import '../../../../../core/utils/local_numbers.dart';
+import '../../../../../l10n/app_localizations.dart';
 
 class SalahStepCard extends StatelessWidget {
   const SalahStepCard({
@@ -43,7 +45,7 @@ class SalahStepCard extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    '$stepNumber',
+                    N.of(stepNumber),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -68,7 +70,7 @@ class SalahStepCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      step.englishName,
+                      step.name.of(context),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -77,7 +79,7 @@ class SalahStepCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      step.shortDesc,
+                      step.shortDesc.of(context),
                       style: const TextStyle(
                         fontSize: 12,
                         color: IslamicColors.mutedText,
@@ -130,15 +132,15 @@ class SalahStepDetailPage extends StatelessWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Arabic name card
-                _arabicCard(color),
+                _arabicCard(context, color),
                 const SizedBox(height: 14),
                 // Description card
                 _infoCard(
-                  title: 'Description',
+                  title: L.of(context).guideDescription,
                   icon: Icons.info_outline_rounded,
                   color: color,
                   child: Text(
-                    step.detailDesc,
+                    step.detailDesc.of(context),
                     style: const TextStyle(
                       fontSize: 14.5,
                       height: 1.7,
@@ -149,7 +151,7 @@ class SalahStepDetailPage extends StatelessWidget {
                 const SizedBox(height: 14),
                 // Key points card
                 _infoCard(
-                  title: 'Key Points',
+                  title: L.of(context).guideKeyPoints,
                   icon: Icons.checklist_rounded,
                   color: color,
                   child: Column(
@@ -172,7 +174,7 @@ class SalahStepDetailPage extends StatelessWidget {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
-                                    point,
+                                    point.of(context),
                                     style: const TextStyle(
                                       fontSize: 14,
                                       height: 1.5,
@@ -202,7 +204,7 @@ class SalahStepDetailPage extends StatelessWidget {
   SliverAppBar _buildAppBar(BuildContext context, Color color) {
     return SliverAppBar(
       title: Text(
-        step.englishName,
+        step.name.of(context),
         style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,
@@ -240,7 +242,7 @@ class SalahStepDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _arabicCard(Color color) {
+  Widget _arabicCard(BuildContext context, Color color) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -270,7 +272,7 @@ class SalahStepDetailPage extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            step.englishName,
+            step.name.of(context),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 13,
@@ -397,8 +399,13 @@ class _DuaCarouselState extends State<_DuaCarousel> {
                 Expanded(
                   child: Text(
                     hasMultiple
-                        ? 'Du\'a / Dhikr  (${_currentIndex + 1}/${widget.duas.length})'
-                        : 'Du\'a / Dhikr',
+                        ? L
+                              .of(context)
+                              .guideDuaDhikrCount(
+                                _currentIndex + 1,
+                                widget.duas.length,
+                              )
+                        : L.of(context).guideDuaDhikr,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -410,7 +417,7 @@ class _DuaCarouselState extends State<_DuaCarousel> {
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: dua.arabic));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Copied Arabic text')),
+                      SnackBar(content: Text(L.of(context).guideCopiedArabic)),
                     );
                   },
                   icon: const Icon(
@@ -534,7 +541,7 @@ class _DuaContent extends StatelessWidget {
           if (dua.transliteration != null) ...[
             const SizedBox(height: 10),
             Text(
-              dua.transliteration!,
+              dua.transliteration!.of(context),
               style: const TextStyle(
                 fontSize: 13,
                 fontStyle: FontStyle.italic,
@@ -546,7 +553,7 @@ class _DuaContent extends StatelessWidget {
           if (dua.translation != null) ...[
             const SizedBox(height: 8),
             Text(
-              '"${dua.translation!}"',
+              '"${dua.translation!.of(context)}"',
               style: const TextStyle(
                 fontSize: 13,
                 color: IslamicColors.darkText,

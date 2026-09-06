@@ -4,6 +4,7 @@ import '../islamic_resources_page.dart';
 import 'salah_guide_data.dart';
 import 'salah_step_model.dart';
 import 'detailed_salah_page.dart';
+import '../../../../../l10n/app_localizations.dart';
 
 class SalahTypesPage extends StatelessWidget {
   const SalahTypesPage({super.key});
@@ -14,7 +15,7 @@ class SalahTypesPage extends StatelessWidget {
       backgroundColor: IslamicColors.cream,
       body: CustomScrollView(
         slivers: [
-          _buildSliverHeader(),
+          _buildSliverHeader(context),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             sliver: SliverList(
@@ -32,11 +33,11 @@ class SalahTypesPage extends StatelessWidget {
     );
   }
 
-  SliverAppBar _buildSliverHeader() {
+  SliverAppBar _buildSliverHeader(BuildContext context) {
     return SliverAppBar(
-      title: const Text(
-        'Salah Guide',
-        style: TextStyle(
+      title: Text(
+        L.of(context).resSalahGuide,
+        style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,
           fontSize: 18,
@@ -141,7 +142,7 @@ class _SalahTypeCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      salahType.title,
+                      salahType.title.of(context),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -150,7 +151,7 @@ class _SalahTypeCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      salahType.subtitle,
+                      salahType.subtitle.of(context),
                       style: const TextStyle(
                         fontSize: 13,
                         color: IslamicColors.mutedText,

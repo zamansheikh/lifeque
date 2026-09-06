@@ -1247,5 +1247,77 @@
   "waqtWitr": "Witr",
   "waqtColPreSunnah": "Pre\nSunnah",
   "waqtColPostSunnah": "Post\nSunnah",
-  "waqtColTotal": "Rakah\nTotal"
+  "waqtColTotal": "Rakah\nTotal",
+  "guideDescription": "Description",
+  "guideKeyPoints": "Key Points",
+  "guideCopiedArabic": "Copied Arabic text",
+  "guideSequentialSteps": "{count} sequential steps",
+  "@guideSequentialSteps": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "guideStepCount": "{count} steps",
+  "@guideStepCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "guideDuaDhikr": "Du'a / Dhikr",
+  "guideDuaDhikrCount": "Du'a / Dhikr  ({index}/{total})",
+  "@guideDuaDhikrCount": {
+    "placeholders": {
+      "index": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "waqtTableSource": "Source: Sahih al-Bukhari & Muslim — consensus of the four major schools.",
+  "duaCopyArabic": "Copy",
+  "duaCopiedArabic": "Arabic text copied",
+  "waqtFardCount": "{count} Fard",
+  "@waqtFardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "duaCopyArabicLong": "Copy Arabic",
+  "duaCountLabel": "{count} du’as",
+  "@duaCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "duaSearchHint": "Search du’as…",
+  "duaSearchEmpty": "No du’a matches that search.",
+  "duaSearchEmptyHint": "Try a shorter word, or the Arabic name.",
+  "duaSearchClear": "Clear search",
+  "duaSearchResults": "{count} matches",
+  "@duaSearchResults": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "duaBadgeTransliteration": "TR",
+  "duaBadgeMeaning": "EN"
 }

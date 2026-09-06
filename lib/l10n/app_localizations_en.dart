@@ -2495,4 +2495,104 @@ class LEn extends L {
 
   @override
   String get waqtColTotal => 'Rakah\nTotal';
+
+  @override
+  String get guideDescription => 'Description';
+
+  @override
+  String get guideKeyPoints => 'Key Points';
+
+  @override
+  String get guideCopiedArabic => 'Copied Arabic text';
+
+  @override
+  String guideSequentialSteps(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString sequential steps';
+  }
+
+  @override
+  String guideStepCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString steps';
+  }
+
+  @override
+  String get guideDuaDhikr => 'Du\'a / Dhikr';
+
+  @override
+  String guideDuaDhikrCount(int index, int total) {
+    final intl.NumberFormat indexNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String indexString = indexNumberFormat.format(index);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return 'Du\'a / Dhikr  ($indexString/$totalString)';
+  }
+
+  @override
+  String get waqtTableSource =>
+      'Source: Sahih al-Bukhari & Muslim — consensus of the four major schools.';
+
+  @override
+  String get duaCopyArabic => 'Copy';
+
+  @override
+  String get duaCopiedArabic => 'Arabic text copied';
+
+  @override
+  String waqtFardCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString Fard';
+  }
+
+  @override
+  String get duaCopyArabicLong => 'Copy Arabic';
+
+  @override
+  String duaCountLabel(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString du’as';
+  }
+
+  @override
+  String get duaSearchHint => 'Search du’as…';
+
+  @override
+  String get duaSearchEmpty => 'No du’a matches that search.';
+
+  @override
+  String get duaSearchEmptyHint => 'Try a shorter word, or the Arabic name.';
+
+  @override
+  String get duaSearchClear => 'Clear search';
+
+  @override
+  String duaSearchResults(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString matches';
+  }
+
+  @override
+  String get duaBadgeTransliteration => 'TR';
+
+  @override
+  String get duaBadgeMeaning => 'EN';
 }

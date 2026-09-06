@@ -2,19 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'islamic_resources_page.dart';
+import 'salah_guide/salah_step_model.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../../../../l10n/app_localizations.dart';
 
 // ─── Data model ───────────────────────────────────────────────────────────────
 class _Dua {
   final String arabicName;
-  final String englishName;
+  final LText name;
   final String arabicText;
-  final String transliteration;
-  final String translation;
-  final String? when; // context/when to recite
+  final LText transliteration;
+  final LText translation;
+  final LText? when;
 
   const _Dua({
     required this.arabicName,
-    required this.englishName,
+    required this.name,
     required this.arabicText,
     required this.transliteration,
     required this.translation,
@@ -24,7 +27,7 @@ class _Dua {
 
 class _DuaCategory {
   final String arabicLabel;
-  final String label;
+  final LText label;
   final Color color;
   final Color bgColor;
   final IconData icon;
@@ -44,218 +47,482 @@ class _DuaCategory {
 final List<_DuaCategory> _categories = [
   _DuaCategory(
     arabicLabel: 'فِي الصَّلَاة',
-    label: 'During Salah',
+    label: LText('During Salah', 'নামাজের ভেতরে'),
     color: IslamicColors.deepGreen,
     bgColor: IslamicColors.lightGreen,
     icon: Icons.self_improvement_rounded,
     duas: const [
       _Dua(
         arabicName: 'دُعَاء الِاسْتِفْتَاح',
-        englishName: 'Opening Du\'a (Istiftah)',
-        when: 'Silent — after Opening Takbir',
+        name: LText('Opening Du\'a (Istiftah)', 'দোয়ায়ে ইস্তিফতাহ'),
+        when: LText(
+          'Silent — after Opening Takbir',
+          'চুপে চুপে — তাকবিরে তাহরিমার পর',
+        ),
         arabicText:
             'سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ وَتَبَارَكَ اسْمُكَ وَتَعَالَى جَدُّكَ وَلَا إِلٰهَ غَيْرُكَ',
-        transliteration:
-            'Subhanakallahumma wa bihamdika wa tabarakasmuka wa ta\'ala jadduka wa la ilaha ghayruk.',
-        translation:
-            'How perfect You are O Allah, and I praise You. Blessed is Your Name and Exalted is Your Majesty. There is no god worthy of worship except You.',
+        transliteration: LText(
+          'Subhanakallahumma wa bihamdika wa tabarakasmuka wa ta\'ala jadduka wa la ilaha ghayruk.',
+          'সুবহানাকাল্লাহুম্মা ওয়া বিহামদিকা ওয়া তাবারাকাসমুকা ওয়া তাআলা জাদ্দুকা ওয়া লা ইলাহা গাইরুক।',
+        ),
+        translation: LText(
+          'How perfect You are O Allah, and I praise You. Blessed is Your Name and Exalted is Your Majesty. There is no god worthy of worship except You.',
+          'হে আল্লাহ, আপনি কত পবিত্র! সমস্ত প্রশংসা আপনার। আপনার নাম বরকতময় ও আপনার মর্যাদা সুউচ্চ। আপনি ছাড়া ইবাদতের যোগ্য কোনো ইলাহ নেই।',
+        ),
       ),
       _Dua(
         arabicName: 'ذِكْر الرُّكُوع',
-        englishName: 'Dhikr of Ruku\'',
-        when: 'Repeated 3 times (minimum) in Ruku\'',
+        name: LText('Dhikr of Ruku\'', 'রুকুর তাসবিহ'),
+        when: LText(
+          'Repeated 3 times (minimum) in Ruku\'',
+          'রুকুতে অন্তত ৩ বার',
+        ),
         arabicText: 'سُبْحَانَ رَبِّيَ الْعَظِيم',
-        transliteration: 'Subhana Rabbiyal \'Azim',
-        translation: 'Glory be to my Lord, the Most Great',
+        transliteration: LText(
+          'Subhana Rabbiyal \'Azim',
+          'সুবহানা রাব্বিয়াল আজিম',
+        ),
+        translation: LText(
+          'Glory be to my Lord, the Most Great',
+          'আমার মহান প্রতিপালক পবিত্র',
+        ),
       ),
       _Dua(
         arabicName: 'عِنْد الرَّفْع مِن الرُّكُوع',
-        englishName: 'Rising from Ruku\'',
-        when: 'While rising from bowing',
+        name: LText('Rising from Ruku\'', 'রুকু থেকে ওঠার দোয়া'),
+        when: LText('While rising from bowing', 'রুকু থেকে ওঠার সময়'),
         arabicText:
             'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ ۝ رَبَّنَا وَلَكَ الْحَمْدُ حَمْدًا كَثِيرًا طَيِّبًا مُبَارَكًا فِيه',
-        transliteration:
-            'Sami\'Allahu liman hamidah. Rabbana wa lakal hamd, hamdan kathiran tayyiban mubarakan fih.',
-        translation:
-            'Allah hears the one who praises Him. Our Lord, to You is all praise — abundant, pure, and blessed praise.',
+        transliteration: LText(
+          'Sami\'Allahu liman hamidah. Rabbana wa lakal hamd, hamdan kathiran tayyiban mubarakan fih.',
+          'সামিআল্লাহু লিমান হামিদাহ। রাব্বানা ওয়া লাকাল হামদ, হামদান কাসিরান তাইয়্যিবান মুবারাকান ফিহ।',
+        ),
+        translation: LText(
+          'Allah hears the one who praises Him. Our Lord, to You is all praise — abundant, pure, and blessed praise.',
+          'যে আল্লাহর প্রশংসা করে আল্লাহ তার কথা শোনেন। হে আমাদের প্রতিপালক, সমস্ত প্রশংসা আপনারই — অজস্র, পবিত্র ও বরকতময় প্রশংসা।',
+        ),
       ),
       _Dua(
         arabicName: 'ذِكْر السُّجُود',
-        englishName: 'Dhikr of Sujud',
-        when: 'Repeated 3 times (minimum) in prostration',
+        name: LText('Dhikr of Sujud', 'সিজদার তাসবিহ'),
+        when: LText(
+          'Repeated 3 times (minimum) in prostration',
+          'সিজদায় অন্তত ৩ বার',
+        ),
         arabicText: 'سُبْحَانَ رَبِّيَ الْأَعْلَى',
-        transliteration: 'Subhana Rabbiyal A\'la',
-        translation: 'Glory be to my Lord, the Most High',
+        transliteration: LText(
+          'Subhana Rabbiyal A\'la',
+          'সুবহানা রাব্বিয়াল আ‘লা',
+        ),
+        translation: LText(
+          'Glory be to my Lord, the Most High',
+          'আমার সুউচ্চ প্রতিপালক পবিত্র',
+        ),
       ),
       _Dua(
         arabicName: 'دُعَاء بَيْن السَّجْدَتَيْن',
-        englishName: 'Du\'a between Sujuds',
-        when: 'In the Jalsah (sitting between two prostrations)',
+        name: LText('Du\'a between Sujuds', 'দুই সিজদার মাঝের দোয়া'),
+        when: LText(
+          'In the Jalsah (sitting between two prostrations)',
+          'জালসায় (দুই সিজদার মাঝে বসে)',
+        ),
         arabicText:
             'رَبِّ اغْفِرْ لِي وَارْحَمْنِي وَاجْبُرْنِي وَارْفَعْنِي وَارْزُقْنِي وَاهْدِنِي وَعَافِنِي',
-        transliteration:
-            'Rabbighfirli, warhamni, wajburni, warfa\'ni, warzuqni, wahdinii, wa\'afini.',
-        translation:
-            'O Lord, forgive me, have mercy on me, restore me, raise me up, provide for me, guide me, and grant me wellbeing.',
+        transliteration: LText(
+          'Rabbighfirli, warhamni, wajburni, warfa\'ni, warzuqni, wahdinii, wa\'afini.',
+          'রাব্বিগফিরলি, ওয়ারহামনি, ওয়াজবুরনি, ওয়ারফা‘নি, ওয়ারযুকনি, ওয়াহদিনি, ওয়া আফিনি।',
+        ),
+        translation: LText(
+          'O Lord, forgive me, have mercy on me, restore me, raise me up, provide for me, guide me, and grant me wellbeing.',
+          'হে আমার প্রতিপালক, আমাকে ক্ষমা করুন, দয়া করুন, আমার ঘাটতি পূরণ করুন, মর্যাদা বাড়িয়ে দিন, রিজিক দিন, হেদায়েত দিন এবং সুস্থতা দিন।',
+        ),
       ),
     ],
   ),
   _DuaCategory(
     arabicLabel: 'بَعْدَ الصَّلَاة',
-    label: 'After Salah',
+    label: LText('After Salah', 'নামাজের পরে'),
     color: const Color(0xFF6A1B9A),
     bgColor: const Color(0xFFF3E5F5),
     icon: Icons.volunteer_activism_rounded,
     duas: const [
       _Dua(
         arabicName: 'الِاسْتِغْفَار',
-        englishName: 'Istighfar (3 times)',
-        when: 'Immediately after Salam — 3 times',
+        name: LText('Istighfar (3 times)', 'ইস্তিগফার (৩ বার)'),
+        when: LText(
+          'Immediately after Salam — 3 times',
+          'সালামের পরপরই — ৩ বার',
+        ),
         arabicText: 'أَسْتَغْفِرُ اللَّه',
-        transliteration: 'Astaghfirullah',
-        translation: 'I seek forgiveness from Allah',
+        transliteration: LText('Astaghfirullah', 'আস্তাগফিরুল্লাহ'),
+        translation: LText(
+          'I seek forgiveness from Allah',
+          'আমি আল্লাহর কাছে ক্ষমা চাই',
+        ),
       ),
       _Dua(
         arabicName: 'دُعَاء السَّلَام',
-        englishName: 'Peace Du\'a',
-        when: 'After the three istigfars',
+        name: LText('Peace Du\'a', 'শান্তির দোয়া'),
+        when: LText('After the three istigfars', 'তিনবার ইস্তিগফারের পর'),
         arabicText:
             'اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَام',
-        transliteration:
-            'Allahumma Antas-Salam wa minkas-salam, tabarakta ya Dhal-Jalali wal-Ikram.',
-        translation:
-            'O Allah, You are Peace and from You comes peace. Blessed are You, O Possessor of Majesty and Honor.',
+        transliteration: LText(
+          'Allahumma Antas-Salam wa minkas-salam, tabarakta ya Dhal-Jalali wal-Ikram.',
+          'আল্লাহুম্মা আনতাস সালাম ওয়া মিনকাস সালাম, তাবারাকতা ইয়া যাল জালালি ওয়াল ইকরাম।',
+        ),
+        translation: LText(
+          'O Allah, You are Peace and from You comes peace. Blessed are You, O Possessor of Majesty and Honor.',
+          'হে আল্লাহ, আপনিই শান্তি এবং আপনার কাছ থেকেই শান্তি আসে। আপনি বরকতময়, হে মহিমা ও সম্মানের অধিকারী।',
+        ),
       ),
       _Dua(
         arabicName: 'التَّسْبِيح وَالتَّحْمِيد',
-        englishName: 'Tasbih, Tahmid & Takbir',
-        when: '33 + 33 + 34 = 100',
+        name: LText('Tasbih, Tahmid & Takbir', 'তাসবিহ, তাহমিদ ও তাকবির'),
+        when: LText('33 + 33 + 34 = 100', '৩৩ + ৩৩ + ৩৪ = ১০০'),
         arabicText:
             'سُبْحَانَ اللَّهِ ×٣٣ ۝ الْحَمْدُ لِلَّهِ ×٣٣ ۝ اللَّهُ أَكْبَر ×٣٤',
-        transliteration:
-            'Subhanallah (×33), Alhamdulillah (×33), Allahu Akbar (×34)',
-        translation:
-            'Glory be to Allah (33 times), Praise be to Allah (33 times), Allah is the Greatest (34 times).',
+        transliteration: LText(
+          'Subhanallah (×33), Alhamdulillah (×33), Allahu Akbar (×34)',
+          'সুবহানাল্লাহ (×৩৩), আলহামদুলিল্লাহ (×৩৩), আল্লাহু আকবার (×৩৪)',
+        ),
+        translation: LText(
+          'Glory be to Allah (33 times), Praise be to Allah (33 times), Allah is the Greatest (34 times).',
+          'আল্লাহ পবিত্র (৩৩ বার), সমস্ত প্রশংসা আল্লাহর (৩৩ বার), আল্লাহ সবচেয়ে মহান (৩৪ বার)।',
+        ),
       ),
       _Dua(
         arabicName: 'آيَة الْكُرْسِي',
-        englishName: 'Ayat al-Kursi',
-        when: 'Once after every obligatory prayer — great protection',
+        name: LText('Ayat al-Kursi', 'আয়াতুল কুরসি'),
+        when: LText(
+          'Once after every obligatory prayer — great protection',
+          'প্রতি ফরজ নামাজের পর একবার — বড় হেফাজত',
+        ),
         arabicText:
             'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ',
-        transliteration:
-            'Allahu la ilaha illa huwal-hayyul-qayyum. La ta\'khudhuhuu sinatun wa la nawm. Lahuu ma fis-samawati wa ma fil-ard...',
-        translation:
-            'Allah — there is no deity except Him, the Ever-Living, the Self-Sustaining. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth... (Surah 2:255)',
+        transliteration: LText(
+          'Allahu la ilaha illa huwal-hayyul-qayyum. La ta\'khudhuhuu sinatun wa la nawm. Lahuu ma fis-samawati wa ma fil-ard...',
+          'আল্লাহু লা ইলাহা ইল্লা হুয়াল হাইয়ুল কাইয়ুম। লা তা’খুযুহু সিনাতুও ওয়ালা নাউম। লাহু মা ফিস সামাওয়াতি ওয়া মা ফিল আরদ…',
+        ),
+        translation: LText(
+          'Allah — there is no deity except Him, the Ever-Living, the Self-Sustaining. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth... (Surah 2:255)',
+          'আল্লাহ — তিনি ছাড়া কোনো ইলাহ নেই, তিনি চিরঞ্জীব, সবকিছুর ধারক। তন্দ্রা বা ঘুম তাঁকে স্পর্শ করে না। আসমান ও জমিনে যা কিছু আছে সবই তাঁর… (সূরা ২:২৫৫)',
+        ),
       ),
     ],
   ),
   _DuaCategory(
     arabicLabel: 'أَذْكَار الصَّبَاح وَالْمَسَاء',
-    label: 'Morning & Evening Adhkar',
+    label: LText('Morning & Evening Adhkar', 'সকাল-সন্ধ্যার জিকির'),
     color: const Color(0xFFE65100),
     bgColor: const Color(0xFFFFF3E0),
     icon: Icons.wb_sunny_rounded,
     duas: const [
       _Dua(
         arabicName: 'سَيِّد الِاسْتِغْفَار',
-        englishName: 'Master of Seeking Forgiveness',
-        when: 'Morning and Evening — once each',
+        name: LText('Master of Seeking Forgiveness', 'সাইয়িদুল ইস্তিগফার'),
+        when: LText(
+          'Morning and Evening — once each',
+          'সকাল ও সন্ধ্যায় — একবার করে',
+        ),
         arabicText:
             'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلٰهَ إِلَّا أَنْتَ خَلَقْتَنِي وَأَنَا عَبْدُكَ وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ أَبُوءُ لَكَ بِنِعْمَتِكَ وَأَبُوءُ بِذَنْبِي',
-        transliteration:
-            'Allahumma anta Rabbi, la ilaha illa anta, khalaqtani wa ana \'abduka wa ana \'ala \'ahdika wa wa\'dika mastata\'tu, a\'udhu bika min sharri ma sana\'tu, abu\'u laka bini\'matika wa abu\'u bidhanbii...',
-        translation:
-            'O Allah, You are my Lord. There is no god but You. You created me and I am Your slave. I uphold Your covenant and my promise to You as best I can. I seek refuge in You from the evil of what I have done...',
+        transliteration: LText(
+          'Allahumma anta Rabbi, la ilaha illa anta, khalaqtani wa ana \'abduka wa ana \'ala \'ahdika wa wa\'dika mastata\'tu, a\'udhu bika min sharri ma sana\'tu, abu\'u laka bini\'matika wa abu\'u bidhanbii...',
+          'আল্লাহুম্মা আনতা রাব্বি, লা ইলাহা ইল্লা আনতা, খালাকতানি ওয়া আনা আবদুকা ওয়া আনা আলা আহদিকা ওয়া ওয়া‘দিকা মাসতাতা‘তু, আউযু বিকা মিন শাররি মা সানা‘তু, আবুউ লাকা বিনি‘মাতিকা ওয়া আবুউ বিযামবি…',
+        ),
+        translation: LText(
+          'O Allah, You are my Lord. There is no god but You. You created me and I am Your slave. I uphold Your covenant and my promise to You as best I can. I seek refuge in You from the evil of what I have done...',
+          'হে আল্লাহ, আপনিই আমার প্রতিপালক। আপনি ছাড়া কোনো ইলাহ নেই। আপনি আমাকে সৃষ্টি করেছেন, আমি আপনার বান্দা। সাধ্যমতো আমি আপনার সঙ্গে করা অঙ্গীকারে অটল আছি। আমি যা করেছি তার অনিষ্ট থেকে আপনার আশ্রয় চাই…',
+        ),
       ),
       _Dua(
         arabicName: 'دُعَاء الصَّبَاح',
-        englishName: 'Morning Protection',
-        when: 'Morning — 3 times',
+        name: LText('Morning Protection', 'সকালের হেফাজত'),
+        when: LText('Morning — 3 times', 'সকালে — ৩ বার'),
         arabicText:
             'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيم',
-        transliteration:
-            'Bismillahil-ladhi la yadurru ma\'asmihi shay\'un fil-ardi wala fis-sama\'i wa huwas-sami\'ul-\'alim.',
-        translation:
-            'In the name of Allah, with whose name nothing can cause harm on earth or in the heavens, and He is the All-Hearing, All-Knowing.',
+        transliteration: LText(
+          'Bismillahil-ladhi la yadurru ma\'asmihi shay\'un fil-ardi wala fis-sama\'i wa huwas-sami\'ul-\'alim.',
+          'বিসমিল্লাহিল্লাযি লা ইয়াদুররু মা‘আসমিহি শাইউন ফিল আরদি ওয়ালা ফিস সামাই ওয়া হুয়াস সামিউল আলিম।',
+        ),
+        translation: LText(
+          'In the name of Allah, with whose name nothing can cause harm on earth or in the heavens, and He is the All-Hearing, All-Knowing.',
+          'আল্লাহর নামে, যাঁর নামের বরকতে জমিনে বা আসমানে কোনো কিছুই ক্ষতি করতে পারে না; তিনি সর্বশ্রোতা, সর্বজ্ঞ।',
+        ),
       ),
       _Dua(
         arabicName: 'أذكار المساء',
-        englishName: 'Evening Remembrance',
-        when: 'Evening — 3 times',
+        name: LText('Evening Remembrance', 'সন্ধ্যার জিকির'),
+        when: LText('Evening — 3 times', 'সন্ধ্যায় — ৩ বার'),
         arabicText:
             'أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَق',
-        transliteration:
-            'A\'udhu bikalimAtillahit-tammati min sharri ma khalaq.',
-        translation:
-            'I seek refuge in the perfect words of Allah from the evil of what He has created.',
+        transliteration: LText(
+          'A\'udhu bikalimAtillahit-tammati min sharri ma khalaq.',
+          'আউযু বিকালিমাতিল্লাহিত তাম্মাতি মিন শাররি মা খালাক।',
+        ),
+        translation: LText(
+          'I seek refuge in the perfect words of Allah from the evil of what He has created.',
+          'আমি আল্লাহর পরিপূর্ণ কালামের আশ্রয় চাই তিনি যা সৃষ্টি করেছেন তার অনিষ্ট থেকে।',
+        ),
       ),
     ],
   ),
   _DuaCategory(
     arabicLabel: 'أَدْعِيَة مُتَنَوِّعَة',
-    label: 'General Du\'as',
+    label: LText('General Du\'as', 'সাধারণ দোয়া'),
     color: const Color(0xFF1565C0),
     bgColor: const Color(0xFFE3F2FD),
     icon: Icons.favorite_border_rounded,
     duas: const [
       _Dua(
         arabicName: 'دُعَاء الدُّنْيَا وَالآخِرَة',
-        englishName: 'Best of Both Worlds',
+        name: LText('Best of Both Worlds', 'দুনিয়া ও আখিরাতের কল্যাণ'),
         arabicText:
             'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّار',
-        transliteration:
-            'Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina \'adhaban-nar.',
-        translation:
-            'Our Lord, give us good in this world and good in the Hereafter, and protect us from the torment of the Fire.',
+        transliteration: LText(
+          'Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina \'adhaban-nar.',
+          'রাব্বানা আতিনা ফিদ্দুনইয়া হাসানাতাও ওয়া ফিল আখিরাতি হাসানাতাও ওয়া কিনা আজাবান নার।',
+        ),
+        translation: LText(
+          'Our Lord, give us good in this world and good in the Hereafter, and protect us from the torment of the Fire.',
+          'হে আমাদের প্রতিপালক, আমাদের দুনিয়াতে কল্যাণ দিন, আখিরাতেও কল্যাণ দিন এবং জাহান্নামের আজাব থেকে রক্ষা করুন।',
+        ),
       ),
       _Dua(
         arabicName: 'دُعَاء الثَّبَات',
-        englishName: 'Du\'a for Steadfastness',
+        name: LText('Du\'a for Steadfastness', 'অবিচলতার দোয়া'),
         arabicText: 'يَا مُقَلِّبَ الْقُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ',
-        transliteration: 'Ya muqallibal-qulub, thabbit qalbi \'ala dinik.',
-        translation:
-            'O Turner of hearts, make my heart firm upon Your religion.',
+        transliteration: LText(
+          'Ya muqallibal-qulub, thabbit qalbi \'ala dinik.',
+          'ইয়া মুকাল্লিবাল কুলুব, সাব্বিত কালবি আলা দিনিক।',
+        ),
+        translation: LText(
+          'O Turner of hearts, make my heart firm upon Your religion.',
+          'হে অন্তর পরিবর্তনকারী, আমার অন্তরকে আপনার দ্বীনের ওপর অবিচল রাখুন।',
+        ),
       ),
       _Dua(
         arabicName: 'دُعَاء الهِدَايَة',
-        englishName: 'Du\'a for Guidance',
+        name: LText('Du\'a for Guidance', 'হেদায়েতের দোয়া'),
         arabicText: 'اللَّهُمَّ اهْدِنِي وَسَدِّدْنِي',
-        transliteration: 'Allahummahdini wa saddidni.',
-        translation: 'O Allah, guide me and keep me on the right path.',
+        transliteration: LText(
+          'Allahummahdini wa saddidni.',
+          'আল্লাহুম্মাহদিনি ওয়া সাদ্দিদনি।',
+        ),
+        translation: LText(
+          'O Allah, guide me and keep me on the right path.',
+          'হে আল্লাহ, আমাকে হেদায়েত দিন এবং সঠিক পথে অবিচল রাখুন।',
+        ),
       ),
       _Dua(
         arabicName: 'دُعَاء الخَيْر',
-        englishName: 'Du\'a for All Good',
+        name: LText('Du\'a for All Good', 'সব কল্যাণের দোয়া'),
         arabicText:
             'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْهُدَى وَالتُّقَى وَالْعَفَافَ وَالْغِنَى',
-        transliteration:
-            'Allahumma inni as\'alukal-huda wat-tuqa wal-\'afafa wal-ghina.',
-        translation:
-            'O Allah, I ask You for guidance, piety, chastity, and self-sufficiency.',
+        transliteration: LText(
+          'Allahumma inni as\'alukal-huda wat-tuqa wal-\'afafa wal-ghina.',
+          'আল্লাহুম্মা ইন্নি আসআলুকাল হুদা ওয়াত তুকা ওয়াল আফাফা ওয়াল গিনা।',
+        ),
+        translation: LText(
+          'O Allah, I ask You for guidance, piety, chastity, and self-sufficiency.',
+          'হে আল্লাহ, আমি আপনার কাছে হেদায়েত, তাকওয়া, পবিত্রতা ও অভাবমুক্তি চাই।',
+        ),
       ),
     ],
   ),
 ];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-class DuasAzkarPage extends StatelessWidget {
+class DuasAzkarPage extends StatefulWidget {
   const DuasAzkarPage({super.key});
 
   @override
+  State<DuasAzkarPage> createState() => _DuasAzkarPageState();
+}
+
+class _DuasAzkarPageState extends State<DuasAzkarPage> {
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Categories reduced to the du'as matching the query, with empty ones
+  /// dropped. Matching runs over both languages plus the Arabic, so someone
+  /// reading in Bangla can still search by the name they know in English.
+  List<_DuaCategory> _visibleCategories(BuildContext context) {
+    if (_query.isEmpty) return _categories;
+    final q = _query.toLowerCase();
+
+    bool hit(_Dua d) => [
+      d.arabicName,
+      d.arabicText,
+      d.name.en,
+      d.name.bn,
+      d.transliteration.en,
+      d.transliteration.bn,
+      d.translation.en,
+      d.translation.bn,
+      d.when?.en ?? '',
+      d.when?.bn ?? '',
+    ].any((t) => t.toLowerCase().contains(q));
+
+    final out = <_DuaCategory>[];
+    for (final cat in _categories) {
+      // A hit on the category name keeps the whole category — searching
+      // "after salah" should show that section, not nothing.
+      final categoryHit =
+          cat.label.en.toLowerCase().contains(q) ||
+          cat.label.bn.contains(_query) ||
+          cat.arabicLabel.contains(_query);
+      final duas = categoryHit ? cat.duas : cat.duas.where(hit).toList();
+      if (duas.isEmpty) continue;
+      out.add(
+        _DuaCategory(
+          arabicLabel: cat.arabicLabel,
+          label: cat.label,
+          color: cat.color,
+          bgColor: cat.bgColor,
+          icon: cat.icon,
+          duas: duas,
+        ),
+      );
+    }
+    return out;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final searching = _query.isNotEmpty;
+    final visible = _visibleCategories(context);
+    final matches = visible.fold<int>(0, (n, c) => n + c.duas.length);
+
     return Scaffold(
       backgroundColor: IslamicColors.cream,
       body: CustomScrollView(
         slivers: [
-          _buildHeader(),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final cat = _categories[index];
-                return _DuaCategorySection(category: cat);
-              }, childCount: _categories.length),
+          _buildHeader(context),
+          SliverToBoxAdapter(child: _searchField(context, searching, matches)),
+          if (searching && visible.isEmpty)
+            SliverFillRemaining(hasScrollBody: false, child: _empty(context))
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _DuaCategorySection(
+                    category: visible[index],
+                    // While searching, open every card — the point of a search
+                    // is to see the du'a, not another row to tap.
+                    startExpanded: searching,
+                  ),
+                  childCount: visible.length,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _searchField(BuildContext context, bool searching, int matches) {
+    final l = L.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            elevation: 1,
+            shadowColor: Colors.black12,
+            child: TextField(
+              controller: _searchController,
+              onChanged: (v) => setState(() => _query = v.trim()),
+              textInputAction: TextInputAction.search,
+              style: const TextStyle(
+                fontSize: 14,
+                color: IslamicColors.darkText,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: l.duaSearchHint,
+                hintStyle: const TextStyle(
+                  fontSize: 14,
+                  color: IslamicColors.mutedText,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  size: 20,
+                  color: IslamicColors.mutedText,
+                ),
+                suffixIcon: searching
+                    ? IconButton(
+                        tooltip: l.duaSearchClear,
+                        icon: const Icon(Icons.close_rounded, size: 18),
+                        color: IslamicColors.mutedText,
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _query = '');
+                        },
+                      )
+                    : null,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ),
+          if (searching && matches > 0)
+            Padding(
+              padding: const EdgeInsets.only(left: 4, top: 8),
+              child: Text(
+                l.duaSearchResults(matches),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: IslamicColors.mutedText,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _empty(BuildContext context) {
+    final l = L.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 48, 32, 48),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off_rounded,
+            size: 44,
+            color: IslamicColors.mutedText.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l.duaSearchEmpty,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: IslamicColors.darkText,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l.duaSearchEmptyHint,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 12.5,
+              color: IslamicColors.mutedText,
+              height: 1.4,
             ),
           ),
         ],
@@ -263,11 +530,11 @@ class DuasAzkarPage extends StatelessWidget {
     );
   }
 
-  SliverAppBar _buildHeader() {
+  SliverAppBar _buildHeader(BuildContext context) {
     return SliverAppBar(
-      title: const Text(
-        'Du\'a & Adhkar',
-        style: TextStyle(
+      title: Text(
+        L.of(context).resDuas,
+        style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,
           fontSize: 18,
@@ -307,8 +574,12 @@ class DuasAzkarPage extends StatelessWidget {
 
 // ─── Category section ────────────────────────────────────────────────────────
 class _DuaCategorySection extends StatelessWidget {
-  const _DuaCategorySection({required this.category});
+  const _DuaCategorySection({
+    required this.category,
+    this.startExpanded = false,
+  });
   final _DuaCategory category;
+  final bool startExpanded;
 
   @override
   Widget build(BuildContext context) {
@@ -341,7 +612,7 @@ class _DuaCategorySection extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      category.label,
+                      category.label.of(context),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -361,7 +632,7 @@ class _DuaCategorySection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '${category.duas.length} du\'as',
+                  L.of(context).duaCountLabel(category.duas.length),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -373,10 +644,18 @@ class _DuaCategorySection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        ...category.duas.map(
-          (dua) => Padding(
+        ...category.duas.asMap().entries.map(
+          (e) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: _DuaCard(dua: dua, accentColor: category.color),
+            child: _DuaCard(
+              // Keyed on the dua so a card rebuilt under a new filter starts
+              // from the right expansion state rather than inheriting one.
+              key: ValueKey(e.value.arabicName + e.value.name.en),
+              dua: e.value,
+              position: e.key + 1,
+              accentColor: category.color,
+              startExpanded: startExpanded,
+            ),
           ),
         ),
       ],
@@ -386,16 +665,34 @@ class _DuaCategorySection extends StatelessWidget {
 
 // ─── Dua card ─────────────────────────────────────────────────────────────────
 class _DuaCard extends StatefulWidget {
-  const _DuaCard({required this.dua, required this.accentColor});
+  const _DuaCard({
+    super.key,
+    required this.dua,
+    required this.position,
+    required this.accentColor,
+    this.startExpanded = false,
+  });
   final _Dua dua;
+
+  /// Where this du'a falls in its category, from 1.
+  final int position;
   final Color accentColor;
+  final bool startExpanded;
 
   @override
   State<_DuaCard> createState() => _DuaCardState();
 }
 
 class _DuaCardState extends State<_DuaCard> {
-  bool _expanded = false;
+  late bool _expanded = widget.startExpanded;
+
+  @override
+  void didUpdateWidget(_DuaCard old) {
+    super.didUpdateWidget(old);
+    if (widget.startExpanded != old.startExpanded) {
+      _expanded = widget.startExpanded;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -435,13 +732,12 @@ class _DuaCardState extends State<_DuaCard> {
                     ),
                     child: Center(
                       child: Text(
-                        widget.dua.arabicName.split(' ').last,
-                        style: GoogleFonts.amiri(
-                          fontSize: 14,
+                        N.of(widget.position),
+                        style: TextStyle(
+                          fontSize: 15,
                           color: widget.accentColor,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w800,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ),
                   ),
@@ -460,7 +756,7 @@ class _DuaCardState extends State<_DuaCard> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          widget.dua.englishName,
+                          widget.dua.name.of(context),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -470,7 +766,7 @@ class _DuaCardState extends State<_DuaCard> {
                         if (widget.dua.when != null) ...[
                           const SizedBox(height: 2),
                           Text(
-                            widget.dua.when!,
+                            widget.dua.when!.of(context),
                             style: const TextStyle(
                               fontSize: 11.5,
                               color: IslamicColors.mutedText,
@@ -536,7 +832,7 @@ class _DuaCardState extends State<_DuaCard> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'TR',
+                          L.of(context).duaBadgeTransliteration,
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
@@ -547,7 +843,7 @@ class _DuaCardState extends State<_DuaCard> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          widget.dua.transliteration,
+                          widget.dua.transliteration.of(context),
                           style: const TextStyle(
                             fontSize: 13,
                             fontStyle: FontStyle.italic,
@@ -572,9 +868,9 @@ class _DuaCardState extends State<_DuaCard> {
                           color: Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
-                          'EN',
-                          style: TextStyle(
+                        child: Text(
+                          L.of(context).duaBadgeMeaning,
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: IslamicColors.mutedText,
@@ -584,7 +880,7 @@ class _DuaCardState extends State<_DuaCard> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          widget.dua.translation,
+                          widget.dua.translation.of(context),
                           style: const TextStyle(
                             fontSize: 13,
                             color: IslamicColors.darkText,
@@ -605,16 +901,16 @@ class _DuaCardState extends State<_DuaCard> {
                             ClipboardData(text: widget.dua.arabicText),
                           );
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Arabic text copied'),
-                              duration: Duration(seconds: 1),
+                            SnackBar(
+                              content: Text(L.of(context).duaCopiedArabic),
+                              duration: const Duration(seconds: 1),
                             ),
                           );
                         },
                         icon: const Icon(Icons.copy_rounded, size: 14),
-                        label: const Text(
-                          'Copy',
-                          style: TextStyle(fontSize: 12),
+                        label: Text(
+                          L.of(context).duaCopyArabic,
+                          style: const TextStyle(fontSize: 12),
                         ),
                         style: TextButton.styleFrom(
                           foregroundColor: widget.accentColor,

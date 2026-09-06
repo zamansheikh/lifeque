@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../utils/prayer_palette.dart';
+import '../../../../core/utils/local_numbers.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// One adhkar entry in [AfterPrayerDuasSheet].
@@ -35,6 +36,11 @@ class AfterPrayerDuasSheet {
     ),
     _Dua(_protection, '1×', 'آيَةُ الْكُرْسِيّ', _ayatulKursi),
   ];
+
+  /// The repetition counts read as numbers, so they follow the reader's
+  /// numerals rather than staying Latin under a Bangla interface.
+  static String _localDigits(String s) =>
+      s.replaceAllMapped(RegExp(r'\d'), (m) => N.plain(int.parse(m[0]!)));
 
   static String _afterSalam(L l) => l.adhkarSectionAfterSalam;
   static String _tasbih(L l) => l.adhkarSectionTasbih;
@@ -124,7 +130,7 @@ class AfterPrayerDuasSheet {
             ),
             const Spacer(),
             Text(
-              dua.count,
+              _localDigits(dua.count),
               style: TextStyle(
                 color: PrayerPalette.inkA(0.5),
                 fontSize: 10,

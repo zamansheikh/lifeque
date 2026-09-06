@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../islamic_resources_page.dart';
 import 'salah_step_model.dart';
 import 'salah_step_card.dart';
+import '../../../../../l10n/app_localizations.dart';
 
 class DetailedSalahPage extends StatelessWidget {
   const DetailedSalahPage({super.key, required this.salahType});
@@ -33,7 +34,7 @@ class DetailedSalahPage extends StatelessWidget {
   SliverAppBar _buildHeader(BuildContext context) {
     return SliverAppBar(
       title: Text(
-        salahType.title,
+        salahType.title.of(context),
         style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,
@@ -73,7 +74,7 @@ class DetailedSalahPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          salahType.subtitle,
+                          salahType.subtitle.of(context),
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 14,
@@ -81,7 +82,9 @@ class DetailedSalahPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${salahType.totalSteps} sequential steps',
+                          L
+                              .of(context)
+                              .guideSequentialSteps(salahType.totalSteps),
                           style: const TextStyle(
                             color: IslamicColors.gold,
                             fontSize: 12,
@@ -152,7 +155,7 @@ class _SectionWidget extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      section.title,
+                      section.title.of(context),
                       style: TextStyle(
                         fontSize: 15,
                         color: color,
@@ -172,7 +175,7 @@ class _SectionWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '${section.steps.length} steps',
+                  L.of(context).guideStepCount(section.steps.length),
                   style: TextStyle(
                     fontSize: 12,
                     color: color,

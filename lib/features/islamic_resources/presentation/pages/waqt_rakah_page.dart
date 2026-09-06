@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'islamic_resources_page.dart';
+import '../../../../core/utils/local_numbers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../prayer_times/presentation/utils/prayer_l10n.dart';
 
@@ -121,13 +122,11 @@ class WaqtRakahPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _sectionTitle('Rak\'ah Count Table'),
+                _sectionTitle(L.of(context).waqtSectionRakah),
                 const SizedBox(height: 10),
                 _RakahTable(),
                 const SizedBox(height: 6),
-                _noteCard(
-                  'Source: Sahih al-Bukhari & Muslim — Consensus of the four major schools.',
-                ),
+                _noteCard(L.of(context).waqtTableSource),
                 const SizedBox(height: 22),
                 _sectionTitle(L.of(context).waqtSectionTimes),
                 const SizedBox(height: 10),
@@ -367,12 +366,20 @@ class _RakahTable extends StatelessWidget {
           _dCell(prayer.sunnahPre, w * 0.14, Colors.blue.shade700),
           _dCell(prayer.fard, w * 0.14, IslamicColors.deepGreen, bold: true),
           _dCell(prayer.sunnahPost, w * 0.16, Colors.teal.shade700),
-          _dCell(prayer.extra, w * 0.14, Colors.purple.shade700),
+          _dCell(
+            prayer.extra.replaceFirst('Witr', L.of(context).waqtWitr),
+            w * 0.14,
+            Colors.purple.shade700,
+          ),
           _dCell(totalStr, w * 0.18, IslamicColors.darkText, bold: true),
         ],
       ),
     );
   }
+
+  /// The rak'ah counts read as numbers, so they follow the reader's numerals.
+  String _localDigits(String s) =>
+      s.replaceAllMapped(RegExp(r'\d'), (m) => N.plain(int.parse(m[0]!)));
 
   Widget _dCell(String text, double width, Color color, {bool bold = false}) {
     return SizedBox(
@@ -380,7 +387,7 @@ class _RakahTable extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         child: Text(
-          text,
+          _localDigits(text),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 13,
@@ -504,7 +511,7 @@ class _PrayerTimeCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                '${prayer.fard} Fard',
+                L.of(context).waqtFardCount(int.parse(prayer.fard)),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,

@@ -4488,6 +4488,126 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Rakah\nTotal'**
   String get waqtColTotal;
+
+  /// No description provided for @guideDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get guideDescription;
+
+  /// No description provided for @guideKeyPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Points'**
+  String get guideKeyPoints;
+
+  /// No description provided for @guideCopiedArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied Arabic text'**
+  String get guideCopiedArabic;
+
+  /// No description provided for @guideSequentialSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sequential steps'**
+  String guideSequentialSteps(int count);
+
+  /// No description provided for @guideStepCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} steps'**
+  String guideStepCount(int count);
+
+  /// No description provided for @guideDuaDhikr.
+  ///
+  /// In en, this message translates to:
+  /// **'Du\'a / Dhikr'**
+  String get guideDuaDhikr;
+
+  /// No description provided for @guideDuaDhikrCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Du\'a / Dhikr  ({index}/{total})'**
+  String guideDuaDhikrCount(int index, int total);
+
+  /// No description provided for @waqtTableSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source: Sahih al-Bukhari & Muslim — consensus of the four major schools.'**
+  String get waqtTableSource;
+
+  /// No description provided for @duaCopyArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get duaCopyArabic;
+
+  /// No description provided for @duaCopiedArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic text copied'**
+  String get duaCopiedArabic;
+
+  /// No description provided for @waqtFardCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Fard'**
+  String waqtFardCount(int count);
+
+  /// No description provided for @duaCopyArabicLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Arabic'**
+  String get duaCopyArabicLong;
+
+  /// No description provided for @duaCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} du’as'**
+  String duaCountLabel(int count);
+
+  /// No description provided for @duaSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search du’as…'**
+  String get duaSearchHint;
+
+  /// No description provided for @duaSearchEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No du’a matches that search.'**
+  String get duaSearchEmpty;
+
+  /// No description provided for @duaSearchEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a shorter word, or the Arabic name.'**
+  String get duaSearchEmptyHint;
+
+  /// No description provided for @duaSearchClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get duaSearchClear;
+
+  /// No description provided for @duaSearchResults.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} matches'**
+  String duaSearchResults(int count);
+
+  /// No description provided for @duaBadgeTransliteration.
+  ///
+  /// In en, this message translates to:
+  /// **'TR'**
+  String get duaBadgeTransliteration;
+
+  /// No description provided for @duaBadgeMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'EN'**
+  String get duaBadgeMeaning;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
