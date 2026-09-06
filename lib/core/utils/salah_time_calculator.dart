@@ -1,5 +1,5 @@
 import 'package:adhan/adhan.dart';
-import 'package:intl/intl.dart';
+import '../../core/utils/local_clock.dart';
 
 class SalahTimeCalculator {
   final Coordinates coordinates;
@@ -25,7 +25,7 @@ class SalahTimeCalculator {
 
   // Helper method to format times for display
   static String formatTime(DateTime time) {
-    return DateFormat('h:mm a').format(time);
+    return Clock.h12(time);
   }
 
   // Get prayer times with proper formatting

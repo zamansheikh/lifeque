@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/utils/local_clock.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -131,7 +133,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
             child: FilledButton.icon(
               onPressed: _save,
               icon: const Icon(Icons.check_rounded, size: 18),
-              label: const Text('Save'),
+              label: Text(L.of(context).commonSave),
               style: FilledButton.styleFrom(
                 backgroundColor: _brand,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -151,7 +153,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
             _card(children: [_titleField(), ..._noteRow()]),
             const SizedBox(height: 12),
             _card(
-              title: 'When',
+              title: L.of(context).todoFormWhen,
               children: [_dueRow(), const SizedBox(height: 12), _reminderRow()],
             ),
             const SizedBox(height: 12),
@@ -292,9 +294,9 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
           children: [
             const Icon(Icons.event_rounded, size: 17, color: _muted),
             const SizedBox(width: 8),
-            const Text(
-              'Due',
-              style: TextStyle(
+            Text(
+              L.of(context).taskFormDue,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: _ink,
@@ -326,7 +328,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
               }),
             ),
             _choice(
-              'Today',
+              L.of(context).commonToday,
               selected: _isSameDay(_dueDate, today),
               onTap: () => _setDue(today),
             ),
@@ -411,7 +413,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                     onTap: () => setState(() => _reminderAt = _dueDate),
                   ),
                   _choice(
-                    '1 h before',
+                    L.of(context).todoFormHourBefore,
                     selected: _reminderMatches(
                       _dueDate!.subtract(const Duration(hours: 1)),
                     ),
@@ -737,11 +739,11 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
     final diff = day.difference(today).inDays;
 
     final label = switch (diff) {
-      0 => 'Today',
+      0 => L.of(context).commonToday,
       1 => L.of(context).commonTomorrow,
       -1 => L.of(context).commonYesterday,
       _ => DateFormat('d MMM').format(dateTime),
     };
-    return '$label, ${DateFormat('HH:mm').format(dateTime)}';
+    return '$label, ${Clock.h12(dateTime)}';
   }
 }

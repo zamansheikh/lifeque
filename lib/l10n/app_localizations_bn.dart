@@ -2770,4 +2770,78 @@ class LBn extends L {
 
   @override
   String get permAlreadyEnabled => 'আগেই চালু আছে';
+
+  @override
+  String get medSyrup => 'সিরাপ';
+
+  @override
+  String get medDrops => 'ড্রপ';
+
+  @override
+  String get medCream => 'ক্রিম';
+
+  @override
+  String get medSpray => 'স্প্রে';
+
+  @override
+  String get medOther => 'অন্যান্য';
+
+  @override
+  String get medUnit => 'একক';
+
+  @override
+  String get medInvalidNumber => 'সংখ্যাটি ঠিক নয়';
+
+  @override
+  String get medNameHint => 'যেমন, প্যারাসিটামল';
+
+  @override
+  String get medDescriptionHint => 'জ্বর ও ব্যথা উপশমের জন্য';
+
+  @override
+  String get medDoctorHint => 'যেমন, ডা. রহমান';
+
+  @override
+  String get medNotesHint => 'খাবারের সঙ্গে খাবেন';
+
+  @override
+  String get medUnitDrops => 'ফোঁটা';
+
+  @override
+  String get medUnitTablets => 'ট্যাবলেট';
+
+  @override
+  String get medUnitCapsules => 'ক্যাপসুল';
+
+  @override
+  String get medUnitTsp => 'চা-চামচ';
+
+  @override
+  String get medUnitTbsp => 'টেবিল-চামচ';
+
+  @override
+  String get todoFormWhen => 'কখন';
+
+  @override
+  String get todoFormHourBefore => '১ ঘণ্টা আগে';
+
+  @override
+  String get ramadanSahriEnds => 'সাহরি শেষ';
+
+  @override
+  String get ramadanIftar => 'ইফতার';
+
+  @override
+  String calShareMonthTitle(String month) {
+    return '$month মাসের সময়সূচি শেয়ার করুন';
+  }
+
+  @override
+  String get medPresetParacetamol => 'প্যারাসিটামল';
+
+  @override
+  String get medPresetVitaminD => 'ভিটামিন ডি';
+
+  @override
+  String get medPresetCoughSyrup => 'কাশির সিরাপ';
 }

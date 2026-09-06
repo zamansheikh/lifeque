@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../../../../core/utils/local_clock.dart';
 
 class PrayerTimeCard extends StatelessWidget {
   final String name;
@@ -88,7 +88,7 @@ class PrayerTimeCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                DateFormat('h:mm a').format(time),
+                Clock.h12(time),
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -97,7 +97,7 @@ class PrayerTimeCard extends StatelessWidget {
               ),
               if (midnightTime != null)
                 Text(
-                  'Midnight: ${DateFormat('h:mm a').format(midnightTime!)}',
+                  'Midnight: ${Clock.h12(midnightTime!)}',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.orange.shade700,
@@ -106,7 +106,7 @@ class PrayerTimeCard extends StatelessWidget {
                 ),
               if (endTime != null)
                 Text(
-                  'Ends: ${DateFormat('h:mm a').format(endTime!)}',
+                  'Ends: ${Clock.h12(endTime!)}',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade600,

@@ -76,6 +76,23 @@ class HijriNames {
     'Hij',
   ];
 
+  /// Short Bangla forms. "রবি ১" would collide with রবিবার (Sunday) in a row
+  /// that already carries a weekday, so these keep the distinguishing word.
+  static const _shortBangla = <String>[
+    'মুহা',
+    'সফর',
+    'রবি. আ',
+    'রবি. সা',
+    'জমা. আ',
+    'জমা. সা',
+    'রজব',
+    'শাবান',
+    'রমজান',
+    'শাওয়াল',
+    'জিলকদ',
+    'জিলহজ',
+  ];
+
   /// 1-based month number → full name.
   static String month(int m) => _full[(m - 1).clamp(0, 11)];
 
@@ -92,4 +109,12 @@ class HijriNames {
 
   /// 1-based month number → abbreviated name, for dense table rows.
   static String shortMonth(int m) => _short[(m - 1).clamp(0, 11)];
+
+  /// The abbreviated name in the app's current language.
+  static String shortMonthFor(BuildContext context, int m) {
+    final index = (m - 1).clamp(0, 11);
+    return Localizations.localeOf(context).languageCode == 'bn'
+        ? _shortBangla[index]
+        : _short[index];
+  }
 }

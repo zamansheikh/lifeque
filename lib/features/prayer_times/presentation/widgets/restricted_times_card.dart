@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/utils/salah_time_calculator.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../utils/islamic_colors.dart';
+import '../../../../core/utils/local_clock.dart';
 
 /// The three makruh windows, in detail.
 ///
@@ -458,8 +458,7 @@ class _PeriodRow extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '${DateFormat('h:mm a').format(start)} → '
-                '${DateFormat('h:mm a').format(end)}',
+                Clock.range(start, end, separator: '→'),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,

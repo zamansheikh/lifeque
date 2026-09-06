@@ -195,9 +195,11 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
       DateTime(_month.year, _month.month + 1, 0),
     );
     final hijriSpan = hijriStart.hMonth == hijriEnd.hMonth
-        ? '${HijriNames.month(hijriStart.hMonth)} ${hijriStart.hYear}'
-        : '${HijriNames.month(hijriStart.hMonth)} – '
-              '${HijriNames.month(hijriEnd.hMonth)} ${hijriEnd.hYear}';
+        ? '${HijriNames.monthFor(context, hijriStart.hMonth)} '
+              '${N.plain(hijriStart.hYear)}'
+        : '${HijriNames.monthFor(context, hijriStart.hMonth)} – '
+              '${HijriNames.monthFor(context, hijriEnd.hMonth)} '
+              '${N.plain(hijriEnd.hYear)}';
     final banglaSpan = banglaStart.monthName == banglaEnd.monthName
         ? banglaStart.monthName
         : '${banglaStart.monthName}–${banglaEnd.monthName}';
@@ -351,7 +353,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
           ),
           const SizedBox(height: 2),
           Text(
-            '${day.day}',
+            N.plain(day.day),
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w800,
@@ -360,7 +362,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
           ),
           const SizedBox(height: 2),
           Text(
-            '${hijri.hDay}',
+            N.plain(hijri.hDay),
             style: TextStyle(
               fontSize: 8,
               fontWeight: FontWeight.w600,
@@ -494,7 +496,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                       child: Column(
                         children: [
                           Text(
-                            _fard[i].toUpperCase(),
+                            prayerLabel(context, _fard[i]).toUpperCase(),
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.6),
                               fontSize: 8.5,
@@ -656,7 +658,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                   ),
                 ),
                 Text(
-                  '${N.of(hijri.hDay)} ${HijriNames.shortMonth(hijri.hMonth)} · '
+                  '${N.of(hijri.hDay)} ${HijriNames.shortMonthFor(context, hijri.hMonth)} · '
                   '${BanglaDate.digits(bangla.day)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

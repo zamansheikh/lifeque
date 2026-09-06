@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../utils/islamic_colors.dart';
 import '../utils/sky_theme.dart';
+import '../../../../core/utils/local_clock.dart';
 
 /// Light-weight tuple describing one of the three daily makruh windows.
 /// Carried into [PrayerFocusCard] so the card can render an inline avoid-
@@ -212,7 +213,7 @@ class PrayerFocusCard extends StatelessWidget {
     if (windowEnd == null) return '';
     final now = DateTime.now();
     if (now.isBefore(waqtTime)) {
-      return 'window opens ${DateFormat('h:mm a').format(waqtTime)}';
+      return 'window opens ${Clock.h12(waqtTime)}';
     }
     if (now.isAfter(windowEnd!)) {
       return 'window closed';
@@ -297,7 +298,7 @@ class _WaqtTile extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                'ends ${DateFormat('h:mm a').format(endTime!).toLowerCase()}',
+                'ends ${Clock.h12Soft(endTime!)}',
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 11,
@@ -909,7 +910,7 @@ class _RestrictedStrip extends StatelessWidget {
         Flexible(
           child: Text(
             'next · ${_short(next.name)} '
-            '${DateFormat('h:mm a').format(next.start).toLowerCase()}',
+            '${Clock.h12Soft(next.start)}',
             overflow: TextOverflow.ellipsis,
             softWrap: false,
             style: TextStyle(

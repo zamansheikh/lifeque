@@ -16,6 +16,7 @@ import 'prayer_snack.dart';
 import '../../../../core/utils/local_numbers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../utils/prayer_l10n.dart';
+import '../../../../core/utils/local_clock.dart';
 
 /// Preview-and-share for the day's prayer times.
 ///
@@ -211,7 +212,7 @@ class PrayerShareCard extends StatelessWidget {
     'Isha': Icons.nightlight_outlined,
   };
 
-  String _fmt(DateTime t) => DateFormat('h:mm a').format(t);
+  String _fmt(DateTime t) => Clock.h12(t);
 
   @override
   Widget build(BuildContext context) {

@@ -6,6 +6,7 @@ import '../../../../core/widgets/app_drawer.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/utils/local_clock.dart';
 
 /// Reminders, on their own screen.
 ///
@@ -682,7 +683,7 @@ class _ReminderListPageState extends State<ReminderListPage> {
       -1 => l.commonYesterday,
       _ => DateFormat('EEE d MMM').format(dateTime),
     };
-    return l.reminderAtTime(label, DateFormat('h:mm a').format(dateTime));
+    return l.reminderAtTime(label, Clock.h12(dateTime));
   }
 
   String _relative(DateTime dateTime) {

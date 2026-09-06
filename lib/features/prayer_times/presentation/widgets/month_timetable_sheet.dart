@@ -141,7 +141,9 @@ class _SheetState extends State<_Sheet> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Share ${DateFormat('MMMM').format(widget.month)} timetable',
+            L
+                .of(context)
+                .calShareMonthTitle(DateFormat('MMMM').format(widget.month)),
             style: const TextStyle(
               color: PrayerPalette.ink,
               fontSize: 16,
@@ -317,9 +319,9 @@ class MonthTimetableCard extends StatelessWidget {
                       // Hijri and Bangla get their own line: sharing the
                       // title row left too little width and truncated them.
                       Text(
-                        '${HijriNames.month(hijriStart.hMonth)} – '
-                        '${HijriNames.month(hijriEnd.hMonth)} '
-                        '${hijriEnd.hYear}  ·  $banglaSpan '
+                        '${HijriNames.monthFor(context, hijriStart.hMonth)} – '
+                        '${HijriNames.monthFor(context, hijriEnd.hMonth)} '
+                        '${N.plain(hijriEnd.hYear)}  ·  $banglaSpan '
                         '${BanglaDate.digits(banglaEnd.year)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -406,7 +408,10 @@ class MonthTimetableCard extends StatelessWidget {
                   children: [
                     for (var d = 1; d <= daysInMonth; d++)
                       Expanded(
-                        child: _row(DateTime(month.year, month.month, d)),
+                        child: _row(
+                          context,
+                          DateTime(month.year, month.month, d),
+                        ),
                       ),
                   ],
                 ),
@@ -461,7 +466,7 @@ class MonthTimetableCard extends StatelessWidget {
     );
   }
 
-  Widget _row(DateTime day) {
+  Widget _row(BuildContext context, DateTime day) {
     final calc = SalahTimeCalculator(
       latitude: latitude,
       longitude: longitude,
@@ -503,7 +508,7 @@ class MonthTimetableCard extends StatelessWidget {
           SizedBox(
             width: 150,
             child: Text(
-              '${N.of(hijri.hDay)} ${HijriNames.shortMonth(hijri.hMonth)} · '
+              '${N.of(hijri.hDay)} ${HijriNames.shortMonthFor(context, hijri.hMonth)} · '
               '${BanglaDate.digits(bangla.day)} ${bangla.monthName}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

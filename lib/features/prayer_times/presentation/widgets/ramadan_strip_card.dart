@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
+
 import '../utils/prayer_palette.dart';
 
 /// Dark green Ramadan strip: sahri cutoff, iftar and a live countdown.
@@ -79,7 +81,7 @@ class RamadanStripCard extends StatelessWidget {
                   flex: 10,
                   child: _stat(
                     value: sahriTime,
-                    label: 'Sahri ends · $sahriMeridiem',
+                    label: '${L.of(context).ramadanSahriEnds} · $sahriMeridiem',
                     valueColor: Colors.white,
                   ),
                 ),
@@ -88,7 +90,7 @@ class RamadanStripCard extends StatelessWidget {
                   flex: 10,
                   child: _stat(
                     value: iftarTime,
-                    label: 'Iftar · $iftarMeridiem',
+                    label: '${L.of(context).ramadanIftar} · $iftarMeridiem',
                     valueColor: Colors.white,
                   ),
                 ),

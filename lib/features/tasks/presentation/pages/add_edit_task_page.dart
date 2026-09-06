@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
+import '../../../../core/utils/local_clock.dart';
 
 /// How the reminder for a task is expressed, in the user's terms rather than
 /// the entity's. [NotificationType] plus [BeforeEndOption] is the storage
@@ -297,7 +298,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
         : DateFormat(
             value.year == now.year ? 'EEE, d MMM' : 'EEE, d MMM y',
           ).format(value);
-    return '$day · ${DateFormat('h:mm a').format(value)}';
+    return '$day · ${Clock.h12(value)}';
   }
 
   Widget _dateRow({

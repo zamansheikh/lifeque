@@ -38,6 +38,7 @@ import '../widgets/ramadan_strip_card.dart';
 import '../widgets/restricted_times_card.dart';
 import '../widgets/salat_times_card.dart';
 import 'prayer_stats_page.dart';
+import '../../../../core/utils/local_clock.dart';
 
 /// "Prayer Compass" — the prayer-times screen.
 ///
@@ -626,12 +627,12 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   // ── Formatting helpers ──────────────────────────────────────────────────
 
   /// `4:28 am`
-  String _fmt12(DateTime t) => DateFormat('h:mm a').format(t);
+  String _fmt12(DateTime t) => Clock.h12(t);
 
   /// `4:28` — no meridiem, for the Ramadan strip's split layout.
   String _fmtBare(DateTime t) => DateFormat('h:mm').format(t);
 
-  String _meridiem(DateTime t) => DateFormat('a').format(t);
+  String _meridiem(DateTime t) => Clock.period(t);
 
   /// `01:23:45`
   String _fmtHms(Duration d) {
@@ -1012,7 +1013,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           final end = w['end'] as DateTime;
           return ProhibitedChip(
             label: restrictedChipLabel(context, _restrictedOrder[i]),
-            range: '${_fmtBare(start)} – ${_fmt12(end)}',
+            range: Clock.range(start, end),
             isActive: isToday && now.isAfter(start) && now.isBefore(end),
           );
         }(),
@@ -1068,7 +1069,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       NafalRow(
         glyph: Icons.wb_sunny_outlined,
         name: L.of(context).nafalIshraq,
-        range: '${_fmtBare(sunriseEnd)} – ${_fmt12(zawalStart)}',
+        range: Clock.range(sunriseEnd, zawalStart),
       ),
       NafalRow(
         glyph: Icons.contrast_rounded,

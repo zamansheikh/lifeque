@@ -9,6 +9,7 @@ import '../../domain/entities/medicine_dose.dart';
 import '../bloc/medicine_cubit.dart';
 import '../bloc/medicine_state.dart';
 import 'add_edit_medicine_page.dart';
+import '../../../../core/utils/local_clock.dart';
 
 /// A medicine's detail view: how the course is going, what it is, and every
 /// dose so far.
@@ -396,7 +397,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              DateFormat('h:mm a').format(dose.scheduledTime),
+              Clock.h12(dose.scheduledTime),
               style: const TextStyle(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700,

@@ -1,10 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/utils/salah_time_calculator.dart';
 import '../utils/islamic_colors.dart';
+import '../../../../core/utils/local_clock.dart';
 
 /// Glass card listing recommended (non-fard) prayer times: Tahajjud window,
 /// Islamic midnight, Ishraq (after sunrise) and tomorrow's Suhoor cutoff.
@@ -31,16 +31,14 @@ class SunnahTimesCard extends StatelessWidget {
         accent: IslamicColors.goldLight,
         title: 'Ishraq / Duha',
         subtitle: '15–45 min after sunrise',
-        timeText:
-            '${DateFormat('h:mm a').format(ishraqStart).toLowerCase()}'
-            ' → ${DateFormat('h:mm a').format(ishraqEnd).toLowerCase()}',
+        timeText: Clock.range(ishraqStart, ishraqEnd, separator: '→'),
       ),
       _SunnahRow(
         icon: Icons.brightness_2_outlined,
         accent: IslamicColors.tealLight,
         title: 'Islamic Midnight',
         subtitle: 'midpoint Maghrib → Fajr',
-        timeText: DateFormat('h:mm a').format(midnight).toLowerCase(),
+        timeText: Clock.h12Soft(midnight),
       ),
       _SunnahRow(
         icon: Icons.bedtime_rounded,
@@ -48,8 +46,8 @@ class SunnahTimesCard extends StatelessWidget {
         title: 'Tahajjud (Last ⅓)',
         subtitle: 'most virtuous part of the night',
         timeText:
-            '${DateFormat('h:mm a').format(sunnah.lastThirdOfTheNight).toLowerCase()}'
-            ' → ${DateFormat('h:mm a').format(times['Fajr']!.add(const Duration(days: 1))).toLowerCase()}',
+            '${Clock.h12Soft(sunnah.lastThirdOfTheNight)}'
+            ' → ${Clock.h12(times['Fajr']!.add(const Duration(days: 1))).toLowerCase()}',
       ),
     ];
 

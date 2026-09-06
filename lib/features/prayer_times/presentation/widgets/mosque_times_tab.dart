@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/utils/salah_time_calculator.dart';
 import '../../../home_widget/services/home_widget_service.dart';
 import '../../data/services/prayer_settings_service.dart';
+import '../../../../core/utils/local_clock.dart';
 
 class MosqueTimesTab extends StatefulWidget {
   final SalahTimeCalculator? calculator;
@@ -329,6 +329,6 @@ class _MosqueTimesTabState extends State<MosqueTimesTab> {
   String _formatTimeOfDay(TimeOfDay time) {
     final now = DateTime.now();
     final dt = DateTime(now.year, now.month, now.day, time.hour, time.minute);
-    return DateFormat('h:mm a').format(dt);
+    return Clock.h12(dt);
   }
 }

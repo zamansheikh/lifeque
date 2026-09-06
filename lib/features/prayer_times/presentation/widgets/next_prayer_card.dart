@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:adhan/adhan.dart';
 import '../../../../core/utils/salah_time_calculator.dart';
+import '../../../../core/utils/local_clock.dart';
 
 class NextPrayerCard extends StatefulWidget {
   final SalahTimeCalculator calculator;
@@ -125,7 +125,7 @@ class _NextPrayerCardState extends State<NextPrayerCard> {
               ),
               if (nextPrayerTime != null)
                 Text(
-                  DateFormat('h:mm a').format(nextPrayerTime),
+                  Clock.h12(nextPrayerTime),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,

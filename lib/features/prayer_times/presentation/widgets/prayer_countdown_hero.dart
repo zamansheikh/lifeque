@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../utils/sky_theme.dart';
+import '../../../../core/utils/local_clock.dart';
 
 /// The visual centerpiece: a giant live countdown above a curved day-arc.
 ///
@@ -58,7 +59,7 @@ class PrayerCountdownHero extends StatelessWidget {
         ? _fmtPassed(now.difference(focusedPrayerTime))
         : showLive
         ? _fmt(remaining)
-        : DateFormat('h:mm a').format(focusedPrayerTime);
+        : Clock.h12(focusedPrayerTime);
     final sky = SkyTheme.forPrayer(focusedPrayer);
 
     return Column(
@@ -119,9 +120,9 @@ class PrayerCountdownHero extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           isPast
-              ? 'was at ${DateFormat('h:mm a').format(focusedPrayerTime)}'
+              ? 'was at ${Clock.h12(focusedPrayerTime)}'
               : showLive
-              ? 'until ${DateFormat('h:mm a').format(focusedPrayerTime)}'
+              ? 'until ${Clock.h12(focusedPrayerTime)}'
               : DateFormat('EEE, MMM d').format(focusedPrayerTime),
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.75),

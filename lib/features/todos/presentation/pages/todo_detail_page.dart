@@ -8,6 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/todo.dart';
 import '../bloc/todo_bloc.dart';
 import '../utils/todo_l10n.dart';
+import '../../../../core/utils/local_clock.dart';
 
 /// A to-do's detail view.
 ///
@@ -228,7 +229,7 @@ class TodoDetailPage extends StatelessWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final day = DateTime(value.year, value.month, value.day);
-    final time = DateFormat('h:mm a').format(value);
+    final time = Clock.h12(value);
 
     final difference = day.difference(today).inDays;
     final label = switch (difference) {

@@ -1376,5 +1376,36 @@
   "permStatusNotifications": "Notifications",
   "permStatusBackground": "Background Activity",
   "permStart": "Start Using LifeQue",
-  "permAlreadyEnabled": "Already Enabled"
+  "permAlreadyEnabled": "Already Enabled",
+  "medSyrup": "Syrup",
+  "medDrops": "Drops",
+  "medCream": "Cream",
+  "medSpray": "Spray",
+  "medOther": "Other",
+  "medUnit": "Unit",
+  "medInvalidNumber": "Invalid number",
+  "medNameHint": "e.g., Paracetamol",
+  "medDescriptionHint": "For fever and pain relief",
+  "medDoctorHint": "e.g., Dr. Rahman",
+  "medNotesHint": "Take with food",
+  "medUnitDrops": "drops",
+  "medUnitTablets": "tablets",
+  "medUnitCapsules": "capsules",
+  "medUnitTsp": "tsp",
+  "medUnitTbsp": "tbsp",
+  "todoFormWhen": "When",
+  "todoFormHourBefore": "1 h before",
+  "ramadanSahriEnds": "Sahri ends",
+  "ramadanIftar": "Iftar",
+  "calShareMonthTitle": "Share the {month} timetable",
+  "@calShareMonthTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "medPresetParacetamol": "Paracetamol",
+  "medPresetVitaminD": "Vitamin D",
+  "medPresetCoughSyrup": "Cough Syrup"
 }

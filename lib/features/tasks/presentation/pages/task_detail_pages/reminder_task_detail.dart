@@ -8,6 +8,7 @@ import '../../../../../core/widgets/detail_kit.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../domain/entities/task.dart';
 import '../../bloc/task_bloc.dart';
+import '../../../../../core/utils/local_clock.dart';
 
 /// A reminder's detail view. A reminder is a single moment, so the page is
 /// mostly one question: how long until it goes off.
@@ -100,7 +101,7 @@ class _ReminderTaskDetailState extends State<ReminderTaskDetail> {
             DetailRow(
               icon: Icons.schedule_rounded,
               label: l.detailRowTime,
-              value: DateFormat('h:mm a').format(_at),
+              value: Clock.h12(_at),
             ),
             if (_task.isPinnedToNotification)
               DetailRow(

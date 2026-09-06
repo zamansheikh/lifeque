@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:adhan/adhan.dart';
 import '../../../../core/services/prayer_alarm_service.dart';
 import '../../../../core/utils/alarm_sound_utils.dart';
 import '../../../../core/utils/salah_time_calculator.dart';
 import '../utils/islamic_colors.dart';
 import '../utils/sky_theme.dart';
+import '../../../../core/utils/local_clock.dart';
 
 class PrayerAlarmPage extends StatefulWidget {
   const PrayerAlarmPage({super.key});
@@ -649,7 +649,7 @@ class _PrayerAlarmPageState extends State<PrayerAlarmPage> {
   }
 
   String _formatTimeWithAMPM(DateTime time) {
-    return DateFormat('h:mm a').format(time);
+    return Clock.h12(time);
   }
 
   DateTime? _calculateActualAlarmTime(
@@ -806,7 +806,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
         final targetTime = prayerStartTime.add(
           Duration(minutes: _relativeMinutes),
         );
-        return DateFormat('h:mm a').format(targetTime);
+        return Clock.h12(targetTime);
       }
     } catch (e) {
       return '--:--';

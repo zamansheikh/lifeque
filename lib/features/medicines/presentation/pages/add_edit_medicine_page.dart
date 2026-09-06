@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../../../../core/utils/local_clock.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/medicine.dart';
@@ -43,7 +46,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   // Quick preset medicines for faster input
   static const List<Map<String, dynamic>> _medicinePresets = [
     {
-      'name': 'Paracetamol',
+      'name': 'paracetamol',
       'type': MedicineType.tablet,
       'dosage': '500',
       'unit': 'mg',
@@ -51,7 +54,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
       'times': 3,
     },
     {
-      'name': 'Vitamin D',
+      'name': 'vitaminD',
       'type': MedicineType.tablet,
       'dosage': '1000',
       'unit': 'IU',
@@ -59,7 +62,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
       'times': 1,
     },
     {
-      'name': 'Cough Syrup',
+      'name': 'coughSyrup',
       'type': MedicineType.syrup,
       'dosage': '5',
       'unit': 'ml',
@@ -184,8 +187,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                 color: Colors.white,
                 size: 20,
               ),
-              label: const Text(
-                'Save',
+              label: Text(
+                L.of(context).commonSave,
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -264,8 +267,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
             children: [
               Icon(Icons.flash_on, color: Colors.orange, size: 20),
               const SizedBox(width: 8),
-              const Text(
-                'Quick Add',
+              Text(
+                L.of(context).medQuickAdd,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -303,7 +306,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        preset['name'] as String,
+                        _presetName(preset['name'] as String),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -323,7 +326,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
 
   void _applyPreset(Map<String, dynamic> preset) {
     setState(() {
-      _nameController.text = preset['name'];
+      _nameController.text = _presetName(preset['name'] as String);
       _selectedType = preset['type'];
       _dosageController.text = preset['dosage'];
       _selectedDosageUnit = preset['unit'];
@@ -358,7 +361,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
             controller: _nameController,
             decoration: InputDecoration(
               labelText: L.of(context).medNameLabel,
-              hintText: 'e.g., Paracetamol',
+              hintText: L.of(context).medNameHint,
               prefixIcon: const Icon(
                 Icons.medication,
                 color: Color(0xFF3B82F6),
@@ -388,7 +391,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   // ---------------------
                   initialValue: _selectedType,
                   decoration: InputDecoration(
-                    labelText: 'Type',
+                    labelText: L.of(context).medType,
                     prefixIcon: const Icon(
                       Icons.category,
                       color: Color(0xFF3B82F6),
@@ -484,9 +487,11 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                     ),
                   ),
                   validator: (value) {
-                    if (value?.isEmpty ?? true) return 'Required';
+                    if (value?.isEmpty ?? true) {
+                      return L.of(context).expRequired;
+                    }
                     if (double.tryParse(value!) == null) {
-                      return 'Invalid number';
+                      return L.of(context).medInvalidNumber;
                     }
                     return null;
                   },
@@ -500,7 +505,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   // ---------------------
                   initialValue: _selectedDosageUnit,
                   decoration: InputDecoration(
-                    labelText: 'Unit',
+                    labelText: L.of(context).medUnit,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -514,7 +519,10 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   items: _commonDosageUnits.map((unit) {
                     return DropdownMenuItem(
                       value: unit,
-                      child: Text(unit, overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        _unitLabel(unit),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -630,9 +638,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                         ),
                         const SizedBox(width: 3),
                         Text(
-                          _notificationTimes.length > index
-                              ? _notificationTimes[index].format(context)
-                              : '${8 + index * 4}:00',
+                          _notificationTimeLabel(index),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -677,9 +683,11 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                     ),
                   ),
                   validator: (value) {
-                    if (value?.isEmpty ?? true) return 'Required';
+                    if (value?.isEmpty ?? true) {
+                      return L.of(context).expRequired;
+                    }
                     if (int.tryParse(value!) == null || int.parse(value) <= 0) {
-                      return 'Invalid';
+                      return L.of(context).medInvalidNumber;
                     }
                     return null;
                   },
@@ -719,7 +727,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                '${_startDate.day}/${_startDate.month}/${_startDate.year}',
+                                DateFormat('d MMM y').format(_startDate),
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
@@ -760,7 +768,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                     controller: _descriptionController,
                     decoration: InputDecoration(
                       labelText: L.of(context).medDescription,
-                      hintText: 'For fever and pain relief',
+                      hintText: L.of(context).medDescriptionHint,
                       prefixIcon: const Icon(
                         Icons.description,
                         color: Color(0xFF3B82F6),
@@ -782,7 +790,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                     controller: _doctorController,
                     decoration: InputDecoration(
                       labelText: L.of(context).medDoctorName,
-                      hintText: 'Dr. Smith',
+                      hintText: L.of(context).medDoctorHint,
                       prefixIcon: const Icon(
                         Icons.person,
                         color: Color(0xFF3B82F6),
@@ -802,8 +810,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   TextFormField(
                     controller: _notesController,
                     decoration: InputDecoration(
-                      labelText: 'Notes',
-                      hintText: 'Take with food',
+                      labelText: L.of(context).medNotes,
+                      hintText: L.of(context).medNotesHint,
                       prefixIcon: const Icon(
                         Icons.note,
                         color: Color(0xFF3B82F6),
@@ -962,38 +970,62 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   }
 
   String _getMedicineTypeDisplayName(MedicineType type) {
-    switch (type) {
-      case MedicineType.tablet:
-        return 'Tablet';
-      case MedicineType.capsule:
-        return 'Capsule';
-      case MedicineType.syrup:
-        return 'Syrup';
-      case MedicineType.injection:
-        return 'Injection';
-      case MedicineType.drops:
-        return 'Drops';
-      case MedicineType.cream:
-        return 'Cream';
-      case MedicineType.spray:
-        return 'Spray';
-      case MedicineType.other:
-        return 'Other';
-    }
+    final l = L.of(context);
+    return switch (type) {
+      MedicineType.tablet => l.medTablet,
+      MedicineType.capsule => l.medCapsule,
+      MedicineType.syrup => l.medSyrup,
+      MedicineType.injection => l.medInjection,
+      MedicineType.drops => l.medDrops,
+      MedicineType.cream => l.medCream,
+      MedicineType.spray => l.medSpray,
+      MedicineType.other => l.medOther,
+    };
   }
 
   String _getMealTimingDisplayName(MealTiming timing) {
-    switch (timing) {
-      case MealTiming.beforeMeal:
-        return 'Before Meal';
-      case MealTiming.afterMeal:
-        return 'After Meal';
-      case MealTiming.withMeal:
-        return 'With Meal';
-      case MealTiming.onEmptyStomach:
-        return 'Empty Stomach';
-      case MealTiming.anytime:
-        return 'Anytime';
-    }
+    final l = L.of(context);
+    return switch (timing) {
+      MealTiming.beforeMeal => l.medBeforeMeal,
+      MealTiming.afterMeal => l.medAfterMeal,
+      MealTiming.withMeal => l.medWithMeal,
+      MealTiming.onEmptyStomach => l.medEmptyStomach,
+      MealTiming.anytime => l.medAnytime,
+    };
+  }
+
+  /// Preset name for the chip and for the field it fills.
+  String _presetName(String key) {
+    final l = L.of(context);
+    return switch (key) {
+      'paracetamol' => l.medPresetParacetamol,
+      'vitaminD' => l.medPresetVitaminD,
+      'coughSyrup' => l.medPresetCoughSyrup,
+      _ => key,
+    };
+  }
+
+  /// The unit is stored as written, so only the display is translated.
+  String _unitLabel(String unit) {
+    final l = L.of(context);
+    return switch (unit) {
+      'drops' => l.medUnitDrops,
+      'tablets' => l.medUnitTablets,
+      'capsules' => l.medUnitCapsules,
+      'tsp' => l.medUnitTsp,
+      'tbsp' => l.medUnitTbsp,
+      _ => unit,
+    };
+  }
+
+  /// A notification slot, on a 12-hour clock in the reader's own script.
+  String _notificationTimeLabel(int index) {
+    final time = _notificationTimes.length > index
+        ? _notificationTimes[index]
+        : TimeOfDay(hour: 8 + index * 4, minute: 0);
+    final today = DateTime.now();
+    return Clock.h12(
+      DateTime(today.year, today.month, today.day, time.hour, time.minute),
+    );
   }
 }

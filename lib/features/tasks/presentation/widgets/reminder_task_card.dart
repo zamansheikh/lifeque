@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'base_task_card.dart';
+import '../../../../core/utils/local_clock.dart';
 
 class ReminderTaskCard extends BaseTaskCard {
   const ReminderTaskCard({
@@ -130,7 +131,7 @@ class _ReminderTaskCardState extends BaseTaskCardState<ReminderTaskCard> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  DateFormat('h:mm a').format(reminderTime),
+                  Clock.h12(reminderTime),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

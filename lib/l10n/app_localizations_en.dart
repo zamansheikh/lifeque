@@ -2776,4 +2776,78 @@ class LEn extends L {
 
   @override
   String get permAlreadyEnabled => 'Already Enabled';
+
+  @override
+  String get medSyrup => 'Syrup';
+
+  @override
+  String get medDrops => 'Drops';
+
+  @override
+  String get medCream => 'Cream';
+
+  @override
+  String get medSpray => 'Spray';
+
+  @override
+  String get medOther => 'Other';
+
+  @override
+  String get medUnit => 'Unit';
+
+  @override
+  String get medInvalidNumber => 'Invalid number';
+
+  @override
+  String get medNameHint => 'e.g., Paracetamol';
+
+  @override
+  String get medDescriptionHint => 'For fever and pain relief';
+
+  @override
+  String get medDoctorHint => 'e.g., Dr. Rahman';
+
+  @override
+  String get medNotesHint => 'Take with food';
+
+  @override
+  String get medUnitDrops => 'drops';
+
+  @override
+  String get medUnitTablets => 'tablets';
+
+  @override
+  String get medUnitCapsules => 'capsules';
+
+  @override
+  String get medUnitTsp => 'tsp';
+
+  @override
+  String get medUnitTbsp => 'tbsp';
+
+  @override
+  String get todoFormWhen => 'When';
+
+  @override
+  String get todoFormHourBefore => '1 h before';
+
+  @override
+  String get ramadanSahriEnds => 'Sahri ends';
+
+  @override
+  String get ramadanIftar => 'Iftar';
+
+  @override
+  String calShareMonthTitle(String month) {
+    return 'Share the $month timetable';
+  }
+
+  @override
+  String get medPresetParacetamol => 'Paracetamol';
+
+  @override
+  String get medPresetVitaminD => 'Vitamin D';
+
+  @override
+  String get medPresetCoughSyrup => 'Cough Syrup';
 }

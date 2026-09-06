@@ -4950,6 +4950,150 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Already Enabled'**
   String get permAlreadyEnabled;
+
+  /// No description provided for @medSyrup.
+  ///
+  /// In en, this message translates to:
+  /// **'Syrup'**
+  String get medSyrup;
+
+  /// No description provided for @medDrops.
+  ///
+  /// In en, this message translates to:
+  /// **'Drops'**
+  String get medDrops;
+
+  /// No description provided for @medCream.
+  ///
+  /// In en, this message translates to:
+  /// **'Cream'**
+  String get medCream;
+
+  /// No description provided for @medSpray.
+  ///
+  /// In en, this message translates to:
+  /// **'Spray'**
+  String get medSpray;
+
+  /// No description provided for @medOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get medOther;
+
+  /// No description provided for @medUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get medUnit;
+
+  /// No description provided for @medInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid number'**
+  String get medInvalidNumber;
+
+  /// No description provided for @medNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Paracetamol'**
+  String get medNameHint;
+
+  /// No description provided for @medDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For fever and pain relief'**
+  String get medDescriptionHint;
+
+  /// No description provided for @medDoctorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Dr. Rahman'**
+  String get medDoctorHint;
+
+  /// No description provided for @medNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Take with food'**
+  String get medNotesHint;
+
+  /// No description provided for @medUnitDrops.
+  ///
+  /// In en, this message translates to:
+  /// **'drops'**
+  String get medUnitDrops;
+
+  /// No description provided for @medUnitTablets.
+  ///
+  /// In en, this message translates to:
+  /// **'tablets'**
+  String get medUnitTablets;
+
+  /// No description provided for @medUnitCapsules.
+  ///
+  /// In en, this message translates to:
+  /// **'capsules'**
+  String get medUnitCapsules;
+
+  /// No description provided for @medUnitTsp.
+  ///
+  /// In en, this message translates to:
+  /// **'tsp'**
+  String get medUnitTsp;
+
+  /// No description provided for @medUnitTbsp.
+  ///
+  /// In en, this message translates to:
+  /// **'tbsp'**
+  String get medUnitTbsp;
+
+  /// No description provided for @todoFormWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get todoFormWhen;
+
+  /// No description provided for @todoFormHourBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'1 h before'**
+  String get todoFormHourBefore;
+
+  /// No description provided for @ramadanSahriEnds.
+  ///
+  /// In en, this message translates to:
+  /// **'Sahri ends'**
+  String get ramadanSahriEnds;
+
+  /// No description provided for @ramadanIftar.
+  ///
+  /// In en, this message translates to:
+  /// **'Iftar'**
+  String get ramadanIftar;
+
+  /// No description provided for @calShareMonthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the {month} timetable'**
+  String calShareMonthTitle(String month);
+
+  /// No description provided for @medPresetParacetamol.
+  ///
+  /// In en, this message translates to:
+  /// **'Paracetamol'**
+  String get medPresetParacetamol;
+
+  /// No description provided for @medPresetVitaminD.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamin D'**
+  String get medPresetVitaminD;
+
+  /// No description provided for @medPresetCoughSyrup.
+  ///
+  /// In en, this message translates to:
+  /// **'Cough Syrup'**
+  String get medPresetCoughSyrup;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
