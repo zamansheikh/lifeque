@@ -188,14 +188,14 @@ const _qiyamFirstRak = SalahStep(
     ),
     SalahDua(
       arabic:
-          'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ ۝ الرَّحْمَٰنِ الرَّحِيمِ ۝ مَالِكِ يَوْمِ الدِّينِ ۝ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ۝ اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ',
+          'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ ۝ الرَّحْمَٰنِ الرَّحِيمِ ۝ مَالِكِ يَوْمِ الدِّينِ ۝ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ۝ اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ ۝ صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ',
       transliteration: LText(
-        'Al-hamdu lillahi rabb il-\'alamin. Ar-rahman ir-rahim...',
-        'আলহামদু লিল্লাহি রাব্বিল আলামিন। আর-রাহমানির রাহিম…',
+        'Al-hamdu lillahi rabbil-\'alamin. Ar-rahmanir-rahim. Maliki yawmid-din. Iyyaka na\'budu wa iyyaka nasta\'in. Ihdinas-siratal-mustaqim. Siratal-ladhina an\'amta \'alayhim, ghayril-maghdubi \'alayhim wa lad-dallin.',
+        'আলহামদু লিল্লাহি রাব্বিল আলামিন। আর-রাহমানির রাহিম। মালিকি ইয়াওমিদ্দিন। ইয়্যাকা না‘বুদু ওয়া ইয়্যাকা নাস্তাঈন। ইহদিনাস সিরাতাল মুস্তাকিম। সিরাতাল্লাযিনা আন‘আমতা আলাইহিম, গাইরিল মাগদুবি আলাইহিম ওয়ালাদ দাল্লিন।',
       ),
       translation: LText(
-        'Praise be to Allah, Lord of the worlds. The Most Merciful, the Most Compassionate...',
-        'সমস্ত প্রশংসা বিশ্বজগতের প্রতিপালক আল্লাহর। তিনি পরম করুণাময়, অতি দয়ালু…',
+        'Praise be to Allah, Lord of the worlds. The Most Gracious, the Most Merciful. Master of the Day of Judgment. It is You we worship and You alone we ask for help. Guide us to the straight path — the path of those You have blessed, not of those who have incurred Your wrath, nor of those who have gone astray.',
+        'সমস্ত প্রশংসা বিশ্বজগতের প্রতিপালক আল্লাহর। তিনি পরম করুণাময়, অতি দয়ালু। বিচার দিনের মালিক। আমরা কেবল আপনারই ইবাদত করি এবং কেবল আপনারই সাহায্য চাই। আমাদের সরল পথ দেখান — তাদের পথ যাদের আপনি নিয়ামত দিয়েছেন, তাদের পথ নয় যারা আপনার ক্রোধের শিকার, আর পথভ্রষ্টদেরও নয়।',
       ),
     ),
   ],
@@ -290,14 +290,14 @@ const _qiyamWitrThirdRak = SalahStep(
   duas: [
     SalahDua(
       arabic:
-          'اللَّهُمَّ إِنَّا نَسْتَعِينُكَ وَنَسْتَغْفِرُكَ وَنُؤْمِنُ بِكَ وَنَتَوَكَّلُ عَلَيْكَ وَنُثْنِي عَلَيْكَ الْخَيْر',
+          'اللَّهُمَّ إِنَّا نَسْتَعِينُكَ وَنَسْتَغْفِرُكَ وَنُؤْمِنُ بِكَ وَنَتَوَكَّلُ عَلَيْكَ وَنُثْنِي عَلَيْكَ الْخَيْرَ وَنَشْكُرُكَ وَلَا نَكْفُرُكَ وَنَخْلَعُ وَنَتْرُكُ مَنْ يَفْجُرُكَ ۝ اللَّهُمَّ إِيَّاكَ نَعْبُدُ وَلَكَ نُصَلِّي وَنَسْجُدُ وَإِلَيْكَ نَسْعَى وَنَحْفِدُ نَرْجُو رَحْمَتَكَ وَنَخْشَى عَذَابَكَ إِنَّ عَذَابَكَ بِالْكُفَّارِ مُلْحِقٌ',
       transliteration: LText(
-        'Allahumma inna nasta\'inuka, wa nastaghfiruka, wa nu\'minu bika, wa natawakkalu \'alayka...',
-        'আল্লাহুম্মা ইন্না নাস্তাঈনুকা ওয়া নাস্তাগফিরুকা, ওয়া নুমিনু বিকা ওয়া নাতাওয়াক্কালু আলাইকা…',
+        'Allahumma inna nasta\'inuka wa nastaghfiruka wa nu\'minu bika wa natawakkalu \'alayka wa nuthni \'alaykal-khayr, wa nashkuruka wa la nakfuruka, wa nakhla\'u wa natruku man yafjuruk. Allahumma iyyaka na\'budu wa laka nusalli wa nasjud, wa ilayka nas\'a wa nahfid, narju rahmataka wa nakhsha \'adhabak, inna \'adhabaka bil-kuffari mulhiq.',
+        'আল্লাহুম্মা ইন্না নাস্তাঈনুকা ওয়া নাস্তাগফিরুকা ওয়া নু’মিনু বিকা ওয়া নাতাওয়াক্কালু আলাইকা ওয়া নুসনি আলাইকাল খাইর, ওয়া নাশকুরুকা ওয়ালা নাকফুরুকা, ওয়া নাখলাউ ওয়া নাতরুকু মাঁইয়াফজুরুক। আল্লাহুম্মা ইয়্যাকা না‘বুদু ওয়া লাকা নুসাল্লি ওয়া নাসজুদ, ওয়া ইলাইকা নাস‘আ ওয়া নাহফিদ, নারজু রাহমাতাকা ওয়া নাখশা আযাবাক, ইন্না আযাবাকা বিল কুফফারি মুলহিক।',
       ),
       translation: LText(
-        'O Allah! We seek Your help and ask for Your forgiveness, and we believe in You and have trust in You...',
-        'হে আল্লাহ! আমরা আপনার সাহায্য চাই, আপনার কাছে ক্ষমা চাই, আপনার ওপর ঈমান আনি ও ভরসা করি…',
+        'O Allah, we seek Your help and Your forgiveness; we believe in You and rely upon You; we praise You for all good; we thank You and are not ungrateful to You; and we cast off and abandon whoever disobeys You. O Allah, You alone we worship; for You we pray and prostrate; towards You we strive and hasten. We hope for Your mercy and fear Your punishment — surely Your punishment will overtake the disbelievers.',
+        'হে আল্লাহ, আমরা আপনার সাহায্য চাই ও আপনার কাছে ক্ষমা চাই; আপনার ওপর ঈমান আনি ও ভরসা করি; সব কল্যাণের জন্য আপনার প্রশংসা করি; আপনার শোকর করি, কৃতঘ্ন হই না; আর যে আপনার অবাধ্য হয় তাকে ত্যাগ করি। হে আল্লাহ, আমরা কেবল আপনারই ইবাদত করি; আপনার জন্যই নামাজ পড়ি ও সিজদা করি; আপনার দিকেই ছুটে চলি। আমরা আপনার রহমতের আশা রাখি ও আপনার শাস্তিকে ভয় করি — নিশ্চয়ই আপনার শাস্তি কাফিরদের ওপর পতিত হবে।',
       ),
     ),
   ],
@@ -571,12 +571,12 @@ const _firstTashahhud = SalahStep(
       arabic:
           'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ، السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ، السَّلَامُ عَلَيْنَا وَعَلَى عِبَادِ اللَّهِ الصَّالِحِينَ، أَشْهَدُ أَنْ لَا إِلٰهَ إِلَّا اللَّهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ',
       transliteration: LText(
-        'At-tahiyyatu lillahi was-salawatu wat-tayyibat. As-salamu \'alayka ayyuhan-nabiyyu...',
-        'আত্তাহিয়্যাতু লিল্লাহি ওয়াস সালাওয়াতু ওয়াত তাইয়্যিবাত। আসসালামু আলাইকা আইয়্যুহান নাবিয়্যু…',
+        'At-tahiyyatu lillahi was-salawatu wat-tayyibat. As-salamu \'alayka ayyuhan-nabiyyu wa rahmatullahi wa barakatuh. As-salamu \'alayna wa \'ala \'ibadillahis-salihin. Ashhadu an la ilaha illallah, wa ashhadu anna Muhammadan \'abduhu wa rasuluh.',
+        'আত্তাহিয়্যাতু লিল্লাহি ওয়াস সালাওয়াতু ওয়াত তাইয়্যিবাত। আসসালামু আলাইকা আইয়্যুহান নাবিয়্যু ওয়া রাহমাতুল্লাহি ওয়া বারাকাতুহ। আসসালামু আলাইনা ওয়া আলা ইবাদিল্লাহিস সালিহিন। আশহাদু আল লা ইলাহা ইল্লাল্লাহ, ওয়া আশহাদু আন্না মুহাম্মাদান আবদুহু ওয়া রাসুলুহ।',
       ),
       translation: LText(
-        'All greetings, prayers and good words are for Allah. Peace be upon you, O Prophet...',
-        'সমস্ত সম্মান, নামাজ ও পবিত্র কাজ আল্লাহর জন্য। হে নবি, আপনার ওপর শান্তি বর্ষিত হোক…',
+        'All greetings, prayers and good deeds are for Allah. Peace be upon you, O Prophet, and the mercy of Allah and His blessings. Peace be upon us and upon the righteous servants of Allah. I bear witness that there is no god but Allah, and I bear witness that Muhammad is His servant and His Messenger.',
+        'সমস্ত সম্মান, নামাজ ও পবিত্র কাজ আল্লাহর জন্য। হে নবি, আপনার ওপর শান্তি, আল্লাহর রহমত ও বরকত বর্ষিত হোক। শান্তি বর্ষিত হোক আমাদের ওপর ও আল্লাহর নেক বান্দাদের ওপর। আমি সাক্ষ্য দিচ্ছি যে আল্লাহ ছাড়া কোনো ইলাহ নেই, আর সাক্ষ্য দিচ্ছি যে মুহাম্মদ ﷺ তাঁর বান্দা ও রাসুল।',
       ),
     ),
   ],
@@ -614,14 +614,14 @@ const _finalTashahhud = SalahStep(
   duas: [
     SalahDua(
       arabic:
-          'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ',
+          'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ ۝ اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ',
       transliteration: LText(
-        'Allahumma salli \'ala Muhammadin wa \'ala ali Muhammad, kama sallayta \'ala Ibrahima...',
-        'আল্লাহুম্মা সাল্লি আলা মুহাম্মাদিন ওয়া আলা আলি মুহাম্মাদ, কামা সাল্লাইতা আলা ইবরাহিম…',
+        'Allahumma salli \'ala Muhammadin wa \'ala ali Muhammad, kama sallayta \'ala Ibrahima wa \'ala ali Ibrahim, innaka hamidun majid. Allahumma barik \'ala Muhammadin wa \'ala ali Muhammad, kama barakta \'ala Ibrahima wa \'ala ali Ibrahim, innaka hamidun majid.',
+        'আল্লাহুম্মা সাল্লি আলা মুহাম্মাদিন ওয়া আলা আলি মুহাম্মাদ, কামা সাল্লাইতা আলা ইবরাহিমা ওয়া আলা আলি ইবরাহিম, ইন্নাকা হামিদুম মাজিদ। আল্লাহুম্মা বারিক আলা মুহাম্মাদিন ওয়া আলা আলি মুহাম্মাদ, কামা বারাকতা আলা ইবরাহিমা ওয়া আলা আলি ইবরাহিম, ইন্নাকা হামিদুম মাজিদ।',
       ),
       translation: LText(
-        'O Allah, send prayers upon Muhammad and upon the family of Muhammad, as You sent prayers upon Ibrahim...',
-        'হে আল্লাহ, মুহাম্মদ ﷺ ও তাঁর পরিবারের ওপর রহমত বর্ষণ করুন, যেমন আপনি ইবরাহিম (আ.)-এর ওপর করেছিলেন…',
+        'O Allah, send prayers upon Muhammad and upon the family of Muhammad, as You sent prayers upon Ibrahim and upon the family of Ibrahim — indeed You are Praiseworthy and Glorious. O Allah, send blessings upon Muhammad and upon the family of Muhammad, as You blessed Ibrahim and the family of Ibrahim — indeed You are Praiseworthy and Glorious.',
+        'হে আল্লাহ, মুহাম্মদ ﷺ ও তাঁর পরিবারের ওপর রহমত বর্ষণ করুন, যেমন আপনি ইবরাহিম (আ.) ও তাঁর পরিবারের ওপর রহমত বর্ষণ করেছিলেন — নিশ্চয়ই আপনি প্রশংসিত ও মহিমান্বিত। হে আল্লাহ, মুহাম্মদ ﷺ ও তাঁর পরিবারের ওপর বরকত দিন, যেমন আপনি ইবরাহিম (আ.) ও তাঁর পরিবারের ওপর বরকত দিয়েছিলেন — নিশ্চয়ই আপনি প্রশংসিত ও মহিমান্বিত।',
       ),
     ),
     SalahDua(
@@ -1014,14 +1014,14 @@ final List<SalahTypeData> salahTypesData = [
             duas: [
               SalahDua(
                 arabic:
-                    'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ',
+                    'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ ۝ اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ',
                 transliteration: LText(
-                  'Allahumma salli \'ala Muhammadin wa \'ala ali Muhammad...',
-                  'আল্লাহুম্মা সাল্লি আলা মুহাম্মাদিন ওয়া আলা আলি মুহাম্মাদ…',
+                  'Allahumma salli \'ala Muhammadin wa \'ala ali Muhammad, kama sallayta \'ala Ibrahima wa \'ala ali Ibrahim, innaka hamidun majid. Allahumma barik \'ala Muhammadin wa \'ala ali Muhammad, kama barakta \'ala Ibrahima wa \'ala ali Ibrahim, innaka hamidun majid.',
+                  'আল্লাহুম্মা সাল্লি আলা মুহাম্মাদিন ওয়া আলা আলি মুহাম্মাদ, কামা সাল্লাইতা আলা ইবরাহিমা ওয়া আলা আলি ইবরাহিম, ইন্নাকা হামিদুম মাজিদ। আল্লাহুম্মা বারিক আলা মুহাম্মাদিন ওয়া আলা আলি মুহাম্মাদ, কামা বারাকতা আলা ইবরাহিমা ওয়া আলা আলি ইবরাহিম, ইন্নাকা হামিদুম মাজিদ।',
                 ),
                 translation: LText(
-                  'O Allah, send prayers upon Muhammad and his family...',
-                  'হে আল্লাহ, মুহাম্মদ ﷺ ও তাঁর পরিবারের ওপর রহমত বর্ষণ করুন…',
+                  'O Allah, send prayers upon Muhammad and upon the family of Muhammad, as You sent prayers upon Ibrahim and upon the family of Ibrahim — indeed You are Praiseworthy and Glorious. O Allah, send blessings upon Muhammad and upon the family of Muhammad, as You blessed Ibrahim and the family of Ibrahim — indeed You are Praiseworthy and Glorious.',
+                  'হে আল্লাহ, মুহাম্মদ ﷺ ও তাঁর পরিবারের ওপর রহমত বর্ষণ করুন, যেমন আপনি ইবরাহিম (আ.) ও তাঁর পরিবারের ওপর রহমত বর্ষণ করেছিলেন — নিশ্চয়ই আপনি প্রশংসিত ও মহিমান্বিত। হে আল্লাহ, মুহাম্মদ ﷺ ও তাঁর পরিবারের ওপর বরকত দিন, যেমন আপনি ইবরাহিম (আ.) ও তাঁর পরিবারের ওপর বরকত দিয়েছিলেন — নিশ্চয়ই আপনি প্রশংসিত ও মহিমান্বিত।',
                 ),
               ),
             ],
@@ -1059,14 +1059,14 @@ final List<SalahTypeData> salahTypesData = [
             duas: [
               SalahDua(
                 arabic:
-                    'اللَّهُمَّ اغْفِرْ لَهُ وَارْحَمْهُ وَعَافِهِ وَاعْفُ عَنْهُ، وَأَكْرِمْ نُزُلَهُ وَوَسِّعْ مُدْخَلَهُ، وَاغْسِلْهُ بِالْمَاءِ وَالثَّلْجِ وَالْبَرَدِ',
+                    'اللَّهُمَّ اغْفِرْ لَهُ وَارْحَمْهُ، وَعَافِهِ وَاعْفُ عَنْهُ، وَأَكْرِمْ نُزُلَهُ، وَوَسِّعْ مُدْخَلَهُ، وَاغْسِلْهُ بِالْمَاءِ وَالثَّلْجِ وَالْبَرَدِ، وَنَقِّهِ مِنَ الْخَطَايَا كَمَا نَقَّيْتَ الثَّوْبَ الْأَبْيَضَ مِنَ الدَّنَسِ، وَأَبْدِلْهُ دَارًا خَيْرًا مِنْ دَارِهِ، وَأَهْلًا خَيْرًا مِنْ أَهْلِهِ، وَزَوْجًا خَيْرًا مِنْ زَوْجِهِ، وَأَدْخِلْهُ الْجَنَّةَ، وَأَعِذْهُ مِنْ عَذَابِ الْقَبْرِ وَمِنْ عَذَابِ النَّارِ',
                 transliteration: LText(
-                  'Allahummaghfir lahu warhamhu wa \'afihi wa\'fu \'anhu, wa akrim nuzulahu wa wassi\' mudkhalahu...',
-                  'আল্লাহুম্মাগফির লাহু ওয়ারহামহু ওয়া আফিহি ওয়া‘ফু আনহু, ওয়া আকরিম নুযুলাহু ওয়া ওয়াসসি‘ মুদখালাহু…',
+                  'Allahummaghfir lahu warhamhu, wa \'afihi wa\'fu \'anhu, wa akrim nuzulahu, wa wassi\' mudkhalahu, waghsilhu bil-ma\'i wath-thalji wal-barad, wa naqqihi minal-khataya kama naqqaytath-thawbal-abyada minad-danas, wa abdilhu daran khayran min darih, wa ahlan khayran min ahlih, wa zawjan khayran min zawjih, wa adkhilhul-jannah, wa a\'idhhu min \'adhabil-qabri wa min \'adhabin-nar.',
+                  'আল্লাহুম্মাগফির লাহু ওয়ারহামহু, ওয়া আফিহি ওয়া‘ফু আনহু, ওয়া আকরিম নুযুলাহু, ওয়া ওয়াসসি‘ মুদখালাহু, ওয়াগসিলহু বিল মাই ওয়াস সালজি ওয়াল বারাদ, ওয়া নাক্কিহি মিনাল খাতায়া কামা নাক্কাইতাস সাওবাল আবইয়াদা মিনাদ দানাস, ওয়া আবদিলহু দারান খাইরাম মিন দারিহ, ওয়া আহলান খাইরাম মিন আহলিহ, ওয়া যাওজান খাইরাম মিন যাওজিহ, ওয়া আদখিলহুল জান্নাহ, ওয়া আইযহু মিন আযাবিল কাবরি ওয়া মিন আযাবিন নার।',
                 ),
                 translation: LText(
-                  'O Allah, forgive him, have mercy on him, grant him ease and pardon him. Honour his resting place and expand his entry; wash him with water, snow and hail.',
-                  'হে আল্লাহ, তাকে ক্ষমা করুন, তার ওপর দয়া করুন, তাকে নিরাপত্তা দিন ও মাফ করে দিন। তার অবস্থানকে সম্মানিত করুন ও প্রবেশপথ প্রশস্ত করুন; পানি, বরফ ও শিলা দিয়ে তাকে ধুয়ে দিন।',
+                  'O Allah, forgive him and have mercy on him; give him ease and pardon him. Honour his resting place and make his entry spacious. Wash him with water, snow and hail. Cleanse him of his sins as a white garment is cleansed of dirt. Give him a home better than his home, a family better than his family, and a spouse better than his spouse. Admit him into Paradise, and protect him from the punishment of the grave and the punishment of the Fire.',
+                  'হে আল্লাহ, তাকে ক্ষমা করুন ও তার ওপর দয়া করুন; তাকে নিরাপত্তা দিন ও মাফ করে দিন। তার অবস্থানকে সম্মানিত করুন ও কবরকে প্রশস্ত করুন। পানি, বরফ ও শিলা দিয়ে তাকে ধুয়ে দিন। সাদা কাপড় থেকে ময়লা দূর করার মতো তার গুনাহ দূর করে দিন। তাকে তার ঘরের চেয়ে উত্তম ঘর, পরিবারের চেয়ে উত্তম পরিবার এবং সঙ্গীর চেয়ে উত্তম সঙ্গী দিন। তাকে জান্নাতে প্রবেশ করান এবং কবরের ও জাহান্নামের আজাব থেকে রক্ষা করুন।',
                 ),
               ),
               SalahDua(

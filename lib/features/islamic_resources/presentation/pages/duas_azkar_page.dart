@@ -198,14 +198,14 @@ final List<_DuaCategory> _categories = [
           'প্রতি ফরজ নামাজের পর একবার — বড় হেফাজত',
         ),
         arabicText:
-            'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ',
+            'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ',
         transliteration: LText(
-          'Allahu la ilaha illa huwal-hayyul-qayyum. La ta\'khudhuhuu sinatun wa la nawm. Lahuu ma fis-samawati wa ma fil-ard...',
-          'আল্লাহু লা ইলাহা ইল্লা হুয়াল হাইয়ুল কাইয়ুম। লা তা’খুযুহু সিনাতুও ওয়ালা নাউম। লাহু মা ফিস সামাওয়াতি ওয়া মা ফিল আরদ…',
+          'Allahu la ilaha illa huwal-hayyul-qayyum. La ta\'khudhuhu sinatun wa la nawm. Lahu ma fis-samawati wa ma fil-ard. Man dhal-ladhi yashfa\'u \'indahu illa bi-idhnih. Ya\'lamu ma bayna aydihim wa ma khalfahum. Wa la yuhituna bi-shay\'im min \'ilmihi illa bima sha\'. Wasi\'a kursiyyuhus-samawati wal-ard. Wa la ya\'uduhu hifzuhuma. Wa huwal-\'aliyyul-\'azim.',
+          'আল্লাহু লা ইলাহা ইল্লা হুয়াল হাইয়্যুল কাইয়্যুম। লা তা’খুযুহু সিনাতুঁও ওয়ালা নাউম। লাহু মা ফিস সামাওয়াতি ওয়া মা ফিল আরদ। মান যাল্লাযি ইয়াশফাউ ইনদাহু ইল্লা বিইযনিহ। ইয়া‘লামু মা বাইনা আইদিহিম ওয়া মা খালফাহুম। ওয়ালা ইউহিতুনা বিশাইইম মিন ইলমিহি ইল্লা বিমা শা-আ। ওয়াসিআ কুরসিয়্যুহুস সামাওয়াতি ওয়াল আরদ। ওয়ালা ইয়াউদুহু হিফযুহুমা। ওয়া হুয়াল আলিয়্যুল আযিম।',
         ),
         translation: LText(
-          'Allah — there is no deity except Him, the Ever-Living, the Self-Sustaining. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth... (Surah 2:255)',
-          'আল্লাহ — তিনি ছাড়া কোনো ইলাহ নেই, তিনি চিরঞ্জীব, সবকিছুর ধারক। তন্দ্রা বা ঘুম তাঁকে স্পর্শ করে না। আসমান ও জমিনে যা কিছু আছে সবই তাঁর… (সূরা ২:২৫৫)',
+          'Allah — there is no deity except Him, the Ever-Living, the Sustainer of all existence. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth. Who is it that can intercede with Him except by His permission? He knows what lies before them and what is behind them, and they encompass nothing of His knowledge except what He wills. His Kursi extends over the heavens and the earth, and their preservation tires Him not. And He is the Most High, the Most Great. (Surah al-Baqarah 2:255)',
+          'আল্লাহ — তিনি ছাড়া কোনো ইলাহ নেই; তিনি চিরঞ্জীব, সবকিছুর ধারক। তন্দ্রা বা ঘুম তাঁকে স্পর্শ করে না। আসমান ও জমিনে যা কিছু আছে সবই তাঁর। কে আছে যে তাঁর অনুমতি ছাড়া তাঁর কাছে সুপারিশ করবে? তাদের সামনে ও পেছনে যা আছে সবই তিনি জানেন; আর তারা তাঁর জ্ঞানের কিছুই আয়ত্ত করতে পারে না, তিনি যতটুকু চান তা ছাড়া। তাঁর কুরসি আসমান ও জমিনজুড়ে বিস্তৃত; আর এ দুটির রক্ষণাবেক্ষণ তাঁকে ক্লান্ত করে না। তিনিই সর্বোচ্চ, মহান। (সূরা বাকারা ২:২৫৫)',
         ),
       ),
     ],
@@ -225,14 +225,14 @@ final List<_DuaCategory> _categories = [
           'সকাল ও সন্ধ্যায় — একবার করে',
         ),
         arabicText:
-            'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلٰهَ إِلَّا أَنْتَ خَلَقْتَنِي وَأَنَا عَبْدُكَ وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ أَبُوءُ لَكَ بِنِعْمَتِكَ وَأَبُوءُ بِذَنْبِي',
+            'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ',
         transliteration: LText(
-          'Allahumma anta Rabbi, la ilaha illa anta, khalaqtani wa ana \'abduka wa ana \'ala \'ahdika wa wa\'dika mastata\'tu, a\'udhu bika min sharri ma sana\'tu, abu\'u laka bini\'matika wa abu\'u bidhanbii...',
-          'আল্লাহুম্মা আনতা রাব্বি, লা ইলাহা ইল্লা আনতা, খালাকতানি ওয়া আনা আবদুকা ওয়া আনা আলা আহদিকা ওয়া ওয়া‘দিকা মাসতাতা‘তু, আউযু বিকা মিন শাররি মা সানা‘তু, আবুউ লাকা বিনি‘মাতিকা ওয়া আবুউ বিযামবি…',
+          'Allahumma anta Rabbi, la ilaha illa anta, khalaqtani wa ana \'abduka, wa ana \'ala \'ahdika wa wa\'dika mastata\'tu. A\'udhu bika min sharri ma sana\'tu. Abu\'u laka bi-ni\'matika \'alayya, wa abu\'u bi-dhanbi, faghfir li fa-innahu la yaghfirudh-dhunuba illa anta.',
+          'আল্লাহুম্মা আনতা রাব্বি, লা ইলাহা ইল্লা আনতা, খালাকতানি ওয়া আনা আবদুকা, ওয়া আনা আলা আহদিকা ওয়া ওয়া‘দিকা মাসতাতা‘তু। আউযু বিকা মিন শাররি মা সানা‘তু। আবুউ লাকা বিনি‘মাতিকা আলাইয়্যা, ওয়া আবুউ বিযামবি, ফাগফির লি ফাইন্নাহু লা ইয়াগফিরুয যুনুবা ইল্লা আনতা।',
         ),
         translation: LText(
-          'O Allah, You are my Lord. There is no god but You. You created me and I am Your slave. I uphold Your covenant and my promise to You as best I can. I seek refuge in You from the evil of what I have done...',
-          'হে আল্লাহ, আপনিই আমার প্রতিপালক। আপনি ছাড়া কোনো ইলাহ নেই। আপনি আমাকে সৃষ্টি করেছেন, আমি আপনার বান্দা। সাধ্যমতো আমি আপনার সঙ্গে করা অঙ্গীকারে অটল আছি। আমি যা করেছি তার অনিষ্ট থেকে আপনার আশ্রয় চাই…',
+          'O Allah, You are my Lord. There is no god but You. You created me and I am Your servant, and I hold to Your covenant and Your promise as best I can. I seek refuge in You from the evil of what I have done. I acknowledge before You Your favour upon me, and I acknowledge my sin — so forgive me, for none forgives sins but You.',
+          'হে আল্লাহ, আপনিই আমার প্রতিপালক। আপনি ছাড়া কোনো ইলাহ নেই। আপনি আমাকে সৃষ্টি করেছেন, আমি আপনার বান্দা। সাধ্যমতো আমি আপনার সঙ্গে করা অঙ্গীকার ও প্রতিশ্রুতিতে অটল আছি। আমি যা করেছি তার অনিষ্ট থেকে আপনার আশ্রয় চাই। আমার প্রতি আপনার নিয়ামত স্বীকার করছি এবং নিজের গুনাহও স্বীকার করছি — সুতরাং আমাকে ক্ষমা করুন, কারণ আপনি ছাড়া গুনাহ ক্ষমা করার কেউ নেই।',
         ),
       ),
       _Dua(

@@ -2479,7 +2479,7 @@ class LEn extends L {
 
   @override
   String get adhkarAyatulKursi =>
-      'Recite Ayat al-Kursi (2:255) after each prayer.';
+      'Allah — there is no deity except Him, the Ever-Living, the Sustainer of all existence. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth. Who is it that can intercede with Him except by His permission? He knows what lies before them and what is behind them, and they encompass nothing of His knowledge except what He wills. His Kursi extends over the heavens and the earth, and their preservation tires Him not. And He is the Most High, the Most Great. (2:255)';
 
   @override
   String get prayerJumuah => 'Jumu\'ah';
