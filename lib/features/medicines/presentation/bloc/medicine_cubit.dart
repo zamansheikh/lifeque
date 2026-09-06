@@ -180,6 +180,8 @@ class MedicineCubit extends Cubit<MedicineState> {
   }
 
   Future<void> markDoseAsTaken(String doseId, String medicineId) async {
+    // The nudge has served its purpose the moment this is answered.
+    await notificationService.cancelDoseFollowUp(doseId);
     // Avoid showing a full-screen loading state that hides medicine list; perform inline update
     final result = await markDoseAsTakenUseCase(MarkDoseParams(doseId: doseId));
     result.fold(
@@ -193,6 +195,8 @@ class MedicineCubit extends Cubit<MedicineState> {
   }
 
   Future<void> markDoseAsSkipped(String doseId, String medicineId) async {
+    // The nudge has served its purpose the moment this is answered.
+    await notificationService.cancelDoseFollowUp(doseId);
     final result = await markDoseAsSkippedUseCase(
       MarkDoseParams(doseId: doseId),
     );
@@ -206,6 +210,8 @@ class MedicineCubit extends Cubit<MedicineState> {
   }
 
   Future<void> markDoseAsMissed(String doseId, String medicineId) async {
+    // The nudge has served its purpose the moment this is answered.
+    await notificationService.cancelDoseFollowUp(doseId);
     final result = await markDoseAsMissedUseCase(
       MarkDoseParams(doseId: doseId),
     );
@@ -216,6 +222,22 @@ class MedicineCubit extends Cubit<MedicineState> {
         _silentDashboardRefresh();
       },
     );
+  }
+
+  /// Pending doses whose moment has passed, newest first, limited to
+  /// medicines that still exist.
+  Future<List<MedicineDose>> _unresolvedDoses(
+    Set<String> liveMedicineIds,
+  ) async {
+    final result = await getPendingDosesUseCase(NoParams());
+    final now = DateTime.now();
+    return result.fold((_) => <MedicineDose>[], (doses) {
+      return doses
+          .where((d) => isDoseUnresolved(d, now))
+          .where((d) => liveMedicineIds.contains(d.medicineId))
+          .toList()
+        ..sort((a, b) => b.scheduledTime.compareTo(a.scheduledTime));
+    });
   }
 
   Future<void> loadDashboard({DateTime? date}) async {
@@ -231,27 +253,22 @@ class MedicineCubit extends Cubit<MedicineState> {
           (failure) =>
               emit(MedicineError(message: _getFailureMessage(failure))),
           (doses) async {
-            final now = DateTime.now();
-            final updated = <MedicineDose>[];
-            for (final d in doses) {
-              if (d.status == DoseStatus.pending &&
-                  d.scheduledTime.isBefore(
-                    now.subtract(const Duration(minutes: 60)),
-                  )) {
-                // Mark as missed in storage
-                await markDoseAsMissedUseCase(MarkDoseParams(doseId: d.id));
-                updated.add(d.copyWith(status: DoseStatus.missed));
-              } else {
-                updated.add(d);
-              }
-            }
+            // A dose that ran late used to be written off as missed right
+            // here, silently. That is a guess, and the wrong one whenever the
+            // medicine was actually taken and simply not ticked — so it stays
+            // pending and gets asked about instead.
+            final liveIds = medicines.map((m) => m.id).toSet();
+            final unresolved = await _unresolvedDoses(liveIds);
             emit(
               MedicineDashboardLoaded(
                 medicines: medicines,
-                todayDoses: updated,
+                todayDoses: doses,
                 date: DateTime(target.year, target.month, target.day),
+                unresolvedDoses: unresolved,
               ),
             );
+            // Nudge again for anything still outstanding today.
+            await notificationService.scheduleDoseFollowUps(medicines, doses);
           },
         );
       },

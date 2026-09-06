@@ -76,17 +76,23 @@ class MedicineDashboardLoaded extends MedicineState {
   final List<MedicineDose> todayDoses; // all doses scheduled for today
   final DateTime date;
 
+  /// Doses whose time went by without an answer — from today or any earlier
+  /// day. They stay pending rather than being written off as missed, because
+  /// only the person holding the phone knows which it was.
+  final List<MedicineDose> unresolvedDoses;
+
   const MedicineDashboardLoaded({
     required this.medicines,
     required this.todayDoses,
     required this.date,
+    this.unresolvedDoses = const [],
   });
 
   List<MedicineDose> dosesForMedicine(String id) =>
       todayDoses.where((d) => d.medicineId == id).toList();
 
   @override
-  List<Object?> get props => [medicines, todayDoses, date];
+  List<Object?> get props => [medicines, todayDoses, date, unresolvedDoses];
 }
 
 class DailyProgressLoaded extends MedicineState {

@@ -2,6 +2,25 @@ import 'package:equatable/equatable.dart';
 
 enum DoseStatus { pending, taken, skipped, missed }
 
+/// How long a dose is left alone after its time before the app stops assuming
+/// it is about to be taken and starts asking.
+///
+/// Short enough that a forgotten midday dose is raised by the evening, long
+/// enough not to nag while taking it late would still be perfectly normal.
+const Duration kDoseGrace = Duration(minutes: 60);
+
+/// Whether a dose's moment has passed without an answer.
+///
+/// Pulled out of the cubit so the rule is one line, in one place, and can be
+/// checked without a database or a clock.
+bool isDoseUnresolved(
+  MedicineDose dose,
+  DateTime now, {
+  Duration grace = kDoseGrace,
+}) =>
+    dose.status == DoseStatus.pending &&
+    dose.scheduledTime.isBefore(now.subtract(grace));
+
 class MedicineDose extends Equatable {
   final String id;
   final String medicineId;

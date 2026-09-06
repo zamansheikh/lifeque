@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../../../../core/utils/local_numbers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/medicine.dart';
+import '../bloc/medicine_cubit.dart';
 
 /// Display forms for the medicine enums and figures.
 ///
@@ -42,4 +43,22 @@ String doseLabel(num dosage, String unit) {
       ? N.plain(dosage.round())
       : N.of(dosage);
   return '$rounded $unit';
+}
+
+/// Turns the cubit's outcome code into words.
+///
+/// The cubit runs without a context, so it names what happened and this maps
+/// it. An unrecognised value passes through, so a message the cubit has not
+/// been taught yet still shows rather than vanishing.
+String medicineMessageLabel(BuildContext context, String raw) {
+  final l = L.of(context);
+  return switch (MedicineMessage.parse(raw)) {
+    MedicineMessage.added => l.medMsgAdded,
+    MedicineMessage.updated => l.medMsgUpdated,
+    MedicineMessage.deleted => l.medMsgDeleted,
+    MedicineMessage.doseTaken => l.medMsgDoseTaken,
+    MedicineMessage.doseSkipped => l.medMsgDoseSkipped,
+    MedicineMessage.doseMissed => l.medMsgDoseMissed,
+    null => raw,
+  };
 }

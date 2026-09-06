@@ -34,22 +34,6 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
     context.read<MedicineCubit>().loadDashboard(date: _selectedDate);
   }
 
-  /// Turns the cubit's outcome code into words. An unrecognised value is
-  /// passed through, so a message the cubit has not been taught yet still
-  /// shows rather than vanishing.
-  String _successText(BuildContext context, String raw) {
-    final l = L.of(context);
-    return switch (MedicineMessage.parse(raw)) {
-      MedicineMessage.added => l.medMsgAdded,
-      MedicineMessage.updated => l.medMsgUpdated,
-      MedicineMessage.deleted => l.medMsgDeleted,
-      MedicineMessage.doseTaken => l.medMsgDoseTaken,
-      MedicineMessage.doseSkipped => l.medMsgDoseSkipped,
-      MedicineMessage.doseMissed => l.medMsgDoseMissed,
-      null => raw,
-    };
-  }
-
   void _refresh() =>
       context.read<MedicineCubit>().loadDashboard(date: _selectedDate);
   @override
@@ -72,18 +56,6 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
         shadowColor: Colors.black12,
         surfaceTintColor: Colors.transparent,
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              onPressed: _refresh,
-              icon: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B)),
-              tooltip: L.of(context).medRefresh,
-            ),
-          ),
           Container(
             margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
@@ -125,7 +97,7 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
                 : (state as MedicineOperationSuccess).message;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(_successText(context, raw)),
+                content: Text(medicineMessageLabel(context, raw)),
                 backgroundColor: Colors.green,
               ),
             );
@@ -148,6 +120,9 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
                 : all.where((m) => m.personId == _personFilter).toList();
 
             final visibleIds = active.map((m) => m.id).toSet();
+            final unresolved = state.unresolvedDoses
+                .where((d) => visibleIds.contains(d.medicineId))
+                .toList();
             final visibleDoses = state.todayDoses
                 .where((d) => visibleIds.contains(d.medicineId))
                 .toList();
@@ -185,6 +160,17 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
                       onChanged: (id) => setState(() => _personFilter = id),
                     ),
                     const SizedBox(height: 16),
+                  ],
+
+                  // Anything that slipped past unanswered comes first — it is
+                  // the only thing on this page the app cannot work out alone.
+                  if (unresolved.isNotEmpty) ...[
+                    _CatchUpCard(
+                      doses: unresolved,
+                      medicines: active,
+                      showPerson: people.length > 1,
+                    ),
+                    const SizedBox(height: 18),
                   ],
 
                   // The doses due, first. This is what the page is for; the
@@ -268,6 +254,334 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
 }
 
 /// Shown when a person filter is on but that person has nothing active.
+
+/// The doses that went by without an answer, and the two buttons that settle
+/// them. Deliberately at the top and deliberately loud: an unanswered dose is
+/// the one thing here the app cannot decide on its own, and leaving it to rot
+/// quietly is what made the adherence history untrustworthy.
+class _CatchUpCard extends StatelessWidget {
+  const _CatchUpCard({
+    required this.doses,
+    required this.medicines,
+    required this.showPerson,
+  });
+
+  final List<MedicineDose> doses;
+  final List<Medicine> medicines;
+  final bool showPerson;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFFDE68A)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.help_outline_rounded,
+                size: 19,
+                color: Color(0xFFB45309),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l.medCatchUpTitle,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF92400E),
+                  ),
+                ),
+              ),
+              Text(
+                l.medCatchUpCount(doses.length),
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFB45309),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l.medCatchUpBody,
+            style: const TextStyle(
+              fontSize: 12.5,
+              height: 1.4,
+              color: Color(0xFF92400E),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Oldest first: working down the backlog in order is less confusing
+          // than being asked about last night before this morning.
+          for (final dose in doses.reversed)
+            _CatchUpRow(
+              dose: dose,
+              medicine: medicines.firstWhere(
+                (m) => m.id == dose.medicineId,
+                orElse: () => medicines.first,
+              ),
+              showPerson: showPerson,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CatchUpRow extends StatelessWidget {
+  const _CatchUpRow({
+    required this.dose,
+    required this.medicine,
+    required this.showPerson,
+  });
+
+  final MedicineDose dose;
+  final Medicine medicine;
+  final bool showPerson;
+
+  /// "8:00 pm", or with the day in front once it is no longer today.
+  String _when(BuildContext context) {
+    final time = Clock.h12(dose.scheduledTime);
+    final today = DateUtils.dateOnly(DateTime.now());
+    final day = DateUtils.dateOnly(dose.scheduledTime);
+    final days = today.difference(day).inDays;
+    if (days <= 0) return time;
+    if (days == 1) return '${L.of(context).medYesterday} · $time';
+    return '${L.of(context).medDaysAgo(days)} · $time';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<MedicineCubit>();
+    final person = showPerson
+        ? di.sl<CarePersonService>().findById(medicine.personId)
+        : null;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: medicine.name,
+                        style: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      TextSpan(
+                        text:
+                            '  ${doseLabel(medicine.dosage, medicine.dosageUnit)}'
+                            ' · ${_when(context)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF92400E),
+                        ),
+                      ),
+                    ],
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (person != null) ...[
+                const SizedBox(width: 8),
+                CarePersonAvatar(person: person, size: 22),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _CatchUpButton(
+                  label: L.of(context).medCatchUpTaken,
+                  icon: Icons.check_rounded,
+                  color: const Color(0xFF10B981),
+                  filled: true,
+                  onTap: () => cubit.markDoseAsTaken(dose.id, medicine.id),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _CatchUpButton(
+                  label: L.of(context).medCatchUpMissed,
+                  icon: Icons.close_rounded,
+                  color: const Color(0xFFB45309),
+                  onTap: () => cubit.markDoseAsMissed(dose.id, medicine.id),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CatchUpButton extends StatelessWidget {
+  const _CatchUpButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    this.filled = false,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: filled ? color : Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Container(
+          height: 38,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: filled ? color : color.withValues(alpha: 0.35),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: filled ? Colors.white : color),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: filled ? Colors.white : color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Edit and delete for a course.
+///
+/// Delete lived on the old dashboard card and was lost when that card was
+/// replaced; without it a medicine added by mistake could never be removed.
+class _CourseMenu extends StatelessWidget {
+  const _CourseMenu({required this.medicine, required this.onChanged});
+
+  final Medicine medicine;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF94A3B8)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      onSelected: (value) async {
+        if (value == 'edit') {
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => AddEditMedicinePage(medicine: medicine),
+            ),
+          );
+          onChanged();
+        } else {
+          await _confirmDelete(context);
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'edit',
+          child: Row(
+            children: [
+              const Icon(Icons.edit_rounded, size: 18),
+              const SizedBox(width: 10),
+              Text(l.medEditAction),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              const Icon(
+                Icons.delete_outline_rounded,
+                size: 18,
+                color: Color(0xFFDC2626),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                l.medDeleteAction,
+                style: const TextStyle(color: Color(0xFFDC2626)),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final l = L.of(context);
+    final cubit = context.read<MedicineCubit>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l.medDeleteTitle),
+        content: Text('${medicine.name}\n\n${l.medDeleteBody}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l.permCancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l.medDeleteAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed ?? false) await cubit.deleteMedicine(medicine.id);
+  }
+}
 
 // ─── Building blocks of the redesigned dashboard ─────────────────────────────
 
@@ -447,10 +761,13 @@ class _DoseRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   [
+                    // Overdue leads: the line is one row deep, and this is the
+                    // part that must survive when Bangla runs long enough to
+                    // truncate. Meal timing is the least urgent, so it trails.
+                    if (overdue) L.of(context).medOverdue,
                     doseLabel(medicine.dosage, medicine.dosageUnit),
                     if (medicine.mealTiming != MealTiming.anytime)
                       mealTimingLabel(context, medicine.mealTiming),
-                    if (overdue) L.of(context).medOverdue,
                   ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -663,10 +980,7 @@ class _CourseRow extends StatelessWidget {
                   const SizedBox(width: 8),
                   CarePersonAvatar(person: person, size: 26),
                 ],
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFFCBD5E1),
-                ),
+                _CourseMenu(medicine: medicine, onChanged: onChanged),
               ],
             ),
           ),

@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/medicine.dart';
 import '../bloc/medicine_cubit.dart';
+import '../utils/medicine_l10n.dart';
 import '../widgets/care_person_picker.dart';
 import '../bloc/medicine_state.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -231,7 +232,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
           if (state is MedicineOperationSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: Text(medicineMessageLabel(context, state.message)),
                 backgroundColor: Colors.green,
               ),
             );
@@ -907,6 +908,14 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: _notificationTimes[index],
+      // Forced to a 12-hour dial. On a 24-hour clock Material draws two rings
+      // of numbers, 0–11 outside and 12–23 inside, which is a puzzle when all
+      // you want is "eight in the evening". The 12-hour dial asks for the hour,
+      // moves itself to the minutes, and keeps am/pm as a plain toggle.
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+        child: child!,
+      ),
     );
     if (picked != null) {
       setState(() {

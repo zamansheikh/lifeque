@@ -21,6 +21,7 @@ import 'navigation_service.dart';
 import '../../injection_container.dart' as di;
 import '../../features/medicines/data/services/care_person_service.dart';
 import '../../features/medicines/domain/entities/medicine.dart';
+import '../../features/medicines/domain/entities/medicine_dose.dart';
 import '../../features/medicines/presentation/utils/medicine_l10n.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -2293,6 +2294,69 @@ class NotificationService {
       ),
     );
   }
+
+  // ── Follow-up nudges for doses that went unanswered ──────────────────────
+
+  /// Follow-ups live in their own id range so they never collide with the
+  /// daily medicine reminders.
+  static const int _doseFollowUpIdBase = 810000000;
+
+  /// How long after the scheduled time to ask again.
+  static const Duration doseFollowUpDelay = Duration(minutes: 20);
+
+  int _doseFollowUpId(String doseId) =>
+      _doseFollowUpIdBase + (doseId.hashCode.abs() % 10000000);
+
+  /// Schedules a second nudge for each of today's doses that is still pending.
+  ///
+  /// One-shot, and only for the doses in hand — a year-long course would
+  /// otherwise want thousands of pending alarms, well past what Android will
+  /// hold. It is refreshed whenever the dashboard loads, which is also when a
+  /// dose is ticked off, so a resolved dose loses its follow-up straight away.
+  Future<void> scheduleDoseFollowUps(
+    List<Medicine> medicines,
+    List<MedicineDose> doses,
+  ) async {
+    final byId = {for (final m in medicines) m.id: m};
+    final now = DateTime.now();
+
+    for (final dose in doses) {
+      final id = _doseFollowUpId(dose.id);
+      // Always clear first: this runs on every load, and a dose that has since
+      // been taken must lose the nudge it was given earlier.
+      await _flutterLocalNotificationsPlugin.cancel(id: id);
+
+      if (dose.status != DoseStatus.pending) continue;
+      final medicine = byId[dose.medicineId];
+      if (medicine == null) continue;
+
+      final when = dose.scheduledTime.add(doseFollowUpDelay);
+      // Past its follow-up already: the dashboard asks about those directly,
+      // and a notification for a moment gone by would only confuse.
+      if (!when.isAfter(now)) continue;
+
+      try {
+        await _flutterLocalNotificationsPlugin.zonedSchedule(
+          id: id,
+          title: _l.medNotifStillPending,
+          body:
+              '${_medicineNotificationTitle(medicine)} · '
+              '${_getMedicineNotificationBody(medicine)}',
+          scheduledDate: tz.TZDateTime.from(when, tz.local),
+          notificationDetails: _getMedicineNotificationDetails(medicine, when),
+          payload: 'medicine_${medicine.id}',
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        );
+      } catch (e) {
+        debugPrint('🩺 Could not schedule follow-up for ${dose.id}: $e');
+      }
+    }
+  }
+
+  /// Drops the follow-up for a dose the moment it is answered, so ticking a
+  /// dose in the app silences the nudge without waiting for a reload.
+  Future<void> cancelDoseFollowUp(String doseId) =>
+      _flutterLocalNotificationsPlugin.cancel(id: _doseFollowUpId(doseId));
 
   Future<void> cancelMedicineNotifications(String medicineId) async {
     debugPrint('🩺 Cancelling notifications for medicine: $medicineId');
