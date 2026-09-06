@@ -1407,5 +1407,63 @@
   },
   "medPresetParacetamol": "Paracetamol",
   "medPresetVitaminD": "Vitamin D",
-  "medPresetCoughSyrup": "Cough Syrup"
+  "medPresetCoughSyrup": "Cough Syrup",
+  "expCatFood": "Food & Dining",
+  "expCatTransport": "Transport",
+  "expCatUtilities": "Utilities",
+  "expCatEntertainment": "Entertainment",
+  "expCatHealthcare": "Healthcare",
+  "expCatEducation": "Education",
+  "expCatShopping": "Shopping",
+  "expCatGroceries": "Groceries",
+  "expCatBills": "Bills",
+  "expCatOther": "Other",
+  "expItems": "Items",
+  "expNote": "Note",
+  "expDone": "Done",
+  "expNew": "New",
+  "expIcon": "Icon",
+  "expColor": "Color",
+  "expListNameHint": "e.g. Weekly bazar, Grocery run",
+  "expCustomCategoryHint": "e.g. Rent, Gym, Pet",
+  "expSearchNarrower": "Try a shorter word — list names and item names are both searched.",
+  "expMenu": "Menu",
+  "expListCount": "{count, plural, =1{{count} list} other{{count} lists}}",
+  "@expListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "expItemCount": "{count, plural, =1{{count} item} other{{count} items}}",
+  "@expItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "expDeleteListBody": "“{title}” and its {count, plural, =1{{count} item} other{{count} items}} will be removed from your records. This can’t be undone.",
+  "@expDeleteListBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "expSearchAllMonths": "Showing matches from every month — the summary above still covers {month} only.",
+  "@expSearchAllMonths": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  }
 }

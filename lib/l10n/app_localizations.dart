@@ -5094,6 +5094,150 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Cough Syrup'**
   String get medPresetCoughSyrup;
+
+  /// No description provided for @expCatFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & Dining'**
+  String get expCatFood;
+
+  /// No description provided for @expCatTransport.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport'**
+  String get expCatTransport;
+
+  /// No description provided for @expCatUtilities.
+  ///
+  /// In en, this message translates to:
+  /// **'Utilities'**
+  String get expCatUtilities;
+
+  /// No description provided for @expCatEntertainment.
+  ///
+  /// In en, this message translates to:
+  /// **'Entertainment'**
+  String get expCatEntertainment;
+
+  /// No description provided for @expCatHealthcare.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthcare'**
+  String get expCatHealthcare;
+
+  /// No description provided for @expCatEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get expCatEducation;
+
+  /// No description provided for @expCatShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get expCatShopping;
+
+  /// No description provided for @expCatGroceries.
+  ///
+  /// In en, this message translates to:
+  /// **'Groceries'**
+  String get expCatGroceries;
+
+  /// No description provided for @expCatBills.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills'**
+  String get expCatBills;
+
+  /// No description provided for @expCatOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get expCatOther;
+
+  /// No description provided for @expItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get expItems;
+
+  /// No description provided for @expNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get expNote;
+
+  /// No description provided for @expDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get expDone;
+
+  /// No description provided for @expNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get expNew;
+
+  /// No description provided for @expIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get expIcon;
+
+  /// No description provided for @expColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get expColor;
+
+  /// No description provided for @expListNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Weekly bazar, Grocery run'**
+  String get expListNameHint;
+
+  /// No description provided for @expCustomCategoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Rent, Gym, Pet'**
+  String get expCustomCategoryHint;
+
+  /// No description provided for @expSearchNarrower.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a shorter word — list names and item names are both searched.'**
+  String get expSearchNarrower;
+
+  /// No description provided for @expMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get expMenu;
+
+  /// No description provided for @expListCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} list} other{{count} lists}}'**
+  String expListCount(int count);
+
+  /// No description provided for @expItemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} item} other{{count} items}}'**
+  String expItemCount(int count);
+
+  /// No description provided for @expDeleteListBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” and its {count, plural, =1{{count} item} other{{count} items}} will be removed from your records. This can’t be undone.'**
+  String expDeleteListBody(String title, int count);
+
+  /// No description provided for @expSearchAllMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing matches from every month — the summary above still covers {month} only.'**
+  String expSearchAllMonths(String month);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

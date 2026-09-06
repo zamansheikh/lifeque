@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
+
 enum ExpenseCategory {
   food,
   transport,
@@ -12,6 +14,24 @@ enum ExpenseCategory {
   bills,
   other;
 
+  /// The name to put on screen, in the reader's language.
+  String labelFor(BuildContext context) {
+    final l = L.of(context);
+    return switch (this) {
+      ExpenseCategory.food => l.expCatFood,
+      ExpenseCategory.transport => l.expCatTransport,
+      ExpenseCategory.utilities => l.expCatUtilities,
+      ExpenseCategory.entertainment => l.expCatEntertainment,
+      ExpenseCategory.healthcare => l.expCatHealthcare,
+      ExpenseCategory.education => l.expCatEducation,
+      ExpenseCategory.shopping => l.expCatShopping,
+      ExpenseCategory.groceries => l.expCatGroceries,
+      ExpenseCategory.bills => l.expCatBills,
+      ExpenseCategory.other => l.expCatOther,
+    };
+  }
+
+  /// English name, for logs and other places with no context to read.
   String get displayName {
     switch (this) {
       case ExpenseCategory.food:

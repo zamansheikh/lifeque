@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import 'package:go_router/go_router.dart';
@@ -146,7 +147,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu_rounded, color: _muted),
             onPressed: () => Scaffold.of(ctx).openDrawer(),
-            tooltip: 'Menu',
+            tooltip: L.of(context).expMenu,
           ),
         ),
       ),
@@ -376,8 +377,9 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
         Padding(
           padding: const EdgeInsets.only(top: 10),
           child: _notice(
-            'Showing matches from every month — the summary above still '
-            'covers ${_formatMonthYear(state.selectedMonth)} only.',
+            L
+                .of(context)
+                .expSearchAllMonths(_formatMonthYear(state.selectedMonth)),
           ),
         ),
 
@@ -451,8 +453,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
     // The budget card above already reports the month's spend, so the
     // subtitle counts things instead of repeating a figure.
     final items = lists.fold<int>(0, (sum, s) => sum + s.items.length);
-    final countLabel =
-        '${lists.length} ${lists.length == 1 ? 'list' : 'lists'}';
+    final countLabel = L.of(context).expListCount(lists.length);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,7 +472,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
         if (lists.isNotEmpty) ...[
           const SizedBox(height: 2),
           Text(
-            '$countLabel · $items ${items == 1 ? 'item' : 'items'}',
+            '$countLabel · ${L.of(context).expItemCount(items)}',
             style: TextStyle(
               fontSize: 13,
               color: Colors.grey[600],
@@ -617,7 +618,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
         ),
         const SizedBox(height: 8),
         Text(
-          'Try a shorter word — list names and item names are both searched.',
+          L.of(context).expSearchNarrower,
           style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.45),
           textAlign: TextAlign.center,
         ),
@@ -688,23 +689,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
   }
 
   // ── Actions ────────────────────────────────────────────────────────────
-  String _formatMonthYear(DateTime date) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return '${months[date.month - 1]} ${date.year}';
-  }
+  String _formatMonthYear(DateTime date) => DateFormat('MMMM y').format(date);
 
   void _openList(ExpenseSession session) {
     context.push('/expenses/detail', extra: session);
@@ -732,9 +717,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          '“${session.title}” and its ${session.items.length} '
-          '${session.items.length == 1 ? 'item' : 'items'} will be removed '
-          'from your records. This can\'t be undone.',
+          L.of(context).expDeleteListBody(session.title, session.items.length),
           style: const TextStyle(height: 1.4),
         ),
         actions: [

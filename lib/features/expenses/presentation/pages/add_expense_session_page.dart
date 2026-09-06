@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/services/custom_category_service.dart';
@@ -6,6 +7,7 @@ import '../../domain/entities/custom_category.dart';
 import '../../domain/entities/expense_item.dart';
 import '../../domain/entities/expense_session.dart';
 import '../../domain/entities/expense_category.dart';
+import '../../domain/services/expense_category_suggester.dart';
 import '../bloc/expense_bloc.dart';
 import '../../../../injection_container.dart' as di;
 import '../../../../l10n/app_localizations.dart';
@@ -81,7 +83,15 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
       }
     }
 
+    // The completion strip only shows while the name field has focus, so it
+    // has to rebuild when focus comes and goes.
+    _quickNameFocus.addListener(_onQuickNameFocusChanged);
+
     _animationController.forward();
+  }
+
+  void _onQuickNameFocusChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -90,6 +100,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
     _notesController.dispose();
     _quickNameController.dispose();
     _quickAmountController.dispose();
+    _quickNameFocus.removeListener(_onQuickNameFocusChanged);
     _quickNameFocus.dispose();
     _quickAmountFocus.dispose();
     _animationController.dispose();
@@ -255,14 +266,19 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text(
-          _isEditing
-              ? L.of(context).expEditList
-              : L.of(context).expNewShoppingList,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 24,
-            color: Color(0xFF1E293B),
+        // The short form of the title, scaled down rather than clipped: the
+        // Bangla for "New shopping list" is wider than the room beside Save.
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            _isEditing ? L.of(context).expEditList : L.of(context).expNewList,
+            maxLines: 1,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 24,
+              color: Color(0xFF1E293B),
+            ),
           ),
         ),
         backgroundColor: Colors.transparent,
@@ -310,7 +326,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                 size: 20,
               ),
               label: Text(
-                _isEditing ? L.of(context).expUpdate : 'Save',
+                _isEditing ? L.of(context).expUpdate : L.of(context).commonSave,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -376,7 +392,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
             _buildEnhancedTextField(
               controller: _titleController,
               label: L.of(context).expListName,
-              hint: 'e.g. Weekly bazar, Grocery run',
+              hint: L.of(context).expListNameHint,
               icon: Icons.title_rounded,
               autofocus: !_isEditing,
               validator: (value) {
@@ -391,14 +407,14 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               children: [
                 _chip(
                   icon: Icons.calendar_today_rounded,
-                  label: _formatDate(_selectedDate),
+                  label: _formatDate(context, _selectedDate),
                   onTap: _selectDate,
                 ),
                 const SizedBox(width: 8),
                 if (!_showNote)
                   _chip(
                     icon: Icons.add_rounded,
-                    label: 'Note',
+                    label: L.of(context).expNote,
                     onTap: () => setState(() => _showNote = true),
                     subdued: true,
                   ),
@@ -494,9 +510,9 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                   ),
                 ),
                 const SizedBox(width: 10),
-                const Text(
-                  'Items',
-                  style: TextStyle(
+                Text(
+                  L.of(context).expItems,
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF1E293B),
@@ -516,6 +532,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
             ),
             const SizedBox(height: 10),
             _quickAddRow(),
+            _nameSuggestions(),
             if (_items.isEmpty) ...[
               const SizedBox(height: 14),
               Center(
@@ -594,6 +611,68 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
     );
   }
 
+  /// Completions for the name being typed. Tapping one fills in the name and
+  /// the category it belongs to, so a known item takes one tap instead of two.
+  Widget _nameSuggestions() {
+    if (!_quickNameFocus.hasFocus) return const SizedBox.shrink();
+    final matches = ExpenseCategorySuggester.suggestNames(
+      _quickNameController.text,
+    );
+    if (matches.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: SizedBox(
+        height: 34,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: matches.length,
+          separatorBuilder: (_, _) => const SizedBox(width: 6),
+          itemBuilder: (context, i) {
+            final match = matches[i];
+            return Material(
+              color: match.category.color.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(9),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(9),
+                onTap: () {
+                  _quickNameController.text = match.name;
+                  _quickNameController.selection = TextSelection.fromPosition(
+                    TextPosition(offset: match.name.length),
+                  );
+                  setState(() {});
+                  _quickAmountFocus.requestFocus();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        match.category.icon,
+                        size: 13,
+                        color: match.category.color,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        match.name,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: match.category.color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildEnhancedTextField({
     required TextEditingController controller,
     required String label,
@@ -650,6 +729,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
   /// category carries its own three, so the collapsed row can't just read the
   /// enum — it used to, and every custom category showed up as "Other".
   ({IconData icon, Color color, String name}) _categoryLook(
+    BuildContext context,
     ExpenseItemForm item,
   ) {
     final customName = item.customCategoryName;
@@ -657,7 +737,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
       return (
         icon: item.category.icon,
         color: item.category.color,
-        name: item.category.displayName,
+        name: item.category.labelFor(context),
       );
     }
     final custom = di.sl<CustomCategoryService>().findByName(customName);
@@ -670,7 +750,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
 
   Widget _buildCollapsedItemRow(int index) {
     final item = _items[index];
-    final look = _categoryLook(item);
+    final look = _categoryLook(context, item);
     final hasName = item.nameController.text.trim().isNotEmpty;
     final amount = double.tryParse(item.amountController.text);
 
@@ -826,7 +906,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               _headerAction(
                 icon: Icons.check_rounded,
                 color: const Color(0xFF059669),
-                label: 'Done',
+                label: L.of(context).expDone,
                 onTap: () => _confirmItem(index),
               ),
             ],
@@ -908,7 +988,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                           Icon(cat.icon, size: 13, color: cat.color),
                           const SizedBox(width: 5),
                           Text(
-                            cat.displayName,
+                            cat.labelFor(context),
                             style: TextStyle(
                               fontSize: 12,
                               color: cat.color,
@@ -1124,7 +1204,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                   ?.icon ??
               Icons.label_rounded)
         : item.category.icon;
-    final displayName = item.effectiveDisplayName;
+    final displayName = item.effectiveLabel(context);
 
     return GestureDetector(
       onTap: () => _showCategoryPickerSheet(item),
@@ -1223,9 +1303,9 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                       _showCreateCustomCategoryDialog(item);
                     },
                     icon: const Icon(Icons.add_rounded, size: 18),
-                    label: const Text(
-                      'New',
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                    label: Text(
+                      L.of(context).expNew,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -1252,7 +1332,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                         child: Icon(cat.icon, color: cat.color, size: 18),
                       ),
                       title: Text(
-                        cat.displayName,
+                        cat.labelFor(context),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: isSelected
@@ -1376,7 +1456,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                     textCapitalization: TextCapitalization.words,
                     decoration: InputDecoration(
                       labelText: L.of(context).expCategoryName,
-                      hintText: 'e.g. Rent, Gym, Pet',
+                      hintText: L.of(context).expCustomCategoryHint,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -1385,9 +1465,12 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                   ),
                   const SizedBox(height: 14),
                   // Icons
-                  const Text(
-                    'Icon',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  Text(
+                    L.of(context).expIcon,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Wrap(
@@ -1423,9 +1506,12 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                   ),
                   const SizedBox(height: 14),
                   // Colors
-                  const Text(
-                    'Color',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  Text(
+                    L.of(context).expColor,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Wrap(
@@ -1512,175 +1598,18 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
     );
   }
 
-  /// Returns up to 3 suggested categories based on the item name keywords.
-  List<ExpenseCategory> _suggestCategoriesForName(String name) {
-    final lower = name.toLowerCase();
-    if (lower.isEmpty) return [];
-    final scores = <ExpenseCategory, int>{};
+  /// Categories that fit the item name, best first.
+  List<ExpenseCategory> _suggestCategoriesForName(String name) =>
+      ExpenseCategorySuggester.suggest(name);
 
-    void score(ExpenseCategory cat, List<String> keywords) {
-      for (final kw in keywords) {
-        if (lower.contains(kw)) scores[cat] = (scores[cat] ?? 0) + 1;
-      }
-    }
-
-    score(ExpenseCategory.groceries, [
-      'rice',
-      'bread',
-      'flour',
-      'oil',
-      'milk',
-      'egg',
-      'fish',
-      'meat',
-      'chicken',
-      'vegetable',
-      'salt',
-      'sugar',
-      'lentil',
-      'dal',
-      'potato',
-      'onion',
-      'garlic',
-      'ginger',
-      'spice',
-      'maida',
-      'atta',
-      'mustard',
-    ]);
-    score(ExpenseCategory.food, [
-      'restaurant',
-      'food',
-      'dinner',
-      'lunch',
-      'breakfast',
-      'coffee',
-      'tea',
-      'snack',
-      'burger',
-      'pizza',
-      'biryani',
-      'cake',
-      'juice',
-      'ice cream',
-    ]);
-    score(ExpenseCategory.transport, [
-      'bus',
-      'rickshaw',
-      'cng',
-      'taxi',
-      'uber',
-      'fare',
-      'fuel',
-      'petrol',
-      'train',
-      'auto',
-      'travel',
-      'ferry',
-      'bike',
-    ]);
-    score(ExpenseCategory.utilities, [
-      'electricity',
-      'water',
-      'gas',
-      'internet',
-      'wifi',
-      'phone',
-      'mobile',
-      'bill',
-      'recharge',
-      'sim',
-      'data',
-    ]);
-    score(ExpenseCategory.entertainment, [
-      'movie',
-      'game',
-      'book',
-      'ticket',
-      'concert',
-      'netflix',
-      'youtube',
-      'cinema',
-      'subscription',
-      'club',
-      'show',
-    ]);
-    score(ExpenseCategory.healthcare, [
-      'medicine',
-      'doctor',
-      'clinic',
-      'hospital',
-      'health',
-      'pharmacy',
-      'drug',
-      'capsule',
-      'tablet',
-      'syrup',
-      'test',
-      'checkup',
-    ]);
-    score(ExpenseCategory.education, [
-      'tuition',
-      'school',
-      'college',
-      'university',
-      'course',
-      'pen',
-      'notebook',
-      'pencil',
-      'fees',
-      'class',
-      'stationary',
-    ]);
-    score(ExpenseCategory.shopping, [
-      'shirt',
-      'pants',
-      'shoes',
-      'dress',
-      'clothes',
-      'clothing',
-      'fashion',
-      'bag',
-      'watch',
-      'accessories',
-    ]);
-    score(ExpenseCategory.bills, [
-      'rent',
-      'emi',
-      'loan',
-      'mortgage',
-      'insurance',
-      'tax',
-    ]);
-
-    final sorted = scores.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    return sorted.where((e) => e.value > 0).take(3).map((e) => e.key).toList();
-  }
-
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
+  String _formatDate(BuildContext context, DateTime date) {
     final now = DateTime.now();
     if (date.year == now.year &&
         date.month == now.month &&
         date.day == now.day) {
-      return 'Today';
+      return L.of(context).commonToday;
     }
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+    return DateFormat('d MMM y').format(date);
   }
 
   double _calculateTotal() {
@@ -1702,11 +1631,10 @@ class ExpenseItemForm {
   // Null for newly-added items — those get a freshly-minted id on save.
   String? originalId;
 
-  /// Display name for the effective category.
-  String get effectiveDisplayName {
-    if (customCategoryName != null) return customCategoryName!;
-    return category.displayName;
-  }
+  /// Display name for the effective category. A custom category is named by
+  /// the user, so it is shown as typed; a built-in one is translated.
+  String effectiveLabel(BuildContext context) =>
+      customCategoryName ?? category.labelFor(context);
 
   void dispose() {
     nameController.dispose();

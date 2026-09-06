@@ -2850,4 +2850,115 @@ class LEn extends L {
 
   @override
   String get medPresetCoughSyrup => 'Cough Syrup';
+
+  @override
+  String get expCatFood => 'Food & Dining';
+
+  @override
+  String get expCatTransport => 'Transport';
+
+  @override
+  String get expCatUtilities => 'Utilities';
+
+  @override
+  String get expCatEntertainment => 'Entertainment';
+
+  @override
+  String get expCatHealthcare => 'Healthcare';
+
+  @override
+  String get expCatEducation => 'Education';
+
+  @override
+  String get expCatShopping => 'Shopping';
+
+  @override
+  String get expCatGroceries => 'Groceries';
+
+  @override
+  String get expCatBills => 'Bills';
+
+  @override
+  String get expCatOther => 'Other';
+
+  @override
+  String get expItems => 'Items';
+
+  @override
+  String get expNote => 'Note';
+
+  @override
+  String get expDone => 'Done';
+
+  @override
+  String get expNew => 'New';
+
+  @override
+  String get expIcon => 'Icon';
+
+  @override
+  String get expColor => 'Color';
+
+  @override
+  String get expListNameHint => 'e.g. Weekly bazar, Grocery run';
+
+  @override
+  String get expCustomCategoryHint => 'e.g. Rent, Gym, Pet';
+
+  @override
+  String get expSearchNarrower =>
+      'Try a shorter word — list names and item names are both searched.';
+
+  @override
+  String get expMenu => 'Menu';
+
+  @override
+  String expListCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString lists',
+      one: '$countString list',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String expItemCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString items',
+      one: '$countString item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String expDeleteListBody(String title, int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString items',
+      one: '$countString item',
+    );
+    return '“$title” and its $_temp0 will be removed from your records. This can’t be undone.';
+  }
+
+  @override
+  String expSearchAllMonths(String month) {
+    return 'Showing matches from every month — the summary above still covers $month only.';
+  }
 }

@@ -380,7 +380,7 @@ class _SetCategoryBudgetsPageState extends State<SetCategoryBudgetsPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      category.displayName,
+                      category.labelFor(context),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
