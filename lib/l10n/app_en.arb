@@ -993,5 +993,126 @@
   },
   "qiblaCompass": "Qibla Compass",
   "qiblaFromNorth": "from North · {km} km to Makkah",
-  "qiblaNoCompass": "No compass on this device — bearing shown above"
+  "qiblaNoCompass": "No compass on this device — bearing shown above",
+  "restrictedSubtitle": "Times when Salah is discouraged",
+  "restrictedActiveSubtitle": "Avoid voluntary prayer right now",
+  "restrictedTodayWindows": "Today's restricted windows",
+  "restrictedActive": "ACTIVE",
+  "restrictedPassed": "PASSED",
+  "restrictedUpcoming": "UPCOMING",
+  "restrictedWindowSunrise": "Sunrise period",
+  "restrictedWindowZawal": "Zawal (midday)",
+  "restrictedWindowSunset": "Sunset period",
+  "restrictedAboutMinutes": "about {minutes} minutes",
+  "@restrictedAboutMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "restrictedWhy": "Why these times?",
+  "restrictedWhyBody": "Three short windows each day — sunrise, midday (Zawal) and sunset — are makruh for voluntary prayer. Their exact lengths are listed above. Only a missed Asr may still be offered during the sunset window, since delaying it further would lose the Asr altogether.",
+  "restrictedEvidence": "Evidence",
+  "restrictedHadith1": "Uqbah ibn Amir (may Allah be pleased with him) said: there were three times at which the Messenger of Allah ﷺ forbade us to pray, or to bury our dead — when the sun begins to rise until it has fully risen; when it stands at its zenith at midday until it passes the meridian; and when the sun begins to set until it has set.",
+  "restrictedHadith1Ref": "Sahih Muslim 831",
+  "restrictedHadith2": "Whoever catches one rak'ah of Asr before the sun sets has caught the Asr.",
+  "restrictedHadith2Ref": "Sahih al-Bukhari 579",
+  "restrictedScholarNote": "Rulings differ between the schools. Check with a scholar you trust for your own situation.",
+  "methodKarachi": "University of Islamic Sciences, Karachi",
+  "methodMwl": "Muslim World League",
+  "methodEgyptian": "Egyptian General Authority",
+  "methodUmmAlQura": "Umm al-Qura, Makkah",
+  "methodDubai": "Dubai",
+  "methodQatar": "Qatar",
+  "methodKuwait": "Kuwait",
+  "methodMoonsighting": "Moonsighting Committee",
+  "methodSingapore": "Singapore",
+  "methodIsna": "ISNA (North America)",
+  "methodTurkey": "Turkey",
+  "methodTehran": "Tehran",
+  "alarmSheetTitle": "Prayer alarms",
+  "alarmSheetSubtitle": "A reminder for each waqt",
+  "alarmSheetWhen": "When each alarm rings",
+  "alarmSheetSound": "Adhan sound",
+  "alarmSheetRingsFor": "Rings for",
+  "alarmSheetPaused": "All alarms are paused",
+  "alarmNone": "No alarm",
+  "alarmMeasuredFrom": "Measured from",
+  "alarmAnchorWaqt": "Waqt",
+  "alarmAnchorJamaat": "Jamaat",
+  "alarmAtWaqt": "At waqt",
+  "alarmAtJamaat": "At jamaat",
+  "alarmMinBeforeWaqt": "{minutes} min before waqt",
+  "@alarmMinBeforeWaqt": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "alarmMinAfterWaqt": "{minutes} min after waqt",
+  "@alarmMinAfterWaqt": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "alarmMinBeforeJamaat": "{minutes} min before jamaat",
+  "@alarmMinBeforeJamaat": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "alarmMinAfterJamaat": "{minutes} min after jamaat",
+  "@alarmMinAfterJamaat": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "alarmVibrate": "Vibrate",
+  "alarmVibrateBody": "Buzz while the adhan plays",
+  "alarmSoundFailed": "Could not play this sound",
+  "alarmSound1": "Alarm Sound 1",
+  "alarmSound2": "Alarm Sound 2",
+  "alarmSound3": "Alarm Sound 3",
+  "alarmMinutes": "{minutes} min",
+  "@alarmMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "calFullMonth": "Full month",
+  "calShare": "Share",
+  "calShareMonth": "Share month",
+  "calShareTimetable": "Share timetable",
+  "calPreparing": "Preparing…",
+  "calDate": "DATE",
+  "calToday": "TODAY",
+  "calTodayRow": "Today",
+  "calJumuah": "= Jumu'ah",
+  "calShareFailed": "Could not share the timetable",
+  "calEncodeFailed": "Could not encode the timetable",
+  "calTimetableTitle": "Prayer timetable",
+  "calVerifyNote": "Times are indicative — verify with your local mosque.",
+  "dowMon": "M",
+  "dowTue": "T",
+  "dowWed": "W",
+  "dowThu": "T",
+  "dowFri": "F",
+  "dowSat": "S",
+  "dowSun": "S"
 }

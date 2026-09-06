@@ -5,6 +5,8 @@ import '../../../../core/utils/alarm_sound_preview.dart';
 import '../../../../core/utils/alarm_sound_utils.dart';
 import '../utils/prayer_palette.dart';
 import 'prayer_snack.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../utils/prayer_l10n.dart';
 
 /// The single place prayer alarms are configured: a master switch, per-prayer
 /// timing, the adhan sound and how long it rings.
@@ -94,13 +96,33 @@ class _SheetState extends State<_Sheet> {
     return config.minutesAfterStart;
   }
 
-  /// e.g. `On time`, `5 min before jamaat`, `10 min after waqt`.
-  String _offsetLabel(int minutes, bool jamaat) {
-    final anchor = jamaat ? 'jamaat' : 'waqt';
-    if (minutes == 0) return jamaat ? 'At jamaat' : 'At waqt';
-    return minutes < 0
-        ? '${minutes.abs()} min before $anchor'
-        : '$minutes min after $anchor';
+  /// The bundled sound files are named in English; only the label changes.
+  String _soundLabel(BuildContext context, String name) {
+    final l = L.of(context);
+    return switch (name) {
+      'Alarm Sound 1' => l.alarmSound1,
+      'Alarm Sound 2' => l.alarmSound2,
+      'Alarm Sound 3' => l.alarmSound3,
+      _ => name,
+    };
+  }
+
+  /// e.g. `At waqt`, `5 min before jamaat`, `10 min after waqt`.
+  ///
+  /// Four separate messages rather than one built from an anchor word: Bangla
+  /// puts the anchor first ("ওয়াক্তের ৫ মিনিট আগে"), so a sentence assembled
+  /// from English word order would come out backwards.
+  String _offsetLabel(BuildContext context, int minutes, bool jamaat) {
+    final l = L.of(context);
+    if (minutes == 0) return jamaat ? l.alarmAtJamaat : l.alarmAtWaqt;
+    if (minutes < 0) {
+      return jamaat
+          ? l.alarmMinBeforeJamaat(minutes.abs())
+          : l.alarmMinBeforeWaqt(minutes.abs());
+    }
+    return jamaat
+        ? l.alarmMinAfterJamaat(minutes)
+        : l.alarmMinAfterWaqt(minutes);
   }
 
   Future<void> _setMinutes(String prayer, int minutes, {bool? jamaat}) async {
@@ -163,7 +185,7 @@ class _SheetState extends State<_Sheet> {
           const SizedBox(height: 14),
           _header(),
           const SizedBox(height: 16),
-          _section('When each alarm rings'),
+          _section(L.of(context).alarmSheetWhen),
           const SizedBox(height: 8),
           Opacity(
             opacity: _globalEnabled ? 1 : 0.4,
@@ -180,14 +202,14 @@ class _SheetState extends State<_Sheet> {
             ),
           ),
           const SizedBox(height: 18),
-          _section('Adhan sound'),
+          _section(L.of(context).alarmSheetSound),
           const SizedBox(height: 8),
           for (final sound in AlarmSoundUtils.availableAlarmSounds) ...[
             _soundRow(sound),
             const SizedBox(height: 6),
           ],
           const SizedBox(height: 12),
-          _section('Rings for'),
+          _section(L.of(context).alarmSheetRingsFor),
           const SizedBox(height: 8),
           _durationRow(),
           const SizedBox(height: 18),
@@ -204,8 +226,8 @@ class _SheetState extends State<_Sheet> {
                 ),
               ),
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Done',
+              child: Text(
+                L.of(context).commonDone,
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
               ),
             ),
@@ -239,8 +261,8 @@ class _SheetState extends State<_Sheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Prayer alarms',
+              Text(
+                L.of(context).alarmSheetTitle,
                 style: TextStyle(
                   color: PrayerPalette.ink,
                   fontSize: 16,
@@ -249,8 +271,8 @@ class _SheetState extends State<_Sheet> {
               ),
               Text(
                 _globalEnabled
-                    ? 'A reminder for each waqt'
-                    : 'All alarms are paused',
+                    ? L.of(context).alarmSheetSubtitle
+                    : L.of(context).alarmSheetPaused,
                 style: TextStyle(
                   color: PrayerPalette.inkA(0.55),
                   fontSize: 11.5,
@@ -306,7 +328,7 @@ class _SheetState extends State<_Sheet> {
               SizedBox(
                 width: 66,
                 child: Text(
-                  prayer,
+                  prayerLabel(context, prayer),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -318,7 +340,9 @@ class _SheetState extends State<_Sheet> {
               ),
               Expanded(
                 child: Text(
-                  isOn ? _offsetLabel(minutes, jamaat) : 'No alarm',
+                  isOn
+                      ? _offsetLabel(context, minutes, jamaat)
+                      : L.of(context).alarmNone,
                   style: TextStyle(
                     color: isOn
                         ? PrayerPalette.accent
@@ -387,7 +411,7 @@ class _SheetState extends State<_Sheet> {
       child: Row(
         children: [
           Text(
-            'Measured from',
+            L.of(context).alarmMeasuredFrom,
             style: TextStyle(
               color: PrayerPalette.inkA(0.45),
               fontSize: 9.5,
@@ -396,13 +420,13 @@ class _SheetState extends State<_Sheet> {
           ),
           const SizedBox(width: 8),
           chip(
-            'Waqt',
+            L.of(context).alarmAnchorWaqt,
             !jamaat,
             () => _setMinutes(prayer, minutes, jamaat: false),
           ),
           const SizedBox(width: 6),
           chip(
-            'Jamaat',
+            L.of(context).alarmAnchorJamaat,
             jamaat,
             () => _setMinutes(prayer, minutes, jamaat: true),
           ),
@@ -441,7 +465,7 @@ class _SheetState extends State<_Sheet> {
               max: _maxOffset,
               // One division per minute, so every value is reachable.
               divisions: (_maxOffset - _minOffset).round(),
-              label: _offsetLabel(minutes, jamaat),
+              label: _offsetLabel(context, minutes, jamaat),
               // Track the finger live, but only write on release — each
               // write reschedules the OS alarm.
               onChanged: (v) =>
@@ -515,7 +539,7 @@ class _SheetState extends State<_Sheet> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                sound['name']!,
+                _soundLabel(context, sound['name']!),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -546,7 +570,7 @@ class _SheetState extends State<_Sheet> {
               if (!mounted) return;
               PrayerSnack.show(
                 context,
-                'Could not play this sound',
+                L.of(context).alarmSoundFailed,
                 kind: PrayerSnackKind.error,
               );
             }
@@ -604,8 +628,8 @@ class _SheetState extends State<_Sheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Vibrate',
+                Text(
+                  L.of(context).alarmVibrate,
                   style: TextStyle(
                     color: PrayerPalette.ink,
                     fontSize: 13,
@@ -613,7 +637,7 @@ class _SheetState extends State<_Sheet> {
                   ),
                 ),
                 Text(
-                  'Buzz while the adhan plays',
+                  L.of(context).alarmVibrateBody,
                   style: TextStyle(
                     color: PrayerPalette.inkA(0.5),
                     fontSize: 10.5,

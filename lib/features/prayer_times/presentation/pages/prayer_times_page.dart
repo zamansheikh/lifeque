@@ -1226,8 +1226,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                               ),
                               foregroundColor: IslamicColors.emerald,
                             ),
-                            child: const Text(
-                              'Close',
+                            child: Text(
+                              L.of(context).commonClose,
                               style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 15,
@@ -1465,8 +1465,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                     ),
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    'Done',
+                  child: Text(
+                    L.of(context).commonDone,
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
                   ),
                 ),
@@ -1556,10 +1556,13 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             fontWeight: FontWeight.w600,
           ),
           items: [
-            for (final entry in _methodLabels.entries)
+            for (final method in _methods)
               DropdownMenuItem(
-                value: entry.key,
-                child: Text(entry.value, overflow: TextOverflow.ellipsis),
+                value: method,
+                child: Text(
+                  _methodLabel(method),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
           ],
           onChanged: (value) async {
@@ -1775,20 +1778,40 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     );
   }
 
-  static const _methodLabels = <CalculationMethod, String>{
-    CalculationMethod.karachi: 'University of Islamic Sciences, Karachi',
-    CalculationMethod.muslim_world_league: 'Muslim World League',
-    CalculationMethod.egyptian: 'Egyptian General Authority',
-    CalculationMethod.umm_al_qura: 'Umm al-Qura, Makkah',
-    CalculationMethod.dubai: 'Dubai',
-    CalculationMethod.qatar: 'Qatar',
-    CalculationMethod.kuwait: 'Kuwait',
-    CalculationMethod.moon_sighting_committee: 'Moonsighting Committee',
-    CalculationMethod.singapore: 'Singapore',
-    CalculationMethod.north_america: 'ISNA (North America)',
-    CalculationMethod.turkey: 'Turkey',
-    CalculationMethod.tehran: 'Tehran',
-  };
+  /// The methods offered, in the order the picker lists them. The names come
+  /// from the bundle so the list follows the app language.
+  static const _methods = <CalculationMethod>[
+    CalculationMethod.karachi,
+    CalculationMethod.muslim_world_league,
+    CalculationMethod.egyptian,
+    CalculationMethod.umm_al_qura,
+    CalculationMethod.dubai,
+    CalculationMethod.qatar,
+    CalculationMethod.kuwait,
+    CalculationMethod.moon_sighting_committee,
+    CalculationMethod.singapore,
+    CalculationMethod.north_america,
+    CalculationMethod.turkey,
+    CalculationMethod.tehran,
+  ];
+
+  String _methodLabel(CalculationMethod method) {
+    final l = L.of(context);
+    return switch (method) {
+      CalculationMethod.muslim_world_league => l.methodMwl,
+      CalculationMethod.egyptian => l.methodEgyptian,
+      CalculationMethod.umm_al_qura => l.methodUmmAlQura,
+      CalculationMethod.dubai => l.methodDubai,
+      CalculationMethod.qatar => l.methodQatar,
+      CalculationMethod.kuwait => l.methodKuwait,
+      CalculationMethod.moon_sighting_committee => l.methodMoonsighting,
+      CalculationMethod.singapore => l.methodSingapore,
+      CalculationMethod.north_america => l.methodIsna,
+      CalculationMethod.turkey => l.methodTurkey,
+      CalculationMethod.tehran => l.methodTehran,
+      _ => l.methodKarachi,
+    };
+  }
 
   Future<void> _showManualLocationDialog() async {
     final latC = TextEditingController(text: _latitude.toString());

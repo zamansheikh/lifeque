@@ -3504,6 +3504,444 @@ abstract class L {
   /// In en, this message translates to:
   /// **'No compass on this device — bearing shown above'**
   String get qiblaNoCompass;
+
+  /// No description provided for @restrictedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Times when Salah is discouraged'**
+  String get restrictedSubtitle;
+
+  /// No description provided for @restrictedActiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid voluntary prayer right now'**
+  String get restrictedActiveSubtitle;
+
+  /// No description provided for @restrictedTodayWindows.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s restricted windows'**
+  String get restrictedTodayWindows;
+
+  /// No description provided for @restrictedActive.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get restrictedActive;
+
+  /// No description provided for @restrictedPassed.
+  ///
+  /// In en, this message translates to:
+  /// **'PASSED'**
+  String get restrictedPassed;
+
+  /// No description provided for @restrictedUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'UPCOMING'**
+  String get restrictedUpcoming;
+
+  /// No description provided for @restrictedWindowSunrise.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunrise period'**
+  String get restrictedWindowSunrise;
+
+  /// No description provided for @restrictedWindowZawal.
+  ///
+  /// In en, this message translates to:
+  /// **'Zawal (midday)'**
+  String get restrictedWindowZawal;
+
+  /// No description provided for @restrictedWindowSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunset period'**
+  String get restrictedWindowSunset;
+
+  /// No description provided for @restrictedAboutMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'about {minutes} minutes'**
+  String restrictedAboutMinutes(int minutes);
+
+  /// No description provided for @restrictedWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Why these times?'**
+  String get restrictedWhy;
+
+  /// No description provided for @restrictedWhyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Three short windows each day — sunrise, midday (Zawal) and sunset — are makruh for voluntary prayer. Their exact lengths are listed above. Only a missed Asr may still be offered during the sunset window, since delaying it further would lose the Asr altogether.'**
+  String get restrictedWhyBody;
+
+  /// No description provided for @restrictedEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence'**
+  String get restrictedEvidence;
+
+  /// No description provided for @restrictedHadith1.
+  ///
+  /// In en, this message translates to:
+  /// **'Uqbah ibn Amir (may Allah be pleased with him) said: there were three times at which the Messenger of Allah ﷺ forbade us to pray, or to bury our dead — when the sun begins to rise until it has fully risen; when it stands at its zenith at midday until it passes the meridian; and when the sun begins to set until it has set.'**
+  String get restrictedHadith1;
+
+  /// No description provided for @restrictedHadith1Ref.
+  ///
+  /// In en, this message translates to:
+  /// **'Sahih Muslim 831'**
+  String get restrictedHadith1Ref;
+
+  /// No description provided for @restrictedHadith2.
+  ///
+  /// In en, this message translates to:
+  /// **'Whoever catches one rak\'ah of Asr before the sun sets has caught the Asr.'**
+  String get restrictedHadith2;
+
+  /// No description provided for @restrictedHadith2Ref.
+  ///
+  /// In en, this message translates to:
+  /// **'Sahih al-Bukhari 579'**
+  String get restrictedHadith2Ref;
+
+  /// No description provided for @restrictedScholarNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Rulings differ between the schools. Check with a scholar you trust for your own situation.'**
+  String get restrictedScholarNote;
+
+  /// No description provided for @methodKarachi.
+  ///
+  /// In en, this message translates to:
+  /// **'University of Islamic Sciences, Karachi'**
+  String get methodKarachi;
+
+  /// No description provided for @methodMwl.
+  ///
+  /// In en, this message translates to:
+  /// **'Muslim World League'**
+  String get methodMwl;
+
+  /// No description provided for @methodEgyptian.
+  ///
+  /// In en, this message translates to:
+  /// **'Egyptian General Authority'**
+  String get methodEgyptian;
+
+  /// No description provided for @methodUmmAlQura.
+  ///
+  /// In en, this message translates to:
+  /// **'Umm al-Qura, Makkah'**
+  String get methodUmmAlQura;
+
+  /// No description provided for @methodDubai.
+  ///
+  /// In en, this message translates to:
+  /// **'Dubai'**
+  String get methodDubai;
+
+  /// No description provided for @methodQatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Qatar'**
+  String get methodQatar;
+
+  /// No description provided for @methodKuwait.
+  ///
+  /// In en, this message translates to:
+  /// **'Kuwait'**
+  String get methodKuwait;
+
+  /// No description provided for @methodMoonsighting.
+  ///
+  /// In en, this message translates to:
+  /// **'Moonsighting Committee'**
+  String get methodMoonsighting;
+
+  /// No description provided for @methodSingapore.
+  ///
+  /// In en, this message translates to:
+  /// **'Singapore'**
+  String get methodSingapore;
+
+  /// No description provided for @methodIsna.
+  ///
+  /// In en, this message translates to:
+  /// **'ISNA (North America)'**
+  String get methodIsna;
+
+  /// No description provided for @methodTurkey.
+  ///
+  /// In en, this message translates to:
+  /// **'Turkey'**
+  String get methodTurkey;
+
+  /// No description provided for @methodTehran.
+  ///
+  /// In en, this message translates to:
+  /// **'Tehran'**
+  String get methodTehran;
+
+  /// No description provided for @alarmSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer alarms'**
+  String get alarmSheetTitle;
+
+  /// No description provided for @alarmSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A reminder for each waqt'**
+  String get alarmSheetSubtitle;
+
+  /// No description provided for @alarmSheetWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'When each alarm rings'**
+  String get alarmSheetWhen;
+
+  /// No description provided for @alarmSheetSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Adhan sound'**
+  String get alarmSheetSound;
+
+  /// No description provided for @alarmSheetRingsFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Rings for'**
+  String get alarmSheetRingsFor;
+
+  /// No description provided for @alarmSheetPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'All alarms are paused'**
+  String get alarmSheetPaused;
+
+  /// No description provided for @alarmNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No alarm'**
+  String get alarmNone;
+
+  /// No description provided for @alarmMeasuredFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured from'**
+  String get alarmMeasuredFrom;
+
+  /// No description provided for @alarmAnchorWaqt.
+  ///
+  /// In en, this message translates to:
+  /// **'Waqt'**
+  String get alarmAnchorWaqt;
+
+  /// No description provided for @alarmAnchorJamaat.
+  ///
+  /// In en, this message translates to:
+  /// **'Jamaat'**
+  String get alarmAnchorJamaat;
+
+  /// No description provided for @alarmAtWaqt.
+  ///
+  /// In en, this message translates to:
+  /// **'At waqt'**
+  String get alarmAtWaqt;
+
+  /// No description provided for @alarmAtJamaat.
+  ///
+  /// In en, this message translates to:
+  /// **'At jamaat'**
+  String get alarmAtJamaat;
+
+  /// No description provided for @alarmMinBeforeWaqt.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min before waqt'**
+  String alarmMinBeforeWaqt(int minutes);
+
+  /// No description provided for @alarmMinAfterWaqt.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min after waqt'**
+  String alarmMinAfterWaqt(int minutes);
+
+  /// No description provided for @alarmMinBeforeJamaat.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min before jamaat'**
+  String alarmMinBeforeJamaat(int minutes);
+
+  /// No description provided for @alarmMinAfterJamaat.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min after jamaat'**
+  String alarmMinAfterJamaat(int minutes);
+
+  /// No description provided for @alarmVibrate.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibrate'**
+  String get alarmVibrate;
+
+  /// No description provided for @alarmVibrateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Buzz while the adhan plays'**
+  String get alarmVibrateBody;
+
+  /// No description provided for @alarmSoundFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not play this sound'**
+  String get alarmSoundFailed;
+
+  /// No description provided for @alarmSound1.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm Sound 1'**
+  String get alarmSound1;
+
+  /// No description provided for @alarmSound2.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm Sound 2'**
+  String get alarmSound2;
+
+  /// No description provided for @alarmSound3.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm Sound 3'**
+  String get alarmSound3;
+
+  /// No description provided for @alarmMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String alarmMinutes(int minutes);
+
+  /// No description provided for @calFullMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Full month'**
+  String get calFullMonth;
+
+  /// No description provided for @calShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get calShare;
+
+  /// No description provided for @calShareMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Share month'**
+  String get calShareMonth;
+
+  /// No description provided for @calShareTimetable.
+  ///
+  /// In en, this message translates to:
+  /// **'Share timetable'**
+  String get calShareTimetable;
+
+  /// No description provided for @calPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing…'**
+  String get calPreparing;
+
+  /// No description provided for @calDate.
+  ///
+  /// In en, this message translates to:
+  /// **'DATE'**
+  String get calDate;
+
+  /// No description provided for @calToday.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY'**
+  String get calToday;
+
+  /// No description provided for @calTodayRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get calTodayRow;
+
+  /// No description provided for @calJumuah.
+  ///
+  /// In en, this message translates to:
+  /// **'= Jumu\'ah'**
+  String get calJumuah;
+
+  /// No description provided for @calShareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not share the timetable'**
+  String get calShareFailed;
+
+  /// No description provided for @calEncodeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not encode the timetable'**
+  String get calEncodeFailed;
+
+  /// No description provided for @calTimetableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer timetable'**
+  String get calTimetableTitle;
+
+  /// No description provided for @calVerifyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Times are indicative — verify with your local mosque.'**
+  String get calVerifyNote;
+
+  /// No description provided for @dowMon.
+  ///
+  /// In en, this message translates to:
+  /// **'M'**
+  String get dowMon;
+
+  /// No description provided for @dowTue.
+  ///
+  /// In en, this message translates to:
+  /// **'T'**
+  String get dowTue;
+
+  /// No description provided for @dowWed.
+  ///
+  /// In en, this message translates to:
+  /// **'W'**
+  String get dowWed;
+
+  /// No description provided for @dowThu.
+  ///
+  /// In en, this message translates to:
+  /// **'T'**
+  String get dowThu;
+
+  /// No description provided for @dowFri.
+  ///
+  /// In en, this message translates to:
+  /// **'F'**
+  String get dowFri;
+
+  /// No description provided for @dowSat.
+  ///
+  /// In en, this message translates to:
+  /// **'S'**
+  String get dowSat;
+
+  /// No description provided for @dowSun.
+  ///
+  /// In en, this message translates to:
+  /// **'S'**
+  String get dowSun;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

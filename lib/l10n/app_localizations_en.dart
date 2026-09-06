@@ -1939,4 +1939,264 @@ class LEn extends L {
   @override
   String get qiblaNoCompass =>
       'No compass on this device — bearing shown above';
+
+  @override
+  String get restrictedSubtitle => 'Times when Salah is discouraged';
+
+  @override
+  String get restrictedActiveSubtitle => 'Avoid voluntary prayer right now';
+
+  @override
+  String get restrictedTodayWindows => 'Today\'s restricted windows';
+
+  @override
+  String get restrictedActive => 'ACTIVE';
+
+  @override
+  String get restrictedPassed => 'PASSED';
+
+  @override
+  String get restrictedUpcoming => 'UPCOMING';
+
+  @override
+  String get restrictedWindowSunrise => 'Sunrise period';
+
+  @override
+  String get restrictedWindowZawal => 'Zawal (midday)';
+
+  @override
+  String get restrictedWindowSunset => 'Sunset period';
+
+  @override
+  String restrictedAboutMinutes(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'about $minutesString minutes';
+  }
+
+  @override
+  String get restrictedWhy => 'Why these times?';
+
+  @override
+  String get restrictedWhyBody =>
+      'Three short windows each day — sunrise, midday (Zawal) and sunset — are makruh for voluntary prayer. Their exact lengths are listed above. Only a missed Asr may still be offered during the sunset window, since delaying it further would lose the Asr altogether.';
+
+  @override
+  String get restrictedEvidence => 'Evidence';
+
+  @override
+  String get restrictedHadith1 =>
+      'Uqbah ibn Amir (may Allah be pleased with him) said: there were three times at which the Messenger of Allah ﷺ forbade us to pray, or to bury our dead — when the sun begins to rise until it has fully risen; when it stands at its zenith at midday until it passes the meridian; and when the sun begins to set until it has set.';
+
+  @override
+  String get restrictedHadith1Ref => 'Sahih Muslim 831';
+
+  @override
+  String get restrictedHadith2 =>
+      'Whoever catches one rak\'ah of Asr before the sun sets has caught the Asr.';
+
+  @override
+  String get restrictedHadith2Ref => 'Sahih al-Bukhari 579';
+
+  @override
+  String get restrictedScholarNote =>
+      'Rulings differ between the schools. Check with a scholar you trust for your own situation.';
+
+  @override
+  String get methodKarachi => 'University of Islamic Sciences, Karachi';
+
+  @override
+  String get methodMwl => 'Muslim World League';
+
+  @override
+  String get methodEgyptian => 'Egyptian General Authority';
+
+  @override
+  String get methodUmmAlQura => 'Umm al-Qura, Makkah';
+
+  @override
+  String get methodDubai => 'Dubai';
+
+  @override
+  String get methodQatar => 'Qatar';
+
+  @override
+  String get methodKuwait => 'Kuwait';
+
+  @override
+  String get methodMoonsighting => 'Moonsighting Committee';
+
+  @override
+  String get methodSingapore => 'Singapore';
+
+  @override
+  String get methodIsna => 'ISNA (North America)';
+
+  @override
+  String get methodTurkey => 'Turkey';
+
+  @override
+  String get methodTehran => 'Tehran';
+
+  @override
+  String get alarmSheetTitle => 'Prayer alarms';
+
+  @override
+  String get alarmSheetSubtitle => 'A reminder for each waqt';
+
+  @override
+  String get alarmSheetWhen => 'When each alarm rings';
+
+  @override
+  String get alarmSheetSound => 'Adhan sound';
+
+  @override
+  String get alarmSheetRingsFor => 'Rings for';
+
+  @override
+  String get alarmSheetPaused => 'All alarms are paused';
+
+  @override
+  String get alarmNone => 'No alarm';
+
+  @override
+  String get alarmMeasuredFrom => 'Measured from';
+
+  @override
+  String get alarmAnchorWaqt => 'Waqt';
+
+  @override
+  String get alarmAnchorJamaat => 'Jamaat';
+
+  @override
+  String get alarmAtWaqt => 'At waqt';
+
+  @override
+  String get alarmAtJamaat => 'At jamaat';
+
+  @override
+  String alarmMinBeforeWaqt(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString min before waqt';
+  }
+
+  @override
+  String alarmMinAfterWaqt(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString min after waqt';
+  }
+
+  @override
+  String alarmMinBeforeJamaat(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString min before jamaat';
+  }
+
+  @override
+  String alarmMinAfterJamaat(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString min after jamaat';
+  }
+
+  @override
+  String get alarmVibrate => 'Vibrate';
+
+  @override
+  String get alarmVibrateBody => 'Buzz while the adhan plays';
+
+  @override
+  String get alarmSoundFailed => 'Could not play this sound';
+
+  @override
+  String get alarmSound1 => 'Alarm Sound 1';
+
+  @override
+  String get alarmSound2 => 'Alarm Sound 2';
+
+  @override
+  String get alarmSound3 => 'Alarm Sound 3';
+
+  @override
+  String alarmMinutes(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString min';
+  }
+
+  @override
+  String get calFullMonth => 'Full month';
+
+  @override
+  String get calShare => 'Share';
+
+  @override
+  String get calShareMonth => 'Share month';
+
+  @override
+  String get calShareTimetable => 'Share timetable';
+
+  @override
+  String get calPreparing => 'Preparing…';
+
+  @override
+  String get calDate => 'DATE';
+
+  @override
+  String get calToday => 'TODAY';
+
+  @override
+  String get calTodayRow => 'Today';
+
+  @override
+  String get calJumuah => '= Jumu\'ah';
+
+  @override
+  String get calShareFailed => 'Could not share the timetable';
+
+  @override
+  String get calEncodeFailed => 'Could not encode the timetable';
+
+  @override
+  String get calTimetableTitle => 'Prayer timetable';
+
+  @override
+  String get calVerifyNote =>
+      'Times are indicative — verify with your local mosque.';
+
+  @override
+  String get dowMon => 'M';
+
+  @override
+  String get dowTue => 'T';
+
+  @override
+  String get dowWed => 'W';
+
+  @override
+  String get dowThu => 'T';
+
+  @override
+  String get dowFri => 'F';
+
+  @override
+  String get dowSat => 'S';
+
+  @override
+  String get dowSun => 'S';
 }

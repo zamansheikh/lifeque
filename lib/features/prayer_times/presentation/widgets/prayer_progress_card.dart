@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../utils/prayer_palette.dart';
+import '../../../../core/utils/local_numbers.dart';
 
 /// Today's salat progress, the current streak and the last seven days — the
 /// line that used to be a single grey sentence at the foot of the salat card,
@@ -60,7 +61,7 @@ class PrayerProgressCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  _ring(),
+                  _ring(context),
                   const SizedBox(width: 14),
                   Expanded(child: _headline(context)),
                   const SizedBox(width: 6),
@@ -73,7 +74,7 @@ class PrayerProgressCard extends StatelessWidget {
               ),
               if (week.length == 7) ...[
                 const SizedBox(height: 14),
-                _weekStrip(),
+                _weekStrip(context),
               ],
             ],
           ),
@@ -82,7 +83,7 @@ class PrayerProgressCard extends StatelessWidget {
     );
   }
 
-  Widget _ring() {
+  Widget _ring(BuildContext context) {
     return SizedBox(
       width: 52,
       height: 52,
@@ -93,7 +94,7 @@ class PrayerProgressCard extends StatelessWidget {
             TextSpan(
               children: [
                 TextSpan(
-                  text: '$prayed',
+                  text: N.of(prayed),
                   style: const TextStyle(
                     color: PrayerPalette.ink,
                     fontSize: 17,
@@ -101,7 +102,7 @@ class PrayerProgressCard extends StatelessWidget {
                   ),
                 ),
                 TextSpan(
-                  text: '/$total',
+                  text: '/${N.of(total)}',
                   style: TextStyle(
                     color: PrayerPalette.inkA(0.45),
                     fontSize: 11,
@@ -193,9 +194,18 @@ class PrayerProgressCard extends StatelessWidget {
   }
 
   /// Seven columns: a filled bar per day, heaviest when all five were logged.
-  Widget _weekStrip() {
+  Widget _weekStrip(BuildContext context) {
     final today = DateTime.now();
-    const letters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final l = L.of(context);
+    final letters = [
+      l.dowMon,
+      l.dowTue,
+      l.dowWed,
+      l.dowThu,
+      l.dowFri,
+      l.dowSat,
+      l.dowSun,
+    ];
 
     return Row(
       children: [

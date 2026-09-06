@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/utils/salah_time_calculator.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../utils/islamic_colors.dart';
 
-/// Detailed view of the three Makruh (restricted prayer) periods of the
-/// day — typically rendered inside the bottom sheet opened from
-/// [RestrictedTimesPill]. Designed in the same Islamic palette as the rest
-/// of the prayer experience.
+/// The three makruh windows, in detail.
+///
+/// Shown in the sheet opened from the prohibited-times card. Beyond listing
+/// the windows it now carries the evidence they rest on — the page told people
+/// not to pray at these times without ever saying on what authority.
 class RestrictedTimesCard extends StatelessWidget {
   final SalahTimeCalculator calculator;
 
@@ -15,6 +17,7 @@ class RestrictedTimesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     final restricted = calculator.getRestrictedTimes();
     final active = calculator.getCurrentRestrictedPeriod();
 
@@ -29,53 +32,59 @@ class RestrictedTimesCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _header(context, active != null),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         if (active != null) ...[
-          _activeBanner(active),
+          _activeBanner(context, active),
           const SizedBox(height: 16),
         ],
-        Text(
-          "Today's Restricted Windows",
-          style: TextStyle(
-            color: IslamicColors.emerald,
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.2,
-          ),
-        ),
+        _sectionLabel(l.restrictedTodayWindows),
         const SizedBox(height: 10),
         for (final entry in periods) ...[
           _PeriodRow(name: entry.key, data: entry.value),
           const SizedBox(height: 8),
         ],
+        const SizedBox(height: 14),
+        _explainCard(context),
+        const SizedBox(height: 12),
+        _sectionLabel(l.restrictedEvidence),
+        const SizedBox(height: 10),
+        _hadith(context, l.restrictedHadith1, l.restrictedHadith1Ref),
         const SizedBox(height: 8),
-        _explainCard(),
+        _hadith(context, l.restrictedHadith2, l.restrictedHadith2Ref),
+        const SizedBox(height: 12),
+        _scholarNote(context),
       ],
     );
   }
 
+  Widget _sectionLabel(String text) {
+    return Text(
+      text.toUpperCase(),
+      style: const TextStyle(
+        color: IslamicColors.emerald,
+        fontSize: 11.5,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.1,
+      ),
+    );
+  }
+
   Widget _header(BuildContext context, bool isActive) {
+    final l = L.of(context);
+
     return Row(
       children: [
         Container(
           width: 44,
           height: 44,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: isActive
                   ? const [IslamicColors.warning, IslamicColors.burgundy]
                   : const [IslamicColors.emeraldMid, IslamicColors.emerald],
             ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color:
-                    (isActive ? IslamicColors.warning : IslamicColors.emerald)
-                        .withValues(alpha: 0.35),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(13),
           ),
           child: const Icon(
             Icons.do_not_disturb_on_outlined,
@@ -90,44 +99,46 @@ class RestrictedTimesCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text(
-                    'Restricted Times',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: IslamicColors.emerald,
+                  Flexible(
+                    child: Text(
+                      l.restrictedTimesTitle,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: IslamicColors.emerald,
+                      ),
                     ),
                   ),
                   if (isActive) ...[
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
+                        horizontal: 7,
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
                         color: IslamicColors.warning,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
-                        'ACTIVE',
-                        style: TextStyle(
+                      child: Text(
+                        l.restrictedActive,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
+                          letterSpacing: 0.6,
                         ),
                       ),
                     ),
                   ],
                 ],
               ),
+              const SizedBox(height: 2),
               Text(
-                isActive
-                    ? 'Avoid voluntary prayer right now'
-                    : 'Times when Salah is discouraged',
+                isActive ? l.restrictedActiveSubtitle : l.restrictedSubtitle,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.5,
+                  height: 1.3,
                   color: Colors.black.withValues(alpha: 0.6),
                 ),
               ),
@@ -138,8 +149,9 @@ class RestrictedTimesCard extends StatelessWidget {
     );
   }
 
-  Widget _activeBanner(Map<String, dynamic> active) {
+  Widget _activeBanner(BuildContext context, Map<String, dynamic> active) {
     final remaining = active['remaining'] as Duration;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -149,19 +161,13 @@ class RestrictedTimesCard extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: IslamicColors.warning.withValues(alpha: 0.35),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Row(
         children: [
           Container(
             width: 38,
             height: 38,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
@@ -180,16 +186,16 @@ class RestrictedTimesCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  active['name'] as String,
+                  _windowName(context, active['name'] as String),
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: 15.5,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  active['reason'] as String,
+                  L.of(context).restrictedActiveSubtitle,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.85),
                     fontSize: 12,
@@ -205,7 +211,7 @@ class RestrictedTimesCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              _fmt(remaining),
+              _fmt(context, remaining),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
@@ -218,7 +224,9 @@ class RestrictedTimesCard extends StatelessWidget {
     );
   }
 
-  Widget _explainCard() {
+  Widget _explainCard(BuildContext context) {
+    final l = L.of(context);
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -232,16 +240,16 @@ class RestrictedTimesCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(
+            children: [
+              const Icon(
                 Icons.info_outline_rounded,
                 size: 16,
                 color: IslamicColors.gold,
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Text(
-                'Why these times?',
-                style: TextStyle(
+                l.restrictedWhy,
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: IslamicColors.emerald,
@@ -250,15 +258,11 @@ class RestrictedTimesCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            "Three short windows each day — sunrise (~15 min), midday "
-            "(Zawal, ~6 min) and sunset (~15 min) — are makruh for voluntary "
-            "prayer. Only the missed Asr may be offered during the sunset "
-            "window if no other choice remains, since delaying further would "
-            "lose the Asr entirely.",
-            style: TextStyle(
-              fontSize: 12,
-              height: 1.45,
+          Text(
+            l.restrictedWhyBody,
+            style: const TextStyle(
+              fontSize: 12.5,
+              height: 1.5,
               color: Color(0xFF3F2A14),
             ),
           ),
@@ -267,13 +271,112 @@ class RestrictedTimesCard extends StatelessWidget {
     );
   }
 
-  static String _fmt(Duration d) {
-    if (d.inHours > 0) {
-      return '${d.inHours}h ${d.inMinutes.remainder(60)}m';
-    }
-    if (d.inMinutes > 0) return '${d.inMinutes}m';
-    return '${d.inSeconds}s';
+  /// One narration, with its reference.
+  ///
+  /// The reference is the point — a claim about what is permitted should say
+  /// where it comes from, so it can be checked rather than taken on trust.
+  Widget _hadith(BuildContext context, String text, String reference) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: IslamicColors.emerald.withValues(alpha: 0.18),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.format_quote_rounded,
+                size: 18,
+                color: IslamicColors.emerald.withValues(alpha: 0.5),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    height: 1.55,
+                    color: Color(0xFF1B2A1F),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: IslamicColors.emerald.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                reference,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: IslamicColors.emerald,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
+
+  Widget _scholarNote(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.school_outlined,
+          size: 15,
+          color: Colors.black.withValues(alpha: 0.4),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            L.of(context).restrictedScholarNote,
+            style: TextStyle(
+              fontSize: 11.5,
+              height: 1.45,
+              color: Colors.black.withValues(alpha: 0.55),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  static String _fmt(BuildContext context, Duration d) {
+    final l = L.of(context);
+    if (d.inHours > 0) {
+      return '${l.taskUnitHours(d.inHours)} '
+          '${l.taskUnitMinutes(d.inMinutes.remainder(60))}';
+    }
+    if (d.inMinutes > 0) return l.taskUnitMinutes(d.inMinutes);
+    return l.taskUnitSeconds(d.inSeconds);
+  }
+}
+
+/// The window's name in the current language. The map keys stay English.
+String _windowName(BuildContext context, String key) {
+  final l = L.of(context);
+  return switch (key) {
+    'Sunrise Period' => l.restrictedWindowSunrise,
+    'Zawal (Midday)' => l.restrictedWindowZawal,
+    'Sunset Period' => l.restrictedWindowSunset,
+    _ => key,
+  };
 }
 
 class _PeriodRow extends StatelessWidget {
@@ -284,6 +387,7 @@ class _PeriodRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     final start = data['start'] as DateTime;
     final end = data['end'] as DateTime;
     final now = DateTime.now();
@@ -295,14 +399,13 @@ class _PeriodRow extends StatelessWidget {
         : isPast
         ? IslamicColors.emeraldLight
         : IslamicColors.goldDeep;
-    final bg = isActive
-        ? IslamicColors.warning.withValues(alpha: 0.08)
-        : IslamicColors.cream;
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: bg,
+        color: isActive
+            ? IslamicColors.warning.withValues(alpha: 0.08)
+            : IslamicColors.cream,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: accent.withValues(alpha: 0.35),
@@ -314,6 +417,7 @@ class _PeriodRow extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
@@ -328,7 +432,7 @@ class _PeriodRow extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  name,
+                  _windowName(context, name),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -337,7 +441,9 @@ class _PeriodRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  data['duration'] as String,
+                  // The map's "~15 minutes" is English and unformatted; the
+                  // length is derived from the window itself instead.
+                  l.restrictedAboutMinutes(end.difference(start).inMinutes),
                   style: TextStyle(
                     fontSize: 11,
                     color: Colors.black.withValues(alpha: 0.6),
@@ -346,13 +452,14 @@ class _PeriodRow extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '${DateFormat('h:mm a').format(start).toLowerCase()}'
-                ' → ${DateFormat('h:mm a').format(end).toLowerCase()}',
+                '${DateFormat('h:mm a').format(start)} → '
+                '${DateFormat('h:mm a').format(end)}',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -360,17 +467,17 @@ class _PeriodRow extends StatelessWidget {
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(
                 isActive
-                    ? 'ACTIVE'
+                    ? l.restrictedActive
                     : isPast
-                    ? 'PASSED'
-                    : 'UPCOMING',
+                    ? l.restrictedPassed
+                    : l.restrictedUpcoming,
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: 1.0,
+                  letterSpacing: 0.8,
                   color: accent,
                 ),
               ),

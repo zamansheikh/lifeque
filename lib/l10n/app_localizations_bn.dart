@@ -1932,4 +1932,264 @@ class LBn extends L {
 
   @override
   String get qiblaNoCompass => 'এই ফোনে কম্পাস নেই — উপরে দিকটি দেখানো হয়েছে';
+
+  @override
+  String get restrictedSubtitle => 'যে সময়ে নামাজ পড়তে নিষেধ করা হয়েছে';
+
+  @override
+  String get restrictedActiveSubtitle => 'এখন নফল নামাজ পড়া থেকে বিরত থাকুন';
+
+  @override
+  String get restrictedTodayWindows => 'আজকের নিষিদ্ধ সময়গুলো';
+
+  @override
+  String get restrictedActive => 'চলছে';
+
+  @override
+  String get restrictedPassed => 'পেরিয়ে গেছে';
+
+  @override
+  String get restrictedUpcoming => 'আসছে';
+
+  @override
+  String get restrictedWindowSunrise => 'সূর্যোদয়ের সময়';
+
+  @override
+  String get restrictedWindowZawal => 'যাওয়াল (দুপুর)';
+
+  @override
+  String get restrictedWindowSunset => 'সূর্যাস্তের সময়';
+
+  @override
+  String restrictedAboutMinutes(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'প্রায় $minutesString মিনিট';
+  }
+
+  @override
+  String get restrictedWhy => 'কেন এই সময়গুলো?';
+
+  @override
+  String get restrictedWhyBody =>
+      'প্রতিদিন তিনটি স্বল্প সময় — সূর্যোদয়, দুপুরে যাওয়াল ও সূর্যাস্ত — নফল নামাজের জন্য মাকরুহ। প্রতিটির দৈর্ঘ্য উপরে দেওয়া আছে। কেবল ছুটে যাওয়া আসর সূর্যাস্তের সময়েও পড়া যায়, কারণ আরও দেরি করলে আসর একেবারেই ছুটে যাবে।';
+
+  @override
+  String get restrictedEvidence => 'দলিল';
+
+  @override
+  String get restrictedHadith1 =>
+      'উকবা ইবনে আমির (রা.) বলেন: তিনটি সময়ে রাসূলুল্লাহ ﷺ আমাদের নামাজ পড়তে ও মৃতদের দাফন করতে নিষেধ করতেন — সূর্য ওঠা শুরু হওয়ার পর থেকে পুরোপুরি ওঠা পর্যন্ত; দুপুরে সূর্য ঠিক মাথার ওপরে থাকা অবস্থা থেকে ঢলে পড়া পর্যন্ত; এবং সূর্য ডোবা শুরু হওয়ার পর থেকে সম্পূর্ণ ডুবে যাওয়া পর্যন্ত।';
+
+  @override
+  String get restrictedHadith1Ref => 'সহিহ মুসলিম ৮৩১';
+
+  @override
+  String get restrictedHadith2 =>
+      'যে ব্যক্তি সূর্য ডোবার আগে আসরের এক রাকাত পেল, সে আসর পেয়ে গেল।';
+
+  @override
+  String get restrictedHadith2Ref => 'সহিহ বুখারি ৫৭৯';
+
+  @override
+  String get restrictedScholarNote =>
+      'মাযহাবভেদে বিধানে পার্থক্য আছে। নিজের অবস্থার জন্য নির্ভরযোগ্য আলেমের পরামর্শ নিন।';
+
+  @override
+  String get methodKarachi => 'ইউনিভার্সিটি অব ইসলামিক সায়েন্সেস, করাচি';
+
+  @override
+  String get methodMwl => 'মুসলিম ওয়ার্ল্ড লিগ';
+
+  @override
+  String get methodEgyptian => 'মিসরের জেনারেল অথরিটি';
+
+  @override
+  String get methodUmmAlQura => 'উম্মুল কুরা, মক্কা';
+
+  @override
+  String get methodDubai => 'দুবাই';
+
+  @override
+  String get methodQatar => 'কাতার';
+
+  @override
+  String get methodKuwait => 'কুয়েত';
+
+  @override
+  String get methodMoonsighting => 'মুনসাইটিং কমিটি';
+
+  @override
+  String get methodSingapore => 'সিঙ্গাপুর';
+
+  @override
+  String get methodIsna => 'ইসনা (উত্তর আমেরিকা)';
+
+  @override
+  String get methodTurkey => 'তুরস্ক';
+
+  @override
+  String get methodTehran => 'তেহরান';
+
+  @override
+  String get alarmSheetTitle => 'নামাজের অ্যালার্ম';
+
+  @override
+  String get alarmSheetSubtitle => 'প্রতি ওয়াক্তের জন্য একটি স্মরণ';
+
+  @override
+  String get alarmSheetWhen => 'প্রতিটি অ্যালার্ম কখন বাজবে';
+
+  @override
+  String get alarmSheetSound => 'আজানের সুর';
+
+  @override
+  String get alarmSheetRingsFor => 'কতক্ষণ বাজবে';
+
+  @override
+  String get alarmSheetPaused => 'সব অ্যালার্ম বন্ধ আছে';
+
+  @override
+  String get alarmNone => 'অ্যালার্ম নেই';
+
+  @override
+  String get alarmMeasuredFrom => 'কোথা থেকে হিসাব';
+
+  @override
+  String get alarmAnchorWaqt => 'ওয়াক্ত';
+
+  @override
+  String get alarmAnchorJamaat => 'জামাত';
+
+  @override
+  String get alarmAtWaqt => 'ওয়াক্তের সময়';
+
+  @override
+  String get alarmAtJamaat => 'জামাতের সময়';
+
+  @override
+  String alarmMinBeforeWaqt(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'ওয়াক্তের $minutesString মিনিট আগে';
+  }
+
+  @override
+  String alarmMinAfterWaqt(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'ওয়াক্তের $minutesString মিনিট পরে';
+  }
+
+  @override
+  String alarmMinBeforeJamaat(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'জামাতের $minutesString মিনিট আগে';
+  }
+
+  @override
+  String alarmMinAfterJamaat(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'জামাতের $minutesString মিনিট পরে';
+  }
+
+  @override
+  String get alarmVibrate => 'ভাইব্রেশন';
+
+  @override
+  String get alarmVibrateBody => 'আজান বাজার সময় ভাইব্রেট করবে';
+
+  @override
+  String get alarmSoundFailed => 'এই সুরটি বাজানো যায়নি';
+
+  @override
+  String get alarmSound1 => 'অ্যালার্ম সুর ১';
+
+  @override
+  String get alarmSound2 => 'অ্যালার্ম সুর ২';
+
+  @override
+  String get alarmSound3 => 'অ্যালার্ম সুর ৩';
+
+  @override
+  String alarmMinutes(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString মিনিট';
+  }
+
+  @override
+  String get calFullMonth => 'পুরো মাস';
+
+  @override
+  String get calShare => 'শেয়ার';
+
+  @override
+  String get calShareMonth => 'মাস শেয়ার করুন';
+
+  @override
+  String get calShareTimetable => 'সময়সূচি শেয়ার করুন';
+
+  @override
+  String get calPreparing => 'তৈরি হচ্ছে…';
+
+  @override
+  String get calDate => 'তারিখ';
+
+  @override
+  String get calToday => 'আজ';
+
+  @override
+  String get calTodayRow => 'আজ';
+
+  @override
+  String get calJumuah => '= জুমুআ';
+
+  @override
+  String get calShareFailed => 'সময়সূচি শেয়ার করা যায়নি';
+
+  @override
+  String get calEncodeFailed => 'সময়সূচি তৈরি করা যায়নি';
+
+  @override
+  String get calTimetableTitle => 'নামাজের সময়সূচি';
+
+  @override
+  String get calVerifyNote =>
+      'সময়গুলো আনুমানিক — নিজের এলাকার মসজিদে যাচাই করে নিন।';
+
+  @override
+  String get dowMon => 'সোম';
+
+  @override
+  String get dowTue => 'মঙ্গল';
+
+  @override
+  String get dowWed => 'বুধ';
+
+  @override
+  String get dowThu => 'বৃহঃ';
+
+  @override
+  String get dowFri => 'শুক্র';
+
+  @override
+  String get dowSat => 'শনি';
+
+  @override
+  String get dowSun => 'রবি';
 }

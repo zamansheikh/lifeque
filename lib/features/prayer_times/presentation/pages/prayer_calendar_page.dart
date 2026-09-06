@@ -10,6 +10,9 @@ import '../utils/hijri_names.dart';
 import '../utils/prayer_palette.dart';
 import '../widgets/month_timetable_sheet.dart';
 import '../widgets/prayer_share_sheet.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../utils/prayer_l10n.dart';
 
 /// Month timetable: a week strip, today's five prayers, and a scrollable list
 /// of every day in the visible month.
@@ -66,10 +69,8 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
     madhab: _madhab,
   );
 
-  String _fmt(DateTime t) {
-    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
-    return '$h:${t.minute.toString().padLeft(2, '0')}';
-  }
+  /// Hand-built before, which meant Latin digits regardless of language.
+  String _fmt(DateTime t) => DateFormat('h:mm').format(t);
 
   bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
@@ -107,8 +108,8 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
             padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
             child: Row(
               children: [
-                const Text(
-                  'Full month',
+                Text(
+                  L.of(context).calFullMonth,
                   style: TextStyle(
                     color: PrayerPalette.ink,
                     fontSize: 13.5,
@@ -117,7 +118,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '✦ = Jumu\'ah',
+                  '✦ ${L.of(context).calJumuah}',
                   style: TextStyle(
                     color: PrayerPalette.inkA(0.5),
                     fontSize: 10.5,
@@ -145,7 +146,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                       color: PrayerPalette.accentA(0.10),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
@@ -155,7 +156,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                         ),
                         SizedBox(width: 5),
                         Text(
-                          'Share month',
+                          L.of(context).calShareMonth,
                           style: TextStyle(
                             color: PrayerPalette.accent,
                             fontSize: 10.5,
@@ -405,7 +406,8 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
           Row(
             children: [
               Text(
-                'TODAY · ${DateFormat('E d').format(now).toUpperCase()}',
+                '${L.of(context).calToday} · '
+                '${DateFormat('E d').format(now).toUpperCase()}',
                 style: const TextStyle(
                   color: PrayerPalette.gold,
                   fontSize: 9.5,
@@ -460,7 +462,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        'Share',
+                        L.of(context).calShare,
                         style: TextStyle(
                           color: PrayerPalette.gold,
                           fontSize: 10.5,
@@ -560,7 +562,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
           SizedBox(
             width: 88,
             child: Text(
-              'DATE',
+              L.of(context).calDate,
               style: TextStyle(
                 color: PrayerPalette.inkA(0.55),
                 fontSize: 9.5,
@@ -571,7 +573,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
           for (final p in _fard)
             Expanded(
               child: Text(
-                p.toUpperCase(),
+                prayerLabel(context, p).toUpperCase(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: PrayerPalette.inkA(0.55),
@@ -643,7 +645,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${isToday ? 'Today' : DateFormat('E d').format(day)}'
+                  '${isToday ? L.of(context).calTodayRow : DateFormat('E d').format(day)}'
                   '${isFriday ? ' ✦' : ''}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -654,7 +656,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
                   ),
                 ),
                 Text(
-                  '${hijri.hDay} ${HijriNames.shortMonth(hijri.hMonth)} · '
+                  '${N.of(hijri.hDay)} ${HijriNames.shortMonth(hijri.hMonth)} · '
                   '${BanglaDate.digits(bangla.day)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
