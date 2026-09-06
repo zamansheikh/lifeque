@@ -1227,9 +1227,37 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     if (!announce || !mounted) return;
     PrayerSnack.show(
       context,
-      '$prayer · ${choice.label.toLowerCase()}',
+      _alarmSetMessage(prayer, choice.minutesAfterStart),
       kind: PrayerSnackKind.scheduled,
     );
+  }
+
+  /// "Fajr alarm set for 4:25 am tomorrow".
+  ///
+  /// The confirmation used to read "Fajr · at waqt", which names the rule and
+  /// not the time — leaving you to work out when it would actually go off.
+  String _alarmSetMessage(String prayer, int minutesAfterStart) {
+    final at = _nextAlarmTime(prayer, minutesAfterStart);
+    if (at == null) return '$prayer alarm set';
+
+    final day = _isSameDay(at, DateTime.now()) ? 'today' : 'tomorrow';
+    return '$prayer alarm set for ${_fmt12(at)} $day';
+  }
+
+  /// The instant the alarm will next ring: today's waqt if that is still
+  /// ahead, otherwise tomorrow's.
+  DateTime? _nextAlarmTime(String prayer, int minutesAfterStart) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    for (var dayOffset = 0; dayOffset <= 1; dayOffset++) {
+      final date = today.add(Duration(days: dayOffset));
+      final start = _calculatorForDate(date).getPrayerTimesMap()[prayer];
+      if (start == null) continue;
+      final at = start.add(Duration(minutes: minutesAfterStart));
+      if (at.isAfter(now)) return at;
+    }
+    return null;
   }
 
   // ── Settings sheet ──────────────────────────────────────────────────────

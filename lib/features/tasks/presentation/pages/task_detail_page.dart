@@ -19,16 +19,10 @@ class TaskDetailPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
           onPressed: () => context.pop(),
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.grey.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.arrow_back_rounded, size: 20),
-          ),
+          icon: const Icon(Icons.arrow_back_rounded),
         ),
         title: BlocBuilder<TaskBloc, TaskState>(
           builder: (context, state) {
@@ -38,37 +32,25 @@ class TaskDetailPage extends StatelessWidget {
                 return Text(
                   _getAppBarTitle(task.taskType),
                   style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
                     letterSpacing: -0.3,
                   ),
                 );
               } catch (e) {
-                return const Text('Task Details');
+                return const Text('Details');
               }
             }
-            return const Text('Task Details');
+            return const Text('Details');
           },
         ),
         actions: [
           IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.edit_rounded,
-                size: 20,
-                color: Colors.blue,
-              ),
-            ),
-            onPressed: () {
-              context.push('/edit-task/$taskId');
-            },
+            tooltip: 'Edit',
+            icon: const Icon(Icons.edit_rounded, size: 21),
+            onPressed: () => context.push('/edit-task/$taskId'),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 6),
         ],
       ),
       body: BlocBuilder<TaskBloc, TaskState>(
@@ -78,7 +60,8 @@ class TaskDetailPage extends StatelessWidget {
               final task = state.tasks.firstWhere((t) => t.id == taskId);
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+                physics: const BouncingScrollPhysics(),
                 child: _buildTaskTypeDetail(task),
               );
             } catch (e) {
@@ -124,11 +107,11 @@ class TaskDetailPage extends StatelessWidget {
   String _getAppBarTitle(TaskType taskType) {
     switch (taskType) {
       case TaskType.task:
-        return 'Task Details';
+        return 'Task';
       case TaskType.reminder:
-        return 'Reminder Details';
+        return 'Reminder';
       case TaskType.birthday:
-        return 'Birthday Details';
+        return 'Birthday';
     }
   }
 }

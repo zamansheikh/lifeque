@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+
+import '../../../../core/widgets/detail_kit.dart';
 import '../../domain/entities/todo.dart';
 import '../bloc/todo_bloc.dart';
 
+/// A to-do's detail view.
+///
+/// The old page was seven stacked white boxes — completion, title,
+/// description, category, priority, due date, dates — each with its own
+/// heading, so the screen was mostly labels. This is a hero and three
+/// sections, built from the same kit as the task, reminder and birthday
+/// pages.
 class TodoDetailPage extends StatelessWidget {
   final Todo todo;
 
@@ -26,511 +36,145 @@ class TodoDetailPage extends StatelessWidget {
   }
 
   Widget _build(BuildContext context, Todo todo) {
+    final accent = _accent(todo);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text(
           'To-do',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 24),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 19,
+            letterSpacing: -0.3,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: Colors.black87,
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              context.push('/todos/edit', extra: todo);
-            },
+            tooltip: 'Edit',
+            icon: const Icon(Icons.edit_rounded, size: 21),
+            onPressed: () => context.push('/todos/edit', extra: todo),
           ),
           PopupMenuButton<String>(
+            tooltip: 'More',
             onSelected: (value) {
-              if (value == 'delete') {
-                _showDeleteConfirmation(context);
-              }
+              if (value == 'delete') _showDeleteConfirmation(context, todo);
             },
             itemBuilder: (context) => [
               const PopupMenuItem<String>(
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete, color: Colors.red, size: 16),
-                    SizedBox(width: 8),
-                    Text('Delete'),
+                    Icon(
+                      Icons.delete_outline_rounded,
+                      color: Colors.red,
+                      size: 18,
+                    ),
+                    SizedBox(width: 10),
+                    Text('Delete', style: TextStyle(color: Colors.red)),
                   ],
                 ),
               ),
             ],
           ),
+          const SizedBox(width: 4),
         ],
       ),
-      // Scrolls: with a description, tags, a due date and a reminder all
-      // present this column is taller than a phone screen.
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+        physics: const BouncingScrollPhysics(),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Completion Status
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (todo.isCompleted) {
-                        context.read<TodoBloc>().add(
-                          UncompleteTodoEvent(todo.id),
-                        );
-                      } else {
-                        context.read<TodoBloc>().add(
-                          CompleteTodoEvent(todo.id),
-                        );
-                      }
-                    },
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: todo.isCompleted
-                              ? Theme.of(context).primaryColor
-                              : Colors.grey.withValues(alpha: 0.5),
-                          width: 2,
-                        ),
-                        color: todo.isCompleted
-                            ? Theme.of(context).primaryColor
-                            : Colors.transparent,
-                      ),
-                      child: todo.isCompleted
-                          ? const Icon(
-                              Icons.check,
-                              size: 20,
-                              color: Colors.white,
-                            )
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      todo.isCompleted ? 'Completed' : 'Mark as Complete',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: todo.isCompleted
-                            ? Theme.of(context).primaryColor
-                            : Colors.black87,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Title
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Title',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    todo.title,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: todo.isCompleted
-                          ? Colors.grey[500]
-                          : Colors.black87,
-                      decoration: todo.isCompleted
-                          ? TextDecoration.lineThrough
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Description
-            if (todo.description?.isNotEmpty == true)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      spreadRadius: 1,
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Description',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      todo.description!,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: todo.isCompleted
-                            ? Colors.grey[500]
-                            : Colors.black87,
-                      ),
-                    ),
-                  ],
+            DetailHero(
+              icon: todo.category.icon,
+              accent: accent,
+              status: _status(todo),
+              title: todo.title,
+              subtitle: todo.dueDate == null
+                  ? null
+                  : 'Due ${_friendly(todo.dueDate!)}',
+              description: todo.description,
+              isDone: todo.isCompleted,
+              action: DetailCheckCircle(
+                checked: todo.isCompleted,
+                accent: accent,
+                onTap: () => context.read<TodoBloc>().add(
+                  todo.isCompleted
+                      ? UncompleteTodoEvent(todo.id)
+                      : CompleteTodoEvent(todo.id),
                 ),
               ),
-
-            const SizedBox(height: 16),
-
-            // Category and Priority
-            Row(
+            ),
+            const SizedBox(height: 12),
+            DetailSection(
+              title: 'ABOUT',
+              icon: Icons.label_outline_rounded,
+              accent: accent,
               children: [
-                // Category
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withValues(alpha: 0.1),
-                          spreadRadius: 1,
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Category',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              todo.category.icon,
-                              size: 20,
-                              color: todo.category.color,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              todo.category.displayName,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: todo.category.color,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                DetailRow(
+                  icon: todo.category.icon,
+                  label: 'Category',
+                  value: todo.category.displayName,
                 ),
-
-                const SizedBox(width: 16),
-
-                // Priority
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withValues(alpha: 0.1),
-                          spreadRadius: 1,
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Priority',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              todo.priority.icon,
-                              size: 20,
-                              color: todo.priority.color,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              todo.priority.displayName,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: todo.priority.color,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                DetailRow(
+                  icon: todo.priority.icon,
+                  label: 'Priority',
+                  value: todo.priority.displayName,
+                  valueColor: todo.priority.color,
                 ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Due Date
-            if (todo.dueDate != null)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      spreadRadius: 1,
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                  border: todo.isOverdue
-                      ? Border.all(
-                          color: Colors.red.withValues(alpha: 0.3),
-                          width: 1,
-                        )
-                      : todo.isDueToday
-                      ? Border.all(
-                          color: Colors.orange.withValues(alpha: 0.3),
-                          width: 1,
-                        )
-                      : null,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Due Date',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          size: 20,
-                          color: todo.isOverdue
-                              ? Colors.red
-                              : todo.isDueToday
-                              ? Colors.orange
-                              : Theme.of(context).primaryColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _formatDateTime(todo.dueDate!),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: todo.isOverdue
-                                ? Colors.red
-                                : todo.isDueToday
-                                ? Colors.orange
-                                : Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-            if (todo.hasReminder && todo.reminderTime != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      spreadRadius: 1,
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Reminder',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          todo.isCompleted
-                              ? Icons.notifications_off_rounded
-                              : Icons.notifications_active_rounded,
-                          size: 20,
-                          color: todo.isCompleted
-                              ? Colors.grey
-                              : const Color(0xFF2563EB),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            todo.isCompleted
-                                ? 'Cancelled — this one is done'
-                                : _formatDateTime(todo.reminderTime!),
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: todo.isCompleted
-                                  ? Colors.grey
-                                  : Colors.black87,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 16),
-
-            // Dates Info
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+                if (todo.tags.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 7,
+                    runSpacing: 7,
                     children: [
-                      Icon(Icons.schedule, size: 16, color: Colors.grey[600]),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Created: ${_formatDateTime(todo.createdAt)}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
+                      for (final tag in todo.tags) _tagChip(tag, accent),
                     ],
                   ),
-                  if (todo.completedAt != null) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.check_circle,
-                          size: 16,
-                          color: Colors.green[600],
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Completed: ${_formatDateTime(todo.completedAt!)}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.green[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ],
-              ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            DetailSection(
+              title: 'WHEN',
+              icon: Icons.event_rounded,
+              accent: const Color(0xFF2563EB),
+              children: [
+                DetailRow(
+                  icon: Icons.flag_rounded,
+                  label: 'Due',
+                  value: todo.dueDate == null
+                      ? 'No due date'
+                      : _friendly(todo.dueDate!),
+                  valueColor: todo.isOverdue ? Colors.red.shade500 : null,
+                ),
+                DetailRow(
+                  icon: todo.hasReminder
+                      ? Icons.notifications_active_rounded
+                      : Icons.notifications_off_rounded,
+                  label: 'Reminder',
+                  value: !todo.hasReminder || todo.reminderTime == null
+                      ? 'Off'
+                      : _friendly(todo.reminderTime!),
+                ),
+                DetailRow(
+                  icon: Icons.add_circle_outline_rounded,
+                  label: 'Created',
+                  value: _friendly(todo.createdAt),
+                ),
+                if (todo.completedAt != null)
+                  DetailRow(
+                    icon: Icons.check_circle_outline_rounded,
+                    label: 'Completed',
+                    value: _friendly(todo.completedAt!),
+                    valueColor: const Color(0xFF059669),
+                  ),
+              ],
             ),
           ],
         ),
@@ -538,22 +182,74 @@ class TodoDetailPage extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context) {
+  Widget _tagChip(String tag, Color accent) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(9),
+      ),
+      child: Text(
+        '#$tag',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: accent,
+        ),
+      ),
+    );
+  }
+
+  Color _accent(Todo todo) {
+    if (todo.isCompleted) return const Color(0xFF10B981);
+    if (todo.isOverdue) return Colors.red.shade500;
+    return todo.priority.color;
+  }
+
+  String _status(Todo todo) {
+    if (todo.isCompleted) return 'Done';
+    if (todo.isOverdue) return 'Overdue';
+    if (todo.isDueToday) return 'Due today';
+    if (todo.isDueTomorrow) return 'Due tomorrow';
+    return '${todo.priority.displayName} priority';
+  }
+
+  /// "Today at 4:30 pm" where that reads better than a date, otherwise the
+  /// date itself.
+  String _friendly(DateTime value) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(value.year, value.month, value.day);
+    final time = DateFormat('h:mm a').format(value);
+
+    final difference = day.difference(today).inDays;
+    final label = switch (difference) {
+      0 => 'Today',
+      1 => 'Tomorrow',
+      -1 => 'Yesterday',
+      _ => DateFormat(
+        value.year == now.year ? 'EEE, d MMM' : 'd MMM y',
+      ).format(value),
+    };
+    return '$label at $time';
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Todo todo) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete this to-do?'),
-        content: Text('Are you sure you want to delete "${todo.title}"?'),
+        content: Text('"${todo.title}" will be removed.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
               context.read<TodoBloc>().add(DeleteTodoEvent(todo.id));
-              Navigator.of(context).pop(); // Close dialog
-              context.pop(); // Go back to list
+              Navigator.of(dialogContext).pop();
+              context.pop();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
@@ -561,29 +257,5 @@ class TodoDetailPage extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
-    final yesterday = today.subtract(const Duration(days: 1));
-    final selectedDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
-
-    String dateStr;
-    if (selectedDate == today) {
-      dateStr = 'Today';
-    } else if (selectedDate == tomorrow) {
-      dateStr = 'Tomorrow';
-    } else if (selectedDate == yesterday) {
-      dateStr = 'Yesterday';
-    } else {
-      dateStr = '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    }
-
-    final timeStr =
-        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-
-    return '$dateStr at $timeStr';
   }
 }

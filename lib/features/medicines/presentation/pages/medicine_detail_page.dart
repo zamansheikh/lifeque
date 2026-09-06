@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+
+import '../../../../core/widgets/detail_kit.dart';
 import '../../domain/entities/medicine.dart';
 import '../../domain/entities/medicine_dose.dart';
 import '../bloc/medicine_cubit.dart';
 import '../bloc/medicine_state.dart';
 import 'add_edit_medicine_page.dart';
 
+/// A medicine's detail view: how the course is going, what it is, and every
+/// dose so far.
+///
+/// Rebuilt on the shared detail kit, so it reads like the task, reminder,
+/// birthday and to-do pages instead of the gradient-heavy card stack it was.
 class MedicineDetailPage extends StatefulWidget {
   final Medicine medicine;
+
   const MedicineDetailPage({super.key, required this.medicine});
 
   @override
@@ -15,85 +24,59 @@ class MedicineDetailPage extends StatefulWidget {
 }
 
 class _MedicineDetailPageState extends State<MedicineDetailPage> {
-  MedicineDetailLoaded? _cachedDetail; // retain last detail snapshot
+  /// The last good snapshot, kept so an unrelated cubit state (a dose being
+  /// written, say) doesn't blank the page.
+  MedicineDetailLoaded? _cachedDetail;
+
+  static const _accent = Color(0xFF2563EB);
+
   @override
   void initState() {
     super.initState();
     context.read<MedicineCubit>().loadMedicineDetail(widget.medicine.id);
   }
 
+  void _reload() =>
+      context.read<MedicineCubit>().loadMedicineDetail(widget.medicine.id);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text(
-          widget.medicine.name,
-          style: const TextStyle(
+        title: const Text(
+          'Medicine',
+          style: TextStyle(
             fontWeight: FontWeight.w700,
-            fontSize: 24,
-            color: Color(0xFF1E293B),
+            fontSize: 19,
+            letterSpacing: -0.3,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        shadowColor: Colors.black12,
-        surfaceTintColor: Colors.transparent,
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: Color(0xFF64748B),
-            ),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+        scrolledUnderElevation: 0,
+        foregroundColor: const Color(0xFF1E293B),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.edit_rounded, color: Color(0xFF64748B)),
-              onPressed: () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        AddEditMedicinePage(medicine: widget.medicine),
-                  ),
-                );
-                if (context.mounted) {
-                  context.read<MedicineCubit>().loadMedicineDetail(
-                    widget.medicine.id,
-                  );
-                }
-              },
-            ),
+          // Refresh used to be a third button up here; the list pulls to
+          // refresh instead.
+          IconButton(
+            tooltip: 'Edit',
+            icon: const Icon(Icons.edit_rounded, size: 21),
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      AddEditMedicinePage(medicine: widget.medicine),
+                ),
+              );
+              if (mounted) _reload();
+            },
           ),
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.refresh_rounded, color: Colors.white),
-              onPressed: () => context.read<MedicineCubit>().loadMedicineDetail(
-                widget.medicine.id,
-              ),
-            ),
-          ),
+          const SizedBox(width: 6),
         ],
       ),
       body: BlocConsumer<MedicineCubit, MedicineState>(
@@ -105,377 +88,224 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
         },
         builder: (context, state) {
           if (state is MedicineError || state is DoseError) {
-            final msg = state is MedicineError
+            final message = state is MedicineError
                 ? state.message
                 : (state as DoseError).message;
-            return Center(child: Text(msg));
+            return _error(message);
           }
-          if (_cachedDetail != null) {
-            return _buildDetail(context, _cachedDetail!);
+          if (_cachedDetail == null) {
+            return const Center(child: CircularProgressIndicator());
           }
-          return const Center(child: CircularProgressIndicator());
+          return RefreshIndicator(
+            onRefresh: () async => _reload(),
+            child: _detail(_cachedDetail!),
+          );
         },
       ),
     );
   }
 
-  Widget _buildDetail(BuildContext context, MedicineDetailLoaded state) {
-    final m = state.medicine;
+  Widget _error(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              size: 44,
+              color: Colors.red.shade300,
+            ),
+            const SizedBox(height: 14),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: _reload, child: const Text('Try again')),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _detail(MedicineDetailLoaded state) {
+    final medicine = state.medicine;
+    final accent = _statusAccent(medicine);
+
     return ListView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(20),
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
       children: [
-        _CourseProgressCard(state: state),
-        const SizedBox(height: 20),
-        _InfoSection(medicine: m),
-        const SizedBox(height: 20),
-        _DoseHistorySection(state: state),
-        const SizedBox(height: 40),
+        DetailHero(
+          icon: Icons.medication_rounded,
+          accent: accent,
+          status: _statusLabel(medicine),
+          title: medicine.name,
+          subtitle:
+              '${medicine.dosageDisplay} · ${medicine.timesPerDay}× a day '
+              '· ${medicine.mealTimingDisplayName}',
+          description: medicine.description,
+        ),
+        const SizedBox(height: 12),
+        DetailSection(
+          title: 'THIS COURSE',
+          icon: Icons.insights_rounded,
+          accent: accent,
+          children: [
+            DetailProgress(
+              value: state.adherencePercent,
+              color: accent,
+              label: 'Doses taken',
+            ),
+            const SizedBox(height: 14),
+            DetailProgress(
+              value: state.daysTotal == 0
+                  ? 0
+                  : state.daysElapsed / state.daysTotal,
+              color: const Color(0xFF7C3AED),
+              label: 'Day ${state.daysElapsed} of ${state.daysTotal}',
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: DetailStat(
+                    value: '${state.taken}',
+                    label: 'taken',
+                    icon: Icons.check_circle_rounded,
+                    color: const Color(0xFF10B981),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DetailStat(
+                    value: '${state.pending}',
+                    label: 'to come',
+                    icon: Icons.schedule_rounded,
+                    color: const Color(0xFF06B6D4),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DetailStat(
+                    value: '${state.skipped}',
+                    label: 'skipped',
+                    icon: Icons.skip_next_rounded,
+                    color: const Color(0xFFF59E0B),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DetailStat(
+                    value: '${state.missed}',
+                    label: 'missed',
+                    icon: Icons.cancel_rounded,
+                    color: const Color(0xFFEF4444),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        DetailSection(
+          title: 'ABOUT',
+          icon: Icons.info_outline_rounded,
+          accent: Colors.grey.shade500,
+          children: [
+            DetailRow(
+              icon: Icons.category_rounded,
+              label: 'Type',
+              value: medicine.typeDisplayName,
+            ),
+            DetailRow(
+              icon: Icons.science_rounded,
+              label: 'Dosage',
+              value: medicine.dosageDisplay,
+            ),
+            DetailRow(
+              icon: Icons.restaurant_rounded,
+              label: 'Timing',
+              value: medicine.mealTimingDisplayName,
+            ),
+            DetailRow(
+              icon: Icons.play_circle_outline_rounded,
+              label: 'Started',
+              value: DateFormat('d MMM y').format(medicine.startDate),
+            ),
+            DetailRow(
+              icon: Icons.flag_rounded,
+              label: 'Ends',
+              value: DateFormat('d MMM y').format(medicine.calculatedEndDate),
+            ),
+            if (medicine.doctorName != null)
+              DetailRow(
+                icon: Icons.person_rounded,
+                label: 'Doctor',
+                value: medicine.doctorName!,
+              ),
+            if (medicine.notes != null && medicine.notes!.trim().isNotEmpty)
+              DetailRow(
+                icon: Icons.sticky_note_2_outlined,
+                label: 'Notes',
+                value: medicine.notes!,
+              ),
+            if (medicine.notificationTimes.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 7,
+                runSpacing: 7,
+                children: [
+                  for (final time in medicine.notificationTimes)
+                    _timeChip(time, accent),
+                ],
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 12),
+        DetailSection(
+          title: 'DOSE HISTORY',
+          icon: Icons.history_rounded,
+          accent: _accent,
+          children: [
+            if (state.doses.isEmpty)
+              Text(
+                'No doses recorded yet.',
+                style: TextStyle(fontSize: 13.5, color: Colors.grey.shade600),
+              )
+            else
+              for (final entry in state.dosesByDate.entries)
+                _dayTile(entry.key, entry.value),
+          ],
+        ),
       ],
     );
   }
-}
 
-class _CourseProgressCard extends StatelessWidget {
-  final MedicineDetailLoaded state;
-  const _CourseProgressCard({required this.state});
-  @override
-  Widget build(BuildContext context) {
-    final adherencePct = (state.adherencePercent * 100).toStringAsFixed(0);
-    final daysPct = (state.daysElapsed / state.daysTotal * 100)
-        .clamp(0, 100)
-        .toStringAsFixed(0);
+  Widget _timeChip(String time, Color accent) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        color: accent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(9),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Overall Progress',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Adherence $adherencePct%',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _enhancedStatCard(
-                      Icons.check_circle_rounded,
-                      'Taken',
-                      state.taken,
-                      const Color(0xFF10B981),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _enhancedStatCard(
-                      Icons.schedule_rounded,
-                      'Pending',
-                      state.pending,
-                      const Color(0xFF06B6D4),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _enhancedStatCard(
-                      Icons.skip_next_rounded,
-                      'Skipped',
-                      state.skipped,
-                      const Color(0xFFF59E0B),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _enhancedStatCard(
-                      Icons.cancel_rounded,
-                      'Missed',
-                      state.missed,
-                      const Color(0xFFEF4444),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Course Progress',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Days ${state.daysElapsed}/${state.daysTotal} ($daysPct%)',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: state.daysElapsed / state.daysTotal,
-                      backgroundColor: Colors.transparent,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _enhancedStatCard(
-    IconData icon,
-    String label,
-    int value,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(height: 6),
+          Icon(Icons.access_time_rounded, size: 12, color: accent),
+          const SizedBox(width: 5),
           Text(
-            '$value',
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.white70,
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoSection extends StatelessWidget {
-  final Medicine medicine;
-  const _InfoSection({required this.medicine});
-  @override
-  Widget build(BuildContext context) {
-    final infoItems = [
-      ('Type', medicine.typeDisplayName),
-      ('Dosage', medicine.dosageDisplay),
-      ('Frequency', '${medicine.timesPerDay}x/day'),
-      ('Timing', medicine.mealTimingDisplayName),
-      (
-        'Start',
-        '${medicine.startDate.day}/${medicine.startDate.month}/${medicine.startDate.year}',
-      ),
-      (
-        'End',
-        '${medicine.calculatedEndDate.day}/${medicine.calculatedEndDate.month}/${medicine.calculatedEndDate.year}',
-      ),
-      if (medicine.doctorName != null) ('Doctor', medicine.doctorName!),
-      if (medicine.notes != null) ('Notes', medicine.notes!),
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withValues(alpha: 0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Medicine Information',
+            time,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // 2-column grid for basic info
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 2.5,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 8,
-            ),
-            itemCount: infoItems.length,
-            itemBuilder: (context, index) {
-              final item = infoItems[index];
-              return _compactInfoItem(item.$1, item.$2);
-            },
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.schedule,
-                      color: Color(0xFF3B82F6),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Notification Times',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1E293B),
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: medicine.notificationTimes
-                      .map(
-                        (t) => Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(
-                                  0xFF3B82F6,
-                                ).withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.access_time,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                t,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
+              color: accent,
             ),
           ),
         ],
@@ -483,263 +313,133 @@ class _InfoSection extends StatelessWidget {
     );
   }
 
-  Widget _compactInfoItem(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-              fontSize: 11,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFF1E293B),
-              fontWeight: FontWeight.w500,
-              fontSize: 13,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
+  /// One day of the course, collapsed to "3/3" until it's opened.
+  Widget _dayTile(DateTime date, List<MedicineDose> doses) {
+    final sorted = [...doses]
+      ..sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
+    final taken = sorted.where((d) => d.status == DoseStatus.taken).length;
+    final complete = taken == sorted.length && sorted.isNotEmpty;
+    final today = DateTime.now();
+    final isToday =
+        date.year == today.year &&
+        date.month == today.month &&
+        date.day == today.day;
 
-class _DoseHistorySection extends StatelessWidget {
-  final MedicineDetailLoaded state;
-  const _DoseHistorySection({required this.state});
-
-  Color _statusColor(DoseStatus status) {
-    switch (status) {
-      case DoseStatus.taken:
-        return const Color(0xFF10B981);
-      case DoseStatus.pending:
-        return const Color(0xFF3B82F6);
-      case DoseStatus.skipped:
-        return const Color(0xFFF59E0B);
-      case DoseStatus.missed:
-        return const Color(0xFFEF4444);
-    }
-  }
-
-  IconData _statusIcon(DoseStatus status) {
-    switch (status) {
-      case DoseStatus.taken:
-        return Icons.check_circle_rounded;
-      case DoseStatus.pending:
-        return Icons.schedule_rounded;
-      case DoseStatus.skipped:
-        return Icons.skip_next_rounded;
-      case DoseStatus.missed:
-        return Icons.cancel_rounded;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final map = state.dosesByDate;
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withValues(alpha: 0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.history, color: Color(0xFF3B82F6), size: 24),
-              const SizedBox(width: 8),
-              const Text(
-                'Dose History',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1E293B),
-                ),
+    return Theme(
+      // The default divider draws a line across the card on every tile.
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: const EdgeInsets.only(bottom: 8),
+        initiallyExpanded: isToday,
+        title: Row(
+          children: [
+            Text(
+              isToday ? 'Today' : DateFormat('EEE, d MMM').format(date),
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                color: isToday ? _accent : Colors.grey.shade800,
               ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          ...map.entries.map((e) {
-            final date = e.key;
-            final list = e.value;
-            list.sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
-            final taken = list
-                .where((d) => d.status == DoseStatus.taken)
-                .length;
-            final total = list.length;
-            final completionRate = total > 0 ? (taken / total) : 0.0;
-            return Container(
-              margin: const EdgeInsets.symmetric(vertical: 6),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [const Color(0xFFF8FAFC), const Color(0xFFF1F5F9)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF64748B).withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                color: (complete ? const Color(0xFF10B981) : Colors.grey)
+                    .withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(9),
               ),
-              child: ExpansionTile(
-                tilePadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
+              child: Text(
+                '$taken/${sorted.length}',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w800,
+                  color: complete
+                      ? const Color(0xFF059669)
+                      : Colors.grey.shade600,
                 ),
-                childrenPadding: const EdgeInsets.only(bottom: 16),
-                title: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '${date.day}/${date.month}/${date.year}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF3B82F6),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: completionRate == 1.0
-                            ? const Color(0xFF10B981).withValues(alpha: 0.1)
-                            : const Color(0xFFF59E0B).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '$taken/$total',
-                        style: TextStyle(
-                          color: completionRate == 1.0
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFFF59E0B),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                children: list.map((d) {
-                  final color = _statusColor(d.status);
-                  return Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 4,
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: color.withValues(alpha: 0.2)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: color.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            _statusIcon(d.status),
-                            color: color,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _fmtTime(d.scheduledTime),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF1E293B),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                d.status.name.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: color,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          d.id.substring(d.id.length - 4),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF94A3B8),
-                            fontFamily: 'monospace',
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
               ),
-            );
-          }),
+            ),
+          ],
+        ),
+        children: [for (final dose in sorted) _doseRow(dose)],
+      ),
+    );
+  }
+
+  Widget _doseRow(MedicineDose dose) {
+    final color = _doseColor(dose.status);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(_doseIcon(dose.status), color: color, size: 16),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              DateFormat('h:mm a').format(dose.scheduledTime),
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          // The row used to end with the last four characters of the dose's
+          // id, which means nothing to anybody reading it.
+          Text(
+            _doseLabel(dose.status),
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  String _fmtTime(DateTime dt) =>
-      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  Color _doseColor(DoseStatus status) => switch (status) {
+    DoseStatus.taken => const Color(0xFF10B981),
+    DoseStatus.pending => const Color(0xFF06B6D4),
+    DoseStatus.skipped => const Color(0xFFF59E0B),
+    DoseStatus.missed => const Color(0xFFEF4444),
+  };
+
+  IconData _doseIcon(DoseStatus status) => switch (status) {
+    DoseStatus.taken => Icons.check_circle_rounded,
+    DoseStatus.pending => Icons.schedule_rounded,
+    DoseStatus.skipped => Icons.skip_next_rounded,
+    DoseStatus.missed => Icons.cancel_rounded,
+  };
+
+  String _doseLabel(DoseStatus status) => switch (status) {
+    DoseStatus.taken => 'Taken',
+    DoseStatus.pending => 'To come',
+    DoseStatus.skipped => 'Skipped',
+    DoseStatus.missed => 'Missed',
+  };
+
+  Color _statusAccent(Medicine medicine) {
+    if (medicine.isCompleted) return const Color(0xFF10B981);
+    if (medicine.isActive) return _accent;
+    return const Color(0xFFF59E0B);
+  }
+
+  String _statusLabel(Medicine medicine) {
+    if (medicine.isCompleted) return 'Course finished';
+    if (medicine.isActive) return 'On this course';
+    return 'Not started yet';
+  }
 }
