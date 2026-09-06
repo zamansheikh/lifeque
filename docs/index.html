@@ -2,115 +2,135 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LifeQue - Islamic & Productivity App</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .container {
-            text-align: center;
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            max-width: 500px;
-            margin: 20px;
-        }
-
-        .logo {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 1rem;
-        }
-
-        .description {
-            color: #666;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-
-        .links {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: transform 0.2s;
-            font-weight: 500;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: #f8f9fa;
-            color: #333;
-            border: 2px solid #dee2e6;
-        }
-
-        .footer {
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 1px solid #eee;
-            color: #666;
-            font-size: 0.9rem;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LifeQue — Prayer times, Islamic reference and daily life, in Bangla</title>
+  <meta name="description"
+    content="LifeQue is a Bangla-first Android app for prayer times, the salah guide, medicines, expenses and tasks. Everything stays on your device.">
+  <meta name="theme-color" content="#0e4a30">
+  <link rel="icon" href="assets/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
 </head>
 
 <body>
-    <div class="container">
-        <div class="logo">🕌📱</div>
-        <h1>LifeQue</h1>
-        <p class="description">
-            Comprehensive Islamic & Productivity App built with Flutter.
-            Features prayer times, Qibla compass, study timer, task management, and more.
+  <div class="wrap">
+    <header class="bar">
+      <a class="brand" href="./">
+        <img src="assets/icon.png" alt="">
+        <b>LifeQue</b>
+      </a>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#whatsnew">What's new</a>
+        <a href="privacy-policy.html">Privacy</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <span class="pill">VERSION 2.0</span>
+      <h1>
+        <span class="bn">নামাজ, শেখা আর প্রতিদিনের হিসাব — এক জায়গায়</span>
+        Prayer times and daily life, now fully in Bangla
+      </h1>
+      <p>
+        An Android app for prayer times, the salah guide, medicines, expenses and
+        tasks. Every screen reads in Bangla or English, and nothing leaves your phone.
+      </p>
+      <div class="row">
+        <a class="btn btn-primary"
+          href="https://play.google.com/store/apps/details?id=com.programmernexus.lifeque">Get it on Google Play</a>
+        <a class="btn btn-ghost" href="https://github.com/zamansheikh/lifeque/releases">Download APK</a>
+      </div>
+    </section>
+
+    <section id="whatsnew">
+      <h2>What's new in 2.0</h2>
+      <div class="note">
+        <ul>
+          <li><strong>The whole app in Bangla</strong> — text, numerals and a 12-hour
+            clock that reads the way people say it (সন্ধ্যা ৬:১২, not 6:12 PM).</li>
+          <li><strong>Bangla by default</strong>, with the language picker on the very
+            first screen.</li>
+          <li><strong>Learn</strong> — the salah guide, surahs and du'as fully
+            translated, with 12 surahs added from Al-Asr to An-Nas.</li>
+          <li><strong>Raf' al-Yadain</strong> — a new section giving each school's
+            position and the narrations behind it.</li>
+          <li><strong>Medicines per person</strong> — keep a course for yourself, a
+            parent or a child, add one in fewer taps, and get asked about a dose that
+            slipped by instead of it being quietly written off.</li>
+          <li><strong>Expenses</strong> — the category is guessed from the item name,
+            in Bangla or English.</li>
+          <li><strong>Home-screen widgets</strong> in Bangla, in the app's own typeface.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="features">
+      <h2>What's inside</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="icon">🕌</span>
+          <h3>Prayer times <span class="bn">· নামাজের সময়</span></h3>
+          <p>Accurate times for your location, jamaat times, alarms per waqt, a Qibla
+            compass, and the makruh windows marked so you know when not to pray.</p>
+        </article>
+        <article class="card">
+          <span class="icon">📖</span>
+          <h3>Learn <span class="bn">· শিখুন</span></h3>
+          <p>A step-by-step salah guide for every prayer — including witr, janazah,
+            eid and tarawih — plus the short surahs, du'as and adhkar, with the Arabic
+            kept as written.</p>
+        </article>
+        <article class="card">
+          <span class="icon">📿</span>
+          <h3>Tasbih &amp; calendar <span class="bn">· তাসবিহ ও ক্যালেন্ডার</span></h3>
+          <p>A counter for your dhikr, and a month view carrying the Gregorian, Hijri
+            and Bangla dates together — shareable as an image.</p>
+        </article>
+        <article class="card">
+          <span class="icon">💊</span>
+          <h3>Medicines <span class="bn">· ওষুধ</span></h3>
+          <p>Courses kept per person, dose reminders that follow up when one is
+            missed, and a history you can trust because nothing is marked for you.</p>
+        </article>
+        <article class="card">
+          <span class="icon">🧾</span>
+          <h3>Expenses <span class="bn">· খরচ</span></h3>
+          <p>Shopping lists with prices, monthly and per-category budgets, and
+            categories guessed from what you typed — in either language.</p>
+        </article>
+        <article class="card">
+          <span class="icon">✅</span>
+          <h3>Tasks &amp; study <span class="bn">· কাজ ও পড়াশোনা</span></h3>
+          <p>Tasks with priorities and recurrence, reminders, birthdays, a to-do
+            list, and a Pomodoro timer for study sessions.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Your data stays yours</h2>
+      <div class="note">
+        <p style="margin:0">
+          LifeQue has no account and no server. Prayer settings, medicines, expenses
+          and tasks are stored on your phone, and your location is used to calculate
+          prayer times without ever being sent anywhere.
+          <a href="privacy-policy.html">Read the privacy policy</a>.
         </p>
+      </div>
+    </section>
 
-        <div class="highlight"
-            style="background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 0.9em;">
-            <strong>New in v1.2.4+18:</strong><br>
-            • <strong>Salah Guide:</strong> Learn how to pray properly with detailed steps and duas.<br>
-            • <strong>Home Screen Widgets:</strong> View Prayer Times & Mosque Jamaat times instantly.<br>
-            • <strong>Enhanced Info:</strong> Shows Sunrise, Sunset, Sahri, Iftar & Prohibited times.<br>
-            • <strong>Next Prayer Indicator:</strong> Always know what's coming up next.
-        </div>
-
-        <div class="links">
-            <a href="privacy-policy.html" class="btn">Privacy Policy</a>
-            <a href="https://play.google.com/store/apps/details?id=com.programmernexus.lifeque&hl=en"
-                class="btn">Download from Play Store</a>
-            <a href="https://github.com/zamansheikh/lifeque" class="btn btn-secondary">View on GitHub</a>
-            <a href="https://github.com/zamansheikh/lifeque/releases" class="btn btn-secondary">Download APK</a>
-        </div>
-
-        <div class="footer">
-            <p>Made with ❤️ for the Muslim community worldwide</p>
-            <p>© 2026 Programmer Nexus</p>
-        </div>
-    </div>
+    <footer>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <span>© 2026 Programmer Nexus · Made for the Muslim community</span>
+        <span><a href="https://github.com/zamansheikh/lifeque">GitHub</a> ·
+          <a href="privacy-policy.html">Privacy</a></span>
+      </div>
+    </footer>
+  </div>
 </body>
 
 </html>
