@@ -154,6 +154,19 @@ class HomeWidgetService {
     ]);
   }
 
+  /// Wraps a widget face so its Bangla renders in the bundled Noto Serif
+  /// Bengali.
+  ///
+  /// These are drawn by `renderFlutterWidget`, outside the app's `MaterialApp`,
+  /// so the theme's font never reaches them — the Bangla fell back to whatever
+  /// the device happened to have, with metrics that do not sit with the Latin
+  /// beside it. Set once at the root: every `Text` below merges with this
+  /// unless it names a family of its own.
+  static Widget _withFonts(Widget face) => DefaultTextStyle.merge(
+    style: const TextStyle(fontFamilyFallback: ['NotoSerifBengali']),
+    child: face,
+  );
+
   Future<void> updateWidget() async {
     if (!isHomeWidgetSupported) {
       debugPrint('🕌 Home widgets not supported on this platform — skipping');
@@ -182,7 +195,7 @@ class HomeWidgetService {
         for (final (key, fallback, provider) in placeholders) {
           final size = await _cellSize(key, fallback);
           await HomeWidget.renderFlutterWidget(
-            PrayerWidgetPlaceholder(size: size),
+            _withFonts(PrayerWidgetPlaceholder(size: size)),
             key: key,
             logicalSize: size,
             pixelRatio: 3.0,
@@ -195,7 +208,7 @@ class HomeWidgetService {
       }
 
       await HomeWidget.renderFlutterWidget(
-        bundle.prayer,
+        _withFonts(bundle.prayer),
         key: 'prayer_widget_image',
         logicalSize: bundle.prayerSize,
         pixelRatio: 3.0,
@@ -204,7 +217,7 @@ class HomeWidgetService {
       debugPrint('✅ Prayer widget updated successfully');
 
       await HomeWidget.renderFlutterWidget(
-        bundle.timeline,
+        _withFonts(bundle.timeline),
         key: 'day_timeline_widget_image',
         logicalSize: bundle.timelineSize,
         pixelRatio: 3.0,
@@ -215,7 +228,7 @@ class HomeWidgetService {
       debugPrint('✅ Day timeline widget updated successfully');
 
       await HomeWidget.renderFlutterWidget(
-        bundle.slim,
+        _withFonts(bundle.slim),
         key: 'slim_bar_widget_image',
         logicalSize: bundle.slimSize,
         pixelRatio: 3.0,
@@ -224,7 +237,7 @@ class HomeWidgetService {
       debugPrint('✅ Slim bar widget updated successfully');
 
       await HomeWidget.renderFlutterWidget(
-        bundle.mosque,
+        _withFonts(bundle.mosque),
         key: 'mosque_widget_image',
         logicalSize: bundle.mosqueSize,
         pixelRatio: 3.0,
