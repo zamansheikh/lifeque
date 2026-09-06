@@ -56,7 +56,10 @@ class _TaskListPageState extends State<TaskListPage>
           ),
         ),
         actions: [
+          // Refresh used to sit here too; every list pulls to refresh now, so
+          // the bar is down to the one thing it links to.
           IconButton(
+            tooltip: 'Medicines',
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -73,68 +76,13 @@ class _TaskListPageState extends State<TaskListPage>
               context.push('/medicines');
             },
           ),
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colorScheme.onSurface.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.refresh_rounded, size: 20),
-            ),
-            onPressed: () {
-              context.read<TaskBloc>().add(LoadTasks());
-            },
-          ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
         ],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Modern Tab Bar
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TabBar(
-                controller: _tabController,
-                indicator: UnderlineTabIndicator(
-                  borderSide: BorderSide(
-                    width: 3.0,
-                    color: colorScheme.primary,
-                  ),
-                  insets: const EdgeInsets.symmetric(horizontal: 4.0),
-                ),
-                labelColor: colorScheme.primary,
-                unselectedLabelColor: Colors.grey.shade600,
-                labelStyle: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-                unselectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                ),
-                tabs: const [
-                  Tab(text: 'Active'),
-                  Tab(text: 'All Tasks'),
-                  Tab(text: 'Completed'),
-                ],
-                dividerHeight: 0,
-              ),
-            ),
-
-            // Tab Content
+            BlocBuilder<TaskBloc, TaskState>(builder: _buildTabs),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
@@ -177,6 +125,162 @@ class _TaskListPageState extends State<TaskListPage>
         ),
       ),
     );
+  }
+
+  // ── Tabs ────────────────────────────────────────────────────────────────
+
+  /// A pill segmented control carrying each tab's count.
+  ///
+  /// The counts are the point: "Active" alone gave no reason to look in the
+  /// other two tabs, so a finished list read as an empty app.
+  Widget _buildTabs(BuildContext context, TaskState state) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final tasks = state is TaskLoaded
+        ? state.tasks.where((t) => t.taskType == TaskType.task).toList()
+        : <Task>[];
+
+    final labels = [
+      ('Active', tasks.where((t) => t.isActive).length),
+      ('All', tasks.length),
+      ('Done', tasks.where((t) => t.isCompleted).length),
+    ];
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TabBar(
+        controller: _tabController,
+        indicator: BoxDecoration(
+          color: colorScheme.primary,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerHeight: 0,
+        splashBorderRadius: BorderRadius.circular(10),
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.grey.shade600,
+        labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+        unselectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+        ),
+        tabs: [
+          for (final (label, count) in labels)
+            Tab(height: 36, text: count == 0 ? label : '$label  $count'),
+        ],
+      ),
+    );
+  }
+
+  // ── List plumbing ───────────────────────────────────────────────────────
+
+  Widget _card(Task task) {
+    return TaskCardFactory.createCard(
+      task: task,
+      onTap: () => context.push('/task-detail/${task.id}'),
+      onToggleComplete: () =>
+          context.read<TaskBloc>().add(ToggleTaskCompletion(task.id)),
+      onEdit: () => context.push('/edit-task/${task.id}'),
+      onDelete: () => _showDeleteConfirmation(context, task.id, task.title),
+    );
+  }
+
+  /// Pull-to-refresh, which is also the only way to reload now that the app
+  /// bar's refresh button is gone.
+  Widget _refreshable(Widget child) {
+    return RefreshIndicator(
+      onRefresh: () async => context.read<TaskBloc>().add(LoadTasks()),
+      child: child,
+    );
+  }
+
+  /// Sections with a heading each, empty ones dropped.
+  ///
+  /// A flat list sorted by deadline made "due in an hour" and "due in March"
+  /// look alike; the headings put a scale on it.
+  Widget _groupedList(List<(String, List<Task>)> groups) {
+    final children = <Widget>[];
+    for (final (label, tasks) in groups) {
+      if (tasks.isEmpty) continue;
+      children.add(_sectionHeader(label, tasks.length));
+      children.addAll(tasks.map(_card));
+    }
+
+    return _refreshable(
+      ListView(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 96),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        children: children,
+      ),
+    );
+  }
+
+  Widget _sectionHeader(String label, int count) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 10, 2, 8),
+      child: Row(
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+              color: Colors.grey.shade500,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Colors.grey.shade400,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: Divider(height: 1, color: Colors.grey.shade200)),
+        ],
+      ),
+    );
+  }
+
+  /// Deadline buckets, relative to the end of today.
+  static List<(String, List<Task>)> _byDeadline(List<Task> tasks) {
+    final now = DateTime.now();
+    final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    final endOfWeek = endOfToday.add(const Duration(days: 7));
+
+    return [
+      (
+        'Due today',
+        tasks.where((t) => !t.endDate.isAfter(endOfToday)).toList(),
+      ),
+      (
+        'Next 7 days',
+        tasks
+            .where(
+              (t) =>
+                  t.endDate.isAfter(endOfToday) &&
+                  !t.endDate.isAfter(endOfWeek),
+            )
+            .toList(),
+      ),
+      ('Later', tasks.where((t) => t.endDate.isAfter(endOfWeek)).toList()),
+    ];
   }
 
   Widget _buildTaskList() {
@@ -222,36 +326,25 @@ class _TaskListPageState extends State<TaskListPage>
             );
           }
 
-          // Sort tasks by next occurrence (most urgent first)
-          final sortedTasks = state.tasks
+          final all = state.tasks
               .where((task) => task.taskType == TaskType.task)
               .toList();
-          sortedTasks.sort(
-            (a, b) => a.nextOccurrence.compareTo(b.nextOccurrence),
-          );
+          all.sort((a, b) => a.nextOccurrence.compareTo(b.nextOccurrence));
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            itemCount: sortedTasks.length,
-            itemBuilder: (context, index) {
-              final task = sortedTasks[index];
-              return TaskCardFactory.createCard(
-                task: task,
-                onTap: () {
-                  context.push('/task-detail/${task.id}');
-                },
-                onToggleComplete: () {
-                  context.read<TaskBloc>().add(ToggleTaskCompletion(task.id));
-                },
-                onEdit: () {
-                  context.push('/edit-task/${task.id}');
-                },
-                onDelete: () {
-                  _showDeleteConfirmation(context, task.id, task.title);
-                },
-              );
-            },
-          );
+          return _groupedList([
+            (
+              'Overdue',
+              all.where((t) => t.isOverdue && !t.isCompleted).toList(),
+            ),
+            ('In progress', all.where((t) => t.isActive).toList()),
+            (
+              'Not started yet',
+              all
+                  .where((t) => !t.isCompleted && !t.isActive && !t.isOverdue)
+                  .toList(),
+            ),
+            ('Completed', all.where((t) => t.isCompleted).toList()),
+          ]);
         } else if (state is TaskError) {
           return Center(
             child: Column(
@@ -312,28 +405,7 @@ class _TaskListPageState extends State<TaskListPage>
             return _buildEmptyActive(context, hasAnyTask: hasAnyTask);
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            itemCount: activeTasks.length,
-            itemBuilder: (context, index) {
-              final task = activeTasks[index];
-              return TaskCardFactory.createCard(
-                task: task,
-                onTap: () {
-                  context.push('/task-detail/${task.id}');
-                },
-                onToggleComplete: () {
-                  context.read<TaskBloc>().add(ToggleTaskCompletion(task.id));
-                },
-                onEdit: () {
-                  context.push('/edit-task/${task.id}');
-                },
-                onDelete: () {
-                  _showDeleteConfirmation(context, task.id, task.title);
-                },
-              );
-            },
-          );
+          return _groupedList(_byDeadline(activeTasks));
         }
         return _buildTaskList();
       },
@@ -630,28 +702,9 @@ class _TaskListPageState extends State<TaskListPage>
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            itemCount: completedTasks.length,
-            itemBuilder: (context, index) {
-              final task = completedTasks[index];
-              return TaskCardFactory.createCard(
-                task: task,
-                onTap: () {
-                  context.push('/task-detail/${task.id}');
-                },
-                onToggleComplete: () {
-                  context.read<TaskBloc>().add(ToggleTaskCompletion(task.id));
-                },
-                onEdit: () {
-                  context.push('/edit-task/${task.id}');
-                },
-                onDelete: () {
-                  _showDeleteConfirmation(context, task.id, task.title);
-                },
-              );
-            },
-          );
+          // Most recently finished first — the opposite of a deadline sort.
+          completedTasks.sort((a, b) => b.endDate.compareTo(a.endDate));
+          return _groupedList([('Completed', completedTasks)]);
         }
         return _buildTaskList();
       },

@@ -375,11 +375,14 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                   // Compact reminder time picker
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade300),
                     ),
                     child: ListTile(
+                      tileColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 8,
@@ -423,11 +426,14 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                   // Compact birthday date picker
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade300),
                     ),
                     child: ListTile(
+                      tileColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 8,
@@ -471,11 +477,12 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                 // Notification settings - More compact
                 if (_taskType == TaskType.task) ...[
                   // Notification toggle and settings combined
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
+                  Material(
+                    color: Colors.white,
+                    clipBehavior: Clip.antiAlias,
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
+                      side: BorderSide(color: Colors.grey.shade300),
                     ),
                     child: Column(
                       children: [
@@ -888,19 +895,19 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                               .contains(option);
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected
+                            child: CheckboxListTile(
+                              tileColor: isSelected
                                   ? Colors.pink.withValues(alpha: 0.1)
                                   : Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: isSelected
-                                    ? Colors.pink
-                                    : Colors.grey.shade300,
-                                width: isSelected ? 2 : 1,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? Colors.pink
+                                      : Colors.grey.shade300,
+                                  width: isSelected ? 2 : 1,
+                                ),
                               ),
-                            ),
-                            child: CheckboxListTile(
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 2,
@@ -989,11 +996,14 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                 // Pin to notification toggle - more compact and consistent for all types
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey.shade300),
                   ),
                   child: SwitchListTile(
+                    tileColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 4,

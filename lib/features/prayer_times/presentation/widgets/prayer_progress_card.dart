@@ -163,9 +163,7 @@ class PrayerProgressCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: live
-            ? const Color(0xFFFBF1DD)
-            : PrayerPalette.inkA(0.05),
+        color: live ? const Color(0xFFFBF1DD) : PrayerPalette.inkA(0.05),
         borderRadius: BorderRadius.circular(9),
       ),
       child: Row(
@@ -180,9 +178,7 @@ class PrayerProgressCard extends StatelessWidget {
           Text(
             live ? '$streak-day streak' : 'No streak yet',
             style: TextStyle(
-              color: live
-                  ? const Color(0xFF8A5418)
-                  : PrayerPalette.inkA(0.45),
+              color: live ? const Color(0xFF8A5418) : PrayerPalette.inkA(0.45),
               fontSize: 11,
               fontWeight: FontWeight.w700,
             ),
@@ -204,7 +200,8 @@ class PrayerProgressCard extends StatelessWidget {
           Expanded(
             child: _weekDay(
               count: week[i],
-              letter: letters[today.subtract(Duration(days: 6 - i)).weekday - 1],
+              letter:
+                  letters[today.subtract(Duration(days: 6 - i)).weekday - 1],
               isToday: i == 6,
             ),
           ),
@@ -248,9 +245,7 @@ class PrayerProgressCard extends StatelessWidget {
         Text(
           letter,
           style: TextStyle(
-            color: isToday
-                ? PrayerPalette.accent
-                : PrayerPalette.inkA(0.4),
+            color: isToday ? PrayerPalette.accent : PrayerPalette.inkA(0.4),
             fontSize: 10,
             fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
           ),

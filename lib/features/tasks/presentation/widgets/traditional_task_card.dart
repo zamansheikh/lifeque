@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../domain/entities/task.dart';
 import 'base_task_card.dart';
 
+/// A task in the list.
+///
+/// The previous card said the same thing four times over — a coloured dot, a
+/// "Time Remaining" panel with two big digit tiles, a labelled progress bar and
+/// a status chip — and stood about 300px tall, so barely two fitted on screen.
+/// This one keeps a single answer per question: what it is (title), how long is
+/// left (one chip, colour-coded), how far along (a hairline bar) and when it
+/// runs (one meta line).
 class TraditionalTaskCard extends BaseTaskCard {
   const TraditionalTaskCard({
     super.key,
@@ -17,449 +26,367 @@ class TraditionalTaskCard extends BaseTaskCard {
 }
 
 class _TraditionalTaskCardState extends BaseTaskCardState<TraditionalTaskCard> {
+  Task get _task => widget.task;
+
   @override
   Widget build(BuildContext context) {
-    return buildContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildHeader(),
+    final done = _task.isCompleted;
+    final accent = getStatusColor();
+    final description = _task.description?.trim() ?? '';
+    final showProgress = !done && _task.isActive && !_task.isOverdue;
 
-          // Description
-          if (widget.task.description != null &&
-              widget.task.description!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              widget.task.description!,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-                height: 1.3,
-              ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Status reads as a stripe down the edge rather than a dot
+                // plus a border plus a chip.
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: done ? Colors.grey.shade300 : accent,
+                    borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(16),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 6, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _titleRow(done),
+                        if (description.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 32, right: 34),
+                            child: Text(
+                              description,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: Colors.grey.shade600,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (showProgress) ...[
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 32, right: 8),
+                            child: _progressBar(accent),
+                          ),
+                        ],
+                        const SizedBox(height: 9),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32),
+                          child: _metaRow(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _titleRow(bool done) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _checkbox(done),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Text(
+              _task.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+                letterSpacing: -0.2,
+                decoration: done ? TextDecoration.lineThrough : null,
+                color: done ? Colors.grey.shade500 : Colors.grey.shade900,
+              ),
             ),
-          ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        _remainingChip(),
+      ],
+    );
+  }
 
-          const SizedBox(height: 16),
+  /// The one control on the card that isn't "open it" — kept next to the title
+  /// where a checkbox is expected, not stranded at the bottom-right.
+  Widget _checkbox(bool done) {
+    return GestureDetector(
+      onTap: widget.onToggleComplete,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 1, right: 2, bottom: 2),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: 20,
+          height: 20,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: done ? const Color(0xFF10B981) : Colors.transparent,
+            border: Border.all(
+              color: done ? const Color(0xFF10B981) : Colors.grey.shade400,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: done
+              ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+              : null,
+        ),
+      ),
+    );
+  }
 
-          // Countdown Timer
-          if (widget.task.isActive &&
-              !widget.task.isOverdue &&
-              !widget.task.isCompleted) ...[
-            _buildCountdownTimer(),
-            const SizedBox(height: 12),
-          ],
+  /// "2d 4h left" / "45m left" / "Overdue by 3h" / "Starts in 2d" / "Done".
+  Widget _remainingChip() {
+    final (label, color) = _remaining();
 
-          // Progress bar
-          buildProgressBar(),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: color,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      ),
+    );
+  }
 
-          const SizedBox(height: 12),
+  (String, Color) _remaining() {
+    if (_task.isCompleted) return ('Done', const Color(0xFF059669));
 
-          // Bottom info
-          buildBottomInfo(),
+    final now = DateTime.now();
+    if (now.isBefore(_task.startDate)) {
+      // One unit here, not two: "starts in 15h" fits beside a title where
+      // "starts in 15h 49m" would push it off.
+      return (
+        'starts in ${_coarse(_task.startDate.difference(now))}',
+        Colors.grey.shade600,
+      );
+    }
+
+    final left = _task.endDate.difference(now);
+    if (left.isNegative) {
+      return ('${_short(-left)} over', Colors.red.shade600);
+    }
+    return ('${_short(left)} left', _urgencyColor(left));
+  }
+
+  Color _urgencyColor(Duration left) {
+    if (left.inMinutes < 5) return Colors.red.shade600;
+    if (left.inHours < 1) return Colors.orange.shade700;
+    if (left.inHours < 24) return Colors.amber.shade800;
+    if (left.inDays < 3) return Colors.blue.shade600;
+    return Colors.green.shade600;
+  }
+
+  /// A single rounded unit, for labels that share a row with the title.
+  String _coarse(Duration d) {
+    if (d.inDays > 0) return '${d.inDays}d';
+    if (d.inHours > 0) return '${d.inHours}h';
+    if (d.inMinutes > 0) return '${d.inMinutes}m';
+    return '${d.inSeconds}s';
+  }
+
+  /// Two units at most — "1d 6h" reads faster than four zero-padded tiles.
+  String _short(Duration d) {
+    if (d.inDays > 0) return '${d.inDays}d ${d.inHours % 24}h';
+    if (d.inHours > 0) return '${d.inHours}h ${d.inMinutes % 60}m';
+    if (d.inMinutes > 0) return '${d.inMinutes}m ${d.inSeconds % 60}s';
+    return '${d.inSeconds}s';
+  }
+
+  Widget _progressBar(Color accent) {
+    final progress = _task.progressPercentage;
+
+    return Row(
+      children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 5,
+              backgroundColor: Colors.grey.shade200,
+              valueColor: AlwaysStoppedAnimation<Color>(accent),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 30,
+          child: Text(
+            '${(progress * 100).round()}%',
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Colors.grey.shade600,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _metaRow() {
+    final sameYear = _task.startDate.year == _task.endDate.year;
+    final range = sameYear
+        ? '${DateFormat('MMM d').format(_task.startDate)} – '
+              '${DateFormat('MMM d').format(_task.endDate)}'
+        : '${DateFormat('MMM d, y').format(_task.startDate)} – '
+              '${DateFormat('MMM d, y').format(_task.endDate)}';
+
+    return Row(
+      children: [
+        Icon(
+          Icons.calendar_today_rounded,
+          size: 11,
+          color: Colors.grey.shade400,
+        ),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            range,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11.5,
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        if (_task.isNotificationEnabled) ...[
+          const SizedBox(width: 10),
+          Icon(
+            Icons.notifications_active_rounded,
+            size: 12,
+            color: Colors.blue.shade300,
+          ),
         ],
+        if (_task.isPinnedToNotification) ...[
+          const SizedBox(width: 6),
+          Icon(Icons.push_pin_rounded, size: 12, color: Colors.orange.shade300),
+        ],
+        const Spacer(),
+        _overflow(),
+      ],
+    );
+  }
+
+  Widget _overflow() {
+    return SizedBox(
+      width: 28,
+      height: 24,
+      child: PopupMenuButton<String>(
+        padding: EdgeInsets.zero,
+        tooltip: 'More',
+        onSelected: (value) {
+          if (value == 'edit') widget.onEdit?.call();
+          if (value == 'delete') widget.onDelete?.call();
+        },
+        itemBuilder: (context) => [
+          const PopupMenuItem(
+            value: 'edit',
+            child: Row(
+              children: [
+                Icon(Icons.edit_rounded, size: 16),
+                SizedBox(width: 10),
+                Text('Edit'),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red),
+                SizedBox(width: 10),
+                Text('Delete', style: TextStyle(color: Colors.red)),
+              ],
+            ),
+          ),
+        ],
+        child: Icon(
+          Icons.more_horiz_rounded,
+          size: 18,
+          color: Colors.grey.shade400,
+        ),
       ),
     );
   }
 
   @override
   Color getStatusColor() {
-    if (widget.task.isCompleted) {
-      return Colors.green;
-    } else if (widget.task.isActive) {
-      return Colors.blue;
-    } else if (widget.task.isOverdue) {
-      return Colors.red;
-    } else {
-      return Colors.orange;
-    }
+    if (_task.isCompleted) return const Color(0xFF10B981);
+    if (_task.isOverdue) return Colors.red.shade500;
+    if (_task.isActive) return Colors.blue.shade500;
+    return Colors.orange.shade400;
   }
 
   @override
   String getStatusText() {
-    if (widget.task.isCompleted) {
-      return 'Completed';
-    } else if (widget.task.isActive) {
-      return 'In Progress';
-    } else if (widget.task.isOverdue) {
-      return 'Overdue';
-    } else {
-      return 'Pending';
-    }
+    if (_task.isCompleted) return 'Completed';
+    if (_task.isOverdue) return 'Overdue';
+    if (_task.isActive) return 'In Progress';
+    return 'Pending';
   }
+
+  // The base class predates this layout; everything it wants is inlined above.
+  @override
+  Widget buildContent() => const SizedBox.shrink();
 
   @override
-  Widget buildContent() {
-    // This is handled in the main build method
-    return const SizedBox.shrink();
-  }
+  Widget buildProgressBar() => _progressBar(getStatusColor());
 
   @override
-  Widget buildProgressBar() {
-    final progress = widget.task.progressPercentage;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Progress',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey.shade700,
-              ),
-            ),
-            Text(
-              '${(progress * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: getStatusColor(),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: 6,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(3),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation<Color>(getStatusColor()),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget buildBottomInfo() {
-    return Row(
-      children: [
-        // Task type indicator
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.blue.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.assignment_rounded, size: 10, color: Colors.blue),
-              SizedBox(width: 3),
-              Text(
-                'TASK',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: Colors.blue,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        // Date range
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.calendar_today_rounded,
-                size: 12,
-                color: Colors.grey.shade600,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${DateFormat('MMM d').format(widget.task.startDate)} - ${DateFormat('MMM d').format(widget.task.endDate)}',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Spacer(),
-        // Completion toggle
-        GestureDetector(
-          onTap: widget.onToggleComplete,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: widget.task.isCompleted
-                  ? Colors.green
-                  : Colors.transparent,
-              border: Border.all(
-                color: widget.task.isCompleted
-                    ? Colors.green
-                    : Colors.grey.shade400,
-                width: 2,
-              ),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: widget.task.isCompleted
-                ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
-                : null,
-          ),
-        ),
-        const SizedBox(width: 8),
-        // Status chip
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: getStatusColor().withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            getStatusText(),
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: getStatusColor(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Countdown timer helpers
-  Map<String, int> _getCountdownValues() {
-    final now = DateTime.now();
-    final endDate = widget.task.endDate;
-    final difference = endDate.difference(now);
-
-    if (difference.isNegative) {
-      return {'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 0};
-    }
-
-    return {
-      'days': difference.inDays,
-      'hours': difference.inHours % 24,
-      'minutes': difference.inMinutes % 60,
-      'seconds': difference.inSeconds % 60,
-    };
-  }
-
-  Color _getCountdownColor() {
-    final now = DateTime.now();
-    final endDate = widget.task.endDate;
-    final difference = endDate.difference(now);
-
-    if (difference.inMinutes < 5) {
-      return Colors.red.shade600;
-    } else if (difference.inHours < 1) {
-      return Colors.orange.shade600;
-    } else if (difference.inHours < 24) {
-      return Colors.amber.shade600;
-    } else if (difference.inDays < 3) {
-      return Colors.blue.shade600;
-    } else {
-      return Colors.green.shade600;
-    }
-  }
-
-  Widget _buildCountdownTimer() {
-    final countdown = _getCountdownValues();
-    final countdownColor = _getCountdownColor();
-    final now = DateTime.now();
-    final difference = widget.task.endDate.difference(now);
-    final isUrgent = difference.inMinutes < 5;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            countdownColor.withValues(alpha: 0.1),
-            countdownColor.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: countdownColor.withValues(alpha: 0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: countdownColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.timer_outlined,
-                  size: 16,
-                  color: countdownColor,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Time Remaining',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: countdownColor,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const Spacer(),
-              if (isUrgent)
-                TweenAnimationBuilder(
-                  tween: Tween<double>(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 800),
-                  builder: (context, double value, child) {
-                    return Opacity(
-                      opacity: 0.5 + (value * 0.5),
-                      child: Icon(
-                        Icons.warning_rounded,
-                        size: 18,
-                        color: Colors.red.shade600,
-                      ),
-                    );
-                  },
-                  onEnd: () {
-                    if (mounted) setState(() {});
-                  },
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Show different time units based on time remaining
-              if (difference.inDays > 0) ...[
-                _buildTimeUnit(
-                  countdown['days']!,
-                  'Days',
-                  countdownColor,
-                  isUrgent,
-                ),
-                _buildTimeUnit(
-                  countdown['hours']!,
-                  'Hours',
-                  countdownColor,
-                  isUrgent,
-                ),
-              ] else if (difference.inHours > 0) ...[
-                _buildTimeUnit(
-                  countdown['hours']!,
-                  'Hours',
-                  countdownColor,
-                  isUrgent,
-                ),
-                _buildTimeUnit(
-                  countdown['minutes']!,
-                  'Mins',
-                  countdownColor,
-                  isUrgent,
-                ),
-              ] else if (difference.inMinutes > 0) ...[
-                _buildTimeUnit(
-                  countdown['minutes']!,
-                  'Mins',
-                  countdownColor,
-                  isUrgent,
-                ),
-                _buildTimeUnit(
-                  countdown['seconds']!,
-                  'Secs',
-                  countdownColor,
-                  isUrgent,
-                ),
-              ] else ...[
-                _buildTimeUnit(
-                  countdown['seconds']!,
-                  'Seconds',
-                  countdownColor,
-                  isUrgent,
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimeUnit(int value, String label, Color color, bool isUrgent) {
-    return TweenAnimationBuilder(
-      tween: Tween<double>(begin: 0.95, end: 1.0),
-      duration: Duration(milliseconds: isUrgent ? 500 : 0),
-      builder: (context, double scale, child) {
-        return Transform.scale(
-          scale: isUrgent ? scale : 1.0,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Text(
-                  value.toString().padLeft(2, '0'),
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                    height: 1,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: color.withValues(alpha: 0.7),
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-      onEnd: () {
-        if (mounted && isUrgent) setState(() {});
-      },
-    );
-  }
+  Widget buildBottomInfo() => _metaRow();
 }

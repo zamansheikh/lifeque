@@ -25,22 +25,37 @@ abstract class BaseTaskCardState<T extends BaseTaskCard> extends State<T> {
   @override
   void initState() {
     super.initState();
-    // Start timer for real-time updates only if task is active and not completed
-    if (widget.task.isActive && !widget.task.isCompleted) {
-      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (mounted) {
-          setState(() {
-            // This will trigger a rebuild with updated progress
-          });
-        }
-      });
-    }
+    if (widget.task.isActive && !widget.task.isCompleted) _scheduleTick();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  /// How often the card's countdown needs redrawing.
+  ///
+  /// Every card used to rebuild once a second no matter what, so a list of ten
+  /// tasks due next month repainted ten times a second to move nothing. Only a
+  /// deadline inside the hour actually shows seconds.
+  Duration get _tickInterval {
+    final left = widget.task.endDate.difference(DateTime.now());
+    if (left.isNegative) return const Duration(minutes: 1);
+    if (left.inMinutes < 60) return const Duration(seconds: 1);
+    if (left.inHours < 24) return const Duration(seconds: 30);
+    return const Duration(minutes: 1);
+  }
+
+  /// One-shot timer that re-arms itself, so the interval tightens on its own
+  /// as the deadline closes in.
+  void _scheduleTick() {
+    _timer?.cancel();
+    _timer = Timer(_tickInterval, () {
+      if (!mounted) return;
+      setState(() {});
+      _scheduleTick();
+    });
   }
 
   // Common UI elements

@@ -43,194 +43,206 @@ class _SettingsPageState extends State<SettingsPage> {
         final colorScheme = Theme.of(ctx).colorScheme;
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
-            return Container(
-              height: MediaQuery.of(ctx).size.height * 0.72,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            // A Material, not a white Container: the sheet is transparent, so
+            // a plain DecoratedBox here would be the nearest painted surface
+            // above the tiles and would swallow their ink.
+            return Material(
+              color: Colors.white,
+              clipBehavior: Clip.antiAlias,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
-              child: Column(
-                children: [
-                  // Handle bar
-                  Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            Icons.swap_vert_rounded,
-                            color: colorScheme.primary,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Navigation Order',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              Text(
-                                'Drag to reorder. First item = home page.',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Home chip
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
+              child: SizedBox(
+                height: MediaQuery.of(ctx).size.height * 0.72,
+                child: Column(
+                  children: [
+                    // Handle bar
+                    Container(
+                      margin: const EdgeInsets.only(top: 12),
+                      width: 40,
+                      height: 4,
                       decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: colorScheme.primary.withValues(alpha: 0.2),
-                        ),
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
                       ),
+                    ),
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.home_rounded,
-                            size: 16,
-                            color: colorScheme.primary,
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.swap_vert_rounded,
+                              color: colorScheme.primary,
+                              size: 22,
+                            ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 12),
                           Expanded(
-                            child: Text(
-                              'Home page:  ${tempItems.first.label}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: colorScheme.primary,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Navigation Order',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                Text(
+                                  'Drag to reorder. First item = home page.',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Home chip
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: colorScheme.primary.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.home_rounded,
+                              size: 16,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Home page:  ${tempItems.first.label}',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Reorderable list
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: ReorderableListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: tempItems.length,
+                          // onReorderItem already accounts for the removed
+                          // item, so the old `if (newIndex > oldIndex)` fix-up
+                          // that onReorder needed would now be off by one.
+                          onReorderItem: (oldIndex, newIndex) {
+                            setSheetState(() {
+                              final item = tempItems.removeAt(oldIndex);
+                              tempItems.insert(newIndex, item);
+                            });
+                          },
+                          proxyDecorator: (child, index, animation) => Material(
+                            elevation: 4,
+                            borderRadius: BorderRadius.circular(12),
+                            color: colorScheme.primary.withValues(alpha: 0.05),
+                            child: child,
+                          ),
+                          itemBuilder: (context, index) {
+                            final item = tempItems[index];
+                            final isFirst = index == 0;
+                            return _OrderTile(
+                              key: ValueKey(item.route),
+                              item: item,
+                              isFirst: isFirst,
+                              colorScheme: colorScheme,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    // Action buttons
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                side: BorderSide(color: Colors.grey.shade300),
+                              ),
+                              child: const Text('Cancel'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: FilledButton.icon(
+                              onPressed: () async {
+                                // Apply order
+                                setState(() => _items = tempItems);
+                                await _svc.saveOrder(_items);
+                                // Two different contexts, so two guards: `ctx`
+                                // belongs to the sheet being popped, `context`
+                                // to this State.
+                                if (!ctx.mounted) return;
+                                Navigator.pop(ctx);
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text(
+                                      'Navigation order saved',
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.check_rounded, size: 18),
+                              label: const Text('Save Order'),
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  // Reorderable list
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: ReorderableListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: tempItems.length,
-                        // onReorderItem already accounts for the removed
-                        // item, so the old `if (newIndex > oldIndex)` fix-up
-                        // that onReorder needed would now be off by one.
-                        onReorderItem: (oldIndex, newIndex) {
-                          setSheetState(() {
-                            final item = tempItems.removeAt(oldIndex);
-                            tempItems.insert(newIndex, item);
-                          });
-                        },
-                        proxyDecorator: (child, index, animation) => Material(
-                          elevation: 4,
-                          borderRadius: BorderRadius.circular(12),
-                          color: colorScheme.primary.withValues(alpha: 0.05),
-                          child: child,
-                        ),
-                        itemBuilder: (context, index) {
-                          final item = tempItems[index];
-                          final isFirst = index == 0;
-                          return _OrderTile(
-                            key: ValueKey(item.route),
-                            item: item,
-                            isFirst: isFirst,
-                            colorScheme: colorScheme,
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  // Action buttons
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              side: BorderSide(color: Colors.grey.shade300),
-                            ),
-                            child: const Text('Cancel'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: FilledButton.icon(
-                            onPressed: () async {
-                              // Apply order
-                              setState(() => _items = tempItems);
-                              await _svc.saveOrder(_items);
-                              // Two different contexts, so two guards: `ctx`
-                              // belongs to the sheet being popped, `context`
-                              // to this State.
-                              if (!ctx.mounted) return;
-                              Navigator.pop(ctx);
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('Navigation order saved'),
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.check_rounded, size: 18),
-                            label: const Text('Save Order'),
-                            style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           },
@@ -812,16 +824,18 @@ class _OrderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The fill rides on the tile, not on a DecoratedBox around it: anything
+    // opaque between a ListTile and its Material hides the tile's ink splash.
     return Container(
       decoration: BoxDecoration(
-        color: isFirst
-            ? colorScheme.primary.withValues(alpha: 0.04)
-            : Colors.white,
         border: Border(
           bottom: BorderSide(color: Colors.grey.shade100, width: 1),
         ),
       ),
       child: ListTile(
+        tileColor: isFirst
+            ? colorScheme.primary.withValues(alpha: 0.04)
+            : Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: Container(
           padding: const EdgeInsets.all(8),
