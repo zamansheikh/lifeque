@@ -40,7 +40,7 @@ class ReleaseNote {
 /// anything without an entry simply shows nothing.
 const List<ReleaseNote> kReleaseNotes = [
   ReleaseNote(
-    version: '1.0.0',
+    version: '2.0.0',
     headlineEn: 'The app now speaks Bangla',
     headlineBn: 'অ্যাপ এখন বাংলায়',
     lines: [

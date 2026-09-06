@@ -37,8 +37,8 @@ void main() {
 
     expect(find.text('নতুন যা আছে'), findsOneWidget);
     expect(find.text(note.headlineBn), findsOneWidget);
-    // 1.0.0 → ১.০.০
-    expect(find.text('সংস্করণ ১.০.০'), findsOneWidget);
+    // 2.0.0 → ২.০.০
+    expect(find.text('সংস্করণ ২.০.০'), findsOneWidget);
     expect(find.text('বুঝেছি'), findsOneWidget);
     expect(find.text(note.lines.first.bn), findsOneWidget);
     // and nothing leaks through in the other language
@@ -51,7 +51,7 @@ void main() {
 
     expect(find.text("What's new"), findsOneWidget);
     expect(find.text(note.headlineEn), findsOneWidget);
-    expect(find.text('Version 1.0.0'), findsOneWidget);
+    expect(find.text('Version 2.0.0'), findsOneWidget);
     expect(find.text('Got it'), findsOneWidget);
     expect(find.text(note.headlineBn), findsNothing);
   });
