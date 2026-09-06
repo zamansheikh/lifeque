@@ -7,7 +7,7 @@ import '../../../core/utils/app_strings.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:lifeque/core/utils/salah_time_calculator.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_ui.dart';
-import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_placeholder.dart';
+import 'package:lifeque/features/home_widget/presentation/widgets/widget_placeholder.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/day_timeline_widget_ui.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/mosque_widget_ui.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/slim_bar_widget_ui.dart';
@@ -179,30 +179,56 @@ class HomeWidgetService {
       if (bundle == null) {
         // No saved location yet — nothing truthful to draw.
         //
-        // Rendered at each widget's *measured* cell size, the same as the real
-        // ones. Rendering every placeholder at the nominal 380×180 left the
-        // PNG letterboxed inside its ImageView on any other cell shape, which
-        // is what made it look like a widget inside a widget. All four get one
-        // now, so none is left showing the bare XML fallback.
+        // Each placeholder carries the gradient and radius of the widget it
+        // stands in for, and is rendered at that widget's *measured* cell, so
+        // it fills the surface exactly. The native fallback in the layouts is
+        // only a stopgap for the instant before this lands: RemoteViews cannot
+        // load our font, so its Bangla would be in a system face.
         debugPrint('🕌 Location not set — rendering placeholder widgets');
         const placeholders = [
-          ('prayer_widget_image', _widgetSize, _prayerQualifiedName),
-          ('mosque_widget_image', _widgetSize, _mosqueQualifiedName),
-          ('day_timeline_widget_image', _timelineSize, _timelineQualifiedName),
-          ('slim_bar_widget_image', _slimSize, _slimQualifiedName),
+          (
+            'prayer_widget_image',
+            _widgetSize,
+            _prayerQualifiedName,
+            [Color(0xFF1E7A50), Color(0xFF146C43), Color(0xFF0E4A30)],
+            20.0,
+          ),
+          (
+            'mosque_widget_image',
+            _widgetSize,
+            _mosqueQualifiedName,
+            [Color(0xFF16324A), Color(0xFF122A3E), Color(0xFF0C1E2E)],
+            20.0,
+          ),
+          (
+            'day_timeline_widget_image',
+            _timelineSize,
+            _timelineQualifiedName,
+            [Color(0xFF123B2C), Color(0xFF0E4A30), Color(0xFF062316)],
+            20.0,
+          ),
+          (
+            'slim_bar_widget_image',
+            _slimSize,
+            _slimQualifiedName,
+            [Color(0xFF1E7A50), Color(0xFF0E4A30)],
+            16.0,
+          ),
         ];
 
-        for (final (key, fallback, provider) in placeholders) {
+        for (final (key, fallback, provider, gradient, radius)
+            in placeholders) {
           final size = await _cellSize(key, fallback);
           await HomeWidget.renderFlutterWidget(
-            _withFonts(PrayerWidgetPlaceholder(size: size)),
+            _withFonts(
+              WidgetPlaceholder(size: size, gradient: gradient, radius: radius),
+            ),
             key: key,
             logicalSize: size,
             pixelRatio: 3.0,
           );
           await HomeWidget.updateWidget(qualifiedAndroidName: provider);
         }
-
         debugPrint('✅ Placeholder widgets rendered');
         return;
       }

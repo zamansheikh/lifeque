@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -54,27 +53,6 @@ class LanguagePreferenceService {
 
   /// Reads the stored choice. Called once during startup, before `runApp`, so
   /// the first frame is already in the right language.
-  /// Tells Android which language this app is in.
-  ///
-  /// Android resource qualifiers follow the *system* language, so the widget
-  /// picker's labels and the widgets' own `values-bn` strings would stay
-  /// English on an English phone. A per-app locale (API 33+) fixes that; on
-  /// older versions the platform simply has no such setting and this is a
-  /// no-op.
-  static const MethodChannel _platform = MethodChannel(
-    'com.programmernexus.lifeque/locale',
-  );
-
-  Future<void> _tellPlatform(AppLanguage value) async {
-    try {
-      await _platform.invokeMethod<bool>('setAppLocale', {
-        'languageTag': value.code,
-      });
-    } catch (e) {
-      debugPrint('🌐 Could not set the per-app locale: $e');
-    }
-  }
-
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
     language.value = AppLanguage.fromCode(prefs.getString(_key));
@@ -82,13 +60,11 @@ class LanguagePreferenceService {
     // off the main isolate format dates and numbers without ever building a
     // widget, and would otherwise fall back to English.
     Intl.defaultLocale = language.value.code;
-    await _tellPlatform(language.value);
   }
 
   Future<void> setLanguage(AppLanguage value) async {
     if (language.value != value) language.value = value;
     Intl.defaultLocale = value.code;
-    await _tellPlatform(value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_key, value.code);
   }

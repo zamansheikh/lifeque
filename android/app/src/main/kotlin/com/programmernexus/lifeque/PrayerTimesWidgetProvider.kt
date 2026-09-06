@@ -29,37 +29,35 @@ class PrayerTimesWidgetProvider : HomeWidgetProvider() {
                 widgetData.getString("placeholder_prayer_body", null)
                     ?.let { setTextViewText(R.id.prayer_placeholder_body, it) }
 
-                // Load the rendered image from the path stored by home_widget
+                // The rendered image, if the app has produced one. An empty
+                // path is how the app says "no location yet" — the placeholder
+                // in this layout takes over, on this widget's own background.
                 val imagePath = widgetData.getString("prayer_widget_image", null)
-                var imageLoaded = false
+                var bitmap = if (imagePath.isNullOrEmpty()) null else
+                    java.io.File(imagePath)
+                        .takeIf { it.exists() }
+                        ?.let { BitmapFactory.decodeFile(it.absolutePath) }
 
-                if (imagePath != null) {
-                    val imageFile = java.io.File(imagePath)
-                    if (imageFile.exists()) {
-                        val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
-                        if (bitmap != null) {
-                            setImageViewBitmap(R.id.prayer_widget_image, bitmap)
-                            setViewVisibility(R.id.prayer_widget_image, View.VISIBLE)
-                            setViewVisibility(R.id.prayer_widget_default, View.GONE)
-                            imageLoaded = true
-                        }
-                    }
-                }
-
-                if (!imageLoaded) {
-                    val possiblePaths = listOf(
+                if (bitmap == null && !imagePath.isNullOrEmpty()) {
+                    // Older builds wrote straight into filesDir.
+                    bitmap = listOf(
                         java.io.File(context.filesDir, "prayer_widget_image.png"),
                         java.io.File(context.filesDir, "prayer_widget_image")
-                    )
-                    val file = possiblePaths.firstOrNull { it.exists() }
-                    if (file != null) {
-                        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                        if (bitmap != null) {
-                            setImageViewBitmap(R.id.prayer_widget_image, bitmap)
-                            setViewVisibility(R.id.prayer_widget_image, View.VISIBLE)
-                            setViewVisibility(R.id.prayer_widget_default, View.GONE)
-                        }
-                    }
+                    ).firstOrNull { it.exists() }
+                        ?.let { BitmapFactory.decodeFile(it.absolutePath) }
+                }
+
+                // Both visibilities are set every time rather than left to the
+                // layout's defaults. Each update re-inflates these RemoteViews,
+                // so a widget that already has an image would otherwise show
+                // its placeholder for a frame first — the flash on launch.
+                if (bitmap != null) {
+                    setImageViewBitmap(R.id.prayer_widget_image, bitmap)
+                    setViewVisibility(R.id.prayer_widget_image, View.VISIBLE)
+                    setViewVisibility(R.id.prayer_widget_default, View.GONE)
+                } else {
+                    setViewVisibility(R.id.prayer_widget_image, View.GONE)
+                    setViewVisibility(R.id.prayer_widget_default, View.VISIBLE)
                 }
 
                 // Tapping opens the app *on the prayer screen*, not on whatever

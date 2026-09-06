@@ -68,7 +68,7 @@ class MosqueWidgetUI extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [Color(0xFF16324A), Color(0xFF122A3E), Color(0xFF0C1E2E)],
-              stops: [0.0, 0.55, 1.0],
+              stops: [0.0, 0.5, 1.0],
             ),
             borderRadius: BorderRadius.circular(20),
           ),

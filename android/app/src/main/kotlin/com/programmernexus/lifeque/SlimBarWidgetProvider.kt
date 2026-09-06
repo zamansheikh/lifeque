@@ -34,17 +34,27 @@ class SlimBarWidgetProvider : HomeWidgetProvider() {
                 widgetData.getString("placeholder_slim_body", null)
                     ?.let { setTextViewText(R.id.slim_bar_placeholder_body, it) }
 
+                // The rendered image, if the app has produced one. An empty
+                // path is how the app says "no location yet" — the placeholder
+                // in this layout takes over, on this widget's own background.
                 val imagePath = widgetData.getString("slim_bar_widget_image", null)
-                val file = imagePath?.let { java.io.File(it) }
-                    ?.takeIf { it.exists() }
-                    ?: java.io.File(context.filesDir, "slim_bar_widget_image.png").takeIf { it.exists() }
+                val file = if (imagePath.isNullOrEmpty()) null else
+                    java.io.File(imagePath).takeIf { it.exists() }
+                        ?: java.io.File(context.filesDir, "slim_bar_widget_image.png")
+                            .takeIf { it.exists() }
+                val bitmap = file?.let { BitmapFactory.decodeFile(it.absolutePath) }
 
-                if (file != null) {
-                    BitmapFactory.decodeFile(file.absolutePath)?.let { bitmap ->
-                        setImageViewBitmap(R.id.slim_bar_widget_image, bitmap)
-                        setViewVisibility(R.id.slim_bar_widget_image, View.VISIBLE)
-                        setViewVisibility(R.id.slim_bar_widget_default, View.GONE)
-                    }
+                // Both visibilities are set every time rather than left to the
+                // layout's defaults. Each update re-inflates these RemoteViews,
+                // so a widget that already has an image would otherwise show
+                // its placeholder for a frame first — the flash on launch.
+                if (bitmap != null) {
+                    setImageViewBitmap(R.id.slim_bar_widget_image, bitmap)
+                    setViewVisibility(R.id.slim_bar_widget_image, View.VISIBLE)
+                    setViewVisibility(R.id.slim_bar_widget_default, View.GONE)
+                } else {
+                    setViewVisibility(R.id.slim_bar_widget_image, View.GONE)
+                    setViewVisibility(R.id.slim_bar_widget_default, View.VISIBLE)
                 }
 
                 // Tapping opens the app *on the prayer screen*, not on whatever

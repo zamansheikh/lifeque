@@ -23,8 +23,7 @@
         android:name="${applicationName}"
         android:allowBackup="false"
         android:fullBackupContent="false"
-        android:icon="@mipmap/ic_launcher"
-        android:localeConfig="@xml/locales_config">
+        android:icon="@mipmap/ic_launcher">
         
         <activity
             android:name=".MainActivity"

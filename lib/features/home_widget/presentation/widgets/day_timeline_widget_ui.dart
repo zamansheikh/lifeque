@@ -77,7 +77,7 @@ class DayTimelineWidgetUI extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [Color(0xFF123B2C), Color(0xFF0E4A30), Color(0xFF062316)],
-              stops: [0.0, 0.6, 1.0],
+              stops: [0.0, 0.5, 1.0],
             ),
             borderRadius: BorderRadius.circular(20),
           ),

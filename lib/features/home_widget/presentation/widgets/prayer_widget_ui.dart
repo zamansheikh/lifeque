@@ -81,7 +81,7 @@ class PrayerWidgetUI extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [Color(0xFF1E7A50), Color(0xFF146C43), Color(0xFF0E4A30)],
-              stops: [0.0, 0.4, 1.0],
+              stops: [0.0, 0.5, 1.0],
             ),
             borderRadius: BorderRadius.circular(20),
           ),

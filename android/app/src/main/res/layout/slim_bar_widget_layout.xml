@@ -39,7 +39,7 @@
         android:id="@+id/slim_bar_widget_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitCenter"
+        android:scaleType="centerCrop"
         android:visibility="gone"
         android:contentDescription="Next prayer" />
 </FrameLayout>
