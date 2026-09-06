@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/services/in_app_update_service.dart';
+import '../../../../core/services/language_preference_service.dart';
 import '../../../../core/services/navigation_preferences_service.dart';
 import '../../../../injection_container.dart' as di;
 
@@ -18,6 +19,9 @@ class _SettingsPageState extends State<SettingsPage> {
   late NavigationPreferencesService _svc;
   late List<NavItem> _items;
 
+  final _languageService = LanguagePreferenceService.instance;
+  AppLanguage _language = AppLanguage.english;
+
   static const _privacyPolicyUrl =
       'https://zamansheikh.github.io/lifeque/privacy-policy.html';
   static const _termsUrl =
@@ -28,6 +32,13 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     _svc = NavigationPreferencesService(di.sl<SharedPreferences>());
     _items = _svc.getOrderedItems();
+    _loadLanguage();
+  }
+
+  Future<void> _loadLanguage() async {
+    final language = await _languageService.getLanguage();
+    if (!mounted) return;
+    setState(() => _language = language);
   }
 
   // ── Navigation Order Bottom Sheet ──────────────────────────────
@@ -248,6 +259,134 @@ class _SettingsPageState extends State<SettingsPage> {
           },
         );
       },
+    );
+  }
+
+  // ── Language ───────────────────────────────────────────────────
+
+  /// Pick the app language.
+  ///
+  /// English is the only translated one today. Bangla is offered because the
+  /// choice is being collected ahead of the strings landing — picking it saves
+  /// the preference and says plainly that the UI stays in English until then,
+  /// rather than switching to a half-translated screen.
+  void _showLanguageSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final colorScheme = Theme.of(ctx).colorScheme;
+        return Material(
+          color: Colors.white,
+          clipBehavior: Clip.antiAlias,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 4),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.translate_rounded,
+                          color: colorScheme.primary,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Language',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                for (final language in AppLanguage.values)
+                  _languageOption(ctx, language, colorScheme),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _languageOption(
+    BuildContext sheetContext,
+    AppLanguage language,
+    ColorScheme colorScheme,
+  ) {
+    final selected = _language == language;
+
+    return ListTile(
+      onTap: () => _selectLanguage(sheetContext, language),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      leading: Icon(
+        selected
+            ? Icons.radio_button_checked_rounded
+            : Icons.radio_button_unchecked_rounded,
+        color: selected ? colorScheme.primary : Colors.grey.shade400,
+      ),
+      title: Text(
+        language.nativeLabel,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: selected ? colorScheme.primary : Colors.grey.shade900,
+        ),
+      ),
+      subtitle: Text(
+        language.isTranslated
+            ? language.label
+            : '${language.label} · coming soon',
+        style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600),
+      ),
+    );
+  }
+
+  Future<void> _selectLanguage(
+    BuildContext sheetContext,
+    AppLanguage language,
+  ) async {
+    await _languageService.setLanguage(language);
+    if (!sheetContext.mounted) return;
+    Navigator.pop(sheetContext);
+    if (!mounted) return;
+
+    setState(() => _language = language);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          language.isTranslated
+              ? 'Language set to ${language.nativeLabel}'
+              : '${language.nativeLabel} is saved. The app stays in English '
+                    'until the translation ships.',
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 
@@ -607,12 +746,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 onTap: _showNavigationOrderSheet,
               ),
               _SettingsTile(
-                icon: Icons.play_lesson_rounded,
+                icon: Icons.translate_rounded,
                 iconColor: Colors.purple.shade600,
                 iconBgColor: Colors.purple.withValues(alpha: 0.1),
-                title: 'View Onboarding',
-                subtitle: 'See the app introduction slides',
-                onTap: () => context.push('/onboarding'),
+                title: 'Language',
+                subtitle: _language.nativeLabel,
+                onTap: _showLanguageSheet,
               ),
             ],
           ),

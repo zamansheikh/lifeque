@@ -1,16 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
 
+/// How the reminder for a task is expressed, in the user's terms rather than
+/// the entity's. [NotificationType] plus [BeforeEndOption] is the storage
+/// shape; this is the question actually being asked.
+enum _RemindMode { beforeDue, atTime, daily }
+
 /// Create or edit a task.
 ///
-/// Reminders and birthdays are not offered here — each has its own page and
-/// its own form, asking only what that kind of thing actually needs. Leaving
-/// a type picker on this screen would have meant three routes to the same
-/// three things, with different questions on each.
+/// The router sends reminders and birthdays to their own forms, so this page
+/// only ever deals with a plain task — the type branches it used to carry were
+/// unreachable.
+///
+/// The form is ordered by how much it matters: a title, when it's due, and a
+/// reminder that already has a sensible answer. Everything else is behind
+/// "More options", because the old page asked all of it up front and then
+/// refused to save — notifications defaulted to on with no time chosen, so a
+/// title-only task failed with "Please set a notification time".
 class AddEditTaskPage extends StatefulWidget {
   final String? taskId;
 
@@ -26,63 +38,62 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
   final _descriptionController = TextEditingController();
 
   DateTime _startDate = DateTime.now();
-  DateTime _endDate = DateTime.now().add(const Duration(days: 7));
-  TaskType _taskType = TaskType.task;
+  DateTime _endDate = _endOfToday().add(const Duration(days: 7));
+
   bool _isNotificationEnabled = true;
-  NotificationType _notificationType = NotificationType.specificTime;
+  _RemindMode _remindMode = _RemindMode.beforeDue;
+  BeforeEndOption _beforeEndOption = BeforeEndOption.oneHour;
   DateTime? _notificationTime;
   TimeOfDay? _dailyNotificationTime;
-  BeforeEndOption? _beforeEndOption;
+
   bool _isPinnedToNotification = false;
   PinNotificationTiming _pinNotificationTiming =
       PinNotificationTiming.beforeNotification;
-  List<BirthdayNotificationOption> _birthdayNotificationSchedule = [
-    BirthdayNotificationOption.oneDayBefore,
-    BirthdayNotificationOption.exactTime,
-  ]; // Default to 1 day before and exact time
 
+  bool _showMore = false;
   Task? _existingTask;
 
-  /// What the thing being created is called, so the app bar, the title field
-  /// and the save button stop saying "Task" while the Birthday type is picked.
-  String get _typeNoun => switch (_taskType) {
-    TaskType.birthday => 'Birthday',
-    TaskType.reminder => 'Reminder',
-    TaskType.task => 'Task',
-  };
   bool get _isEditing => widget.taskId != null;
+
+  static DateTime _endOfToday() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day, 23, 59);
+  }
 
   @override
   void initState() {
     super.initState();
-    if (_isEditing) {
-      _loadExistingTask();
-    }
+    if (_isEditing) _loadExistingTask();
   }
 
   void _loadExistingTask() {
     final state = context.read<TaskBloc>().state;
-    if (state is TaskLoaded) {
-      _existingTask = state.tasks.firstWhere(
-        (task) => task.id == widget.taskId,
-        orElse: () => throw Exception('Task not found'),
-      );
+    if (state is! TaskLoaded) return;
 
-      _titleController.text = _existingTask!.title;
-      _descriptionController.text = _existingTask!.description ?? '';
-      _taskType = _existingTask!.taskType;
-      _startDate = _existingTask!.startDate;
-      _endDate = _existingTask!.endDate;
-      _isNotificationEnabled = _existingTask!.isNotificationEnabled;
-      _notificationType = _existingTask!.notificationType;
-      _notificationTime = _existingTask!.notificationTime;
-      _dailyNotificationTime = _existingTask!.dailyNotificationTime;
-      _beforeEndOption = _existingTask!.beforeEndOption;
-      _isPinnedToNotification = _existingTask!.isPinnedToNotification;
-      _pinNotificationTiming = _existingTask!.pinNotificationTiming;
-      _birthdayNotificationSchedule =
-          _existingTask!.birthdayNotificationSchedule;
-    }
+    final match = state.tasks.where((task) => task.id == widget.taskId);
+    if (match.isEmpty) return;
+
+    final task = match.first;
+    _existingTask = task;
+    _titleController.text = task.title;
+    _descriptionController.text = task.description ?? '';
+    _startDate = task.startDate;
+    _endDate = task.endDate;
+    _isNotificationEnabled = task.isNotificationEnabled;
+    _notificationTime = task.notificationTime;
+    _dailyNotificationTime = task.dailyNotificationTime;
+    _beforeEndOption = task.beforeEndOption ?? BeforeEndOption.oneHour;
+    _isPinnedToNotification = task.isPinnedToNotification;
+    _pinNotificationTiming = task.pinNotificationTiming;
+    _remindMode = switch (task.notificationType) {
+      NotificationType.beforeEnd => _RemindMode.beforeDue,
+      NotificationType.daily => _RemindMode.daily,
+      NotificationType.specificTime => _RemindMode.atTime,
+    };
+    // A description or a pin is a reason to open the drawer on arrival —
+    // otherwise an edit would appear to have lost them.
+    _showMore =
+        _descriptionController.text.isNotEmpty || _isPinnedToNotification;
   }
 
   @override
@@ -99,54 +110,25 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
           onPressed: () => context.pop(),
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.grey.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.arrow_back_rounded, size: 20),
-          ),
+          icon: const Icon(Icons.arrow_back_rounded),
         ),
         title: Text(
-          _isEditing ? 'Edit $_typeNoun' : 'New $_typeNoun',
+          _isEditing ? 'Edit task' : 'New task',
           style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+            fontSize: 19,
+            fontWeight: FontWeight.w700,
             letterSpacing: -0.3,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            child: ElevatedButton(
-              onPressed: _saveTask,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: const Text(
-                'Save',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-              ),
-            ),
-          ),
-        ],
+        // No Save button up here: there is one at the bottom, and two buttons
+        // doing the same thing is one too many.
       ),
       body: BlocListener<TaskBloc, TaskState>(
         listener: (context, state) {
           if (state is TaskLoaded) {
-            // Task was saved successfully, go back
             context.pop();
           } else if (state is TaskError) {
             ScaffoldMessenger.of(
@@ -154,1039 +136,522 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
             ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            children: [
+              _titleField(),
+              const SizedBox(height: 18),
+              _whenCard(),
+              const SizedBox(height: 12),
+              _reminderCard(),
+              const SizedBox(height: 12),
+              _moreOptions(),
+              const SizedBox(height: 22),
+              _saveButton(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Title ───────────────────────────────────────────────────────────────
+
+  Widget _titleField() {
+    return TextFormField(
+      controller: _titleController,
+      autofocus: !_isEditing,
+      textCapitalization: TextCapitalization.sentences,
+      textInputAction: TextInputAction.done,
+      style: const TextStyle(
+        fontSize: 19,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
+      ),
+      decoration: InputDecoration(
+        hintText: 'What needs to be done?',
+        hintStyle: TextStyle(
+          fontSize: 19,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey.shade400,
+          letterSpacing: -0.3,
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
+        ),
+        border: _fieldBorder(Colors.grey.shade300),
+        enabledBorder: _fieldBorder(Colors.grey.shade300),
+        focusedBorder: _fieldBorder(Theme.of(context).colorScheme.primary, 1.6),
+        errorBorder: _fieldBorder(Colors.red.shade300),
+        focusedErrorBorder: _fieldBorder(Colors.red.shade400, 1.6),
+      ),
+      validator: (value) =>
+          (value == null || value.trim().isEmpty) ? 'Give it a name' : null,
+    );
+  }
+
+  OutlineInputBorder _fieldBorder(Color color, [double width = 1]) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: color, width: width),
+    );
+  }
+
+  // ── When ────────────────────────────────────────────────────────────────
+
+  /// Deadline first, as one tap where possible.
+  ///
+  /// Two date-and-time pickers used to be the only way to answer "when", which
+  /// is four dialogs deep for "by tonight".
+  Widget _whenCard() {
+    return _card(
+      icon: Icons.event_rounded,
+      iconColor: const Color(0xFF2563EB),
+      title: 'Due',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _presetChip(
+                'Today',
+                _isPreset(_endOfToday()),
+                () => _applyPreset(_endOfToday()),
+              ),
+              _presetChip(
+                'Tomorrow',
+                _isPreset(_endOfToday().add(const Duration(days: 1))),
+                () => _applyPreset(_endOfToday().add(const Duration(days: 1))),
+              ),
+              _presetChip(
+                'In a week',
+                _isPreset(_endOfToday().add(const Duration(days: 7))),
+                () => _applyPreset(_endOfToday().add(const Duration(days: 7))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _dateRow(
+            label: 'Due',
+            value: _humanDateTime(_endDate),
+            emphasis: true,
+            onTap: _selectEndDateTime,
+          ),
+          Divider(height: 18, color: Colors.grey.shade200),
+          _dateRow(
+            label: 'Starts',
+            value: _startsLabel(),
+            emphasis: false,
+            onTap: _selectStartDateTime,
+          ),
+          if (!_endDate.isAfter(_startDate)) ...[
+            const SizedBox(height: 10),
+            _inlineWarning('The due time needs to be after the start.'),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// True when the current end date matches a preset to the minute, so the
+  /// chip can show as chosen.
+  bool _isPreset(DateTime candidate) =>
+      _endDate.difference(candidate).abs() < const Duration(minutes: 1);
+
+  void _applyPreset(DateTime end) {
+    setState(() {
+      _endDate = end;
+      if (!_endDate.isAfter(_startDate)) {
+        _startDate = _endDate.subtract(const Duration(hours: 1));
+      }
+    });
+  }
+
+  String _startsLabel() {
+    // Anything within a minute of now is "now" — a timestamp there is noise.
+    final delta = _startDate.difference(DateTime.now()).abs();
+    if (delta < const Duration(minutes: 1)) return 'Now';
+    return _humanDateTime(_startDate);
+  }
+
+  String _humanDateTime(DateTime value) {
+    final now = DateTime.now();
+    final sameDay =
+        value.year == now.year &&
+        value.month == now.month &&
+        value.day == now.day;
+    final day = sameDay
+        ? 'Today'
+        : DateFormat(
+            value.year == now.year ? 'EEE, d MMM' : 'EEE, d MMM y',
+          ).format(value);
+    return '$day · ${DateFormat('h:mm a').format(value)}';
+  }
+
+  Widget _dateRow({
+    required String label,
+    required String value,
+    required bool emphasis,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 58,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: emphasis ? 15 : 14,
+                  fontWeight: emphasis ? FontWeight.w700 : FontWeight.w600,
+                  color: emphasis ? Colors.grey.shade900 : Colors.grey.shade700,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.edit_calendar_rounded,
+              size: 17,
+              color: Colors.grey.shade400,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Reminder ────────────────────────────────────────────────────────────
+
+  Widget _reminderCard() {
+    return _card(
+      icon: Icons.notifications_rounded,
+      iconColor: const Color(0xFF7C3AED),
+      title: 'Remind me',
+      trailing: Switch(
+        value: _isNotificationEnabled,
+        onChanged: (value) => setState(() => _isNotificationEnabled = value),
+      ),
+      child: !_isNotificationEnabled
+          ? null
+          : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title field
-                TextFormField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: _taskType == TaskType.birthday
-                        ? 'Whose birthday?'
-                        : '$_typeNoun title',
-                    hintText: _taskType == TaskType.birthday
-                        ? 'Their name'
-                        : 'What needs to be done?',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _presetChip(
+                      'Before it is due',
+                      _remindMode == _RemindMode.beforeDue,
+                      () => setState(() => _remindMode = _RemindMode.beforeDue),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    _presetChip(
+                      'At a set time',
+                      _remindMode == _RemindMode.atTime,
+                      _chooseAtTimeMode,
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.blue),
+                    _presetChip(
+                      'Every day',
+                      _remindMode == _RemindMode.daily,
+                      _chooseDailyMode,
                     ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    prefixIcon: const Icon(Icons.title_rounded),
-                    contentPadding: const EdgeInsets.all(16),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a task title';
-                    }
-                    return null;
-                  },
+                  ],
                 ),
-                const SizedBox(height: 16),
-
-                // Description field
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: InputDecoration(
-                    labelText: 'Description (Optional)',
-                    hintText: 'Add more details about this task...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.blue),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    prefixIcon: const Icon(Icons.description_rounded),
-                    contentPadding: const EdgeInsets.all(16),
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 24),
-
-                // Date and Time Section - More compact layout
-                if (_taskType == TaskType.task) ...[
-                  // Combined Start and End date/time in one container
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Icon(
-                                Icons.schedule_rounded,
-                                color: Colors.green,
-                                size: 18,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Task Duration',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            // Start Date/Time
-                            Expanded(
-                              child: InkWell(
-                                onTap: () => _selectStartDateTime(context),
-                                borderRadius: BorderRadius.circular(8),
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Colors.green.withValues(
-                                        alpha: 0.2,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.play_circle_outline_rounded,
-                                            color: Colors.green,
-                                            size: 18,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            'Start',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.green.shade700,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-
-                                      Text(
-                                        _formatTimeWithAMPM(_startDate),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 6),
-                            // End Date/Time
-                            Expanded(
-                              child: InkWell(
-                                onTap: () => _selectEndDateTime(context),
-                                borderRadius: BorderRadius.circular(8),
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Colors.red.withValues(alpha: 0.2),
-                                    ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.flag_rounded,
-                                            color: Colors.red,
-                                            size: 18,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            'End',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.red.shade700,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-
-                                      Text(
-                                        _formatTimeWithAMPM(_endDate),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ] else if (_taskType == TaskType.reminder) ...[
-                  // Compact reminder time picker
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: ListTile(
-                      tileColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      leading: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Icon(
-                          Icons.access_time_rounded,
-                          color: Colors.orange,
-                          size: 18,
-                        ),
-                      ),
-                      title: const Text(
-                        'Reminder Time',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      subtitle: Text(
-                        _notificationTime != null
-                            ? '${_notificationTime!.day}/${_notificationTime!.month}/${_notificationTime!.year} - ${_formatTimeWithAMPM(_notificationTime!)}'
-                            : 'Tap to set reminder time',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 13,
-                        ),
-                      ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 14,
-                      ),
-                      onTap: () => _selectSpecificNotificationTime(context),
-                    ),
-                  ),
-                ] else if (_taskType == TaskType.birthday) ...[
-                  // Compact birthday date picker
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: ListTile(
-                      tileColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      leading: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.pink.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Icon(
-                          Icons.cake_rounded,
-                          color: Colors.pink,
-                          size: 18,
-                        ),
-                      ),
-                      title: const Text(
-                        'Birthday Date',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '${_startDate.day}/${_startDate.month}/${_startDate.year}',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 12,
-                        ),
-                      ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 14,
-                      ),
-                      onTap: () => _selectBirthdayDate(context),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 16),
-
-                // Notification settings - More compact
-                if (_taskType == TaskType.task) ...[
-                  // Notification toggle and settings combined
-                  Material(
-                    color: Colors.white,
-                    clipBehavior: Clip.antiAlias,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    child: Column(
-                      children: [
-                        // Notification toggle
-                        SwitchListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 4,
-                          ),
-                          title: const Text(
-                            'Enable Notifications',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          subtitle: Text(
-                            'Get reminded about this task',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 12,
-                            ),
-                          ),
-                          value: _isNotificationEnabled,
-                          onChanged: (value) {
-                            setState(() {
-                              _isNotificationEnabled = value;
-                            });
-                          },
-                          secondary: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Icon(
-                              Icons.notifications_rounded,
-                              color: Colors.blue,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                        // Notification type and settings (when enabled)
-                        if (_isNotificationEnabled) ...[
-                          Divider(height: 1, color: Colors.grey.shade200),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              children: [
-                                // Notification type dropdown - more compact
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.schedule_rounded,
-                                      color: Colors.grey.shade600,
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Text(
-                                      'Type:',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child:
-                                          DropdownButtonFormField<
-                                            NotificationType
-                                          >(
-                                            isDense: true,
-                                            initialValue: _notificationType,
-                                            decoration: InputDecoration(
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                              ),
-                                              contentPadding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 8,
-                                                  ),
-                                            ),
-                                            items: const [
-                                              DropdownMenuItem(
-                                                value: NotificationType
-                                                    .specificTime,
-                                                child: Text(
-                                                  'At a specific time',
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                  ),
-                                                ),
-                                              ),
-                                              DropdownMenuItem(
-                                                value: NotificationType.daily,
-                                                child: Text(
-                                                  'Daily reminder',
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                  ),
-                                                ),
-                                              ),
-                                              DropdownMenuItem(
-                                                value:
-                                                    NotificationType.beforeEnd,
-                                                child: Text(
-                                                  'Before end time',
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                            onChanged: (value) {
-                                              setState(() {
-                                                _notificationType = value!;
-                                                // Reset other notification settings when type changes
-                                                _notificationTime = null;
-                                                _dailyNotificationTime = null;
-                                                _beforeEndOption = null;
-                                              });
-                                            },
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                                // Specific settings based on type
-                                if (_notificationType ==
-                                    NotificationType.specificTime) ...[
-                                  const SizedBox(height: 12),
-                                  InkWell(
-                                    onTap: () =>
-                                        _selectSpecificNotificationTime(
-                                          context,
-                                        ),
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.access_time,
-                                            color: Colors.grey.shade600,
-                                            size: 16,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              _notificationTime != null
-                                                  ? _formatTimeWithAMPM(
-                                                      _notificationTime!,
-                                                    )
-                                                  : 'Tap to set time',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: _notificationTime != null
-                                                    ? Colors.black87
-                                                    : Colors.grey.shade600,
-                                              ),
-                                            ),
-                                          ),
-                                          Icon(
-                                            Icons.arrow_forward_ios,
-                                            size: 14,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                                if (_notificationType ==
-                                    NotificationType.daily) ...[
-                                  const SizedBox(height: 12),
-                                  InkWell(
-                                    onTap: () =>
-                                        _selectDailyNotificationTime(context),
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.repeat,
-                                            color: Colors.grey.shade600,
-                                            size: 16,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              _dailyNotificationTime != null
-                                                  ? _formatTimeOfDayWithAMPM(
-                                                      _dailyNotificationTime!,
-                                                    )
-                                                  : 'Tap to set daily time',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color:
-                                                    _dailyNotificationTime !=
-                                                        null
-                                                    ? Colors.black87
-                                                    : Colors.grey.shade600,
-                                              ),
-                                            ),
-                                          ),
-                                          Icon(
-                                            Icons.arrow_forward_ios,
-                                            size: 14,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                                if (_notificationType ==
-                                    NotificationType.beforeEnd) ...[
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.timer,
-                                        color: Colors.grey.shade600,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      const Text(
-                                        'Before:',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child:
-                                            DropdownButtonFormField<
-                                              BeforeEndOption
-                                            >(
-                                              isDense: true,
-                                              initialValue: _beforeEndOption,
-                                              decoration: InputDecoration(
-                                                border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                ),
-                                                contentPadding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 8,
-                                                    ),
-                                              ),
-                                              hint: const Text(
-                                                'Select',
-                                                style: TextStyle(fontSize: 13),
-                                              ),
-                                              items: BeforeEndOption.values.map(
-                                                (option) {
-                                                  return DropdownMenuItem(
-                                                    value: option,
-                                                    child: Text(
-                                                      option.displayName,
-                                                      style: const TextStyle(
-                                                        fontSize: 13,
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              ).toList(),
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  _beforeEndOption = value;
-                                                });
-                                              },
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ] else if (_taskType == TaskType.reminder) ...[
-                  // For reminders, show notification is always enabled - more compact
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.orange.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Icon(
-                            Icons.notifications_active_rounded,
-                            color: Colors.orange,
-                            size: 18,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Notification Enabled',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              Text(
-                                'Reminders always notify at the set time',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          color: Colors.orange,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ] else if (_taskType == TaskType.birthday) ...[
-                  // Birthday notification schedule options
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.pink.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.pink.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.pink.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Icon(
-                                Icons.cake_rounded,
-                                color: Colors.pink,
-                                size: 18,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Expanded(
-                              child: Text(
-                                'Birthday Notification Schedule',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Choose when to be reminded about this birthday:',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Birthday notification options
-                        ...BirthdayNotificationOption.values.map((option) {
-                          final isSelected = _birthdayNotificationSchedule
-                              .contains(option);
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            child: CheckboxListTile(
-                              tileColor: isSelected
-                                  ? Colors.pink.withValues(alpha: 0.1)
-                                  : Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(
-                                  color: isSelected
-                                      ? Colors.pink
-                                      : Colors.grey.shade300,
-                                  width: isSelected ? 2 : 1,
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 2,
-                              ),
-                              dense: true,
-                              title: Text(
-                                option.displayName,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w500
-                                      : FontWeight.normal,
-                                  color: isSelected
-                                      ? Colors.pink.shade700
-                                      : Colors.black87,
-                                ),
-                              ),
-                              subtitle: Text(
-                                option.description,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: isSelected
-                                      ? Colors.pink.shade600
-                                      : Colors.grey.shade600,
-                                ),
-                              ),
-                              value: isSelected,
-                              activeColor: Colors.pink,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  if (value == true) {
-                                    if (!_birthdayNotificationSchedule.contains(
-                                      option,
-                                    )) {
-                                      _birthdayNotificationSchedule.add(option);
-                                    }
-                                  } else {
-                                    _birthdayNotificationSchedule.remove(
-                                      option,
-                                    );
-                                  }
-                                });
-                              },
-                            ),
-                          );
-                        }),
-                        if (_birthdayNotificationSchedule.isEmpty) ...[
-                          Container(
-                            margin: const EdgeInsets.only(top: 8),
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: Colors.orange.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.warning_rounded,
-                                  color: Colors.orange.shade600,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Select at least one notification option',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.orange.shade700,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-
                 const SizedBox(height: 12),
-
-                // Pin to notification toggle - more compact and consistent for all types
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
+                switch (_remindMode) {
+                  _RemindMode.beforeDue => Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final option in BeforeEndOption.values)
+                        _presetChip(
+                          option.displayName,
+                          _beforeEndOption == option,
+                          () => setState(() => _beforeEndOption = option),
+                          small: true,
+                        ),
+                    ],
                   ),
-                  child: SwitchListTile(
-                    tileColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    title: Text(
-                      _taskType == TaskType.reminder
-                          ? 'Pin Reminder'
-                          : 'Pin to Notification',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                      ),
-                    ),
-                    subtitle: Text(
-                      _taskType == TaskType.reminder
-                          ? 'Keep visible in notifications'
-                          : 'Keep task visible in notifications',
+                  _RemindMode.atTime => _dateRow(
+                    label: 'At',
+                    value: _notificationTime == null
+                        ? 'Pick a time'
+                        : _humanDateTime(_notificationTime!),
+                    emphasis: true,
+                    onTap: _selectSpecificNotificationTime,
+                  ),
+                  _RemindMode.daily => _dateRow(
+                    label: 'At',
+                    value: _dailyNotificationTime == null
+                        ? 'Pick a time'
+                        : '${_dailyNotificationTime!.format(context)} every day',
+                    emphasis: true,
+                    onTap: _selectDailyNotificationTime,
+                  ),
+                },
+              ],
+            ),
+    );
+  }
+
+  /// Switching to a mode that needs a time asks for it straight away, rather
+  /// than letting the form reach Save with a hole in it.
+  Future<void> _chooseAtTimeMode() async {
+    setState(() => _remindMode = _RemindMode.atTime);
+    if (_notificationTime == null) await _selectSpecificNotificationTime();
+  }
+
+  Future<void> _chooseDailyMode() async {
+    setState(() => _remindMode = _RemindMode.daily);
+    if (_dailyNotificationTime == null) await _selectDailyNotificationTime();
+  }
+
+  // ── More options ────────────────────────────────────────────────────────
+
+  /// Description, pinning and pin timing. All three are worth having and none
+  /// is worth asking for before a task can be created.
+  Widget _moreOptions() {
+    return Material(
+      color: Colors.white,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => setState(() => _showMore = !_showMore),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.tune_rounded,
+                    size: 18,
+                    color: Colors.grey.shade600,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'More options',
                       style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey.shade800,
                       ),
                     ),
-                    value: _isPinnedToNotification,
-                    onChanged: (value) {
-                      setState(() {
-                        _isPinnedToNotification = value;
-                      });
-                    },
-                    secondary: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color:
-                            (_taskType == TaskType.reminder
-                                    ? Colors.orange
-                                    : Colors.blue)
-                                .withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Icon(
-                        Icons.push_pin_rounded,
-                        color: _taskType == TaskType.reminder
-                            ? Colors.orange
-                            : Colors.blue,
-                        size: 18,
-                      ),
-                    ),
+                  ),
+                  Icon(
+                    _showMore
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    color: Colors.grey.shade500,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_showMore) ...[
+            Divider(height: 1, color: Colors.grey.shade200),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+              child: TextFormField(
+                controller: _descriptionController,
+                maxLines: 3,
+                textCapitalization: TextCapitalization.sentences,
+                style: const TextStyle(fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: 'Notes (optional)',
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  contentPadding: const EdgeInsets.all(14),
+                  border: _fieldBorder(Colors.grey.shade200),
+                  enabledBorder: _fieldBorder(Colors.grey.shade200),
+                  focusedBorder: _fieldBorder(
+                    Theme.of(context).colorScheme.primary,
                   ),
                 ),
+              ),
+            ),
+            SwitchListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              title: const Text(
+                'Keep it in the notification shade',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                'An ongoing notification you can see at a glance',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+              value: _isPinnedToNotification,
+              onChanged: (value) =>
+                  setState(() => _isPinnedToNotification = value),
+            ),
+            if (_isPinnedToNotification)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final timing in PinNotificationTiming.values)
+                      _pinTimingRow(timing),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 4),
+          ],
+        ],
+      ),
+    );
+  }
 
-                // Pin timing selection - only shown when pin is enabled
-                if (_isPinnedToNotification) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
+  Widget _pinTimingRow(PinNotificationTiming timing) {
+    final selected = _pinNotificationTiming == timing;
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return InkWell(
+      onTap: () => setState(() => _pinNotificationTiming = timing),
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              selected
+                  ? Icons.radio_button_checked_rounded
+                  : Icons.radio_button_unchecked_rounded,
+              size: 19,
+              color: selected ? primary : Colors.grey.shade400,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    timing.displayName,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      color: selected ? primary : Colors.grey.shade800,
                     ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.purple.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Icon(
-                                Icons.schedule_rounded,
-                                color: Colors.purple,
-                                size: 18,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Pin Timing',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        ...PinNotificationTiming.values.map((timing) {
-                          final isSelected = _pinNotificationTiming == timing;
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _pinNotificationTiming = timing;
-                                });
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? Colors.purple.withValues(alpha: 0.1)
-                                      : Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? Colors.purple
-                                        : Colors.grey.shade300,
-                                    width: isSelected ? 2 : 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      isSelected
-                                          ? Icons.radio_button_checked
-                                          : Icons.radio_button_unchecked,
-                                      color: isSelected
-                                          ? Colors.purple
-                                          : Colors.grey.shade400,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            timing.displayName,
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 14,
-                                              color: isSelected
-                                                  ? Colors.purple
-                                                  : Colors.grey.shade800,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            timing.description,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    timing.description,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: Colors.grey.shade600,
                     ),
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                const SizedBox(height: 24),
+  // ── Shared pieces ───────────────────────────────────────────────────────
 
-                // Save button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _saveTask,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: Text(
-                      _isEditing ? 'Update $_typeNoun' : 'Create $_typeNoun',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+  Widget _card({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    Widget? trailing,
+    Widget? child,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      padding: EdgeInsets.fromLTRB(16, 14, 16, child == null ? 8 : 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(icon, size: 17, color: iconColor),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey.shade800,
                   ),
                 ),
-              ],
+              ),
+              ?trailing,
+            ],
+          ),
+          if (child != null) ...[const SizedBox(height: 14), child],
+        ],
+      ),
+    );
+  }
+
+  Widget _presetChip(
+    String label,
+    bool selected,
+    VoidCallback onTap, {
+    bool small = false,
+  }) {
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return Material(
+      color: selected ? primary : Colors.grey.shade100,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: small ? 11 : 13,
+            vertical: small ? 7 : 9,
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: small ? 12.5 : 13,
+              fontWeight: FontWeight.w700,
+              color: selected ? Colors.white : Colors.grey.shade700,
             ),
           ),
         ),
@@ -1194,288 +659,187 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
     );
   }
 
-  Future<void> _selectStartDateTime(BuildContext context) async {
-    // First pick the date
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: _startDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+  Widget _inlineWarning(String message) {
+    return Row(
+      children: [
+        Icon(Icons.error_outline_rounded, size: 15, color: Colors.red.shade400),
+        const SizedBox(width: 7),
+        Expanded(
+          child: Text(
+            message,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: Colors.red.shade500,
+            ),
+          ),
+        ),
+      ],
     );
+  }
 
-    if (pickedDate != null) {
-      // Then pick the time
-      if (context.mounted) {
-        final TimeOfDay? pickedTime = await showTimePicker(
-          context: context,
-          initialTime: TimeOfDay.fromDateTime(_startDate),
-        );
+  Widget _saveButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton(
+        onPressed: _saveTask,
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        child: Text(
+          _isEditing ? 'Save changes' : 'Create task',
+          style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+  }
 
-        if (pickedTime != null) {
-          setState(() {
-            _startDate = DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              pickedTime.hour,
-              pickedTime.minute,
-            );
-            // Ensure end date is after start date
-            if (_endDate.isBefore(_startDate)) {
-              _endDate = _startDate.add(const Duration(hours: 1));
-            }
-          });
-        }
+  // ── Pickers ─────────────────────────────────────────────────────────────
+
+  Future<void> _selectStartDateTime() async {
+    final picked = await _pickDateTime(
+      initial: _startDate,
+      first: DateTime.now().subtract(const Duration(days: 365)),
+      last: DateTime.now().add(const Duration(days: 365 * 5)),
+    );
+    if (picked == null) return;
+    setState(() {
+      _startDate = picked;
+      if (!_endDate.isAfter(_startDate)) {
+        _endDate = _startDate.add(const Duration(hours: 1));
       }
-    }
+    });
   }
 
-  Future<void> _selectEndDateTime(BuildContext context) async {
-    // First pick the date
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: _endDate,
-      firstDate: _startDate,
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+  Future<void> _selectEndDateTime() async {
+    final picked = await _pickDateTime(
+      initial: _endDate,
+      first: DateTime.now().subtract(const Duration(days: 365)),
+      last: DateTime.now().add(const Duration(days: 365 * 5)),
     );
-
-    if (pickedDate != null) {
-      // Then pick the time
-      if (context.mounted) {
-        final TimeOfDay? pickedTime = await showTimePicker(
-          context: context,
-          initialTime: TimeOfDay.fromDateTime(_endDate),
-        );
-
-        if (pickedTime != null) {
-          setState(() {
-            _endDate = DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              pickedTime.hour,
-              pickedTime.minute,
-            );
-          });
-        }
-      }
-    }
+    if (picked == null) return;
+    setState(() => _endDate = picked);
   }
 
-  Future<void> _selectSpecificNotificationTime(BuildContext context) async {
-    // First pick the date
-    final DateTime now = DateTime.now();
-    final DateTime maxDate = _endDate.isAfter(now)
-        ? _endDate
-        : now.add(const Duration(days: 365)); // Default to 1 year from now
-
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate:
-          (_notificationTime != null && _notificationTime!.isAfter(now))
-          ? _notificationTime!
-          : now,
-      firstDate: now,
-      lastDate: maxDate,
+  Future<void> _selectSpecificNotificationTime() async {
+    final picked = await _pickDateTime(
+      initial: _notificationTime ?? _endDate.subtract(const Duration(hours: 1)),
+      first: DateTime.now().subtract(const Duration(days: 1)),
+      last: DateTime.now().add(const Duration(days: 365 * 5)),
     );
-
-    if (pickedDate != null) {
-      // Then pick the time
-      if (context.mounted) {
-        final TimeOfDay? pickedTime = await showTimePicker(
-          context: context,
-          initialTime: _notificationTime != null
-              ? TimeOfDay.fromDateTime(_notificationTime!)
-              : TimeOfDay.now(),
-        );
-
-        if (pickedTime != null) {
-          setState(() {
-            _notificationTime = DateTime(
-              pickedDate.year,
-              pickedDate.month,
-              pickedDate.day,
-              pickedTime.hour,
-              pickedTime.minute,
-            );
-          });
-        }
-      }
-    }
+    if (picked == null) return;
+    setState(() => _notificationTime = picked);
   }
 
-  Future<void> _selectBirthdayDate(BuildContext context) async {
-    // For birthdays, we only need to pick the date
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: _startDate,
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      helpText: 'Select Birthday Date',
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        _startDate = pickedDate;
-        _endDate = pickedDate; // For birthdays, start and end are the same
-        // Set notification time to the birthday at 9 AM by default
-        _notificationTime = DateTime(
-          pickedDate.year,
-          pickedDate.month,
-          pickedDate.day,
-          9,
-          0,
-        );
-      });
-    }
-  }
-
-  Future<void> _selectDailyNotificationTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
+  Future<void> _selectDailyNotificationTime() async {
+    final picked = await showTimePicker(
       context: context,
       initialTime: _dailyNotificationTime ?? TimeOfDay.now(),
     );
-
-    if (picked != null) {
-      setState(() {
-        _dailyNotificationTime = picked;
-      });
-    }
+    if (picked == null) return;
+    setState(() => _dailyNotificationTime = picked);
   }
 
-  String _formatTimeWithAMPM(DateTime dateTime) {
-    final hour = dateTime.hour;
-    final minute = dateTime.minute;
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+  /// Date then time, with the second dialog seeded from the first so a
+  /// dismissed picker leaves the old value alone rather than half-applying.
+  Future<DateTime?> _pickDateTime({
+    required DateTime initial,
+    required DateTime first,
+    required DateTime last,
+  }) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initial.isBefore(first) ? first : initial,
+      firstDate: first,
+      lastDate: last,
+    );
+    if (date == null || !mounted) return null;
 
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+    );
+    if (time == null) return null;
+
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
-  String _formatTimeOfDayWithAMPM(TimeOfDay timeOfDay) {
-    final period = timeOfDay.hour >= 12 ? 'PM' : 'AM';
-    final displayHour = timeOfDay.hour == 0
-        ? 12
-        : (timeOfDay.hour > 12 ? timeOfDay.hour - 12 : timeOfDay.hour);
-
-    return '${displayHour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')} $period every day';
-  }
+  // ── Save ────────────────────────────────────────────────────────────────
 
   void _saveTask() {
-    if (_formKey.currentState!.validate()) {
-      // Special validation for reminders
-      if (_taskType == TaskType.reminder) {
-        if (_notificationTime == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please set a reminder time')),
-          );
-          return;
-        }
-      } else if (_taskType == TaskType.birthday) {
-        // Validate birthday notification schedule
-        if (_birthdayNotificationSchedule.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Please select at least one birthday notification option',
-              ),
-            ),
-          );
-          return;
-        }
-      } else {
-        // Validate notification settings for tasks based on type
-        if (_isNotificationEnabled) {
-          switch (_notificationType) {
-            case NotificationType.specificTime:
-              if (_notificationTime == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please set a notification time'),
-                  ),
-                );
-                return;
-              }
-              break;
-            case NotificationType.daily:
-              if (_dailyNotificationTime == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please set a daily notification time'),
-                  ),
-                );
-                return;
-              }
-              break;
-            case NotificationType.beforeEnd:
-              if (_beforeEndOption == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please select when to notify before end'),
-                  ),
-                );
-                return;
-              }
-              break;
-          }
-        }
+    if (!_formKey.currentState!.validate()) return;
+
+    if (!_endDate.isAfter(_startDate)) {
+      _complain('The due time needs to be after the start time.');
+      return;
+    }
+
+    // Every reminder mode has a default or was filled in when it was picked,
+    // so these are backstops rather than the usual path.
+    if (_isNotificationEnabled) {
+      if (_remindMode == _RemindMode.atTime && _notificationTime == null) {
+        _complain('Pick the time you want to be reminded.');
+        return;
       }
-
-      final now = DateTime.now();
-
-      // For reminders and birthdays, use notification time as both start and end date
-      DateTime startDate, endDate;
-      bool isNotificationEnabled;
-      NotificationType notificationType;
-
-      if (_taskType == TaskType.reminder) {
-        startDate = _notificationTime!;
-        endDate = _notificationTime!;
-        isNotificationEnabled = true;
-        notificationType = NotificationType.specificTime;
-      } else if (_taskType == TaskType.birthday) {
-        startDate = _startDate;
-        endDate = _startDate;
-        isNotificationEnabled = true;
-        notificationType = NotificationType.specificTime;
-      } else {
-        startDate = _startDate;
-        endDate = _endDate;
-        isNotificationEnabled = _isNotificationEnabled;
-        notificationType = _notificationType;
-      }
-
-      final task = Task(
-        id: _isEditing ? _existingTask!.id : const Uuid().v4(),
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim().isEmpty
-            ? null
-            : _descriptionController.text.trim(),
-        taskType: _taskType,
-        startDate: startDate,
-        endDate: endDate,
-        isCompleted: _isEditing ? _existingTask!.isCompleted : false,
-        isNotificationEnabled: isNotificationEnabled,
-        notificationType: notificationType,
-        notificationTime: _notificationTime,
-        dailyNotificationTime: _taskType == TaskType.task
-            ? _dailyNotificationTime
-            : null,
-        beforeEndOption: _beforeEndOption,
-        isPinnedToNotification: _isPinnedToNotification,
-        pinNotificationTiming: _pinNotificationTiming,
-        birthdayNotificationSchedule: _taskType == TaskType.birthday
-            ? _birthdayNotificationSchedule
-            : [],
-        createdAt: _isEditing ? _existingTask!.createdAt : now,
-        updatedAt: _isEditing ? now : null,
-      );
-
-      if (_isEditing) {
-        context.read<TaskBloc>().add(UpdateTaskEvent(task));
-      } else {
-        context.read<TaskBloc>().add(AddTaskEvent(task));
+      if (_remindMode == _RemindMode.daily && _dailyNotificationTime == null) {
+        _complain('Pick the time of day for the reminder.');
+        return;
       }
     }
+
+    final now = DateTime.now();
+    final notificationType = switch (_remindMode) {
+      _RemindMode.beforeDue => NotificationType.beforeEnd,
+      _RemindMode.atTime => NotificationType.specificTime,
+      _RemindMode.daily => NotificationType.daily,
+    };
+
+    final task = Task(
+      id: _isEditing ? _existingTask!.id : const Uuid().v4(),
+      title: _titleController.text.trim(),
+      description: _descriptionController.text.trim().isEmpty
+          ? null
+          : _descriptionController.text.trim(),
+      startDate: _startDate,
+      endDate: _endDate,
+      isCompleted: _isEditing ? _existingTask!.isCompleted : false,
+      isNotificationEnabled: _isNotificationEnabled,
+      notificationType: notificationType,
+      // Only the field this mode actually uses is carried over; the old form
+      // left the others populated, so a mode switch could still fire the
+      // reminder that had been replaced.
+      notificationTime: _remindMode == _RemindMode.atTime
+          ? _notificationTime
+          : null,
+      dailyNotificationTime: _remindMode == _RemindMode.daily
+          ? _dailyNotificationTime
+          : null,
+      beforeEndOption: _remindMode == _RemindMode.beforeDue
+          ? _beforeEndOption
+          : null,
+      isPinnedToNotification: _isPinnedToNotification,
+      pinNotificationTiming: _pinNotificationTiming,
+      createdAt: _isEditing ? _existingTask!.createdAt : now,
+      updatedAt: _isEditing ? now : null,
+    );
+
+    if (_isEditing) {
+      context.read<TaskBloc>().add(UpdateTaskEvent(task));
+    } else {
+      context.read<TaskBloc>().add(AddTaskEvent(task));
+    }
+  }
+
+  void _complain(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 }
