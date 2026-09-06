@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import '../utils/prayer_palette.dart';
 
 /// Tabs in the prayer section's bottom bar.
-enum PrayerTab { prayer, calendar, qibla, tasbih, more }
+///
+/// Qibla no longer has a slot of its own — it shares the tasbih tab, which
+/// freed this one for the Islamic resources. Those were two taps down under
+/// More, which is a strange place for the reference material people actually
+/// come back to.
+enum PrayerTab { prayer, calendar, tasbih, resources, more }
 
 /// Floating pill nav for the prayer section: a white rounded bar with five
 /// icon+label items, the active one carrying a tinted lozenge behind its icon.
@@ -20,8 +25,8 @@ class PrayerBottomNav extends StatelessWidget {
   static const _items = <(PrayerTab, IconData, String)>[
     (PrayerTab.prayer, Icons.mosque, 'Prayer'),
     (PrayerTab.calendar, Icons.calendar_month_outlined, 'Calendar'),
-    (PrayerTab.qibla, Icons.explore_outlined, 'Qibla'),
     (PrayerTab.tasbih, Icons.blur_circular_outlined, 'Tasbih'),
+    (PrayerTab.resources, Icons.menu_book_rounded, 'Learn'),
     (PrayerTab.more, Icons.more_horiz_rounded, 'More'),
   ];
 

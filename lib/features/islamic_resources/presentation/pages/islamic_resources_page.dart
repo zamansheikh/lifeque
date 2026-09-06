@@ -41,7 +41,13 @@ class _ResourceCategory {
 
 // ─── main page ────────────────────────────────────────────────────────────────
 class IslamicResourcesPage extends StatelessWidget {
-  const IslamicResourcesPage({super.key});
+  /// True when shown as a tab inside the prayer shell rather than pushed as
+  /// its own route. An embedded copy must not draw a back arrow — there is
+  /// nothing above it to go back to, and tapping one would pop the whole
+  /// prayer section.
+  final bool embedded;
+
+  const IslamicResourcesPage({super.key, this.embedded = false});
 
   static final List<_ResourceCategory> _categories = [
     _ResourceCategory(
@@ -111,6 +117,7 @@ class IslamicResourcesPage extends StatelessWidget {
       expandedHeight: 190,
       pinned: true,
       stretch: true,
+      automaticallyImplyLeading: !embedded,
       backgroundColor: IslamicColors.deepGreen,
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.only(left: 20, bottom: 14),

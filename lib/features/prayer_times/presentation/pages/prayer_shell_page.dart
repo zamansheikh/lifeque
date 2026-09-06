@@ -6,8 +6,8 @@ import '../widgets/prayer_bottom_nav.dart';
 import 'prayer_calendar_page.dart';
 import 'prayer_more_page.dart';
 import 'prayer_times_page.dart';
-import 'qibla_page.dart';
-import 'tasbih_page.dart';
+import '../../../islamic_resources/presentation/pages/islamic_resources_page.dart';
+import 'tasbih_qibla_page.dart';
 
 /// Container for the whole prayer section: the five bottom-nav tabs plus the
 /// app drawer.
@@ -44,8 +44,8 @@ class _PrayerShellPageState extends State<PrayerShellPage> {
               children: const [
                 PrayerTimesPage(),
                 PrayerCalendarPage(),
-                QiblaPage(),
-                TasbihPage(),
+                TasbihQiblaPage(),
+                IslamicResourcesPage(embedded: true),
                 PrayerMorePage(),
               ],
             ),

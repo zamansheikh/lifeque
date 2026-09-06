@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/utils/alarm_sound_preview.dart';
 import '../../../home_widget/presentation/widgets/add_widget_sheet.dart';
 import '../../../../core/utils/alarm_sound_utils.dart';
-import '../../../islamic_resources/presentation/pages/islamic_resources_page.dart'
-    hide IslamicColors;
 import '../../data/services/prayer_settings_service.dart';
 import '../utils/prayer_palette.dart';
 import '../widgets/after_prayer_duas_sheet.dart';
@@ -127,16 +125,6 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
             title: 'Home-screen widget',
             subtitle: 'Prayer times on your home screen',
             onTap: () => AddWidgetSheet.show(context),
-          ),
-          const SizedBox(height: 8),
-          _navRow(
-            icon: Icons.menu_book_rounded,
-            title: 'Islamic resources',
-            subtitle: 'Quran, hadith, 99 names, duas',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const IslamicResourcesPage()),
-            ),
           ),
           const SizedBox(height: 8),
           _navRow(

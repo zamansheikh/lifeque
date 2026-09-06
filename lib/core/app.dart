@@ -314,8 +314,10 @@ class _MyAppState extends State<MyApp> {
     // we go to now; it reads this instead.
     NavigationService.pendingWidgetRoute = route;
 
-    final location = AppRouter.router.state.uri.path;
-    if (location != '/splash' && location != '/') {
+    // Only the splash is "still starting". `/` is the task list — excluding it
+    // here meant a tap while the app sat on its home page parked the route and
+    // then never went anywhere.
+    if (AppRouter.router.state.uri.path != '/splash') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final pending = NavigationService.takePendingWidgetRoute();
         if (pending != null) AppRouter.router.go(pending);
