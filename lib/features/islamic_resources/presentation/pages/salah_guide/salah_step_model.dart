@@ -30,10 +30,19 @@ class SalahDua {
 
   final LText? translation;
 
+  /// What this du'a is called. Set it where a step carries more than one,
+  /// so the pager says which is on screen rather than just "1 of 2".
+  final LText? label;
+
+  /// Where it is narrated from, shown as a small attribution.
+  final LText? source;
+
   const SalahDua({
     required this.arabic,
     this.transliteration,
     this.translation,
+    this.label,
+    this.source,
   });
 }
 

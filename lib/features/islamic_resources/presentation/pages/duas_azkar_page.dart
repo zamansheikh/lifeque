@@ -137,6 +137,42 @@ final List<_DuaCategory> _categories = [
           'হে আমার প্রতিপালক, আমাকে ক্ষমা করুন, দয়া করুন, আমার ঘাটতি পূরণ করুন, মর্যাদা বাড়িয়ে দিন, রিজিক দিন, হেদায়েত দিন এবং সুস্থতা দিন।',
         ),
       ),
+      _Dua(
+        arabicName: 'دُعَاء الْقُنُوت',
+        name: LText('Du\'a al-Qunut (1)', 'দোয়া কুনুত (১)'),
+        when: LText(
+          'Third rak\'ah of Witr, before Ruku\' · Jami\' at-Tirmidhi',
+          'বিতরের তৃতীয় রাকাতে, রুকুর আগে · জামি‘ আত-তিরমিজি',
+        ),
+        arabicText:
+            'اللَّهُمَّ اهْدِنِي فِيمَنْ هَدَيْتَ وَعَافِنِي فِيمَنْ عَافَيْتَ وَتَوَلَّنِي فِيمَنْ تَوَلَّيْتَ وَبَارِكْ لِي فِيمَا أَعْطَيْتَ وَقِنِي شَرَّ مَا قَضَيْتَ إِنَّكَ تَقْضِي وَلَا يُقْضَى عَلَيْكَ وَإِنَّهُ لَا يَذِلُّ مَنْ وَالَيْتَ وَلَا يَعِزُّ مَنْ عَادَيْتَ تَبَارَكْتَ رَبَّنَا وَتَعَالَيْتَ',
+        transliteration: LText(
+          'Allahumma ihdini fiman hadayt, wa \'afini fiman \'afayt, wa tawallani fiman tawallayt, wa barik li fima a\'tayt, wa qini sharra ma qadayt. Fa innaka taqdi wa la yuqda \'alayk, wa innahu la yadhillu man walayt, wa la ya\'izzu man \'adayt. Tabarakta Rabbana wa ta\'alayt.',
+          'আল্লাহুম্মাহদিনি ফিমান হাদাইত, ওয়া আফিনি ফিমান আফাইত, ওয়া তাওয়াল্লানি ফিমান তাওয়াল্লাইত, ওয়া বারিক লি ফিমা আ‘তাইত, ওয়া কিনি শাররা মা কাদাইত। ফাইন্নাকা তাকদি ওয়ালা ইউকদা আলাইক, ওয়া ইন্নাহু লা ইয়াযিল্লু মাঁও ওয়ালাইত, ওয়ালা ইয়াইযযু মান আদাইত। তাবারাকতা রাব্বানা ওয়া তাআলাইত।',
+        ),
+        translation: LText(
+          'O Allah, guide me among those You have guided, pardon me among those You have pardoned, befriend me among those You have befriended, bless me in what You have granted, and protect me from the evil You have decreed. Indeed You decree, and none decrees upon You. Indeed, he whom You befriend is never humiliated, and he whom You oppose is never honoured. Blessed are You, our Lord, and Exalted.',
+          'হে আল্লাহ, যাদের হেদায়েত দিয়েছেন তাদের সঙ্গে আমাকেও হেদায়েত দিন; যাদের নিরাপত্তা দিয়েছেন তাদের সঙ্গে আমাকেও নিরাপত্তা দিন; যাদের অভিভাবকত্ব নিয়েছেন তাদের সঙ্গে আমারও অভিভাবক হোন; আপনি যা দিয়েছেন তাতে বরকত দিন; আর আপনি যা ফয়সালা করেছেন তার অনিষ্ট থেকে আমাকে রক্ষা করুন। নিশ্চয়ই আপনিই ফয়সালা করেন, আপনার ওপর কেউ ফয়সালা করতে পারে না। আপনি যাকে বন্ধু বানিয়েছেন সে কখনো লাঞ্ছিত হয় না, আর আপনি যার বিরোধী হয়েছেন সে কখনো সম্মান পায় না। হে আমাদের প্রতিপালক, আপনি বরকতময় ও সুউচ্চ।',
+        ),
+      ),
+      _Dua(
+        arabicName: 'دُعَاء الْقُنُوت',
+        name: LText('Du\'a al-Qunut (2)', 'দোয়া কুনুত (২)'),
+        when: LText(
+          'Third rak\'ah of Witr · narrated from \'Umar (Sunan al-Bayhaqi)',
+          'বিতরের তৃতীয় রাকাতে · উমর (রা.) থেকে বর্ণিত (সুনানুল বায়হাকি)',
+        ),
+        arabicText:
+            'اللَّهُمَّ إِنَّا نَسْتَعِينُكَ وَنَسْتَغْفِرُكَ وَنُؤْمِنُ بِكَ وَنَتَوَكَّلُ عَلَيْكَ وَنُثْنِي عَلَيْكَ الْخَيْرَ وَنَشْكُرُكَ وَلَا نَكْفُرُكَ وَنَخْلَعُ وَنَتْرُكُ مَنْ يَفْجُرُكَ ۝ اللَّهُمَّ إِيَّاكَ نَعْبُدُ وَلَكَ نُصَلِّي وَنَسْجُدُ وَإِلَيْكَ نَسْعَى وَنَحْفِدُ نَرْجُو رَحْمَتَكَ وَنَخْشَى عَذَابَكَ إِنَّ عَذَابَكَ بِالْكُفَّارِ مُلْحِقٌ',
+        transliteration: LText(
+          'Allahumma inna nasta\'inuka wa nastaghfiruka wa nu\'minu bika wa natawakkalu \'alayka wa nuthni \'alaykal-khayr, wa nashkuruka wa la nakfuruka, wa nakhla\'u wa natruku man yafjuruk. Allahumma iyyaka na\'budu wa laka nusalli wa nasjud, wa ilayka nas\'a wa nahfid, narju rahmataka wa nakhsha \'adhabak, inna \'adhabaka bil-kuffari mulhiq.',
+          'আল্লাহুম্মা ইন্না নাস্তাঈনুকা ওয়া নাস্তাগফিরুকা ওয়া নু’মিনু বিকা ওয়া নাতাওয়াক্কালু আলাইকা ওয়া নুসনি আলাইকাল খাইর, ওয়া নাশকুরুকা ওয়ালা নাকফুরুকা, ওয়া নাখলাউ ওয়া নাতরুকু মাঁইয়াফজুরুক। আল্লাহুম্মা ইয়্যাকা না‘বুদু ওয়া লাকা নুসাল্লি ওয়া নাসজুদ, ওয়া ইলাইকা নাস‘আ ওয়া নাহফিদ, নারজু রাহমাতাকা ওয়া নাখশা আযাবাক, ইন্না আযাবাকা বিল কুফফারি মুলহিক।',
+        ),
+        translation: LText(
+          'O Allah, we seek Your help and Your forgiveness; we believe in You and rely upon You; we praise You for all good; we thank You and are not ungrateful to You; and we cast off and abandon whoever disobeys You. O Allah, You alone we worship; for You we pray and prostrate; towards You we strive and hasten. We hope for Your mercy and fear Your punishment — surely Your punishment will overtake the disbelievers.',
+          'হে আল্লাহ, আমরা আপনার সাহায্য চাই ও আপনার কাছে ক্ষমা চাই; আপনার ওপর ঈমান আনি ও ভরসা করি; সব কল্যাণের জন্য আপনার প্রশংসা করি; আপনার শোকর করি, কৃতঘ্ন হই না; আর যে আপনার অবাধ্য হয় তাকে ত্যাগ করি। হে আল্লাহ, আমরা কেবল আপনারই ইবাদত করি; আপনার জন্যই নামাজ পড়ি ও সিজদা করি; আপনার দিকেই ছুটে চলি। আমরা আপনার রহমতের আশা রাখি ও আপনার শাস্তিকে ভয় করি — নিশ্চয়ই আপনার শাস্তি কাফিরদের ওপর পতিত হবে।',
+        ),
+      ),
     ],
   ),
   _DuaCategory(

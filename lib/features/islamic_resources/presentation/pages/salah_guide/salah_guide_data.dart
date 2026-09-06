@@ -281,7 +281,10 @@ const _qiyamWitrThirdRak = SalahStep(
       'Say Allahu Akbar and optionally raise hands',
       '‘আল্লাহু আকবার’ বলুন, চাইলে হাত ওঠান',
     ),
-    LText('Recite Du\'a Qunut', 'দোয়া কুনুত পড়ুন'),
+    LText(
+      'Recite Du\'a Qunut — either of the two below',
+      'দোয়া কুনুত পড়ুন — নিচের দুটির যেকোনো একটি',
+    ),
     LText(
       'Say Allahu Akbar to go into Ruku\'',
       '‘আল্লাহু আকবার’ বলে রুকুতে যান',
@@ -289,6 +292,21 @@ const _qiyamWitrThirdRak = SalahStep(
   ],
   duas: [
     SalahDua(
+      label: LText('Du\'a al-Qunut (1)', 'দোয়া কুনুত (১)'),
+      arabic:
+          'اللَّهُمَّ اهْدِنِي فِيمَنْ هَدَيْتَ وَعَافِنِي فِيمَنْ عَافَيْتَ وَتَوَلَّنِي فِيمَنْ تَوَلَّيْتَ وَبَارِكْ لِي فِيمَا أَعْطَيْتَ وَقِنِي شَرَّ مَا قَضَيْتَ إِنَّكَ تَقْضِي وَلَا يُقْضَى عَلَيْكَ وَإِنَّهُ لَا يَذِلُّ مَنْ وَالَيْتَ وَلَا يَعِزُّ مَنْ عَادَيْتَ تَبَارَكْتَ رَبَّنَا وَتَعَالَيْتَ',
+      transliteration: LText(
+        'Allahumma ihdini fiman hadayt, wa \'afini fiman \'afayt, wa tawallani fiman tawallayt, wa barik li fima a\'tayt, wa qini sharra ma qadayt. Fa innaka taqdi wa la yuqda \'alayk, wa innahu la yadhillu man walayt, wa la ya\'izzu man \'adayt. Tabarakta Rabbana wa ta\'alayt.',
+        'আল্লাহুম্মাহদিনি ফিমান হাদাইত, ওয়া আফিনি ফিমান আফাইত, ওয়া তাওয়াল্লানি ফিমান তাওয়াল্লাইত, ওয়া বারিক লি ফিমা আ‘তাইত, ওয়া কিনি শাররা মা কাদাইত। ফাইন্নাকা তাকদি ওয়ালা ইউকদা আলাইক, ওয়া ইন্নাহু লা ইয়াযিল্লু মাঁও ওয়ালাইত, ওয়ালা ইয়াইযযু মান আদাইত। তাবারাকতা রাব্বানা ওয়া তাআলাইত।',
+      ),
+      translation: LText(
+        'O Allah, guide me among those You have guided, pardon me among those You have pardoned, befriend me among those You have befriended, bless me in what You have granted, and protect me from the evil You have decreed. Indeed You decree, and none decrees upon You. Indeed, he whom You befriend is never humiliated, and he whom You oppose is never honoured. Blessed are You, our Lord, and Exalted.',
+        'হে আল্লাহ, যাদের হেদায়েত দিয়েছেন তাদের সঙ্গে আমাকেও হেদায়েত দিন; যাদের নিরাপত্তা দিয়েছেন তাদের সঙ্গে আমাকেও নিরাপত্তা দিন; যাদের অভিভাবকত্ব নিয়েছেন তাদের সঙ্গে আমারও অভিভাবক হোন; আপনি যা দিয়েছেন তাতে বরকত দিন; আর আপনি যা ফয়সালা করেছেন তার অনিষ্ট থেকে আমাকে রক্ষা করুন। নিশ্চয়ই আপনিই ফয়সালা করেন, আপনার ওপর কেউ ফয়সালা করতে পারে না। আপনি যাকে বন্ধু বানিয়েছেন সে কখনো লাঞ্ছিত হয় না, আর আপনি যার বিরোধী হয়েছেন সে কখনো সম্মান পায় না। হে আমাদের প্রতিপালক, আপনি বরকতময় ও সুউচ্চ।',
+      ),
+      source: LText('Jami\' at-Tirmidhi', 'জামি‘ আত-তিরমিজি'),
+    ),
+    SalahDua(
+      label: LText('Du\'a al-Qunut (2)', 'দোয়া কুনুত (২)'),
       arabic:
           'اللَّهُمَّ إِنَّا نَسْتَعِينُكَ وَنَسْتَغْفِرُكَ وَنُؤْمِنُ بِكَ وَنَتَوَكَّلُ عَلَيْكَ وَنُثْنِي عَلَيْكَ الْخَيْرَ وَنَشْكُرُكَ وَلَا نَكْفُرُكَ وَنَخْلَعُ وَنَتْرُكُ مَنْ يَفْجُرُكَ ۝ اللَّهُمَّ إِيَّاكَ نَعْبُدُ وَلَكَ نُصَلِّي وَنَسْجُدُ وَإِلَيْكَ نَسْعَى وَنَحْفِدُ نَرْجُو رَحْمَتَكَ وَنَخْشَى عَذَابَكَ إِنَّ عَذَابَكَ بِالْكُفَّارِ مُلْحِقٌ',
       transliteration: LText(
@@ -298,6 +316,10 @@ const _qiyamWitrThirdRak = SalahStep(
       translation: LText(
         'O Allah, we seek Your help and Your forgiveness; we believe in You and rely upon You; we praise You for all good; we thank You and are not ungrateful to You; and we cast off and abandon whoever disobeys You. O Allah, You alone we worship; for You we pray and prostrate; towards You we strive and hasten. We hope for Your mercy and fear Your punishment — surely Your punishment will overtake the disbelievers.',
         'হে আল্লাহ, আমরা আপনার সাহায্য চাই ও আপনার কাছে ক্ষমা চাই; আপনার ওপর ঈমান আনি ও ভরসা করি; সব কল্যাণের জন্য আপনার প্রশংসা করি; আপনার শোকর করি, কৃতঘ্ন হই না; আর যে আপনার অবাধ্য হয় তাকে ত্যাগ করি। হে আল্লাহ, আমরা কেবল আপনারই ইবাদত করি; আপনার জন্যই নামাজ পড়ি ও সিজদা করি; আপনার দিকেই ছুটে চলি। আমরা আপনার রহমতের আশা রাখি ও আপনার শাস্তিকে ভয় করি — নিশ্চয়ই আপনার শাস্তি কাফিরদের ওপর পতিত হবে।',
+      ),
+      source: LText(
+        'Narrated from \'Umar (Sunan al-Bayhaqi)',
+        'উমর (রা.) থেকে বর্ণিত (সুনানুল বায়হাকি)',
       ),
     ),
   ],

@@ -524,6 +524,30 @@ class _DuaContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (dua.label != null) ...[
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: IslamicColors.gold.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  dua.label!.of(context),
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: IslamicColors.gold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           Align(
             alignment: Alignment.centerRight,
             child: Text(
@@ -558,6 +582,17 @@ class _DuaContent extends StatelessWidget {
                 fontSize: 13,
                 color: IslamicColors.darkText,
                 height: 1.5,
+              ),
+            ),
+          ],
+          if (dua.source != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              '— ${dua.source!.of(context)}',
+              style: const TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: IslamicColors.mutedText,
               ),
             ),
           ],
