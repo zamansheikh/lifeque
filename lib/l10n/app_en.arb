@@ -1114,5 +1114,103 @@
   "dowThu": "T",
   "dowFri": "F",
   "dowSat": "S",
-  "dowSun": "S"
+  "dowSun": "S",
+  "@shareCaption": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@shareMonthCaption": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "shareTodayTimes": "Share today's times",
+  "shareImage": "Share image",
+  "shareCardTitle": "Prayer Times",
+  "shareSunrise": "SUNRISE",
+  "shareSahriEnds": "SAHRI ENDS",
+  "shareIftar": "IFTAR",
+  "shareFailed": "Could not share the card",
+  "shareEncodeFailed": "Could not encode the card",
+  "shareCaption": "Prayer times · {date}",
+  "shareMonthCaption": "Prayer timetable · {location}",
+  "calFridayNote": "✦ Friday (Jumu'ah) · times are indicative — verify with your local mosque",
+  "calHijriBangla": "HIJRI · BANGLA",
+  "calMonthShareCaption": "{month} prayer timetable · {location}",
+  "@calMonthShareCaption": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "calTimetableHeader": "Prayer timetable · {location} · {madhab}",
+  "@calTimetableHeader": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      },
+      "madhab": {
+        "type": "String"
+      }
+    }
+  },
+  "@statsOfThisWeek": {
+    "placeholders": {
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "qiblaHoldFlat": "hold your phone flat",
+  "qiblaAligned": "✓ Aligned — you are facing the Qibla",
+  "qiblaAlignHint": "✓ Aligned when the Kaaba points up",
+  "statsTitle": "Prayer Stats",
+  "statsDayStreak": "day streak",
+  "statsOfThisWeek": "of {total} this week",
+  "statsThisWeek": "This week",
+  "statsLast30": "Last 30 days",
+  "statsEachDot": "each dot = 1 day",
+  "stats30DayRate": "30-day rate",
+  "moreTitle": "More",
+  "morePrayerStats": "Prayer stats",
+  "morePrayerStatsSub": "Streak, weekly & 30-day history",
+  "morePrayerAlarms": "Prayer alarms",
+  "morePrayerAlarmsSub": "Per-prayer timing, adhan sound & duration",
+  "moreWidget": "Home-screen widget",
+  "moreWidgetSub": "Prayer times on your home screen",
+  "moreAdhanVoice": "Adhan voice",
+  "moreSettings": "Settings",
+  "moreCalculationMethod": "Calculation method",
+  "moreMadhabAsr": "Madhab (Asr)",
+  "moreLocation": "Location",
+  "moreRamadanMode": "Ramadan mode",
+  "moreNotSet": "Not set",
+  "moreCustom": "Custom",
+  "soundTraditional": "Traditional alarm tone",
+  "soundGentle": "Gentle wake-up tone",
+  "soundMelodic": "Melodic alarm tone",
+  "methodKarachiShort": "Karachi",
+  "methodEgyptianShort": "Egyptian",
+  "methodUmmAlQuraShort": "Umm al-Qura",
+  "resourcesTitle": "Islamic Resources",
+  "resSalahGuide": "Salah Guide",
+  "resSalahGuideSub": "Step-by-step prayer instructions",
+  "resWaqtRakah": "Waqt & Rakah Table",
+  "resWaqtRakahSub": "Prayer times and rak'ah counts",
+  "resSurahs": "Necessary Surahs",
+  "resSurahsSub": "Essential Qur'anic chapters",
+  "resAfterPrayer": "After-prayer Adhkar",
+  "resAfterPrayerSub": "What to recite after the salam",
+  "resDuas": "Du'a & Adhkar",
+  "resDuasSub": "Supplications & remembrances"
 }

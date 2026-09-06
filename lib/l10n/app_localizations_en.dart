@@ -2199,4 +2199,187 @@ class LEn extends L {
 
   @override
   String get dowSun => 'S';
+
+  @override
+  String get shareTodayTimes => 'Share today\'s times';
+
+  @override
+  String get shareImage => 'Share image';
+
+  @override
+  String get shareCardTitle => 'Prayer Times';
+
+  @override
+  String get shareSunrise => 'SUNRISE';
+
+  @override
+  String get shareSahriEnds => 'SAHRI ENDS';
+
+  @override
+  String get shareIftar => 'IFTAR';
+
+  @override
+  String get shareFailed => 'Could not share the card';
+
+  @override
+  String get shareEncodeFailed => 'Could not encode the card';
+
+  @override
+  String shareCaption(String date) {
+    return 'Prayer times · $date';
+  }
+
+  @override
+  String shareMonthCaption(String location) {
+    return 'Prayer timetable · $location';
+  }
+
+  @override
+  String get calFridayNote =>
+      '✦ Friday (Jumu\'ah) · times are indicative — verify with your local mosque';
+
+  @override
+  String get calHijriBangla => 'HIJRI · BANGLA';
+
+  @override
+  String calMonthShareCaption(String month, String location) {
+    return '$month prayer timetable · $location';
+  }
+
+  @override
+  String calTimetableHeader(String location, String madhab) {
+    return 'Prayer timetable · $location · $madhab';
+  }
+
+  @override
+  String get qiblaHoldFlat => 'hold your phone flat';
+
+  @override
+  String get qiblaAligned => '✓ Aligned — you are facing the Qibla';
+
+  @override
+  String get qiblaAlignHint => '✓ Aligned when the Kaaba points up';
+
+  @override
+  String get statsTitle => 'Prayer Stats';
+
+  @override
+  String get statsDayStreak => 'day streak';
+
+  @override
+  String statsOfThisWeek(int total) {
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return 'of $totalString this week';
+  }
+
+  @override
+  String get statsThisWeek => 'This week';
+
+  @override
+  String get statsLast30 => 'Last 30 days';
+
+  @override
+  String get statsEachDot => 'each dot = 1 day';
+
+  @override
+  String get stats30DayRate => '30-day rate';
+
+  @override
+  String get moreTitle => 'More';
+
+  @override
+  String get morePrayerStats => 'Prayer stats';
+
+  @override
+  String get morePrayerStatsSub => 'Streak, weekly & 30-day history';
+
+  @override
+  String get morePrayerAlarms => 'Prayer alarms';
+
+  @override
+  String get morePrayerAlarmsSub => 'Per-prayer timing, adhan sound & duration';
+
+  @override
+  String get moreWidget => 'Home-screen widget';
+
+  @override
+  String get moreWidgetSub => 'Prayer times on your home screen';
+
+  @override
+  String get moreAdhanVoice => 'Adhan voice';
+
+  @override
+  String get moreSettings => 'Settings';
+
+  @override
+  String get moreCalculationMethod => 'Calculation method';
+
+  @override
+  String get moreMadhabAsr => 'Madhab (Asr)';
+
+  @override
+  String get moreLocation => 'Location';
+
+  @override
+  String get moreRamadanMode => 'Ramadan mode';
+
+  @override
+  String get moreNotSet => 'Not set';
+
+  @override
+  String get moreCustom => 'Custom';
+
+  @override
+  String get soundTraditional => 'Traditional alarm tone';
+
+  @override
+  String get soundGentle => 'Gentle wake-up tone';
+
+  @override
+  String get soundMelodic => 'Melodic alarm tone';
+
+  @override
+  String get methodKarachiShort => 'Karachi';
+
+  @override
+  String get methodEgyptianShort => 'Egyptian';
+
+  @override
+  String get methodUmmAlQuraShort => 'Umm al-Qura';
+
+  @override
+  String get resourcesTitle => 'Islamic Resources';
+
+  @override
+  String get resSalahGuide => 'Salah Guide';
+
+  @override
+  String get resSalahGuideSub => 'Step-by-step prayer instructions';
+
+  @override
+  String get resWaqtRakah => 'Waqt & Rakah Table';
+
+  @override
+  String get resWaqtRakahSub => 'Prayer times and rak\'ah counts';
+
+  @override
+  String get resSurahs => 'Necessary Surahs';
+
+  @override
+  String get resSurahsSub => 'Essential Qur\'anic chapters';
+
+  @override
+  String get resAfterPrayer => 'After-prayer Adhkar';
+
+  @override
+  String get resAfterPrayerSub => 'What to recite after the salam';
+
+  @override
+  String get resDuas => 'Du\'a & Adhkar';
+
+  @override
+  String get resDuasSub => 'Supplications & remembrances';
 }

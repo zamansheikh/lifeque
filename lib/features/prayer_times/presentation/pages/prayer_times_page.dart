@@ -794,7 +794,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final span = target.difference(windowStart).inMilliseconds;
     final gone = now.difference(windowStart).inMilliseconds;
     return GaugeData(
-      name: 'Tahajjud',
+      name: L.of(context).prayerTahajjud,
       label: L.of(context).gaugeBeginsIn,
       countdown: _fmtHms(target.difference(now)),
       progress: span <= 0 ? 0 : (gone / span).clamp(0.0, 1.0),
@@ -1173,9 +1173,15 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       pageBuilder: (ctx, anim, _) {
         return Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 44),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
+              // Without a height cap the card grows to fill the screen: Center
+              // hands its child loose constraints, and the content is now tall
+              // enough to take all of them.
+              constraints: BoxConstraints(
+                maxWidth: 440,
+                maxHeight: MediaQuery.of(ctx).size.height * 0.8,
+              ),
               child: Material(
                 color: Colors.transparent,
                 child: ClipRRect(

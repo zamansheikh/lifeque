@@ -9,6 +9,7 @@ import '../utils/prayer_palette.dart';
 import '../widgets/prayer_alarm_sheet.dart';
 import '../widgets/prayer_snack.dart';
 import 'prayer_stats_page.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// "More" tab: shortcuts into stats/resources/duas, the adhan voice picker,
 /// and the prayer settings block (method, madhab, location, Ramadan mode).
@@ -24,26 +25,69 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
 
   CalculationMethod _method = CalculationMethod.karachi;
   Madhab _madhab = Madhab.hanafi;
-  String _locationName = 'Not set';
+  String? _locationName;
   bool _fromGps = false;
   bool _ramadan = false;
   String _adhanSound = '';
   bool _loading = true;
 
-  static const _methodLabels = <CalculationMethod, String>{
-    CalculationMethod.karachi: 'Karachi',
-    CalculationMethod.muslim_world_league: 'Muslim World League',
-    CalculationMethod.egyptian: 'Egyptian',
-    CalculationMethod.umm_al_qura: 'Umm al-Qura',
-    CalculationMethod.dubai: 'Dubai',
-    CalculationMethod.qatar: 'Qatar',
-    CalculationMethod.kuwait: 'Kuwait',
-    CalculationMethod.moon_sighting_committee: 'Moonsighting Committee',
-    CalculationMethod.singapore: 'Singapore',
-    CalculationMethod.north_america: 'ISNA (North America)',
-    CalculationMethod.turkey: 'Turkey',
-    CalculationMethod.tehran: 'Tehran',
-  };
+  /// The short names this page shows; the full ones live in the settings
+  /// sheet. Both come from the bundle.
+  static const _methods = <CalculationMethod>[
+    CalculationMethod.karachi,
+    CalculationMethod.muslim_world_league,
+    CalculationMethod.egyptian,
+    CalculationMethod.umm_al_qura,
+    CalculationMethod.dubai,
+    CalculationMethod.qatar,
+    CalculationMethod.kuwait,
+    CalculationMethod.moon_sighting_committee,
+    CalculationMethod.singapore,
+    CalculationMethod.north_america,
+    CalculationMethod.turkey,
+    CalculationMethod.tehran,
+  ];
+
+  /// The bundled sound files carry English names and descriptions; only the
+  /// labels shown here change with the language.
+  String _soundDescription(String name) {
+    final l = L.of(context);
+    return switch (name) {
+      'Alarm Sound 1' => l.soundTraditional,
+      'Alarm Sound 2' => l.soundGentle,
+      'Alarm Sound 3' => l.soundMelodic,
+      _ => '',
+    };
+  }
+
+  String _soundName(String name) {
+    final l = L.of(context);
+    return switch (name) {
+      'Alarm Sound 1' => l.alarmSound1,
+      'Alarm Sound 2' => l.alarmSound2,
+      'Alarm Sound 3' => l.alarmSound3,
+      _ => name,
+    };
+  }
+
+  String _methodLabel(CalculationMethod method) {
+    final l = L.of(context);
+    return switch (method) {
+      CalculationMethod.karachi => l.methodKarachiShort,
+      CalculationMethod.muslim_world_league => l.methodMwl,
+      CalculationMethod.egyptian => l.methodEgyptianShort,
+      CalculationMethod.umm_al_qura => l.methodUmmAlQuraShort,
+      CalculationMethod.dubai => l.methodDubai,
+      CalculationMethod.qatar => l.methodQatar,
+      CalculationMethod.kuwait => l.methodKuwait,
+      CalculationMethod.moon_sighting_committee => l.methodMoonsighting,
+      CalculationMethod.singapore => l.methodSingapore,
+      CalculationMethod.north_america => l.methodIsna,
+      CalculationMethod.turkey => l.methodTurkey,
+      CalculationMethod.tehran => l.methodTehran,
+      _ => l.moreCustom,
+    };
+  }
 
   @override
   void initState() {
@@ -68,7 +112,7 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
     setState(() {
       _method = method;
       _madhab = madhab;
-      _locationName = loc?.locationName ?? 'Not set';
+      _locationName = loc?.locationName;
       _fromGps = loc?.isFromGps ?? false;
       _ramadan = ramadan;
       _adhanSound = sound;
@@ -90,8 +134,8 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
         physics: const BouncingScrollPhysics(),
         children: [
-          const Text(
-            'More',
+          Text(
+            L.of(context).moreTitle,
             style: TextStyle(
               color: PrayerPalette.ink,
               fontSize: 18,
@@ -101,8 +145,8 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
           const SizedBox(height: 12),
           _navRow(
             icon: Icons.bar_chart_rounded,
-            title: 'Prayer stats',
-            subtitle: 'Streak, weekly & 30-day history',
+            title: L.of(context).morePrayerStats,
+            subtitle: L.of(context).morePrayerStatsSub,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const PrayerStatsPage()),
@@ -111,8 +155,8 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
           const SizedBox(height: 8),
           _navRow(
             icon: Icons.alarm_rounded,
-            title: 'Prayer alarms',
-            subtitle: 'Per-prayer timing, adhan sound & duration',
+            title: L.of(context).morePrayerAlarms,
+            subtitle: L.of(context).morePrayerAlarmsSub,
             onTap: () => PrayerAlarmSheet.show(
               context,
               prayers: const ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'],
@@ -121,8 +165,8 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
           const SizedBox(height: 8),
           _navRow(
             icon: Icons.widgets_rounded,
-            title: 'Home-screen widget',
-            subtitle: 'Prayer times on your home screen',
+            title: L.of(context).moreWidget,
+            subtitle: L.of(context).moreWidgetSub,
             onTap: () => AddWidgetSheet.show(context),
           ),
           const SizedBox(height: 8),
@@ -237,7 +281,7 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
   Widget _adhanCard() {
     final sounds = AlarmSoundUtils.availableAlarmSounds;
     return _card(
-      title: 'Adhan voice',
+      title: L.of(context).moreAdhanVoice,
       children: [
         for (var i = 0; i < sounds.length; i++) ...[
           if (i > 0) const SizedBox(height: 6),
@@ -299,7 +343,7 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    sound['name']!,
+                    _soundName(sound['name']!),
                     style: const TextStyle(
                       color: PrayerPalette.ink,
                       fontSize: 12.5,
@@ -307,7 +351,7 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
                     ),
                   ),
                   Text(
-                    sound['description'] ?? '',
+                    _soundDescription(sound['name'] ?? ''),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -341,7 +385,7 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
               if (!mounted) return;
               PrayerSnack.show(
                 context,
-                'Could not play this sound',
+                L.of(context).alarmSoundFailed,
                 kind: PrayerSnackKind.error,
               );
             }
@@ -372,10 +416,10 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
 
   Widget _settingsCard() {
     return _card(
-      title: 'Settings',
+      title: L.of(context).moreSettings,
       children: [
         _settingRow(
-          label: 'Calculation method',
+          label: L.of(context).moreCalculationMethod,
           trailing: InkWell(
             onTap: _pickMethod,
             borderRadius: BorderRadius.circular(8),
@@ -383,7 +427,7 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  _methodLabels[_method] ?? 'Custom',
+                  _methodLabel(_method),
                   style: const TextStyle(
                     color: PrayerPalette.accent,
                     fontSize: 12.5,
@@ -400,7 +444,7 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
           ),
         ),
         _settingRow(
-          label: 'Madhab (Asr)',
+          label: L.of(context).moreMadhabAsr,
           trailing: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(11),
@@ -410,17 +454,17 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _madhabChip('Hanafi', Madhab.hanafi),
-                _madhabChip('Shafi', Madhab.shafi),
+                _madhabChip(L.of(context).madhabHanafi, Madhab.hanafi),
+                _madhabChip(L.of(context).madhabShafi, Madhab.shafi),
               ],
             ),
           ),
         ),
         _settingRow(
-          label: 'Location',
+          label: L.of(context).moreLocation,
           trailing: Flexible(
             child: Text(
-              '${_locationName.split(',').first}'
+              '${(_locationName ?? L.of(context).moreNotSet).split(',').first}'
               '${_fromGps ? ' · GPS ✓' : ''}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -434,7 +478,7 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
           ),
         ),
         _settingRow(
-          label: 'Ramadan mode',
+          label: L.of(context).moreRamadanMode,
           showDivider: false,
           trailing: _switch(
             value: _ramadan,
@@ -552,10 +596,10 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(20, 18, 20, 8),
               child: Text(
-                'Calculation method',
+                L.of(context).moreCalculationMethod,
                 style: TextStyle(
                   color: PrayerPalette.ink,
                   fontSize: 16,
@@ -563,25 +607,25 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
                 ),
               ),
             ),
-            for (final entry in _methodLabels.entries)
+            for (final method in _methods)
               ListTile(
                 title: Text(
-                  entry.value,
+                  _methodLabel(method),
                   style: TextStyle(
                     color: PrayerPalette.ink,
                     fontSize: 14,
-                    fontWeight: entry.key == _method
+                    fontWeight: method == _method
                         ? FontWeight.w800
                         : FontWeight.w500,
                   ),
                 ),
-                trailing: entry.key == _method
+                trailing: method == _method
                     ? const Icon(
                         Icons.check_rounded,
                         color: PrayerPalette.accent,
                       )
                     : null,
-                onTap: () => Navigator.pop(ctx, entry.key),
+                onTap: () => Navigator.pop(ctx, method),
               ),
           ],
         ),

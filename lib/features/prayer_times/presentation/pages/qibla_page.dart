@@ -120,7 +120,7 @@ class _QiblaPageState extends State<QiblaPage> {
             ),
             const SizedBox(height: 2),
             Text(
-              '$_locationName · hold your phone flat',
+              '$_locationName · ${L.of(context).qiblaHoldFlat}',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: PrayerPalette.inkA(0.55),
@@ -132,7 +132,7 @@ class _QiblaPageState extends State<QiblaPage> {
             _dial(),
             const SizedBox(height: 24),
             Text(
-              '${_qiblaBearing.round()}°',
+              '${N.plain(_qiblaBearing.round())}°',
               style: const TextStyle(
                 color: PrayerPalette.ink,
                 fontSize: 26,
@@ -161,8 +161,8 @@ class _QiblaPageState extends State<QiblaPage> {
                 _heading == null
                     ? L.of(context).qiblaNoCompass
                     : _isAligned
-                    ? '✓ Aligned — you are facing the Qibla'
-                    : '✓ Aligned when the Kaaba points up',
+                    ? L.of(context).qiblaAligned
+                    : L.of(context).qiblaAlignHint,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _isAligned

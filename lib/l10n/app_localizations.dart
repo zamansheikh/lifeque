@@ -3942,6 +3942,342 @@ abstract class L {
   /// In en, this message translates to:
   /// **'S'**
   String get dowSun;
+
+  /// No description provided for @shareTodayTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Share today\'s times'**
+  String get shareTodayTimes;
+
+  /// No description provided for @shareImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Share image'**
+  String get shareImage;
+
+  /// No description provided for @shareCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer Times'**
+  String get shareCardTitle;
+
+  /// No description provided for @shareSunrise.
+  ///
+  /// In en, this message translates to:
+  /// **'SUNRISE'**
+  String get shareSunrise;
+
+  /// No description provided for @shareSahriEnds.
+  ///
+  /// In en, this message translates to:
+  /// **'SAHRI ENDS'**
+  String get shareSahriEnds;
+
+  /// No description provided for @shareIftar.
+  ///
+  /// In en, this message translates to:
+  /// **'IFTAR'**
+  String get shareIftar;
+
+  /// No description provided for @shareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not share the card'**
+  String get shareFailed;
+
+  /// No description provided for @shareEncodeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not encode the card'**
+  String get shareEncodeFailed;
+
+  /// No description provided for @shareCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer times · {date}'**
+  String shareCaption(String date);
+
+  /// No description provided for @shareMonthCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer timetable · {location}'**
+  String shareMonthCaption(String location);
+
+  /// No description provided for @calFridayNote.
+  ///
+  /// In en, this message translates to:
+  /// **'✦ Friday (Jumu\'ah) · times are indicative — verify with your local mosque'**
+  String get calFridayNote;
+
+  /// No description provided for @calHijriBangla.
+  ///
+  /// In en, this message translates to:
+  /// **'HIJRI · BANGLA'**
+  String get calHijriBangla;
+
+  /// No description provided for @calMonthShareCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'{month} prayer timetable · {location}'**
+  String calMonthShareCaption(String month, String location);
+
+  /// No description provided for @calTimetableHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer timetable · {location} · {madhab}'**
+  String calTimetableHeader(String location, String madhab);
+
+  /// No description provided for @qiblaHoldFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'hold your phone flat'**
+  String get qiblaHoldFlat;
+
+  /// No description provided for @qiblaAligned.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ Aligned — you are facing the Qibla'**
+  String get qiblaAligned;
+
+  /// No description provided for @qiblaAlignHint.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ Aligned when the Kaaba points up'**
+  String get qiblaAlignHint;
+
+  /// No description provided for @statsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer Stats'**
+  String get statsTitle;
+
+  /// No description provided for @statsDayStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'day streak'**
+  String get statsDayStreak;
+
+  /// No description provided for @statsOfThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'of {total} this week'**
+  String statsOfThisWeek(int total);
+
+  /// No description provided for @statsThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get statsThisWeek;
+
+  /// No description provided for @statsLast30.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get statsLast30;
+
+  /// No description provided for @statsEachDot.
+  ///
+  /// In en, this message translates to:
+  /// **'each dot = 1 day'**
+  String get statsEachDot;
+
+  /// No description provided for @stats30DayRate.
+  ///
+  /// In en, this message translates to:
+  /// **'30-day rate'**
+  String get stats30DayRate;
+
+  /// No description provided for @moreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get moreTitle;
+
+  /// No description provided for @morePrayerStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer stats'**
+  String get morePrayerStats;
+
+  /// No description provided for @morePrayerStatsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak, weekly & 30-day history'**
+  String get morePrayerStatsSub;
+
+  /// No description provided for @morePrayerAlarms.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer alarms'**
+  String get morePrayerAlarms;
+
+  /// No description provided for @morePrayerAlarmsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Per-prayer timing, adhan sound & duration'**
+  String get morePrayerAlarmsSub;
+
+  /// No description provided for @moreWidget.
+  ///
+  /// In en, this message translates to:
+  /// **'Home-screen widget'**
+  String get moreWidget;
+
+  /// No description provided for @moreWidgetSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer times on your home screen'**
+  String get moreWidgetSub;
+
+  /// No description provided for @moreAdhanVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Adhan voice'**
+  String get moreAdhanVoice;
+
+  /// No description provided for @moreSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get moreSettings;
+
+  /// No description provided for @moreCalculationMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation method'**
+  String get moreCalculationMethod;
+
+  /// No description provided for @moreMadhabAsr.
+  ///
+  /// In en, this message translates to:
+  /// **'Madhab (Asr)'**
+  String get moreMadhabAsr;
+
+  /// No description provided for @moreLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get moreLocation;
+
+  /// No description provided for @moreRamadanMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Ramadan mode'**
+  String get moreRamadanMode;
+
+  /// No description provided for @moreNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get moreNotSet;
+
+  /// No description provided for @moreCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get moreCustom;
+
+  /// No description provided for @soundTraditional.
+  ///
+  /// In en, this message translates to:
+  /// **'Traditional alarm tone'**
+  String get soundTraditional;
+
+  /// No description provided for @soundGentle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle wake-up tone'**
+  String get soundGentle;
+
+  /// No description provided for @soundMelodic.
+  ///
+  /// In en, this message translates to:
+  /// **'Melodic alarm tone'**
+  String get soundMelodic;
+
+  /// No description provided for @methodKarachiShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Karachi'**
+  String get methodKarachiShort;
+
+  /// No description provided for @methodEgyptianShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Egyptian'**
+  String get methodEgyptianShort;
+
+  /// No description provided for @methodUmmAlQuraShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Umm al-Qura'**
+  String get methodUmmAlQuraShort;
+
+  /// No description provided for @resourcesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Islamic Resources'**
+  String get resourcesTitle;
+
+  /// No description provided for @resSalahGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Salah Guide'**
+  String get resSalahGuide;
+
+  /// No description provided for @resSalahGuideSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Step-by-step prayer instructions'**
+  String get resSalahGuideSub;
+
+  /// No description provided for @resWaqtRakah.
+  ///
+  /// In en, this message translates to:
+  /// **'Waqt & Rakah Table'**
+  String get resWaqtRakah;
+
+  /// No description provided for @resWaqtRakahSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer times and rak\'ah counts'**
+  String get resWaqtRakahSub;
+
+  /// No description provided for @resSurahs.
+  ///
+  /// In en, this message translates to:
+  /// **'Necessary Surahs'**
+  String get resSurahs;
+
+  /// No description provided for @resSurahsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Essential Qur\'anic chapters'**
+  String get resSurahsSub;
+
+  /// No description provided for @resAfterPrayer.
+  ///
+  /// In en, this message translates to:
+  /// **'After-prayer Adhkar'**
+  String get resAfterPrayer;
+
+  /// No description provided for @resAfterPrayerSub.
+  ///
+  /// In en, this message translates to:
+  /// **'What to recite after the salam'**
+  String get resAfterPrayerSub;
+
+  /// No description provided for @resDuas.
+  ///
+  /// In en, this message translates to:
+  /// **'Du\'a & Adhkar'**
+  String get resDuas;
+
+  /// No description provided for @resDuasSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplications & remembrances'**
+  String get resDuasSub;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

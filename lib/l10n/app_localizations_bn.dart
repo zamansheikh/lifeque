@@ -2192,4 +2192,188 @@ class LBn extends L {
 
   @override
   String get dowSun => 'রবি';
+
+  @override
+  String get shareTodayTimes => 'আজকের সময়সূচি শেয়ার করুন';
+
+  @override
+  String get shareImage => 'ছবি শেয়ার করুন';
+
+  @override
+  String get shareCardTitle => 'নামাজের সময়';
+
+  @override
+  String get shareSunrise => 'সূর্যোদয়';
+
+  @override
+  String get shareSahriEnds => 'সাহরির শেষ';
+
+  @override
+  String get shareIftar => 'ইফতার';
+
+  @override
+  String get shareFailed => 'কার্ডটি শেয়ার করা যায়নি';
+
+  @override
+  String get shareEncodeFailed => 'কার্ডটি তৈরি করা যায়নি';
+
+  @override
+  String shareCaption(String date) {
+    return 'নামাজের সময় · $date';
+  }
+
+  @override
+  String shareMonthCaption(String location) {
+    return 'নামাজের সময়সূচি · $location';
+  }
+
+  @override
+  String get calFridayNote =>
+      '✦ শুক্রবার (জুমুআ) · সময়গুলো আনুমানিক — নিজের এলাকার মসজিদে যাচাই করে নিন';
+
+  @override
+  String get calHijriBangla => 'হিজরি · বাংলা';
+
+  @override
+  String calMonthShareCaption(String month, String location) {
+    return '$month মাসের নামাজের সময়সূচি · $location';
+  }
+
+  @override
+  String calTimetableHeader(String location, String madhab) {
+    return 'নামাজের সময়সূচি · $location · $madhab';
+  }
+
+  @override
+  String get qiblaHoldFlat => 'ফোনটি সমান করে ধরুন';
+
+  @override
+  String get qiblaAligned => '✓ ঠিক আছে — আপনি কিবলামুখী';
+
+  @override
+  String get qiblaAlignHint => '✓ কাবার চিহ্ন উপরে এলে কিবলামুখী হবেন';
+
+  @override
+  String get statsTitle => 'নামাজের পরিসংখ্যান';
+
+  @override
+  String get statsDayStreak => 'দিন ধারাবাহিক';
+
+  @override
+  String statsOfThisWeek(int total) {
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return 'এই সপ্তাহে $totalString-এর মধ্যে';
+  }
+
+  @override
+  String get statsThisWeek => 'এই সপ্তাহ';
+
+  @override
+  String get statsLast30 => 'গত ৩০ দিন';
+
+  @override
+  String get statsEachDot => 'প্রতিটি ঘর = ১ দিন';
+
+  @override
+  String get stats30DayRate => '৩০ দিনের হার';
+
+  @override
+  String get moreTitle => 'আরও';
+
+  @override
+  String get morePrayerStats => 'নামাজের পরিসংখ্যান';
+
+  @override
+  String get morePrayerStatsSub => 'ধারাবাহিকতা, সাপ্তাহিক ও ৩০ দিনের হিসাব';
+
+  @override
+  String get morePrayerAlarms => 'নামাজের অ্যালার্ম';
+
+  @override
+  String get morePrayerAlarmsSub =>
+      'প্রতি ওয়াক্তের সময়, আজানের সুর ও দৈর্ঘ্য';
+
+  @override
+  String get moreWidget => 'হোম স্ক্রিন উইজেট';
+
+  @override
+  String get moreWidgetSub => 'হোম স্ক্রিনে নামাজের সময়';
+
+  @override
+  String get moreAdhanVoice => 'আজানের সুর';
+
+  @override
+  String get moreSettings => 'সেটিংস';
+
+  @override
+  String get moreCalculationMethod => 'গণনার পদ্ধতি';
+
+  @override
+  String get moreMadhabAsr => 'মাযহাব (আসর)';
+
+  @override
+  String get moreLocation => 'অবস্থান';
+
+  @override
+  String get moreRamadanMode => 'রমজান মোড';
+
+  @override
+  String get moreNotSet => 'দেওয়া হয়নি';
+
+  @override
+  String get moreCustom => 'নিজের দেওয়া';
+
+  @override
+  String get soundTraditional => 'সাধারণ অ্যালার্মের সুর';
+
+  @override
+  String get soundGentle => 'নরম জাগানোর সুর';
+
+  @override
+  String get soundMelodic => 'সুরেলা অ্যালার্মের সুর';
+
+  @override
+  String get methodKarachiShort => 'করাচি';
+
+  @override
+  String get methodEgyptianShort => 'মিসরীয়';
+
+  @override
+  String get methodUmmAlQuraShort => 'উম্মুল কুরা';
+
+  @override
+  String get resourcesTitle => 'ইসলামিক রিসোর্স';
+
+  @override
+  String get resSalahGuide => 'নামাজের নির্দেশিকা';
+
+  @override
+  String get resSalahGuideSub => 'ধাপে ধাপে নামাজ পড়ার নিয়ম';
+
+  @override
+  String get resWaqtRakah => 'ওয়াক্ত ও রাকাতের তালিকা';
+
+  @override
+  String get resWaqtRakahSub => 'নামাজের সময় ও রাকাতের সংখ্যা';
+
+  @override
+  String get resSurahs => 'প্রয়োজনীয় সূরা';
+
+  @override
+  String get resSurahsSub => 'নামাজে দরকারি সূরাসমূহ';
+
+  @override
+  String get resAfterPrayer => 'নামাজের পরের জিকির';
+
+  @override
+  String get resAfterPrayerSub => 'সালামের পর যা পড়বেন';
+
+  @override
+  String get resDuas => 'দোয়া ও জিকির';
+
+  @override
+  String get resDuasSub => 'দোয়া ও আল্লাহর স্মরণ';
 }

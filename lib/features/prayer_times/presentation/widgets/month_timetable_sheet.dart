@@ -14,6 +14,9 @@ import '../utils/bangla_date.dart';
 import '../utils/hijri_names.dart';
 import '../utils/prayer_palette.dart';
 import 'prayer_snack.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../utils/prayer_l10n.dart';
 
 /// Preview-and-share for a whole month's timetable, as an A4-proportioned
 /// (794×1123) sheet suitable for printing or forwarding to a mosque group.
@@ -69,6 +72,17 @@ class _SheetState extends State<_Sheet> {
   bool _busy = false;
 
   Future<void> _share() async {
+    // Captured before the first await; the context is gone by the time the
+    // share sheet returns.
+    final caption = L
+        .of(context)
+        .calMonthShareCaption(
+          DateFormat('MMMM y').format(widget.month),
+          widget.locationName,
+        );
+    final encodeError = L.of(context).calEncodeFailed;
+    final shareError = L.of(context).calShareFailed;
+
     setState(() => _busy = true);
     try {
       final boundary =
@@ -77,7 +91,7 @@ class _SheetState extends State<_Sheet> {
       // Rendered at 2× so the dense table stays legible when printed.
       final image = await boundary.toImage(pixelRatio: 2);
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (bytes == null) throw Exception('Could not encode the timetable');
+      if (bytes == null) throw Exception(encodeError);
 
       final dir = await getTemporaryDirectory();
       final file = File(
@@ -87,18 +101,13 @@ class _SheetState extends State<_Sheet> {
       await file.writeAsBytes(bytes.buffer.asUint8List());
 
       await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path)],
-          text:
-              '${DateFormat('MMMM y').format(widget.month)} prayer '
-              'timetable · ${widget.locationName}',
-        ),
+        ShareParams(files: [XFile(file.path)], text: caption),
       );
     } catch (e) {
       if (!mounted) return;
       PrayerSnack.show(
         context,
-        'Could not share the timetable: $e',
+        shareError,
         kind: PrayerSnackKind.error,
         duration: const Duration(seconds: 3),
       );
@@ -182,7 +191,11 @@ class _SheetState extends State<_Sheet> {
                         ),
                       )
                     : const Icon(Icons.ios_share_rounded, size: 18),
-                label: Text(_busy ? 'Preparing…' : 'Share timetable'),
+                label: Text(
+                  _busy
+                      ? L.of(context).calPreparing
+                      : L.of(context).calShareTimetable,
+                ),
               ),
             ),
           ),
@@ -212,19 +225,17 @@ class MonthTimetableCard extends StatelessWidget {
     required this.locationName,
   });
 
+  /// English keys; [prayerLabel] renders them.
   static const _columns = [
-    'FAJR',
-    'SUNRISE',
-    'DHUHR',
-    'ASR',
-    'MAGHRIB',
-    'ISHA',
+    'Fajr',
+    'Sunrise',
+    'Dhuhr',
+    'Asr',
+    'Maghrib',
+    'Isha',
   ];
 
-  String _fmt(DateTime t) {
-    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
-    return '$h:${t.minute.toString().padLeft(2, '0')}';
-  }
+  String _fmt(DateTime t) => DateFormat('h:mm').format(t);
 
   @override
   Widget build(BuildContext context) {
@@ -241,7 +252,9 @@ class MonthTimetableCard extends StatelessWidget {
     final banglaSpan = banglaStart.monthName == banglaEnd.monthName
         ? banglaStart.monthName
         : '${banglaStart.monthName}–${banglaEnd.monthName}';
-    final madhabLabel = madhab == Madhab.hanafi ? 'Hanafi' : 'Shafi';
+    final madhabLabel = madhab == Madhab.hanafi
+        ? L.of(context).madhabHanafi
+        : L.of(context).madhabShafi;
 
     return Directionality(
       textDirection: ui.TextDirection.ltr,
@@ -318,7 +331,9 @@ class MonthTimetableCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Prayer timetable · $locationName · $madhabLabel',
+                        L
+                            .of(context)
+                            .calTimetableHeader(locationName, madhabLabel),
                         style: TextStyle(
                           color: PrayerPalette.inkA(0.6),
                           fontSize: 13,
@@ -343,10 +358,10 @@ class MonthTimetableCard extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const SizedBox(
+                    SizedBox(
                       width: 96,
                       child: Text(
-                        'DATE',
+                        L.of(context).calDate,
                         style: TextStyle(
                           color: PrayerPalette.gold,
                           fontSize: 11,
@@ -358,7 +373,7 @@ class MonthTimetableCard extends StatelessWidget {
                     SizedBox(
                       width: 150,
                       child: Text(
-                        'HIJRI · বাংলা',
+                        L.of(context).calHijriBangla,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.85),
                           fontSize: 11,
@@ -370,7 +385,7 @@ class MonthTimetableCard extends StatelessWidget {
                     for (final c in _columns)
                       Expanded(
                         child: Text(
-                          c,
+                          prayerLabel(context, c).toUpperCase(),
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             color: Colors.white,
@@ -429,8 +444,7 @@ class MonthTimetableCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      '✦ Friday (Jumu\'ah) · times are indicative — verify '
-                      'with your local mosque',
+                      L.of(context).calFridayNote,
                       style: TextStyle(
                         color: PrayerPalette.inkA(0.55),
                         fontSize: 11,
@@ -489,7 +503,7 @@ class MonthTimetableCard extends StatelessWidget {
           SizedBox(
             width: 150,
             child: Text(
-              '${hijri.hDay} ${HijriNames.shortMonth(hijri.hMonth)} · '
+              '${N.of(hijri.hDay)} ${HijriNames.shortMonth(hijri.hMonth)} · '
               '${BanglaDate.digits(bangla.day)} ${bangla.monthName}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

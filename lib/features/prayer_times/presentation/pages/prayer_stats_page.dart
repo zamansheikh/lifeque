@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 
 import '../../data/services/prayer_completion_service.dart';
 import '../utils/prayer_palette.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Prayer history: streak, this week's bars and a 30-day completion heatmap.
 class PrayerStatsPage extends StatefulWidget {
@@ -51,8 +53,8 @@ class _PrayerStatsPageState extends State<PrayerStatsPage> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         foregroundColor: PrayerPalette.ink,
-        title: const Text(
-          'Prayer Stats',
+        title: Text(
+          L.of(context).statsTitle,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
         ),
       ),
@@ -79,21 +81,25 @@ class _PrayerStatsPageState extends State<PrayerStatsPage> {
     return Row(
       children: [
         Expanded(
-          child: _tile(value: '$_streak', label: 'day streak 🔥', dark: true),
+          child: _tile(
+            value: N.of(_streak),
+            label: '${L.of(context).statsDayStreak} 🔥',
+            dark: true,
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _tile(
-            value: '$weekTotal',
-            label: 'of 35 this week',
+            value: N.of(weekTotal),
+            label: L.of(context).statsOfThisWeek(7 * 5),
             dark: false,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _tile(
-            value: '${(_rate * 100).round()}%',
-            label: '30-day rate',
+            value: N.percent((_rate * 100).round()),
+            label: L.of(context).stats30DayRate,
             dark: false,
           ),
         ),
@@ -161,7 +167,7 @@ class _PrayerStatsPageState extends State<PrayerStatsPage> {
   Widget _weekCard() {
     final today = DateTime.now();
     return _card(
-      title: 'This week',
+      title: L.of(context).statsThisWeek,
       child: SizedBox(
         height: 64,
         child: Row(
@@ -196,7 +202,7 @@ class _PrayerStatsPageState extends State<PrayerStatsPage> {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Text(
-          '$count',
+          N.of(count),
           style: TextStyle(
             color: PrayerPalette.inkA(0.6),
             fontSize: 9,
@@ -230,9 +236,9 @@ class _PrayerStatsPageState extends State<PrayerStatsPage> {
 
   Widget _heatCard() {
     return _card(
-      title: 'Last 30 days',
+      title: L.of(context).statsLast30,
       trailing: Text(
-        'each dot = 1 day',
+        L.of(context).statsEachDot,
         style: TextStyle(
           color: PrayerPalette.inkA(0.5),
           fontSize: 10,
@@ -263,7 +269,7 @@ class _PrayerStatsPageState extends State<PrayerStatsPage> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                '0',
+                N.of(0),
                 style: TextStyle(
                   color: PrayerPalette.inkA(0.5),
                   fontSize: 9,
@@ -288,7 +294,7 @@ class _PrayerStatsPageState extends State<PrayerStatsPage> {
                 ),
               ],
               Text(
-                '5',
+                N.of(5),
                 style: TextStyle(
                   color: PrayerPalette.inkA(0.5),
                   fontSize: 9,

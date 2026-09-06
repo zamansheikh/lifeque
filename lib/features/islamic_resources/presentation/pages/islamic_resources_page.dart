@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'salah_guide/salah_types_page.dart';
 import 'waqt_rakah_page.dart';
@@ -21,9 +23,13 @@ class IslamicColors {
 
 // ─── category model ───────────────────────────────────────────────────────────
 class _ResourceCategory {
-  final String title;
-  final String subtitle;
+  /// The Arabic name stays as written — it is content, not a label.
   final String arabicTitle;
+
+  /// Resolved against the bundle at paint time.
+  final String Function(L) title;
+  final String Function(L) subtitle;
+
   final IconData icon;
   final Color iconBg;
   final Color iconColor;
@@ -52,45 +58,45 @@ class IslamicResourcesPage extends StatelessWidget {
 
   static final List<_ResourceCategory> _categories = [
     _ResourceCategory(
-      title: 'Salah Guide',
+      title: (l) => l.resSalahGuide,
       arabicTitle: 'دليل الصلاة',
-      subtitle: 'Step-by-step prayer instructions',
+      subtitle: (l) => l.resSalahGuideSub,
       icon: Icons.self_improvement_rounded,
       iconBg: Color(0xFFE8F5EE),
       iconColor: IslamicColors.deepGreen,
       page: const SalahTypesPage(),
     ),
     _ResourceCategory(
-      title: 'Waqt & Rakah Table',
+      title: (l) => l.resWaqtRakah,
       arabicTitle: 'وقت الصلاة والركعات',
-      subtitle: 'Prayer times and rak\'ah counts',
+      subtitle: (l) => l.resWaqtRakahSub,
       icon: Icons.access_time_rounded,
       iconBg: Color(0xFFFFF3E0),
       iconColor: Color(0xFFE65100),
       page: const WaqtRakahPage(),
     ),
     _ResourceCategory(
-      title: 'Necessary Surahs',
+      title: (l) => l.resSurahs,
       arabicTitle: 'السور الضرورية',
-      subtitle: 'Essential Qur\'anic chapters',
+      subtitle: (l) => l.resSurahsSub,
       icon: Icons.menu_book_rounded,
       iconBg: Color(0xFFE8EAF6),
       iconColor: Color(0xFF3949AB),
       page: const NecessarySurahsPage(),
     ),
     _ResourceCategory(
-      title: 'After-prayer Adhkar',
+      title: (l) => l.resAfterPrayer,
       arabicTitle: 'أذكار بعد الصلاة',
-      subtitle: 'What to recite after the salam',
+      subtitle: (l) => l.resAfterPrayerSub,
       icon: Icons.wb_twilight_rounded,
       iconBg: Color(0xFFE0F2F1),
       iconColor: Color(0xFF00695C),
       page: const AfterPrayerDuasPage(),
     ),
     _ResourceCategory(
-      title: 'Du\'a & Adhkar',
+      title: (l) => l.resDuas,
       arabicTitle: 'الأدعية والأذكار',
-      subtitle: 'Supplications & remembrances',
+      subtitle: (l) => l.resDuasSub,
       icon: Icons.volunteer_activism_rounded,
       iconBg: Color(0xFFFCE4EC),
       iconColor: Color(0xFFC2185B),
@@ -104,7 +110,7 @@ class IslamicResourcesPage extends StatelessWidget {
       backgroundColor: IslamicColors.cream,
       body: CustomScrollView(
         slivers: [
-          _buildSliverHeader(),
+          _buildSliverHeader(context),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             sliver: SliverList(
@@ -122,7 +128,7 @@ class IslamicResourcesPage extends StatelessWidget {
     );
   }
 
-  SliverAppBar _buildSliverHeader() {
+  SliverAppBar _buildSliverHeader(BuildContext context) {
     return SliverAppBar(
       expandedHeight: 190,
       pinned: true,
@@ -131,9 +137,9 @@ class IslamicResourcesPage extends StatelessWidget {
       backgroundColor: IslamicColors.deepGreen,
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.only(left: 20, bottom: 14),
-        title: const Text(
-          'Islamic Resources',
-          style: TextStyle(
+        title: Text(
+          L.of(context).resourcesTitle,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 17,
             fontWeight: FontWeight.w700,
@@ -253,7 +259,7 @@ class _CategoryCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      category.title,
+                      category.title(L.of(context)),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -262,7 +268,7 @@ class _CategoryCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      category.subtitle,
+                      category.subtitle(L.of(context)),
                       style: const TextStyle(
                         fontSize: 13,
                         color: IslamicColors.mutedText,

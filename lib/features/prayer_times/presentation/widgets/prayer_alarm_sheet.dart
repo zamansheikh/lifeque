@@ -687,7 +687,7 @@ class _SheetState extends State<_Sheet> {
                   ),
                 ),
                 child: Text(
-                  '${_durations[i]} min',
+                  L.of(context).alarmMinutes(_durations[i]),
                   style: TextStyle(
                     color: _duration == _durations[i]
                         ? Colors.white

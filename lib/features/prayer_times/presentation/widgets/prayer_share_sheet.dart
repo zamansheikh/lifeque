@@ -13,6 +13,9 @@ import '../utils/bangla_date.dart';
 import '../utils/hijri_names.dart';
 import '../utils/prayer_palette.dart';
 import 'prayer_snack.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../utils/prayer_l10n.dart';
 
 /// Preview-and-share for the day's prayer times.
 ///
@@ -58,6 +61,13 @@ class _ShareSheetState extends State<_ShareSheet> {
   bool _busy = false;
 
   Future<void> _share() async {
+    // Read the caption before the first await — the share sheet and the file
+    // write are async gaps, and the context may be gone on the far side.
+    final caption =
+        '${L.of(context).shareCaption(DateFormat('MMMM d, y').format(widget.date))}'
+        ' · ${widget.locationName}';
+    final encodeError = L.of(context).shareEncodeFailed;
+
     setState(() => _busy = true);
     try {
       final boundary =
@@ -67,7 +77,7 @@ class _ShareSheetState extends State<_ShareSheet> {
       // extra pixelRatio is needed to hit the 1080×1350 target.
       final image = await boundary.toImage(pixelRatio: 1);
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (bytes == null) throw Exception('Could not encode the card');
+      if (bytes == null) throw Exception(encodeError);
 
       final dir = await getTemporaryDirectory();
       final file = File(
@@ -77,12 +87,7 @@ class _ShareSheetState extends State<_ShareSheet> {
       await file.writeAsBytes(bytes.buffer.asUint8List());
 
       await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path)],
-          text:
-              'Prayer times · ${DateFormat('MMMM d, y').format(widget.date)}'
-              ' · ${widget.locationName}',
-        ),
+        ShareParams(files: [XFile(file.path)], text: caption),
       );
     } catch (e) {
       if (!mounted) return;
@@ -122,8 +127,8 @@ class _ShareSheetState extends State<_ShareSheet> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Share today\'s times',
+          Text(
+            L.of(context).shareTodayTimes,
             style: TextStyle(
               color: PrayerPalette.ink,
               fontSize: 16,
@@ -171,7 +176,9 @@ class _ShareSheetState extends State<_ShareSheet> {
                         ),
                       )
                     : const Icon(Icons.ios_share_rounded, size: 18),
-                label: Text(_busy ? 'Preparing…' : 'Share image'),
+                label: Text(
+                  _busy ? L.of(context).calPreparing : L.of(context).shareImage,
+                ),
               ),
             ),
           ),
@@ -204,11 +211,7 @@ class PrayerShareCard extends StatelessWidget {
     'Isha': Icons.nightlight_outlined,
   };
 
-  String _fmt(DateTime t) {
-    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
-    return '$h:${t.minute.toString().padLeft(2, '0')} '
-        '${t.hour < 12 ? 'am' : 'pm'}';
-  }
+  String _fmt(DateTime t) => DateFormat('h:mm a').format(t);
 
   @override
   Widget build(BuildContext context) {
@@ -280,8 +283,8 @@ class PrayerShareCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 28),
-                  const Text(
-                    'Prayer Times',
+                  Text(
+                    L.of(context).shareCardTitle,
                     style: TextStyle(
                       color: PrayerPalette.ink,
                       fontSize: 66,
@@ -291,8 +294,10 @@ class PrayerShareCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    '${DateFormat('EEEE').format(date)}, ${hijri.hDay} '
-                    '${HijriNames.month(hijri.hMonth)} ${hijri.hYear} · '
+                    '${DateFormat('EEEE').format(date)}, '
+                    '${N.of(hijri.hDay)} '
+                    '${HijriNames.monthFor(context, hijri.hMonth)} '
+                    '${N.plain(hijri.hYear)} · '
                     '${DateFormat('MMM d, y').format(date)}',
                     style: TextStyle(
                       color: PrayerPalette.inkA(0.7),
@@ -337,27 +342,30 @@ class PrayerShareCard extends StatelessWidget {
                   const SizedBox(height: 44),
                   for (var i = 0; i < _fard.length; i++) ...[
                     if (i > 0) const SizedBox(height: 14),
-                    _row(_fard[i], times[_fard[i]]!),
+                    _row(context, _fard[i], times[_fard[i]]!),
                   ],
                   const SizedBox(height: 26),
                   Row(
                     children: [
                       Expanded(
                         child: _footerTile(
-                          '☀ SUNRISE',
+                          '☀ ${L.of(context).shareSunrise}',
                           _fmt(times['Sunrise']!),
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: _footerTile(
-                          '☾ SAHRI ENDS',
+                          '☾ ${L.of(context).shareSahriEnds}',
                           _fmt(times['Fajr']!),
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: _footerTile('✦ IFTAR', _fmt(times['Maghrib']!)),
+                        child: _footerTile(
+                          '✦ ${L.of(context).shareIftar}',
+                          _fmt(times['Maghrib']!),
+                        ),
                       ),
                     ],
                   ),
@@ -447,7 +455,7 @@ class PrayerShareCard extends StatelessWidget {
 
   /// Every prayer renders identically. The card is a timetable people send
   /// to others, so marking "now" would be wrong the moment it's forwarded.
-  Widget _row(String name, DateTime time) {
+  Widget _row(BuildContext context, String name, DateTime time) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 46, vertical: 22),
       decoration: BoxDecoration(
@@ -470,7 +478,7 @@ class PrayerShareCard extends StatelessWidget {
           ),
           const SizedBox(width: 18),
           Text(
-            name,
+            prayerLabel(context, name),
             style: const TextStyle(
               color: PrayerPalette.ink,
               fontSize: 37,
