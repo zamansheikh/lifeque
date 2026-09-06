@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'islamic_resources_page.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../prayer_times/presentation/utils/prayer_l10n.dart';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 class _PrayerRow {
@@ -11,7 +13,9 @@ class _PrayerRow {
   final String fard;
   final String sunnahPost;
   final String extra;
-  final String time;
+
+  /// Which range description to show; resolved by [_rangeFor].
+  final String timeKey;
 
   const _PrayerRow({
     required this.arabic,
@@ -21,8 +25,22 @@ class _PrayerRow {
     required this.fard,
     required this.sunnahPost,
     required this.extra,
-    required this.time,
+    required this.timeKey,
   });
+}
+
+/// The waqt range in the app's language.
+String _rangeFor(BuildContext context, String key) {
+  final l = L.of(context);
+  return switch (key) {
+    'fajr' => l.waqtFajrRange,
+    'dhuhr' => l.waqtDhuhrRange,
+    'asr' => l.waqtAsrRange,
+    'maghrib' => l.waqtMaghribRange,
+    'isha' => l.waqtIshaRange,
+    'jumuah' => l.waqtJumuahNote,
+    _ => '',
+  };
 }
 
 const List<_PrayerRow> _prayers = [
@@ -34,7 +52,7 @@ const List<_PrayerRow> _prayers = [
     fard: '2',
     sunnahPost: '—',
     extra: '—',
-    time: 'True dawn → Sunrise',
+    timeKey: 'fajr',
   ),
   _PrayerRow(
     arabic: 'الظُّهْر',
@@ -44,7 +62,7 @@ const List<_PrayerRow> _prayers = [
     fard: '4',
     sunnahPost: '2',
     extra: '—',
-    time: 'Midday → Shadow = object',
+    timeKey: 'dhuhr',
   ),
   _PrayerRow(
     arabic: 'الْعَصْر',
@@ -54,7 +72,7 @@ const List<_PrayerRow> _prayers = [
     fard: '4',
     sunnahPost: '—',
     extra: '—',
-    time: 'Shadow doubles → Sunset',
+    timeKey: 'asr',
   ),
   _PrayerRow(
     arabic: 'الْمَغْرِب',
@@ -64,7 +82,7 @@ const List<_PrayerRow> _prayers = [
     fard: '3',
     sunnahPost: '2',
     extra: '—',
-    time: 'Sunset → Twilight gone',
+    timeKey: 'maghrib',
   ),
   _PrayerRow(
     arabic: 'الْعِشَاء',
@@ -74,7 +92,7 @@ const List<_PrayerRow> _prayers = [
     fard: '4',
     sunnahPost: '2',
     extra: 'Witr\n1–3',
-    time: 'End of twilight → Fajr',
+    timeKey: 'isha',
   ),
   _PrayerRow(
     arabic: 'الْجُمُعَة',
@@ -84,7 +102,7 @@ const List<_PrayerRow> _prayers = [
     fard: '2',
     sunnahPost: '4+2',
     extra: '—',
-    time: 'Replaces Dhuhr on Friday',
+    timeKey: 'jumuah',
   ),
 ];
 
@@ -98,7 +116,7 @@ class WaqtRakahPage extends StatelessWidget {
       backgroundColor: IslamicColors.cream,
       body: CustomScrollView(
         slivers: [
-          _buildHeader(),
+          _buildHeader(context),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
             sliver: SliverList(
@@ -111,11 +129,11 @@ class WaqtRakahPage extends StatelessWidget {
                   'Source: Sahih al-Bukhari & Muslim — Consensus of the four major schools.',
                 ),
                 const SizedBox(height: 22),
-                _sectionTitle('Prayer Times (Waqt)'),
+                _sectionTitle(L.of(context).waqtSectionTimes),
                 const SizedBox(height: 10),
                 ..._prayers.map((p) => _PrayerTimeCard(prayer: p)),
                 const SizedBox(height: 22),
-                _sectionTitle('Wudu & Tayammum Notes'),
+                _sectionTitle(L.of(context).waqtSectionWudu),
                 const SizedBox(height: 10),
                 _WuduNotesCard(),
               ]),
@@ -126,11 +144,11 @@ class WaqtRakahPage extends StatelessWidget {
     );
   }
 
-  SliverAppBar _buildHeader() {
+  SliverAppBar _buildHeader(BuildContext context) {
     return SliverAppBar(
-      title: const Text(
-        'Waqt & Rakah Table',
-        style: TextStyle(
+      title: Text(
+        L.of(context).waqtTitle,
+        style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,
           fontSize: 18,
@@ -250,10 +268,10 @@ class _RakahTable extends StatelessWidget {
             child: Column(
               children: [
                 // header row
-                _buildHeaderRow(w),
+                _buildHeaderRow(context, w),
                 // data rows
                 ..._prayers.asMap().entries.map(
-                  (e) => _buildDataRow(e.value, e.key.isEven, w),
+                  (e) => _buildDataRow(context, e.value, e.key.isEven, w),
                 ),
               ],
             ),
@@ -263,17 +281,17 @@ class _RakahTable extends StatelessWidget {
     );
   }
 
-  Widget _buildHeaderRow(double w) {
+  Widget _buildHeaderRow(BuildContext context, double w) {
     return Container(
       color: IslamicColors.deepGreen,
       child: Row(
         children: [
-          _hCell('Prayer', w * 0.24, TextAlign.left),
-          _hCell('Pre\nSunnah', w * 0.14),
-          _hCell('Fard', w * 0.14),
-          _hCell('Post\nSunnah', w * 0.16),
-          _hCell('Extra', w * 0.14),
-          _hCell('Rakah\nTotal', w * 0.18),
+          _hCell(L.of(context).waqtColPrayer, w * 0.24, TextAlign.left),
+          _hCell(L.of(context).waqtColPreSunnah, w * 0.14),
+          _hCell(L.of(context).waqtColFard, w * 0.14),
+          _hCell(L.of(context).waqtColPostSunnah, w * 0.16),
+          _hCell(L.of(context).waqtColExtra, w * 0.14),
+          _hCell(L.of(context).waqtColTotal, w * 0.18),
         ],
       ),
     );
@@ -301,7 +319,12 @@ class _RakahTable extends StatelessWidget {
     );
   }
 
-  Widget _buildDataRow(_PrayerRow prayer, bool even, double w) {
+  Widget _buildDataRow(
+    BuildContext context,
+    _PrayerRow prayer,
+    bool even,
+    double w,
+  ) {
     final pre = int.tryParse(prayer.sunnahPre) ?? 0;
     final fard = int.tryParse(prayer.fard) ?? 0;
     final post = _parsePost(prayer.sunnahPost);
@@ -330,7 +353,7 @@ class _RakahTable extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    prayer.name,
+                    prayerLabel(context, prayer.name),
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -441,7 +464,7 @@ class _PrayerTimeCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          prayer.name,
+                          prayerLabel(context, prayer.name),
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -460,7 +483,7 @@ class _PrayerTimeCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 5),
                         Text(
-                          prayer.time,
+                          _rangeFor(context, prayer.timeKey),
                           style: const TextStyle(
                             fontSize: 12.5,
                             color: IslamicColors.mutedText,
@@ -502,23 +525,11 @@ class _WuduNotesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const notes = [
-      _Note(
-        'Wudu invalidated by',
-        'Urination, defecation, deep sleep, passing wind, unconsciousness',
-      ),
-      _Note(
-        'Ghusl required after',
-        'Janabah (major impurity), menstruation, post-natal bleeding',
-      ),
-      _Note(
-        'Tayammum allowed when',
-        'No water available or using water is harmful — use clean dust or earth',
-      ),
-      _Note(
-        'Masah on Khuffayn',
-        'Wipe over leather socks: 1 day (resident), 3 days (traveller)',
-      ),
+    final notes = [
+      _Note(L.of(context).wuduInvalidated, L.of(context).wuduInvalidatedBody),
+      _Note(L.of(context).ghuslRequired, L.of(context).ghuslRequiredBody),
+      _Note(L.of(context).tayammumAllowed, L.of(context).tayammumAllowedBody),
+      _Note(L.of(context).masahKhuffayn, L.of(context).masahKhuffaynBody),
     ];
 
     return Container(

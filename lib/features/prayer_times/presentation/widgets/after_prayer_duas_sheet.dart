@@ -1,47 +1,48 @@
 import 'package:flutter/material.dart';
 
 import '../utils/prayer_palette.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// One adhkar entry in [AfterPrayerDuasSheet].
+///
+/// The Arabic and the repetition count are content and stay as written; the
+/// section tag and the meaning are looked up so they follow the app language.
 class _Dua {
-  final String tag;
+  final String Function(L) tag;
   final String count;
   final String arabic;
-  final String english;
+  final String Function(L) meaning;
 
-  const _Dua(this.tag, this.count, this.arabic, this.english);
+  const _Dua(this.tag, this.count, this.arabic, this.meaning);
 }
 
 /// The adhkar recited straight after the fard prayer.
 class AfterPrayerDuasSheet {
   static const _duas = <_Dua>[
+    _Dua(_afterSalam, '3×', 'أَسْتَغْفِرُ الله', _astaghfirullah),
     _Dua(
-      'AFTER SALAM',
-      '3×',
-      'أَسْتَغْفِرُ الله',
-      'Astaghfirullah — I seek the forgiveness of Allah.',
-    ),
-    _Dua(
-      'AFTER SALAM',
+      _afterSalam,
       '1×',
       'اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ، '
           'تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ',
-      'O Allah, You are Peace and from You is peace. Blessed are You, '
-          'O Owner of Majesty and Honor.',
+      _allahummaAntas,
     ),
     _Dua(
-      'TASBIH',
+      _tasbih,
       '33 · 33 · 34',
       'سُبْحَانَ الله · الْحَمْدُ لِلَّه · اللَّهُ أَكْبَر',
-      'SubhanAllah 33× · Alhamdulillah 33× · Allahu Akbar 34×',
+      _tasbihCounts,
     ),
-    _Dua(
-      'PROTECTION',
-      '1×',
-      'آيَةُ الْكُرْسِيّ',
-      'Recite Ayat al-Kursi (2:255) after each prayer.',
-    ),
+    _Dua(_protection, '1×', 'آيَةُ الْكُرْسِيّ', _ayatulKursi),
   ];
+
+  static String _afterSalam(L l) => l.adhkarSectionAfterSalam;
+  static String _tasbih(L l) => l.adhkarSectionTasbih;
+  static String _protection(L l) => l.adhkarSectionProtection;
+  static String _astaghfirullah(L l) => l.adhkarAstaghfirullah;
+  static String _allahummaAntas(L l) => l.adhkarAllahummaAntas;
+  static String _tasbihCounts(L l) => l.adhkarTasbihCounts;
+  static String _ayatulKursi(L l) => l.adhkarAyatulKursi;
 
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
@@ -83,7 +84,7 @@ class AfterPrayerDuasSheet {
             ),
             for (final dua in _duas) ...[
               const SizedBox(height: 10),
-              _card(dua),
+              _card(context, dua),
             ],
           ],
         ),
@@ -93,11 +94,14 @@ class AfterPrayerDuasSheet {
 
   /// The dua cards on their own, so the Learn section can lay them out as a
   /// page without duplicating the list.
-  static List<Widget> cards() => [
-    for (final dua in _duas) ...[_card(dua), const SizedBox(height: 10)],
+  static List<Widget> cards(BuildContext context) => [
+    for (final dua in _duas) ...[
+      _card(context, dua),
+      const SizedBox(height: 10),
+    ],
   ];
 
-  static Widget _card(_Dua dua) => Container(
+  static Widget _card(BuildContext context, _Dua dua) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
     decoration: BoxDecoration(
       color: PrayerPalette.canvas,
@@ -110,7 +114,7 @@ class AfterPrayerDuasSheet {
         Row(
           children: [
             Text(
-              dua.tag,
+              dua.tag(L.of(context)),
               style: const TextStyle(
                 color: PrayerPalette.accent,
                 fontSize: 10,
@@ -138,7 +142,7 @@ class AfterPrayerDuasSheet {
         ),
         const SizedBox(height: 5),
         Text(
-          dua.english,
+          dua.meaning(L.of(context)),
           style: TextStyle(
             color: PrayerPalette.inkA(0.6),
             fontSize: 11,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../prayer_times/presentation/widgets/after_prayer_duas_sheet.dart';
 import 'islamic_resources_page.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// The adhkar said after finishing a prayer.
 ///
@@ -17,13 +18,13 @@ class AfterPrayerDuasPage extends StatelessWidget {
       backgroundColor: IslamicColors.cream,
       body: CustomScrollView(
         slivers: [
-          _buildHeader(),
+          _buildHeader(context),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 Text(
-                  'Recited after the salam of every fard prayer.',
+                  L.of(context).adhkarSubtitle,
                   style: TextStyle(
                     color: IslamicColors.mutedText,
                     fontSize: 13,
@@ -31,7 +32,7 @@ class AfterPrayerDuasPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 14),
-                ...AfterPrayerDuasSheet.cards(),
+                ...AfterPrayerDuasSheet.cards(context),
               ]),
             ),
           ),
@@ -40,11 +41,11 @@ class AfterPrayerDuasPage extends StatelessWidget {
     );
   }
 
-  SliverAppBar _buildHeader() {
+  SliverAppBar _buildHeader(BuildContext context) {
     return SliverAppBar(
-      title: const Text(
-        'After-prayer Adhkar',
-        style: TextStyle(
+      title: Text(
+        L.of(context).adhkarTitle,
+        style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,
           fontSize: 18,

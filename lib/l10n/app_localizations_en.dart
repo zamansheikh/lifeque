@@ -2382,4 +2382,117 @@ class LEn extends L {
 
   @override
   String get resDuasSub => 'Supplications & remembrances';
+
+  @override
+  String get waqtTitle => 'Waqt & Rakah Table';
+
+  @override
+  String get waqtSectionTimes => 'Prayer Times (Waqt)';
+
+  @override
+  String get waqtSectionRakah => 'Rak\'ah Count Table';
+
+  @override
+  String get waqtSectionWudu => 'Wudu & Tayammum Notes';
+
+  @override
+  String get waqtColPrayer => 'Prayer';
+
+  @override
+  String get waqtColFard => 'Fard';
+
+  @override
+  String get waqtColExtra => 'Extra';
+
+  @override
+  String get waqtFajrRange => 'True dawn → Sunrise';
+
+  @override
+  String get waqtDhuhrRange => 'Midday → Shadow = object';
+
+  @override
+  String get waqtAsrRange => 'Shadow doubles → Sunset';
+
+  @override
+  String get waqtMaghribRange => 'Sunset → Twilight gone';
+
+  @override
+  String get waqtIshaRange => 'End of twilight → Fajr';
+
+  @override
+  String get waqtJumuahNote => 'Replaces Dhuhr on Friday';
+
+  @override
+  String get wuduInvalidated => 'Wudu invalidated by';
+
+  @override
+  String get wuduInvalidatedBody =>
+      'Urination, defecation, deep sleep, passing wind, unconsciousness';
+
+  @override
+  String get ghuslRequired => 'Ghusl required after';
+
+  @override
+  String get ghuslRequiredBody =>
+      'Janabah (major impurity), menstruation, post-natal bleeding';
+
+  @override
+  String get tayammumAllowed => 'Tayammum allowed when';
+
+  @override
+  String get tayammumAllowedBody =>
+      'No water available or using water is harmful — use clean dust or earth';
+
+  @override
+  String get masahKhuffayn => 'Masah on Khuffayn';
+
+  @override
+  String get masahKhuffaynBody =>
+      'Wipe over leather socks: 1 day (resident), 3 days (traveller)';
+
+  @override
+  String get adhkarTitle => 'After-prayer Adhkar';
+
+  @override
+  String get adhkarSubtitle => 'Recited after the salam of every fard prayer.';
+
+  @override
+  String get adhkarSectionAfterSalam => 'AFTER SALAM';
+
+  @override
+  String get adhkarSectionTasbih => 'TASBIH';
+
+  @override
+  String get adhkarSectionProtection => 'PROTECTION';
+
+  @override
+  String get adhkarAstaghfirullah =>
+      'Astaghfirullah — I seek the forgiveness of Allah.';
+
+  @override
+  String get adhkarAllahummaAntas =>
+      'O Allah, You are Peace and from You is peace. Blessed are You, O Owner of Majesty and Honour.';
+
+  @override
+  String get adhkarTasbihCounts =>
+      'SubhanAllah 33× · Alhamdulillah 33× · Allahu Akbar 34×';
+
+  @override
+  String get adhkarAyatulKursi =>
+      'Recite Ayat al-Kursi (2:255) after each prayer.';
+
+  @override
+  String get prayerJumuah => 'Jumu\'ah';
+
+  @override
+  String get waqtWitr => 'Witr';
+
+  @override
+  String get waqtColPreSunnah => 'Pre\nSunnah';
+
+  @override
+  String get waqtColPostSunnah => 'Post\nSunnah';
+
+  @override
+  String get waqtColTotal => 'Rakah\nTotal';
 }

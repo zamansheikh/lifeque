@@ -2376,4 +2376,116 @@ class LBn extends L {
 
   @override
   String get resDuasSub => 'দোয়া ও আল্লাহর স্মরণ';
+
+  @override
+  String get waqtTitle => 'ওয়াক্ত ও রাকাতের তালিকা';
+
+  @override
+  String get waqtSectionTimes => 'নামাজের ওয়াক্ত';
+
+  @override
+  String get waqtSectionRakah => 'রাকাতের তালিকা';
+
+  @override
+  String get waqtSectionWudu => 'ওজু ও তায়াম্মুমের নিয়ম';
+
+  @override
+  String get waqtColPrayer => 'নামাজ';
+
+  @override
+  String get waqtColFard => 'ফরজ';
+
+  @override
+  String get waqtColExtra => 'অতিরিক্ত';
+
+  @override
+  String get waqtFajrRange => 'সুবহে সাদিক → সূর্যোদয়';
+
+  @override
+  String get waqtDhuhrRange => 'দুপুর → ছায়া বস্তুর সমান';
+
+  @override
+  String get waqtAsrRange => 'ছায়া দ্বিগুণ → সূর্যাস্ত';
+
+  @override
+  String get waqtMaghribRange => 'সূর্যাস্ত → গোধূলি শেষ';
+
+  @override
+  String get waqtIshaRange => 'গোধূলি শেষ → ফজর';
+
+  @override
+  String get waqtJumuahNote => 'শুক্রবারে জোহরের পরিবর্তে';
+
+  @override
+  String get wuduInvalidated => 'ওজু ভঙ্গ হয়';
+
+  @override
+  String get wuduInvalidatedBody =>
+      'পেশাব, পায়খানা, গভীর ঘুম, বায়ু নির্গত হওয়া, জ্ঞান হারানো';
+
+  @override
+  String get ghuslRequired => 'গোসল ফরজ হয়';
+
+  @override
+  String get ghuslRequiredBody => 'জানাবত (বড় নাপাকি), হায়েজ, নেফাস';
+
+  @override
+  String get tayammumAllowed => 'তায়াম্মুম করা যায়';
+
+  @override
+  String get tayammumAllowedBody =>
+      'পানি না থাকলে বা পানি ব্যবহারে ক্ষতি হলে — পবিত্র মাটি বা ধুলো ব্যবহার করুন';
+
+  @override
+  String get masahKhuffayn => 'মোজার উপর মাসেহ';
+
+  @override
+  String get masahKhuffaynBody =>
+      'চামড়ার মোজার উপর মাসেহ: মুকিমের জন্য ১ দিন, মুসাফিরের জন্য ৩ দিন';
+
+  @override
+  String get adhkarTitle => 'নামাজের পরের জিকির';
+
+  @override
+  String get adhkarSubtitle => 'প্রতি ফরজ নামাজের সালামের পরে পড়া হয়।';
+
+  @override
+  String get adhkarSectionAfterSalam => 'সালামের পরে';
+
+  @override
+  String get adhkarSectionTasbih => 'তাসবিহ';
+
+  @override
+  String get adhkarSectionProtection => 'হেফাজত';
+
+  @override
+  String get adhkarAstaghfirullah =>
+      'আস্তাগফিরুল্লাহ — আমি আল্লাহর কাছে ক্ষমা চাই।';
+
+  @override
+  String get adhkarAllahummaAntas =>
+      'হে আল্লাহ, আপনিই শান্তি, আপনার কাছ থেকেই শান্তি আসে। আপনি বরকতময়, হে মহিমা ও সম্মানের অধিকারী।';
+
+  @override
+  String get adhkarTasbihCounts =>
+      'সুবহানাল্লাহ ৩৩× · আলহামদুলিল্লাহ ৩৩× · আল্লাহু আকবার ৩৪×';
+
+  @override
+  String get adhkarAyatulKursi =>
+      'প্রতি নামাজের পর আয়াতুল কুরসি (২:২৫৫) পড়ুন।';
+
+  @override
+  String get prayerJumuah => 'জুমুআ';
+
+  @override
+  String get waqtWitr => 'বিতর';
+
+  @override
+  String get waqtColPreSunnah => 'আগের\nসুন্নত';
+
+  @override
+  String get waqtColPostSunnah => 'পরের\nসুন্নত';
+
+  @override
+  String get waqtColTotal => 'মোট\nরাকাত';
 }

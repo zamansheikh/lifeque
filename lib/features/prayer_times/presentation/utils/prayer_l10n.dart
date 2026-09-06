@@ -18,6 +18,7 @@ String prayerLabel(BuildContext context, String key) {
     'Isha' => l.prayerIsha,
     'Tahajjud' => l.prayerTahajjud,
     'Sunrise' => l.prayerSunrise,
+    'Jumu\'ah' => l.prayerJumuah,
     _ => key,
   };
 }

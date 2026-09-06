@@ -4278,6 +4278,216 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Supplications & remembrances'**
   String get resDuasSub;
+
+  /// No description provided for @waqtTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waqt & Rakah Table'**
+  String get waqtTitle;
+
+  /// No description provided for @waqtSectionTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer Times (Waqt)'**
+  String get waqtSectionTimes;
+
+  /// No description provided for @waqtSectionRakah.
+  ///
+  /// In en, this message translates to:
+  /// **'Rak\'ah Count Table'**
+  String get waqtSectionRakah;
+
+  /// No description provided for @waqtSectionWudu.
+  ///
+  /// In en, this message translates to:
+  /// **'Wudu & Tayammum Notes'**
+  String get waqtSectionWudu;
+
+  /// No description provided for @waqtColPrayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer'**
+  String get waqtColPrayer;
+
+  /// No description provided for @waqtColFard.
+  ///
+  /// In en, this message translates to:
+  /// **'Fard'**
+  String get waqtColFard;
+
+  /// No description provided for @waqtColExtra.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra'**
+  String get waqtColExtra;
+
+  /// No description provided for @waqtFajrRange.
+  ///
+  /// In en, this message translates to:
+  /// **'True dawn → Sunrise'**
+  String get waqtFajrRange;
+
+  /// No description provided for @waqtDhuhrRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Midday → Shadow = object'**
+  String get waqtDhuhrRange;
+
+  /// No description provided for @waqtAsrRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Shadow doubles → Sunset'**
+  String get waqtAsrRange;
+
+  /// No description provided for @waqtMaghribRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunset → Twilight gone'**
+  String get waqtMaghribRange;
+
+  /// No description provided for @waqtIshaRange.
+  ///
+  /// In en, this message translates to:
+  /// **'End of twilight → Fajr'**
+  String get waqtIshaRange;
+
+  /// No description provided for @waqtJumuahNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces Dhuhr on Friday'**
+  String get waqtJumuahNote;
+
+  /// No description provided for @wuduInvalidated.
+  ///
+  /// In en, this message translates to:
+  /// **'Wudu invalidated by'**
+  String get wuduInvalidated;
+
+  /// No description provided for @wuduInvalidatedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Urination, defecation, deep sleep, passing wind, unconsciousness'**
+  String get wuduInvalidatedBody;
+
+  /// No description provided for @ghuslRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Ghusl required after'**
+  String get ghuslRequired;
+
+  /// No description provided for @ghuslRequiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Janabah (major impurity), menstruation, post-natal bleeding'**
+  String get ghuslRequiredBody;
+
+  /// No description provided for @tayammumAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Tayammum allowed when'**
+  String get tayammumAllowed;
+
+  /// No description provided for @tayammumAllowedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No water available or using water is harmful — use clean dust or earth'**
+  String get tayammumAllowedBody;
+
+  /// No description provided for @masahKhuffayn.
+  ///
+  /// In en, this message translates to:
+  /// **'Masah on Khuffayn'**
+  String get masahKhuffayn;
+
+  /// No description provided for @masahKhuffaynBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Wipe over leather socks: 1 day (resident), 3 days (traveller)'**
+  String get masahKhuffaynBody;
+
+  /// No description provided for @adhkarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'After-prayer Adhkar'**
+  String get adhkarTitle;
+
+  /// No description provided for @adhkarSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recited after the salam of every fard prayer.'**
+  String get adhkarSubtitle;
+
+  /// No description provided for @adhkarSectionAfterSalam.
+  ///
+  /// In en, this message translates to:
+  /// **'AFTER SALAM'**
+  String get adhkarSectionAfterSalam;
+
+  /// No description provided for @adhkarSectionTasbih.
+  ///
+  /// In en, this message translates to:
+  /// **'TASBIH'**
+  String get adhkarSectionTasbih;
+
+  /// No description provided for @adhkarSectionProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'PROTECTION'**
+  String get adhkarSectionProtection;
+
+  /// No description provided for @adhkarAstaghfirullah.
+  ///
+  /// In en, this message translates to:
+  /// **'Astaghfirullah — I seek the forgiveness of Allah.'**
+  String get adhkarAstaghfirullah;
+
+  /// No description provided for @adhkarAllahummaAntas.
+  ///
+  /// In en, this message translates to:
+  /// **'O Allah, You are Peace and from You is peace. Blessed are You, O Owner of Majesty and Honour.'**
+  String get adhkarAllahummaAntas;
+
+  /// No description provided for @adhkarTasbihCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'SubhanAllah 33× · Alhamdulillah 33× · Allahu Akbar 34×'**
+  String get adhkarTasbihCounts;
+
+  /// No description provided for @adhkarAyatulKursi.
+  ///
+  /// In en, this message translates to:
+  /// **'Recite Ayat al-Kursi (2:255) after each prayer.'**
+  String get adhkarAyatulKursi;
+
+  /// No description provided for @prayerJumuah.
+  ///
+  /// In en, this message translates to:
+  /// **'Jumu\'ah'**
+  String get prayerJumuah;
+
+  /// No description provided for @waqtWitr.
+  ///
+  /// In en, this message translates to:
+  /// **'Witr'**
+  String get waqtWitr;
+
+  /// No description provided for @waqtColPreSunnah.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre\nSunnah'**
+  String get waqtColPreSunnah;
+
+  /// No description provided for @waqtColPostSunnah.
+  ///
+  /// In en, this message translates to:
+  /// **'Post\nSunnah'**
+  String get waqtColPostSunnah;
+
+  /// No description provided for @waqtColTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Rakah\nTotal'**
+  String get waqtColTotal;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
