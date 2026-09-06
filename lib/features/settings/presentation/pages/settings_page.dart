@@ -709,10 +709,12 @@ class _SettingsGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The white fill lives on the Material, not on the Container: a
+    // DecoratedBox between a ListTile and its nearest Material swallows the
+    // tile's ink splash, which is what Flutter's assertion was reporting.
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -722,8 +724,10 @@ class _SettingsGroup extends StatelessWidget {
           ),
         ],
       ),
-      child: ClipRRect(
+      child: Material(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           children: List.generate(children.length, (i) {
             return Column(
