@@ -895,6 +895,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   /// "when are they" but not "is it one right now" — and that second question
   /// is the one that matters when you have just opened the app to pray.
   Widget _prohibitedNowBanner() {
+    // Toasts share this strip of screen, so they need to know whether the
+    // banner is taking it.
+    PrayerSnack.extraBottomInset = 0;
+
     final calc = _calculator;
     if (calc == null) return const SizedBox.shrink();
 
@@ -912,6 +916,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     if (_dismissedRestriction == key) return const SizedBox.shrink();
 
     final remaining = end.difference(DateTime.now());
+    PrayerSnack.extraBottomInset = _bannerHeight;
 
     // No SafeArea here: the shell's bottom nav already sits below this page
     // and consumes the system inset, so adding it again just floats the
@@ -971,6 +976,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       ),
     );
   }
+
+  /// Roughly what the banner occupies, including its 12px gap. Toasts are
+  /// pushed up by this much while it shows.
+  static const double _bannerHeight = 84;
 
   /// Plain-language name for a restricted window.
   String _restrictedLabel(String name) => switch (name) {

@@ -33,6 +33,13 @@ enum PrayerSnackKind {
 class PrayerSnack {
   PrayerSnack._();
 
+  /// Extra room to leave under a toast, on top of the bottom-nav clearance.
+  ///
+  /// The prayer page raises this while its makruh warning is on screen —
+  /// otherwise the warning and the toast land on the same strip of screen and
+  /// the confirmation you just triggered is the one that gets buried.
+  static double extraBottomInset = 0;
+
   static void show(
     BuildContext context,
     String message, {
@@ -49,8 +56,9 @@ class PrayerSnack {
         behavior: SnackBarBehavior.floating,
         backgroundColor: PrayerPalette.ink,
         elevation: 6,
-        // Clears the floating bottom nav so it doesn't bury it.
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 92),
+        // Clears the floating bottom nav, plus anything the page has parked
+        // above it.
+        margin: EdgeInsets.fromLTRB(16, 0, 16, 92 + extraBottomInset),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Row(
