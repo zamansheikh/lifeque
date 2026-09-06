@@ -1,34 +1,33 @@
 import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../l10n/app_localizations.dart';
+
 /// The four home-screen widgets a user can pin, in the order we offer them.
 enum PinnableWidget {
-  currentWaqt(
-    'Current waqt',
-    'The running prayer, its window and a live countdown.',
-    'com.programmernexus.lifeque.PrayerTimesWidgetProvider',
-  ),
-  mosqueJamaat(
-    'Mosque jamaat',
-    "Your mosque's congregation times, in Bangla.",
-    'com.programmernexus.lifeque.MosqueTimesWidgetProvider',
-  ),
-  dayMap(
-    'Prayer day map',
-    'The whole day on one track, with prohibited windows.',
-    'com.programmernexus.lifeque.DayTimelineWidgetProvider',
-  ),
-  slimBar(
-    'Slim bar',
-    'One line: next prayer and time remaining.',
-    'com.programmernexus.lifeque.SlimBarWidgetProvider',
-  );
+  currentWaqt('com.programmernexus.lifeque.PrayerTimesWidgetProvider'),
+  mosqueJamaat('com.programmernexus.lifeque.MosqueTimesWidgetProvider'),
+  dayMap('com.programmernexus.lifeque.DayTimelineWidgetProvider'),
+  slimBar('com.programmernexus.lifeque.SlimBarWidgetProvider');
 
-  final String title;
-  final String description;
   final String provider;
 
-  const PinnableWidget(this.title, this.description, this.provider);
+  const PinnableWidget(this.provider);
+
+  /// Name and blurb in the reader's language, read when the sheet paints.
+  String title(L l) => switch (this) {
+    PinnableWidget.currentWaqt => l.widgetCurrentWaqt,
+    PinnableWidget.mosqueJamaat => l.widgetMosqueJamaat,
+    PinnableWidget.dayMap => l.widgetDayMap,
+    PinnableWidget.slimBar => l.widgetSlimBar,
+  };
+
+  String description(L l) => switch (this) {
+    PinnableWidget.currentWaqt => l.widgetCurrentWaqtDesc,
+    PinnableWidget.mosqueJamaat => l.widgetMosqueJamaatDesc,
+    PinnableWidget.dayMap => l.widgetDayMapDesc,
+    PinnableWidget.slimBar => l.widgetSlimBarDesc,
+  };
 }
 
 /// Decides when to offer the home-screen widget, and remembers the answer.

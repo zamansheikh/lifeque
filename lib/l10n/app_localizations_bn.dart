@@ -3229,4 +3229,113 @@ class LBn extends L {
 
     return '$countString দিন';
   }
+
+  @override
+  String get widgetSheetTitle => 'হোম স্ক্রিনে উইজেট যোগ করুন';
+
+  @override
+  String get widgetSheetSubtitle => 'প্রতিটি ঠিক এভাবেই দেখাবে।';
+
+  @override
+  String get widgetSheetPromo => 'নামাজের সময় হোম স্ক্রিনেই রাখুন';
+
+  @override
+  String get widgetNotNow => 'এখন নয়';
+
+  @override
+  String get widgetClose => 'বন্ধ করুন';
+
+  @override
+  String get widgetAdd => 'যোগ করুন';
+
+  @override
+  String get widgetNeedsLocation =>
+      'আগে আপনার অবস্থান ঠিক করুন, তাহলে এখানে আপনার নিজের নামাজের সময় দেখাবে।';
+
+  @override
+  String get widgetCurrentWaqt => 'চলতি ওয়াক্ত';
+
+  @override
+  String get widgetCurrentWaqtDesc =>
+      'চলতি নামাজ, তার সময়সীমা ও বাকি সময়ের গণনা।';
+
+  @override
+  String get widgetMosqueJamaat => 'মসজিদের জামাত';
+
+  @override
+  String get widgetMosqueJamaatDesc => 'আপনার মসজিদের জামাতের সময়।';
+
+  @override
+  String get widgetDayMap => 'সারা দিনের নামাজ';
+
+  @override
+  String get widgetDayMapDesc => 'পুরো দিন এক লাইনে, নিষিদ্ধ সময়সহ।';
+
+  @override
+  String get widgetSlimBar => 'সরু বার';
+
+  @override
+  String get widgetSlimBarDesc => 'এক লাইনে: পরের নামাজ ও বাকি সময়।';
+
+  @override
+  String get widgetSunset => 'সূর্যাস্ত';
+
+  @override
+  String get widgetSahri => 'সাহরি';
+
+  @override
+  String get widgetIftar => 'ইফতার';
+
+  @override
+  String get widgetNow => 'এখন';
+
+  @override
+  String get widgetProhibitedLegend =>
+      'নিষিদ্ধ (সূর্যোদয় · জাওয়াল · সূর্যাস্ত)';
+
+  @override
+  String get widgetSetLocation => 'আপনার অবস্থান ঠিক করুন';
+
+  @override
+  String get widgetTapToOpen => 'খুলতে চাপুন';
+
+  @override
+  String get widgetPrayerTimes => 'নামাজের সময়';
+
+  @override
+  String get widgetTapToSetLocation => 'অ্যাপ খুলে আপনার অবস্থান ঠিক করুন';
+
+  @override
+  String get widgetSetLocationShort => 'অবস্থান দিন';
+
+  @override
+  String widgetUpdatedAt(String time) {
+    return 'হালনাগাদ: $time';
+  }
+
+  @override
+  String widgetAddFailed(String error) {
+    return 'উইজেট যোগ করা যায়নি: $error';
+  }
+
+  @override
+  String get widgetAvoidPassed => 'নিষিদ্ধ সময় সব শেষ';
+
+  @override
+  String get widgetZawal => 'জাওয়াল';
+
+  @override
+  String widgetAvoidNow(String left) {
+    return '⛔ এখন নিষিদ্ধ · আর $left';
+  }
+
+  @override
+  String widgetNextAvoid(String name, String time) {
+    return 'পরের নিষিদ্ধ · $name $time';
+  }
+
+  @override
+  String widgetEndsIn(String time, String left) {
+    return 'শেষ: $time · আর $left';
+  }
 }

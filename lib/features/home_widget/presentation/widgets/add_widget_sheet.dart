@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
+
 import '../../../prayer_times/presentation/utils/prayer_palette.dart';
 import '../../services/home_widget_service.dart';
 import '../../services/widget_suggestion_service.dart';
@@ -56,7 +58,7 @@ class _SheetState extends State<_Sheet> {
       setState(() => _busy = null);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Could not add the widget: $e'),
+          content: Text(L.of(context).widgetAddFailed('$e')),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -102,8 +104,8 @@ class _SheetState extends State<_Sheet> {
             const SizedBox(height: 12),
             Text(
               widget.isSuggestion
-                  ? 'Keep prayer times on your home screen'
-                  : 'Add a home-screen widget',
+                  ? L.of(context).widgetSheetPromo
+                  : L.of(context).widgetSheetTitle,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: PrayerPalette.ink,
@@ -113,7 +115,7 @@ class _SheetState extends State<_Sheet> {
             ),
             const SizedBox(height: 4),
             Text(
-              'This is exactly how each one will look.',
+              L.of(context).widgetSheetSubtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: PrayerPalette.inkA(0.6),
@@ -149,7 +151,9 @@ class _SheetState extends State<_Sheet> {
                 Navigator.pop(context);
               },
               child: Text(
-                widget.isSuggestion ? 'Not now' : 'Close',
+                widget.isSuggestion
+                    ? L.of(context).widgetNotNow
+                    : L.of(context).widgetClose,
                 style: TextStyle(
                   color: PrayerPalette.inkA(0.6),
                   fontSize: 13,
@@ -182,8 +186,7 @@ class _SheetState extends State<_Sheet> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Set your location first and these will fill in with your own '
-              'prayer times.',
+              L.of(context).widgetNeedsLocation,
               style: TextStyle(
                 fontSize: 11.5,
                 height: 1.35,
@@ -225,7 +228,7 @@ class _SheetState extends State<_Sheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        option.title,
+                        option.title(L.of(context)),
                         style: const TextStyle(
                           color: PrayerPalette.ink,
                           fontSize: 14,
@@ -234,7 +237,7 @@ class _SheetState extends State<_Sheet> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        option.description,
+                        option.description(L.of(context)),
                         style: TextStyle(
                           color: PrayerPalette.inkA(0.55),
                           fontSize: 11,
@@ -266,9 +269,9 @@ class _SheetState extends State<_Sheet> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
-                            'Add',
-                            style: TextStyle(
+                        : Text(
+                            L.of(context).widgetAdd,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12.5,
                               fontWeight: FontWeight.w800,

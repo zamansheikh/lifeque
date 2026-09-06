@@ -1631,5 +1631,78 @@
         "format": "decimalPattern"
       }
     }
+  },
+  "widgetSheetTitle": "Add a home-screen widget",
+  "widgetSheetSubtitle": "This is exactly how each one will look.",
+  "widgetSheetPromo": "Keep prayer times on your home screen",
+  "widgetNotNow": "Not now",
+  "widgetClose": "Close",
+  "widgetAdd": "Add",
+  "widgetNeedsLocation": "Set your location first and these will fill in with your own prayer times.",
+  "widgetCurrentWaqt": "Current waqt",
+  "widgetCurrentWaqtDesc": "The running prayer, its window and a live countdown.",
+  "widgetMosqueJamaat": "Mosque jamaat",
+  "widgetMosqueJamaatDesc": "Your mosque's congregation times.",
+  "widgetDayMap": "Prayer day map",
+  "widgetDayMapDesc": "The whole day on one track, with prohibited windows.",
+  "widgetSlimBar": "Slim bar",
+  "widgetSlimBarDesc": "One line: next prayer and time remaining.",
+  "widgetSunset": "Sunset",
+  "widgetSahri": "Sahri",
+  "widgetIftar": "Iftar",
+  "widgetNow": "Now",
+  "widgetProhibitedLegend": "Prohibited (sunrise · zawal · sunset)",
+  "widgetSetLocation": "Set your location",
+  "widgetTapToOpen": "Tap to open",
+  "widgetPrayerTimes": "Prayer Times",
+  "widgetTapToSetLocation": "Tap to open the app and set your location",
+  "widgetSetLocationShort": "Set location",
+  "widgetUpdatedAt": "Updated: {time}",
+  "@widgetUpdatedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetAddFailed": "Could not add the widget: {error}",
+  "@widgetAddFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetAvoidPassed": "all avoid-times passed",
+  "widgetZawal": "Zawal",
+  "widgetAvoidNow": "⛔ AVOID NOW · {left} left",
+  "@widgetAvoidNow": {
+    "placeholders": {
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetNextAvoid": "next avoid · {name} {time}",
+  "@widgetNextAvoid": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetEndsIn": "Ends: {time} · in {left}",
+  "@widgetEndsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
   }
 }

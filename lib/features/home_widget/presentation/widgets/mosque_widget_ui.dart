@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/utils/app_strings.dart';
+
 /// One jamaat chip: the prayer's Bengali name and the mosque's congregation
 /// time. The current waqt's chip inverts to gold.
 class JamaatChip {
@@ -80,7 +82,7 @@ class MosqueWidgetUI extends StatelessWidget {
                   Expanded(
                     child: _sunTile(
                       Icons.wb_sunny_outlined,
-                      'Sunrise',
+                      appStrings.prayerSunrise,
                       sunrise,
                     ),
                   ),
@@ -88,19 +90,23 @@ class MosqueWidgetUI extends StatelessWidget {
                   Expanded(
                     child: _sunTile(
                       Icons.wb_twilight_rounded,
-                      'Sunset',
+                      appStrings.widgetSunset,
                       sunset,
                     ),
                   ),
                   const SizedBox(width: 5),
                   Expanded(
-                    child: _sunTile(Icons.nightlight_outlined, 'Sahri', sahri),
+                    child: _sunTile(
+                      Icons.nightlight_outlined,
+                      appStrings.widgetSahri,
+                      sahri,
+                    ),
                   ),
                   const SizedBox(width: 5),
                   Expanded(
                     child: _sunTile(
                       Icons.dinner_dining_outlined,
-                      'Iftar',
+                      appStrings.widgetIftar,
                       iftar,
                     ),
                   ),
@@ -137,9 +143,9 @@ class MosqueWidgetUI extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Mosque Jamaat',
-                style: TextStyle(
+              Text(
+                appStrings.widgetMosqueJamaat,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 11.5,
                   fontWeight: FontWeight.w800,
@@ -160,7 +166,7 @@ class MosqueWidgetUI extends StatelessWidget {
         ),
         const SizedBox(width: 6),
         Text(
-          'Updated: $updatedAt',
+          appStrings.widgetUpdatedAt(updatedAt),
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.5),
             fontSize: 8,

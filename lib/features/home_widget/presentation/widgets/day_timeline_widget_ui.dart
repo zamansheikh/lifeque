@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/utils/app_strings.dart';
+
 /// A prayer marker on the day track.
 class TimelineTick {
   /// Position along the track, 0..1.
@@ -94,8 +96,8 @@ class DayTimelineWidgetUI extends StatelessWidget {
       children: [
         const Icon(Icons.remove_circle_outline, size: 12, color: _alertLight),
         const SizedBox(width: 6),
-        const Text(
-          'Prayer day map',
+        Text(
+          appStrings.widgetDayMap,
           style: TextStyle(
             color: Colors.white,
             fontSize: 10.5,
@@ -286,7 +288,7 @@ class DayTimelineWidgetUI extends StatelessWidget {
         const SizedBox(width: 4),
         Flexible(
           child: Text(
-            'Prohibited (sunrise · zawal · sunset)',
+            appStrings.widgetProhibitedLegend,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -307,7 +309,7 @@ class DayTimelineWidgetUI extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Text(
-          'Now',
+          appStrings.widgetNow,
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.6),
             fontSize: 8,

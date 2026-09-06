@@ -1,6 +1,9 @@
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
+import '../../../core/utils/local_clock.dart';
+import '../../../core/utils/local_numbers.dart';
+import '../../../core/utils/app_strings.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:lifeque/core/utils/salah_time_calculator.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/prayer_widget_ui.dart';
@@ -83,18 +86,30 @@ class HomeWidgetService {
 
   static const _fard = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   static const _banglaPrayerNames = ['ফজর', 'যোহর', 'আসর', 'মাগরিব', 'এশা'];
+
+  /// The English keys are what the calculator returns; the widget shows them
+  /// in whichever language the app is set to.
+  static String _prayerName(String key) {
+    final index = _fard.indexOf(key);
+    if (index < 0) return key;
+    return isBanglaUi ? _banglaPrayerNames[index] : _fard[index];
+  }
+
   static const _restrictedOrder = [
     'Sunrise Period',
     'Zawal (Midday)',
     'Sunset Period',
   ];
-  static const _restrictedLabels = ['Sunrise', 'Zawal', 'Sunset'];
+  static List<String> get _restrictedLabels => [
+    appStrings.prayerSunrise,
+    appStrings.widgetZawal,
+    appStrings.widgetSunset,
+  ];
 
-  static String _t12(DateTime t) {
-    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
-    return '$h:${t.minute.toString().padLeft(2, '0')} '
-        '${t.hour < 12 ? 'am' : 'pm'}';
-  }
+  /// Times on a widget read like times everywhere else in the app: 12-hour,
+  /// in the reader's own digits, with the Bangla part-of-day where that is the
+  /// language.
+  static String _t12(DateTime t) => Clock.h12(t);
 
   static String _hms(Duration d) {
     final s = d.isNegative ? 0 : d.inSeconds;
@@ -285,10 +300,10 @@ class HomeWidgetService {
         .firstOrNull;
     final nextWindow = windows.where((w) => w.start.isAfter(date)).firstOrNull;
     final avoidText = activeWindow != null
-        ? '⛔ AVOID NOW · ${_short(activeWindow.end.difference(date))} left'
+        ? appStrings.widgetAvoidNow(_short(activeWindow.end.difference(date)))
         : nextWindow != null
-        ? 'next avoid · ${nextWindow.name} ${_t12(nextWindow.start)}'
-        : 'all avoid-times passed';
+        ? appStrings.widgetNextAvoid(nextWindow.name, _t12(nextWindow.start))
+        : appStrings.widgetAvoidPassed;
 
     final prayerSize = measured
         ? await _cellSize('prayer_widget_image', _widgetSize)
@@ -312,19 +327,20 @@ class HomeWidgetService {
     final prayer = PrayerWidgetUI(
       size: prayerSize,
       hijriLine:
-          '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} '
-          '${hijri.hYear}, ${DateFormat('EEEE').format(date)}',
+          '${N.plain(hijri.hDay)} ${HijriNames.monthNow(hijri.hMonth)} '
+          '${N.plain(hijri.hYear)}, ${DateFormat('EEEE').format(date)}',
       secondaryDateLine:
           '${DateFormat('d MMMM').format(date)} · ${bangla.formatted}',
       updatedAt: updatedAt,
-      prayerName: subject,
+      prayerName: _prayerName(subject),
       windowRange:
           '${_t12(times[subject]!).toUpperCase()} – '
           '${_t12(windowEnd).toUpperCase()}',
-      endsLine:
-          'Ends: ${_t12(windowEnd).toUpperCase()} · in '
-          '${_hms(windowEnd.difference(date))}',
-      nextChip: '$next ${_t12(nextTime).toUpperCase()}',
+      endsLine: appStrings.widgetEndsIn(
+        _t12(windowEnd).toUpperCase(),
+        _hms(windowEnd.difference(date)),
+      ),
+      nextChip: '${_prayerName(next)} ${_t12(nextTime).toUpperCase()}',
       avoidText: avoidText,
       avoidActive: activeWindow != null,
       sunrise: sunriseStr,
@@ -370,7 +386,8 @@ class HomeWidgetService {
       times: times,
       current: subject,
       dateLine:
-          '${hijri.hDay} ${HijriNames.month(hijri.hMonth)} ${hijri.hYear}, '
+          '${N.plain(hijri.hDay)} ${HijriNames.monthNow(hijri.hMonth)} '
+          '${N.plain(hijri.hYear)}, '
           '${DateFormat('EEEE').format(date)} · '
           '${DateFormat('d MMMM').format(date)}',
       updatedAt: updatedAt,

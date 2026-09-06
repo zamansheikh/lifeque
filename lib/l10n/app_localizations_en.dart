@@ -3241,4 +3241,114 @@ class LEn extends L {
 
     return '${countString}d';
   }
+
+  @override
+  String get widgetSheetTitle => 'Add a home-screen widget';
+
+  @override
+  String get widgetSheetSubtitle => 'This is exactly how each one will look.';
+
+  @override
+  String get widgetSheetPromo => 'Keep prayer times on your home screen';
+
+  @override
+  String get widgetNotNow => 'Not now';
+
+  @override
+  String get widgetClose => 'Close';
+
+  @override
+  String get widgetAdd => 'Add';
+
+  @override
+  String get widgetNeedsLocation =>
+      'Set your location first and these will fill in with your own prayer times.';
+
+  @override
+  String get widgetCurrentWaqt => 'Current waqt';
+
+  @override
+  String get widgetCurrentWaqtDesc =>
+      'The running prayer, its window and a live countdown.';
+
+  @override
+  String get widgetMosqueJamaat => 'Mosque jamaat';
+
+  @override
+  String get widgetMosqueJamaatDesc => 'Your mosque\'s congregation times.';
+
+  @override
+  String get widgetDayMap => 'Prayer day map';
+
+  @override
+  String get widgetDayMapDesc =>
+      'The whole day on one track, with prohibited windows.';
+
+  @override
+  String get widgetSlimBar => 'Slim bar';
+
+  @override
+  String get widgetSlimBarDesc => 'One line: next prayer and time remaining.';
+
+  @override
+  String get widgetSunset => 'Sunset';
+
+  @override
+  String get widgetSahri => 'Sahri';
+
+  @override
+  String get widgetIftar => 'Iftar';
+
+  @override
+  String get widgetNow => 'Now';
+
+  @override
+  String get widgetProhibitedLegend => 'Prohibited (sunrise · zawal · sunset)';
+
+  @override
+  String get widgetSetLocation => 'Set your location';
+
+  @override
+  String get widgetTapToOpen => 'Tap to open';
+
+  @override
+  String get widgetPrayerTimes => 'Prayer Times';
+
+  @override
+  String get widgetTapToSetLocation =>
+      'Tap to open the app and set your location';
+
+  @override
+  String get widgetSetLocationShort => 'Set location';
+
+  @override
+  String widgetUpdatedAt(String time) {
+    return 'Updated: $time';
+  }
+
+  @override
+  String widgetAddFailed(String error) {
+    return 'Could not add the widget: $error';
+  }
+
+  @override
+  String get widgetAvoidPassed => 'all avoid-times passed';
+
+  @override
+  String get widgetZawal => 'Zawal';
+
+  @override
+  String widgetAvoidNow(String left) {
+    return '⛔ AVOID NOW · $left left';
+  }
+
+  @override
+  String widgetNextAvoid(String name, String time) {
+    return 'next avoid · $name $time';
+  }
+
+  @override
+  String widgetEndsIn(String time, String left) {
+    return 'Ends: $time · in $left';
+  }
 }

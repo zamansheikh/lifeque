@@ -17,7 +17,7 @@ import '../../features/medicines/domain/usecases/manage_doses.dart';
 import '../../core/usecases/usecase.dart';
 import '../../features/medicines/domain/repositories/medicine_repository.dart';
 import '../../features/tasks/domain/repositories/task_repository.dart';
-import 'language_preference_service.dart';
+import '../utils/app_strings.dart';
 import 'navigation_service.dart';
 import '../../injection_container.dart' as di;
 import '../../features/medicines/data/services/care_person_service.dart';
@@ -2961,9 +2961,7 @@ class NotificationService {
   /// Notifications are built far from the widget tree, so there is no context
   /// to read — `Intl.defaultLocale` is set alongside the app language and is
   /// the same source `Clock` and `N` use.
-  L get _l => lookupL(
-    Locale((Intl.defaultLocale ?? AppLanguage.fallback.code).split('_').first),
-  );
+  L get _l => appStrings;
 
   /// What a medicine reminder should say.
   ///

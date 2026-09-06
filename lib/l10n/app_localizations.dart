@@ -5646,6 +5646,198 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count}d'**
   String medDaysChip(int count);
+
+  /// No description provided for @widgetSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a home-screen widget'**
+  String get widgetSheetTitle;
+
+  /// No description provided for @widgetSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This is exactly how each one will look.'**
+  String get widgetSheetSubtitle;
+
+  /// No description provided for @widgetSheetPromo.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep prayer times on your home screen'**
+  String get widgetSheetPromo;
+
+  /// No description provided for @widgetNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get widgetNotNow;
+
+  /// No description provided for @widgetClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get widgetClose;
+
+  /// No description provided for @widgetAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get widgetAdd;
+
+  /// No description provided for @widgetNeedsLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your location first and these will fill in with your own prayer times.'**
+  String get widgetNeedsLocation;
+
+  /// No description provided for @widgetCurrentWaqt.
+  ///
+  /// In en, this message translates to:
+  /// **'Current waqt'**
+  String get widgetCurrentWaqt;
+
+  /// No description provided for @widgetCurrentWaqtDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The running prayer, its window and a live countdown.'**
+  String get widgetCurrentWaqtDesc;
+
+  /// No description provided for @widgetMosqueJamaat.
+  ///
+  /// In en, this message translates to:
+  /// **'Mosque jamaat'**
+  String get widgetMosqueJamaat;
+
+  /// No description provided for @widgetMosqueJamaatDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your mosque\'s congregation times.'**
+  String get widgetMosqueJamaatDesc;
+
+  /// No description provided for @widgetDayMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer day map'**
+  String get widgetDayMap;
+
+  /// No description provided for @widgetDayMapDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole day on one track, with prohibited windows.'**
+  String get widgetDayMapDesc;
+
+  /// No description provided for @widgetSlimBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Slim bar'**
+  String get widgetSlimBar;
+
+  /// No description provided for @widgetSlimBarDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'One line: next prayer and time remaining.'**
+  String get widgetSlimBarDesc;
+
+  /// No description provided for @widgetSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunset'**
+  String get widgetSunset;
+
+  /// No description provided for @widgetSahri.
+  ///
+  /// In en, this message translates to:
+  /// **'Sahri'**
+  String get widgetSahri;
+
+  /// No description provided for @widgetIftar.
+  ///
+  /// In en, this message translates to:
+  /// **'Iftar'**
+  String get widgetIftar;
+
+  /// No description provided for @widgetNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get widgetNow;
+
+  /// No description provided for @widgetProhibitedLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Prohibited (sunrise · zawal · sunset)'**
+  String get widgetProhibitedLegend;
+
+  /// No description provided for @widgetSetLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your location'**
+  String get widgetSetLocation;
+
+  /// No description provided for @widgetTapToOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to open'**
+  String get widgetTapToOpen;
+
+  /// No description provided for @widgetPrayerTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer Times'**
+  String get widgetPrayerTimes;
+
+  /// No description provided for @widgetTapToSetLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to open the app and set your location'**
+  String get widgetTapToSetLocation;
+
+  /// No description provided for @widgetSetLocationShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Set location'**
+  String get widgetSetLocationShort;
+
+  /// No description provided for @widgetUpdatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated: {time}'**
+  String widgetUpdatedAt(String time);
+
+  /// No description provided for @widgetAddFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add the widget: {error}'**
+  String widgetAddFailed(String error);
+
+  /// No description provided for @widgetAvoidPassed.
+  ///
+  /// In en, this message translates to:
+  /// **'all avoid-times passed'**
+  String get widgetAvoidPassed;
+
+  /// No description provided for @widgetZawal.
+  ///
+  /// In en, this message translates to:
+  /// **'Zawal'**
+  String get widgetZawal;
+
+  /// No description provided for @widgetAvoidNow.
+  ///
+  /// In en, this message translates to:
+  /// **'⛔ AVOID NOW · {left} left'**
+  String widgetAvoidNow(String left);
+
+  /// No description provided for @widgetNextAvoid.
+  ///
+  /// In en, this message translates to:
+  /// **'next avoid · {name} {time}'**
+  String widgetNextAvoid(String name, String time);
+
+  /// No description provided for @widgetEndsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends: {time} · in {left}'**
+  String widgetEndsIn(String time, String left);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

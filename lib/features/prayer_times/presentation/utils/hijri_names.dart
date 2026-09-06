@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../../../../core/utils/app_strings.dart';
+
 /// Hijri month names.
 ///
 /// These are the full transliterated names rather than the "Rabiʿ I / Rabiʿ II"
@@ -102,6 +104,13 @@ class HijriNames {
     return Localizations.localeOf(context).languageCode == 'bn'
         ? _bangla[index]
         : _full[index];
+  }
+
+  /// The month name for the app's current language, without a context — for
+  /// home-screen widgets, which are rendered outside the widget tree.
+  static String monthNow(int m) {
+    final index = (m - 1).clamp(0, 11);
+    return isBanglaUi ? _bangla[index] : _full[index];
   }
 
   /// 1-based month number → Arabic name.

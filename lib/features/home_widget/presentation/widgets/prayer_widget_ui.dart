@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/utils/app_strings.dart';
+
 /// Variant 1 of the home-screen widget set: the current waqt, its window and
 /// countdown, the prohibited-time state, and a sun/fast times grid.
 ///
@@ -169,7 +171,7 @@ class PrayerWidgetUI extends StatelessWidget {
         ),
         const SizedBox(width: 6),
         Text(
-          'Updated: $updatedAt',
+          appStrings.widgetUpdatedAt(updatedAt),
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.5),
             fontSize: 8,
@@ -307,10 +309,10 @@ class PrayerWidgetUI extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        _statLine('Sunrise:', sunrise, Colors.white),
-        _statLine('Sunset:', sunset, Colors.white),
-        _statLine('Sahri:', sahri, _gold),
-        _statLine('Iftar:', iftar, _gold),
+        _statLine('${appStrings.prayerSunrise}:', sunrise, Colors.white),
+        _statLine('${appStrings.widgetSunset}:', sunset, Colors.white),
+        _statLine('${appStrings.widgetSahri}:', sahri, _gold),
+        _statLine('${appStrings.widgetIftar}:', iftar, _gold),
       ],
     );
   }

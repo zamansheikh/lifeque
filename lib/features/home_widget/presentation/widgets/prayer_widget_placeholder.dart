@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/utils/app_strings.dart';
+
 /// Shown in place of a widget while no location has been saved.
 ///
 /// It takes a [size] and fills it, exactly like the real widget UIs do. It
@@ -59,8 +61,8 @@ class PrayerWidgetPlaceholder extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.6),
         ),
         const SizedBox(width: 10),
-        const Text(
-          'Set your location',
+        Text(
+          appStrings.widgetSetLocation,
           style: TextStyle(
             color: Colors.white,
             fontSize: 15,
@@ -69,7 +71,7 @@ class PrayerWidgetPlaceholder extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          'Tap to open',
+          appStrings.widgetTapToOpen,
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.7),
             fontSize: 12,
@@ -89,8 +91,8 @@ class PrayerWidgetPlaceholder extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.6),
         ),
         const SizedBox(height: 10),
-        const Text(
-          'Prayer Times',
+        Text(
+          appStrings.widgetPrayerTimes,
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -99,7 +101,7 @@ class PrayerWidgetPlaceholder extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Tap to open the app and set your location',
+          appStrings.widgetTapToSetLocation,
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.7),
             fontSize: 12,
@@ -112,13 +114,13 @@ class PrayerWidgetPlaceholder extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.location_on_outlined, size: 14, color: Colors.white70),
               SizedBox(width: 4),
               Text(
-                'Set location',
+                appStrings.widgetSetLocationShort,
                 style: TextStyle(
                   color: Colors.white70,
                   fontSize: 11,
