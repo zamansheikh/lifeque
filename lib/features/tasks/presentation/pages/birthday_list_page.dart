@@ -56,7 +56,8 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
             color: _ink,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: Builder(

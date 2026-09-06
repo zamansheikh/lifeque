@@ -113,7 +113,8 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
             color: _ink,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(

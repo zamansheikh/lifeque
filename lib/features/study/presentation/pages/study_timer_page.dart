@@ -98,7 +98,8 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                 color: _ink,
               ),
             ),
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.transparent,
+            scrolledUnderElevation: 0,
             elevation: 0,
             surfaceTintColor: Colors.transparent,
             leading: Builder(

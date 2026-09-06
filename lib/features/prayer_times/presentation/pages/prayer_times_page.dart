@@ -91,6 +91,11 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   // ── Interactive state ───────────────────────────────────────────────────
   Timer? _tickTimer;
 
+  /// Identifies the makruh window whose warning has been dismissed. Keyed by
+  /// window plus its end time, so dismissing silences this occurrence only —
+  /// the next one still warns.
+  String? _dismissedRestriction;
+
   /// True once the body has scrolled off the top — drives the status-bar scrim.
   final ValueNotifier<bool> _scrolled = ValueNotifier(false);
 
@@ -461,6 +466,14 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               itemBuilder: (context, page) =>
                   _buildDayContent(_dateForPage(page)),
             ),
+          ),
+          // Makruh warning, pinned to the bottom of the screen so it is seen
+          // whatever the page is scrolled to.
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: 12,
+            child: _prohibitedNowBanner(),
           ),
           // The header gradient runs edge-to-edge behind the status bar, so
           // at rest there is nothing to draw here. Once the page scrolls,
@@ -872,6 +885,100 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       ),
     );
   }
+
+  // ── Makruh warning ──────────────────────────────────────────────────────
+
+  /// A dismissible warning shown while the clock is inside one of the three
+  /// windows in which salat is not permitted.
+  ///
+  /// The card further down the page lists all three windows, which answers
+  /// "when are they" but not "is it one right now" — and that second question
+  /// is the one that matters when you have just opened the app to pray.
+  Widget _prohibitedNowBanner() {
+    final calc = _calculator;
+    if (calc == null) return const SizedBox.shrink();
+
+    // Only for today: browsing Thursday should not warn about Thursday's
+    // sunrise window as though it were happening.
+    if (!_isSameDay(_selectedDate, DateTime.now())) {
+      return const SizedBox.shrink();
+    }
+
+    final period = calc.getCurrentRestrictedPeriod();
+    if (period == null) return const SizedBox.shrink();
+
+    final end = period['end'] as DateTime;
+    final key = '${period['name']}@${end.millisecondsSinceEpoch}';
+    if (_dismissedRestriction == key) return const SizedBox.shrink();
+
+    final remaining = end.difference(DateTime.now());
+
+    // No SafeArea here: the shell's bottom nav already sits below this page
+    // and consumes the system inset, so adding it again just floats the
+    // banner off the nav bar.
+    return Material(
+      color: PrayerPalette.danger,
+      borderRadius: BorderRadius.circular(16),
+      elevation: 8,
+      shadowColor: PrayerPalette.danger.withValues(alpha: 0.4),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.do_not_disturb_on_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Salat is prohibited right now',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${_restrictedLabel(period['name'] as String)} · '
+                    'ends at ${_fmt12(end)} (in ${_fmtHms(remaining)})',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: 'Dismiss',
+              onPressed: () => setState(() => _dismissedRestriction = key),
+              icon: const Icon(
+                Icons.close_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Plain-language name for a restricted window.
+  String _restrictedLabel(String name) => switch (name) {
+    'Sunrise Period' => 'While the sun rises',
+    'Zawal (Midday)' => 'While the sun is at its peak',
+    'Sunset Period' => 'While the sun sets',
+    _ => name,
+  };
 
   // ── Prohibited times ────────────────────────────────────────────────────
 
