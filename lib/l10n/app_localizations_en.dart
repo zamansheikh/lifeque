@@ -3223,4 +3223,22 @@ class LEn extends L {
 
   @override
   String get medNotifFeedbackSnoozed => 'Reminding again in 15 minutes';
+
+  @override
+  String get medHowLong => 'How long?';
+
+  @override
+  String get medDurationNeeded => 'Choose how many days';
+
+  @override
+  String get medDurationTooLong => 'Keep it under a year';
+
+  @override
+  String medDaysChip(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '${countString}d';
+  }
 }

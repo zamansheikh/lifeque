@@ -4,7 +4,8 @@ import '../../../../core/error/exceptions.dart' as app_exceptions;
 
 class DatabaseHelper {
   static const String _databaseName = 'remind_me.db';
-  static const int _databaseVersion = 9; // Increased for per-person medicines
+  // Bumped to 10 to clear doses left stranded outside their course.
+  static const int _databaseVersion = 10;
 
   // Public getter for database version
   static int get databaseVersion => _databaseVersion;
@@ -279,6 +280,40 @@ class DatabaseHelper {
       // the UI shows as unassigned rather than inventing an owner for them.
       await db.execute('''
         ALTER TABLE $tableMedicine ADD COLUMN $columnMedicinePersonId TEXT
+      ''');
+    }
+    if (oldVersion < 10) {
+      // Clear doses that no longer belong to anything.
+      //
+      // Two ways they got here. A build shipped where leaving the duration
+      // blank meant a year, so a course the user never sized wrote 365 days of
+      // doses. And shortening a course has never trimmed the doses past its
+      // new end date — a three-day course could keep a year of pending doses,
+      // which would later surface as "did you take these?" every day.
+      //
+      // Only *pending* rows are touched. A dose already marked taken, skipped
+      // or missed is history, and history is not ours to rewrite even when it
+      // sits outside the course window.
+      await db.execute('''
+        DELETE FROM $tableMedicineDose
+        WHERE $columnDoseStatus = 'pending'
+          AND $columnMedicineId IN (SELECT $columnId FROM $tableMedicine)
+          AND $columnScheduledTime > (
+            SELECT COALESCE(
+              m.$columnMedicineEndDate,
+              m.$columnMedicineStartDate + m.$columnDurationInDays * 86400000
+            )
+            FROM $tableMedicine m
+            WHERE m.$columnId = $tableMedicineDose.$columnMedicineId
+          )
+      ''');
+
+      // Belt and braces: doses whose medicine is gone. Deleting a medicine
+      // already removes them, so this should find nothing — but a row orphaned
+      // by some older path would otherwise sit in the pending query forever.
+      await db.execute('''
+        DELETE FROM $tableMedicineDose
+        WHERE $columnMedicineId NOT IN (SELECT $columnId FROM $tableMedicine)
       ''');
     }
   }

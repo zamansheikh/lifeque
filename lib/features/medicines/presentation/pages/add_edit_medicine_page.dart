@@ -28,7 +28,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   final _descriptionController = TextEditingController();
   final _dosageController = TextEditingController();
   final _dosageUnitController = TextEditingController();
-  final _durationController = TextEditingController();
+  final _durationController = TextEditingController(text: '$_defaultDays');
   final _doctorController = TextEditingController();
   final _notesController = TextEditingController();
 
@@ -84,10 +84,21 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
   String _selectedDosageUnit = 'mg';
   String? _personId;
 
+  /// Only kept so a course saved under the old "blank means a year" rule
+  /// still reads sensibly; nothing new is created with it.
   static const int _ongoingDays = Medicine.ongoingDurationDays;
 
+  /// What a fresh course runs for unless the user says otherwise. Most
+  /// prescriptions are about a week, and a visible number beats a blank that
+  /// silently commits to something.
+  static const int _defaultDays = 7;
+
+  /// Days offered as one tap. 90 covers a long prescription without letting a
+  /// blank field quietly turn into a year of reminders.
+  static const List<int> _durationChoices = [3, 5, 7, 10, 15, 30, 90];
+
   int get _durationInDays =>
-      int.tryParse(_durationController.text.trim()) ?? _ongoingDays;
+      int.tryParse(_durationController.text.trim()) ?? _defaultDays;
 
   // Store loaded medicine data when editing
   Medicine? _loadedMedicine;
@@ -683,6 +694,31 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
           ],
 
           // Duration and Start Date in a row
+          // Common course lengths, one tap each — typing a number is the
+          // slowest part of this form and almost always one of these.
+          Text(
+            L.of(context).medHowLong,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final days in _durationChoices)
+                _DurationChip(
+                  label: L.of(context).medDaysChip(days),
+                  selected: _durationController.text.trim() == '$days',
+                  onTap: () =>
+                      setState(() => _durationController.text = '$days'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -695,7 +731,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                       fontSize: 12,
                       color: Color(0xFF64748B),
                     ),
-                    hintText: L.of(context).medOngoing,
+                    hintText: '$_defaultDays',
                     prefixIcon: const Icon(
                       Icons.timer,
                       color: Color(0xFF3B82F6),
@@ -710,13 +746,19 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                       vertical: 16,
                     ),
                   ),
+                  onChanged: (_) => setState(() {}),
                   validator: (value) {
-                    // Blank means an ongoing course with no end date.
-                    if (value == null || value.trim().isEmpty) return null;
+                    // A course has a length. Leaving this blank used to mean
+                    // "forever", which wrote a year of doses and a year of
+                    // daily reminders for a box the user never filled in.
+                    if (value == null || value.trim().isEmpty) {
+                      return L.of(context).medDurationNeeded;
+                    }
                     final days = int.tryParse(value);
                     if (days == null || days <= 0) {
                       return L.of(context).medInvalidNumber;
                     }
+                    if (days > 365) return L.of(context).medDurationTooLong;
                     return null;
                   },
                 ),
@@ -1061,6 +1103,49 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
     final today = DateTime.now();
     return Clock.h12(
       DateTime(today.year, today.month, today.day, time.hour, time.minute),
+    );
+  }
+}
+
+class _DurationChip extends StatelessWidget {
+  const _DurationChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? const Color(0xFF3B82F6) : const Color(0xFFF1F5F9),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF3B82F6)
+                  : const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: selected ? Colors.white : const Color(0xFF475569),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

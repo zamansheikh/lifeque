@@ -1619,5 +1619,17 @@
   "medNotifFeedbackTaken": "Marked as taken",
   "medNotifFeedbackSkipped": "Dose skipped",
   "medNotifFeedbackMissed": "Marked as missed",
-  "medNotifFeedbackSnoozed": "Reminding again in 15 minutes"
+  "medNotifFeedbackSnoozed": "Reminding again in 15 minutes",
+  "medHowLong": "How long?",
+  "medDurationNeeded": "Choose how many days",
+  "medDurationTooLong": "Keep it under a year",
+  "medDaysChip": "{count}d",
+  "@medDaysChip": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  }
 }

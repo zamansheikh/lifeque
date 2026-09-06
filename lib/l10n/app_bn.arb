@@ -920,5 +920,9 @@
   "medNotifFeedbackTaken": "নেওয়া হয়েছে বলে চিহ্নিত",
   "medNotifFeedbackSkipped": "ডোজ বাদ দেওয়া হয়েছে",
   "medNotifFeedbackMissed": "মিস বলে চিহ্নিত",
-  "medNotifFeedbackSnoozed": "১৫ মিনিট পরে আবার মনে করিয়ে দেব"
+  "medNotifFeedbackSnoozed": "১৫ মিনিট পরে আবার মনে করিয়ে দেব",
+  "medHowLong": "কত দিন চলবে?",
+  "medDurationNeeded": "কত দিন চলবে বেছে নিন",
+  "medDurationTooLong": "এক বছরের কম রাখুন",
+  "medDaysChip": "{count} দিন"
 }

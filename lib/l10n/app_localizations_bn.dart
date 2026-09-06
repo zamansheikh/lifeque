@@ -3211,4 +3211,22 @@ class LBn extends L {
 
   @override
   String get medNotifFeedbackSnoozed => '১৫ মিনিট পরে আবার মনে করিয়ে দেব';
+
+  @override
+  String get medHowLong => 'কত দিন চলবে?';
+
+  @override
+  String get medDurationNeeded => 'কত দিন চলবে বেছে নিন';
+
+  @override
+  String get medDurationTooLong => 'এক বছরের কম রাখুন';
+
+  @override
+  String medDaysChip(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString দিন';
+  }
 }

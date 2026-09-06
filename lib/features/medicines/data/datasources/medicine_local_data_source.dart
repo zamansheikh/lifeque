@@ -108,6 +108,22 @@ class MedicineLocalDataSourceImpl implements MedicineLocalDataSource {
         where: '${DatabaseHelper.columnId} = ?',
         whereArgs: [medicine.id],
       );
+
+      // Shortening a course used to leave every dose past the new end date
+      // behind, still pending. Those would keep turning up as unanswered
+      // doses long after the course was over, so they go with the edit.
+      //
+      // Pending only — a dose already answered is history, and stays even if
+      // the course was later shortened past it.
+      final endDate = medicine.endDate ?? medicine.calculatedEndDate;
+      await db.delete(
+        DatabaseHelper.tableMedicineDose,
+        where:
+            '${DatabaseHelper.columnMedicineId} = ?'
+            ' AND ${DatabaseHelper.columnDoseStatus} = ?'
+            ' AND ${DatabaseHelper.columnScheduledTime} > ?',
+        whereArgs: [medicine.id, 'pending', endDate.millisecondsSinceEpoch],
+      );
     } catch (e) {
       throw app_exceptions.DatabaseException('Failed to update medicine: $e');
     }

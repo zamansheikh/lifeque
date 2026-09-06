@@ -5622,6 +5622,30 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Reminding again in 15 minutes'**
   String get medNotifFeedbackSnoozed;
+
+  /// No description provided for @medHowLong.
+  ///
+  /// In en, this message translates to:
+  /// **'How long?'**
+  String get medHowLong;
+
+  /// No description provided for @medDurationNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how many days'**
+  String get medDurationNeeded;
+
+  /// No description provided for @medDurationTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it under a year'**
+  String get medDurationTooLong;
+
+  /// No description provided for @medDaysChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}d'**
+  String medDaysChip(int count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
