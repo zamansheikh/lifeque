@@ -91,6 +91,12 @@ class AfterPrayerDuasSheet {
     );
   }
 
+  /// The dua cards on their own, so the Learn section can lay them out as a
+  /// page without duplicating the list.
+  static List<Widget> cards() => [
+    for (final dua in _duas) ...[_card(dua), const SizedBox(height: 10)],
+  ];
+
   static Widget _card(_Dua dua) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
     decoration: BoxDecoration(

@@ -4,6 +4,7 @@ import 'salah_guide/salah_types_page.dart';
 import 'waqt_rakah_page.dart';
 import 'necessary_surahs_page.dart';
 import 'duas_azkar_page.dart';
+import 'after_prayer_duas_page.dart';
 
 // ─── Islamic colour palette (shared across all sub-pages) ────────────────────
 class IslamicColors {
@@ -76,6 +77,15 @@ class IslamicResourcesPage extends StatelessWidget {
       iconBg: Color(0xFFE8EAF6),
       iconColor: Color(0xFF3949AB),
       page: const NecessarySurahsPage(),
+    ),
+    _ResourceCategory(
+      title: 'After-prayer Adhkar',
+      arabicTitle: 'أذكار بعد الصلاة',
+      subtitle: 'What to recite after the salam',
+      icon: Icons.wb_twilight_rounded,
+      iconBg: Color(0xFFE0F2F1),
+      iconColor: Color(0xFF00695C),
+      page: const AfterPrayerDuasPage(),
     ),
     _ResourceCategory(
       title: 'Du\'a & Adhkar',

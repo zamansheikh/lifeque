@@ -6,7 +6,6 @@ import '../../../home_widget/presentation/widgets/add_widget_sheet.dart';
 import '../../../../core/utils/alarm_sound_utils.dart';
 import '../../data/services/prayer_settings_service.dart';
 import '../utils/prayer_palette.dart';
-import '../widgets/after_prayer_duas_sheet.dart';
 import '../widgets/prayer_alarm_sheet.dart';
 import '../widgets/prayer_snack.dart';
 import 'prayer_stats_page.dart';
@@ -127,13 +126,6 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
             onTap: () => AddWidgetSheet.show(context),
           ),
           const SizedBox(height: 8),
-          _navRow(
-            icon: Icons.auto_stories_rounded,
-            title: 'After-prayer duas',
-            subtitle: 'Adhkar with Arabic & translation',
-            onTap: () => AfterPrayerDuasSheet.show(context),
-          ),
-          const SizedBox(height: 10),
           _adhanCard(),
           const SizedBox(height: 10),
           _settingsCard(),
