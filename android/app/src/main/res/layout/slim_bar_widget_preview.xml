@@ -12,7 +12,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Isha"
+        android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_isha"
         android:textColor="#FFFFFF"
         android:textSize="15sp"
         android:textStyle="bold" />
@@ -21,14 +22,16 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="  7:29 PM – 4:25 AM"
+        android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_slim_range"
         android:textColor="#CCFFFFFF"
         android:textSize="11sp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="05:27:10"
+        android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_countdown"
         android:textColor="#F5D27A"
         android:textSize="15sp"
         android:textStyle="bold" />
@@ -36,7 +39,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=" waqt ends in"
+        android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_waqt_ends"
         android:textColor="#99FFFFFF"
         android:textSize="9sp" />
 </LinearLayout>

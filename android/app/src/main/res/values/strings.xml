@@ -8,4 +8,48 @@
     <string name="slim_bar_widget_label">Next prayer bar</string>
     <string name="day_timeline_widget_description">The whole day on one track, with prohibited windows marked</string>
     <string name="slim_bar_widget_description">One line: the current prayer and how long is left</string>
+
+    <!-- Sample text for the launcher's widget picker previews. -->
+    <string name="preview_hijri_full">23 Rabi\' al-Awwal 1448, Saturday</string>
+    <string name="preview_greg">5 September</string>
+    <string name="preview_isha">Isha</string>
+    <string name="preview_isha_range">7:29 PM – 4:25 AM</string>
+    <string name="preview_ends_in">Ends in 05:27:10</string>
+    <string name="preview_next_fajr">Fajr 4:24 AM</string>
+    <string name="preview_sunrise">Sunrise 5:41 AM</string>
+    <string name="preview_sunset">Sunset 6:13 PM</string>
+    <string name="preview_mosque_title">Mosque Jamaat</string>
+    <string name="preview_hijri_greg">23 Rabi\' al-Awwal 1448 · 5 September</string>
+    <string name="preview_t_fajr">4:44 AM</string>
+    <string name="preview_t_dhuhr">12:13 PM</string>
+    <string name="preview_t_asr">4:41 PM</string>
+    <string name="preview_t_maghrib">6:13 PM</string>
+    <string name="preview_t_isha">7:44 PM</string>
+    <string name="preview_daymap_title">Prayer day map</string>
+    <string name="preview_avoid_passed">all avoid-times passed</string>
+    <string name="preview_tick_faj">FAJ</string>
+    <string name="preview_tick_dhu">DHU</string>
+    <string name="preview_tick_asr">ASR</string>
+    <string name="preview_tick_mag_ish">MAG   ISH</string>
+    <string name="preview_daymap_note">"  Prohibited windows marked on the track"</string>
+    <string name="preview_slim_range">"  7:29 PM – 4:25 AM"</string>
+    <string name="preview_countdown">05:27:10</string>
+    <string name="preview_waqt_ends">" waqt ends in"</string>
+    <string name="preview_p_fajr">ফজর</string>
+    <string name="preview_p_dhuhr">যোহর</string>
+    <string name="preview_p_asr">আসর</string>
+    <string name="preview_p_maghrib">মাগরিব</string>
+    <string name="preview_p_isha">এশা</string>
+
+    <!-- Shown inside a widget before the app has rendered its image.
+         The providers overwrite these with the app-language text at
+         runtime; these cover the gap on a fresh install. -->
+    <string name="ph_prayer_title">Prayer Times</string>
+    <string name="ph_prayer_body">Open app to load prayer times</string>
+    <string name="ph_mosque_title">Mosque Jamaat</string>
+    <string name="ph_mosque_body">Open app to load jamaat times</string>
+    <string name="ph_day_title">Prayer day map</string>
+    <string name="ph_day_body">Open app to load the day map</string>
+    <string name="ph_slim_title">Next prayer</string>
+    <string name="ph_slim_body">Open app to load prayer times</string>
 </resources>

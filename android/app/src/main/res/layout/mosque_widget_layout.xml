@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/mosque_placeholder_title"
             android:fontFamily="@font/noto_serif_bengali"
-            android:text="Mosque Jamaat"
+            android:text="@string/ph_mosque_title"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/mosque_placeholder_body"
             android:fontFamily="@font/noto_serif_bengali"
-            android:text="Open app to load jamaat times"
+            android:text="@string/ph_mosque_body"
             android:textColor="#99FFFFFF"
             android:textSize="12sp"
             android:layout_marginTop="4dp" />

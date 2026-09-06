@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/slim_bar_placeholder_title"
             android:fontFamily="@font/noto_serif_bengali"
-            android:text="Next prayer"
+            android:text="@string/ph_slim_title"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
             android:textStyle="bold" />
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/slim_bar_placeholder_body"
             android:fontFamily="@font/noto_serif_bengali"
-            android:text="Open app to load prayer times"
+            android:text="@string/ph_slim_body"
             android:textColor="#99FFFFFF"
             android:textSize="11sp"
             android:layout_marginTop="2dp" />

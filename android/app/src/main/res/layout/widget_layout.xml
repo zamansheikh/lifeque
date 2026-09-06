@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/prayer_placeholder_title"
             android:fontFamily="@font/noto_serif_bengali"
-            android:text="Prayer Times"
+            android:text="@string/ph_prayer_title"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/prayer_placeholder_body"
             android:fontFamily="@font/noto_serif_bengali"
-            android:text="Open app to load prayer times"
+            android:text="@string/ph_prayer_body"
             android:textColor="#99FFFFFF"
             android:textSize="12sp"
             android:layout_marginTop="4dp" />

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The languages this app ships. Declaring them lets Android hold a per-app
+  language, so the widget picker's labels and the widgets' own resources follow
+  the language chosen inside LifeQue rather than the one the phone is set to.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="bn" />
+</locale-config>

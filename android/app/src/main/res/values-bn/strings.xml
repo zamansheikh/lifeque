@@ -16,4 +16,48 @@
     <string name="slim_bar_widget_label">পরের নামাজের বার</string>
     <string name="day_timeline_widget_description">পুরো দিন এক লাইনে, নিষিদ্ধ সময় চিহ্নিত করে</string>
     <string name="slim_bar_widget_description">এক লাইনে: চলতি নামাজ ও কত সময় বাকি</string>
+
+    <!-- Sample text for the launcher's widget picker previews. -->
+    <string name="preview_hijri_full">২৩ রবিউল আউয়াল ১৪৪৮, শনিবার</string>
+    <string name="preview_greg">৫ সেপ্টেম্বর</string>
+    <string name="preview_isha">এশা</string>
+    <string name="preview_isha_range">রাত ৭:২৯ – ভোর ৪:২৫</string>
+    <string name="preview_ends_in">শেষ হতে 05:27:10</string>
+    <string name="preview_next_fajr">ফজর ভোর ৪:২৪</string>
+    <string name="preview_sunrise">সূর্যোদয় ভোর ৫:৪১</string>
+    <string name="preview_sunset">সূর্যাস্ত সন্ধ্যা ৬:১৩</string>
+    <string name="preview_mosque_title">মসজিদের জামাত</string>
+    <string name="preview_hijri_greg">২৩ রবিউল আউয়াল ১৪৪৮ · ৫ সেপ্টেম্বর</string>
+    <string name="preview_t_fajr">ভোর ৪:৪৪</string>
+    <string name="preview_t_dhuhr">দুপুর ১২:১৩</string>
+    <string name="preview_t_asr">বিকাল ৪:৪১</string>
+    <string name="preview_t_maghrib">সন্ধ্যা ৬:১৩</string>
+    <string name="preview_t_isha">রাত ৭:৪৪</string>
+    <string name="preview_daymap_title">সারা দিনের নামাজ</string>
+    <string name="preview_avoid_passed">নিষিদ্ধ সময় সব শেষ</string>
+    <string name="preview_tick_faj">ফজ</string>
+    <string name="preview_tick_dhu">জোহ</string>
+    <string name="preview_tick_asr">আস</string>
+    <string name="preview_tick_mag_ish">মাগ   এশা</string>
+    <string name="preview_daymap_note">"  নিষিদ্ধ সময় ট্র্যাকে চিহ্নিত"</string>
+    <string name="preview_slim_range">"  রাত ৭:২৯ – ভোর ৪:২৫"</string>
+    <string name="preview_countdown">05:27:10</string>
+    <string name="preview_waqt_ends">" ওয়াক্ত শেষ হতে"</string>
+    <string name="preview_p_fajr">ফজর</string>
+    <string name="preview_p_dhuhr">যোহর</string>
+    <string name="preview_p_asr">আসর</string>
+    <string name="preview_p_maghrib">মাগরিব</string>
+    <string name="preview_p_isha">এশা</string>
+
+    <!-- Shown inside a widget before the app has rendered its image.
+         The providers overwrite these with the app-language text at
+         runtime; these cover the gap on a fresh install. -->
+    <string name="ph_prayer_title">নামাজের সময়</string>
+    <string name="ph_prayer_body">নামাজের সময় আনতে অ্যাপ খুলুন</string>
+    <string name="ph_mosque_title">মসজিদের জামাত</string>
+    <string name="ph_mosque_body">জামাতের সময় আনতে অ্যাপ খুলুন</string>
+    <string name="ph_day_title">সারা দিনের নামাজ</string>
+    <string name="ph_day_body">দিনের নকশা আনতে অ্যাপ খুলুন</string>
+    <string name="ph_slim_title">পরের নামাজ</string>
+    <string name="ph_slim_body">নামাজের সময় আনতে অ্যাপ খুলুন</string>
 </resources>

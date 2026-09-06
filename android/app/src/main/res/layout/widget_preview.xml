@@ -18,7 +18,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="23 Rabi' al-Awwal 1448, Saturday"
+        android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_hijri_full"
         android:textColor="#FFFFFF"
         android:textSize="11sp"
         android:textStyle="bold" />
@@ -26,7 +27,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="5 September"
+        android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_greg"
         android:textColor="#B3FFFFFF"
         android:textSize="10sp"
         android:layout_marginTop="1dp" />
@@ -46,7 +48,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Isha"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_isha"
                 android:textColor="#FFFFFF"
                 android:textSize="30sp"
                 android:textStyle="bold" />
@@ -54,7 +57,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="7:29 PM – 4:25 AM"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_isha_range"
                 android:textColor="#FFFFFF"
                 android:textSize="13sp"
                 android:textStyle="bold"
@@ -63,7 +67,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ends in 05:27:10"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_ends_in"
                 android:textColor="#F5D27A"
                 android:textSize="11sp"
                 android:textStyle="bold"
@@ -79,7 +84,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fajr 4:24 AM"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_next_fajr"
                 android:textColor="#F5D27A"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -87,7 +93,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sunrise 5:41 AM"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_sunrise"
                 android:textColor="#CCFFFFFF"
                 android:textSize="10sp"
                 android:layout_marginTop="6dp" />
@@ -95,7 +102,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sunset 6:13 PM"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_sunset"
                 android:textColor="#CCFFFFFF"
                 android:textSize="10sp"
                 android:layout_marginTop="2dp" />

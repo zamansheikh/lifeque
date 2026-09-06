@@ -10,7 +10,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Mosque Jamaat"
+        android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_mosque_title"
         android:textColor="#FFFFFF"
         android:textSize="15sp"
         android:textStyle="bold" />
@@ -18,7 +19,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="23 Rabi' al-Awwal 1448 · 5 September"
+        android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_hijri_greg"
         android:textColor="#B3FFFFFF"
         android:textSize="10sp"
         android:layout_marginTop="2dp" />
@@ -39,13 +41,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ফজর"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_p_fajr"
                 android:textColor="#CCFFFFFF"
                 android:textSize="11sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="4:44 AM"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_t_fajr"
                 android:textColor="#FFFFFF"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -60,13 +64,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="যোহর"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_p_dhuhr"
                 android:textColor="#CCFFFFFF"
                 android:textSize="11sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="12:13 PM"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_t_dhuhr"
                 android:textColor="#FFFFFF"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -81,13 +87,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="আসর"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_p_asr"
                 android:textColor="#CCFFFFFF"
                 android:textSize="11sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="4:41 PM"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_t_asr"
                 android:textColor="#FFFFFF"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -102,13 +110,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="মাগরিব"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_p_maghrib"
                 android:textColor="#CCFFFFFF"
                 android:textSize="11sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="6:13 PM"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_t_maghrib"
                 android:textColor="#FFFFFF"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -123,13 +133,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="এশা"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_p_isha"
                 android:textColor="#F5D27A"
                 android:textSize="11sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="7:44 PM"
+                android:fontFamily="@font/noto_serif_bengali"
+                android:text="@string/preview_t_isha"
                 android:textColor="#F5D27A"
                 android:textSize="12sp"
                 android:textStyle="bold" />
