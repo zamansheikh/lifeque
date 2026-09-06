@@ -552,7 +552,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                   Text(
-                    'Version ${packageInfo.version}',
+                    L.of(context).aboutVersion(packageInfo.version),
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade600,
@@ -567,9 +567,9 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'A beautiful and intuitive app to manage your daily tasks and medicine reminders.',
-                style: TextStyle(fontSize: 16, height: 1.5),
+              Text(
+                L.of(context).aboutTagline,
+                style: const TextStyle(fontSize: 16, height: 1.5),
               ),
               const SizedBox(height: 24),
               Container(
@@ -585,7 +585,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Developed by',
+                      L.of(context).aboutDevelopedBy,
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -637,7 +637,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
               child: Text(
-                'Close',
+                L.of(context).commonClose,
                 style: TextStyle(
                   color: colorScheme.primary,
                   fontWeight: FontWeight.w600,
@@ -994,7 +994,7 @@ class _OrderTile extends StatelessWidget {
           ),
         ),
         title: Text(
-          item.label,
+          item.labelFor(context),
           style: TextStyle(
             fontWeight: isFirst ? FontWeight.w700 : FontWeight.w500,
             fontSize: 15,
@@ -1003,7 +1003,7 @@ class _OrderTile extends StatelessWidget {
         ),
         subtitle: isFirst
             ? Text(
-                'Home page',
+                L.of(context).navOrderHomeBadge,
                 style: TextStyle(
                   fontSize: 12,
                   color: colorScheme.primary.withValues(alpha: 0.8),

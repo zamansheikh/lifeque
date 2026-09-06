@@ -1833,4 +1833,103 @@ class LBn extends L {
   @override
   String get widgetLocationNote =>
       'আগে আপনার অবস্থান দিন — তাহলে এগুলোতে আপনার নিজের নামাজের সময় দেখাবে।';
+
+  @override
+  String aboutVersion(String version) {
+    return 'সংস্করণ $version';
+  }
+
+  @override
+  String get aboutTagline =>
+      'দৈনন্দিন কাজ ও ওষুধের রিমাইন্ডার সহজে সামলানোর একটি সুন্দর অ্যাপ।';
+
+  @override
+  String get aboutDevelopedBy => 'তৈরি করেছেন';
+
+  @override
+  String get commonClose => 'বন্ধ করুন';
+
+  @override
+  String get tasbihTitle => 'তাসবিহ';
+
+  @override
+  String get qiblaTitle => 'কিবলা';
+
+  @override
+  String tasbihRound(int number) {
+    final intl.NumberFormat numberNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String numberString = numberNumberFormat.format(number);
+
+    return 'রাউন্ড $numberString';
+  }
+
+  @override
+  String get tasbihTapToBegin => 'শুরু করতে চাপুন';
+
+  @override
+  String tasbihCounted(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString বার গোনা হয়েছে';
+  }
+
+  @override
+  String get tasbihReset => 'আবার শুরু';
+
+  @override
+  String get tasbihSubhanAllah => 'সুবহানাল্লাহ';
+
+  @override
+  String get tasbihAlhamdulillah => 'আলহামদুলিল্লাহ';
+
+  @override
+  String get tasbihAllahuAkbar => 'আল্লাহু আকবার';
+
+  @override
+  String get tasbihSubhanAllahMeaning => 'সুবহানাল্লাহ — আল্লাহ পবিত্র';
+
+  @override
+  String get tasbihAlhamdulillahMeaning =>
+      'আলহামদুলিল্লাহ — সব প্রশংসা আল্লাহর';
+
+  @override
+  String get tasbihAllahuAkbarMeaning => 'আল্লাহু আকবার — আল্লাহ সবচেয়ে মহান';
+
+  @override
+  String get tasbihResetTitle => 'এই রাউন্ড আবার শুরু করবেন?';
+
+  @override
+  String tasbihResetBody(int round) {
+    final intl.NumberFormat roundNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String roundString = roundNumberFormat.format(round);
+
+    return 'এতে রাউন্ড $roundString মুছে গিয়ে আবার সুবহানাল্লাহ থেকে শুরু হবে।';
+  }
+
+  @override
+  String get tasbihTapToCount => 'গুনতে চাপুন';
+
+  @override
+  String tasbihTimes(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString×';
+  }
+
+  @override
+  String get qiblaCompass => 'কিবলা কম্পাস';
+
+  @override
+  String qiblaFromNorth(String km) {
+    return 'উত্তর থেকে · মক্কা $km কিমি দূরে';
+  }
+
+  @override
+  String get qiblaNoCompass => 'এই ফোনে কম্পাস নেই — উপরে দিকটি দেখানো হয়েছে';
 }

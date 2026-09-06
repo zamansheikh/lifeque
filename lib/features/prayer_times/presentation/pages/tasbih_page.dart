@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 
 import '../../data/services/tasbih_service.dart';
 import '../utils/prayer_palette.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../core/utils/local_numbers.dart';
 
 /// Digital tasbih: tap the dial to count a bead, 33 to a round, cycling
 /// SubhanAllah → Alhamdulillah → Allahu Akbar.
@@ -73,8 +75,8 @@ class _TasbihPageState extends State<TasbihPage>
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  title: const Text(
-                    'Reset the counter?',
+                  title: Text(
+                    L.of(context).tasbihResetTitle,
                     style: TextStyle(
                       color: PrayerPalette.ink,
                       fontSize: 16,
@@ -82,21 +84,20 @@ class _TasbihPageState extends State<TasbihPage>
                     ),
                   ),
                   content: Text(
-                    'This clears round ${_state.round} and starts again '
-                    'from SubhanAllah.',
+                    L.of(context).tasbihResetBody(_state.round),
                     style: TextStyle(color: PrayerPalette.inkA(0.7)),
                   ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Keep counting'),
+                      child: Text(L.of(context).todosKeepIt),
                     ),
                     FilledButton(
                       style: FilledButton.styleFrom(
                         backgroundColor: PrayerPalette.accent,
                       ),
                       onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Reset'),
+                      child: Text(L.of(context).tasbihReset),
                     ),
                   ],
                 ),
@@ -146,8 +147,8 @@ class _TasbihPageState extends State<TasbihPage>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
-          'Tasbih',
+        Text(
+          L.of(context).tasbihTitle,
           style: TextStyle(
             color: PrayerPalette.ink,
             fontSize: 18,
@@ -162,7 +163,7 @@ class _TasbihPageState extends State<TasbihPage>
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
-            'Round ${_state.round}',
+            L.of(context).tasbihRound(_state.round),
             style: const TextStyle(
               color: PrayerPalette.accent,
               fontSize: 11,
@@ -193,7 +194,7 @@ class _TasbihPageState extends State<TasbihPage>
           ),
           const SizedBox(height: 6),
           Text(
-            dhikr.english,
+            dhikr.meaningFor(context),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: PrayerPalette.inkA(0.6),
@@ -253,7 +254,7 @@ class _TasbihPageState extends State<TasbihPage>
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         Text(
-                          '${_state.count}',
+                          N.of(_state.count),
                           style: const TextStyle(
                             color: PrayerPalette.ink,
                             fontSize: 62,
@@ -264,7 +265,7 @@ class _TasbihPageState extends State<TasbihPage>
                         ),
                         const SizedBox(width: 3),
                         Text(
-                          '/${TasbihService.perRound}',
+                          '/${N.of(TasbihService.perRound)}',
                           style: TextStyle(
                             color: PrayerPalette.inkA(0.35),
                             fontSize: 20,
@@ -295,7 +296,9 @@ class _TasbihPageState extends State<TasbihPage>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            _state.count == 0 ? 'tap to begin' : 'tap to count',
+                            _state.count == 0
+                                ? L.of(context).tasbihTapToBegin
+                                : L.of(context).tasbihTapToCount,
                             style: const TextStyle(
                               color: PrayerPalette.accent,
                               fontSize: 10.5,
@@ -338,7 +341,7 @@ class _TasbihPageState extends State<TasbihPage>
               child: Column(
                 children: [
                   Text(
-                    Dhikr.at(i).english.split(' — ').first,
+                    Dhikr.at(i).nameFor(context),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -351,7 +354,7 @@ class _TasbihPageState extends State<TasbihPage>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${counts[i]}×',
+                    L.of(context).tasbihTimes(counts[i]),
                     style: TextStyle(
                       color: i == active ? Colors.white : PrayerPalette.ink,
                       fontSize: 13,
@@ -379,7 +382,7 @@ class _TasbihPageState extends State<TasbihPage>
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
-              '$_total counted',
+              L.of(context).tasbihCounted(_total),
               style: const TextStyle(
                 color: PrayerPalette.accent,
                 fontSize: 12.5,
@@ -408,8 +411,8 @@ class _TasbihPageState extends State<TasbihPage>
                   color: PrayerPalette.inkA(0.7),
                 ),
                 const SizedBox(width: 6),
-                const Text(
-                  'Reset',
+                Text(
+                  L.of(context).tasbihReset,
                   style: TextStyle(
                     color: PrayerPalette.ink,
                     fontSize: 12.5,

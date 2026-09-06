@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../utils/prayer_palette.dart';
 import 'qibla_page.dart';
 import 'tasbih_page.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Tasbih and the Qibla compass, on one tab.
 ///
@@ -59,14 +60,14 @@ class _TasbihQiblaPageState extends State<TasbihQiblaPage> {
             child: _segment(
               index: 0,
               icon: Icons.blur_circular_outlined,
-              label: 'Tasbih',
+              label: L.of(context).tasbihTitle,
             ),
           ),
           Expanded(
             child: _segment(
               index: 1,
               icon: Icons.explore_outlined,
-              label: 'Qibla',
+              label: L.of(context).qiblaTitle,
             ),
           ),
         ],

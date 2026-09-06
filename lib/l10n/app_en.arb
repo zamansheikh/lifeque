@@ -924,5 +924,74 @@
   "remindersEmptyBodyLong": "Set one for anything you'd rather not keep in your head — a call to make, a bill to pay, a bin to put out.",
   "studyEndSessionBody": "The countdown stops and every alarm for the rest of the session is cancelled.",
   "expListsHelp": "Write down what you plan to buy with a price for each item, then tick things off as you buy them.",
-  "widgetLocationNote": "Set your location first and these will fill in with your own prayer times."
+  "widgetLocationNote": "Set your location first and these will fill in with your own prayer times.",
+  "aboutVersion": "Version {version}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutTagline": "A beautiful and intuitive app to manage your daily tasks and medicine reminders.",
+  "aboutDevelopedBy": "Developed by",
+  "commonClose": "Close",
+  "tasbihTitle": "Tasbih",
+  "qiblaTitle": "Qibla",
+  "tasbihRound": "Round {number}",
+  "@tasbihRound": {
+    "placeholders": {
+      "number": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "tasbihTapToBegin": "tap to begin",
+  "tasbihCounted": "{count} counted",
+  "@tasbihCounted": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "tasbihReset": "Reset",
+  "tasbihSubhanAllah": "SubhanAllah",
+  "tasbihAlhamdulillah": "Alhamdulillah",
+  "tasbihAllahuAkbar": "Allahu Akbar",
+  "tasbihSubhanAllahMeaning": "SubhanAllah — Glory be to Allah",
+  "tasbihAlhamdulillahMeaning": "Alhamdulillah — All praise is for Allah",
+  "tasbihAllahuAkbarMeaning": "Allahu Akbar — Allah is the Greatest",
+  "tasbihResetTitle": "Start this round again?",
+  "tasbihResetBody": "This clears round {round} and starts again from SubhanAllah.",
+  "@tasbihResetBody": {
+    "placeholders": {
+      "round": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "tasbihTapToCount": "tap to count",
+  "tasbihTimes": "{count}×",
+  "@tasbihTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "@qiblaFromNorth": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "qiblaCompass": "Qibla Compass",
+  "qiblaFromNorth": "from North · {km} km to Makkah",
+  "qiblaNoCompass": "No compass on this device — bearing shown above"
 }

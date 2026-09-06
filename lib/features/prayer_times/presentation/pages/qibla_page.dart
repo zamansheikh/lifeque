@@ -7,6 +7,8 @@ import 'package:flutter_compass/flutter_compass.dart';
 import '../../../../core/utils/salah_time_calculator.dart';
 import '../../data/services/prayer_settings_service.dart';
 import '../utils/prayer_palette.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Qibla compass: a dial that counter-rotates with the device heading so the
 /// Kaaba marker always points at Makkah.
@@ -108,8 +110,8 @@ class _QiblaPageState extends State<QiblaPage> {
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            const Text(
-              'Qibla Compass',
+            Text(
+              L.of(context).qiblaCompass,
               style: TextStyle(
                 color: PrayerPalette.ink,
                 fontSize: 18,
@@ -139,7 +141,7 @@ class _QiblaPageState extends State<QiblaPage> {
             ),
             const SizedBox(height: 2),
             Text(
-              'from North · ${_distanceKm.round()} km to Makkah',
+              L.of(context).qiblaFromNorth(N.of(_distanceKm.round())),
               style: TextStyle(
                 color: PrayerPalette.inkA(0.55),
                 fontSize: 12.5,
@@ -157,7 +159,7 @@ class _QiblaPageState extends State<QiblaPage> {
               ),
               child: Text(
                 _heading == null
-                    ? 'No compass on this device — bearing shown above'
+                    ? L.of(context).qiblaNoCompass
                     : _isAligned
                     ? '✓ Aligned — you are facing the Qibla'
                     : '✓ Aligned when the Kaaba points up',

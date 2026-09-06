@@ -1,3 +1,6 @@
+import 'package:flutter/widgets.dart';
+
+import '../../../../l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persists the tasbih counter so a round survives leaving the tab.
@@ -54,17 +57,43 @@ class TasbihState {
 }
 
 /// The three post-prayer adhkar the counter cycles through.
+///
+/// The Arabic is the dhikr itself and never changes. The meaning line beside
+/// it is what gets translated, so [meaningFor] takes a context rather than the
+/// class holding a fixed English string.
 class Dhikr {
   final String arabic;
-  final String english;
 
-  const Dhikr(this.arabic, this.english);
+  /// Which of the three this is, so the meaning can be looked up.
+  final int index;
+
+  const Dhikr(this.arabic, this.index);
 
   static const all = <Dhikr>[
-    Dhikr('سُبْحَانَ الله', 'SubhanAllah — Glory be to Allah'),
-    Dhikr('الْحَمْدُ لِلَّه', 'Alhamdulillah — All praise is due to Allah'),
-    Dhikr('اللَّهُ أَكْبَر', 'Allahu Akbar — Allah is the Greatest'),
+    Dhikr('سُبْحَانَ الله', 0),
+    Dhikr('الْحَمْدُ لِلَّه', 1),
+    Dhikr('اللَّهُ أَكْبَر', 2),
   ];
 
   static Dhikr at(int index) => all[index % all.length];
+
+  /// Transliteration and meaning, in the app's language.
+  String meaningFor(BuildContext context) {
+    final l = L.of(context);
+    return switch (index) {
+      0 => l.tasbihSubhanAllahMeaning,
+      1 => l.tasbihAlhamdulillahMeaning,
+      _ => l.tasbihAllahuAkbarMeaning,
+    };
+  }
+
+  /// The short name used on the 33 · 33 · 34 chips.
+  String nameFor(BuildContext context) {
+    final l = L.of(context);
+    return switch (index) {
+      0 => l.tasbihSubhanAllah,
+      1 => l.tasbihAlhamdulillah,
+      _ => l.tasbihAllahuAkbar,
+    };
+  }
 }

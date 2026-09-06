@@ -3366,6 +3366,144 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Set your location first and these will fill in with your own prayer times.'**
   String get widgetLocationNote;
+
+  /// No description provided for @aboutVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String aboutVersion(String version);
+
+  /// No description provided for @aboutTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'A beautiful and intuitive app to manage your daily tasks and medicine reminders.'**
+  String get aboutTagline;
+
+  /// No description provided for @aboutDevelopedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Developed by'**
+  String get aboutDevelopedBy;
+
+  /// No description provided for @commonClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get commonClose;
+
+  /// No description provided for @tasbihTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasbih'**
+  String get tasbihTitle;
+
+  /// No description provided for @qiblaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Qibla'**
+  String get qiblaTitle;
+
+  /// No description provided for @tasbihRound.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {number}'**
+  String tasbihRound(int number);
+
+  /// No description provided for @tasbihTapToBegin.
+  ///
+  /// In en, this message translates to:
+  /// **'tap to begin'**
+  String get tasbihTapToBegin;
+
+  /// No description provided for @tasbihCounted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} counted'**
+  String tasbihCounted(int count);
+
+  /// No description provided for @tasbihReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get tasbihReset;
+
+  /// No description provided for @tasbihSubhanAllah.
+  ///
+  /// In en, this message translates to:
+  /// **'SubhanAllah'**
+  String get tasbihSubhanAllah;
+
+  /// No description provided for @tasbihAlhamdulillah.
+  ///
+  /// In en, this message translates to:
+  /// **'Alhamdulillah'**
+  String get tasbihAlhamdulillah;
+
+  /// No description provided for @tasbihAllahuAkbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Allahu Akbar'**
+  String get tasbihAllahuAkbar;
+
+  /// No description provided for @tasbihSubhanAllahMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'SubhanAllah — Glory be to Allah'**
+  String get tasbihSubhanAllahMeaning;
+
+  /// No description provided for @tasbihAlhamdulillahMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Alhamdulillah — All praise is for Allah'**
+  String get tasbihAlhamdulillahMeaning;
+
+  /// No description provided for @tasbihAllahuAkbarMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Allahu Akbar — Allah is the Greatest'**
+  String get tasbihAllahuAkbarMeaning;
+
+  /// No description provided for @tasbihResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start this round again?'**
+  String get tasbihResetTitle;
+
+  /// No description provided for @tasbihResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This clears round {round} and starts again from SubhanAllah.'**
+  String tasbihResetBody(int round);
+
+  /// No description provided for @tasbihTapToCount.
+  ///
+  /// In en, this message translates to:
+  /// **'tap to count'**
+  String get tasbihTapToCount;
+
+  /// No description provided for @tasbihTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}×'**
+  String tasbihTimes(int count);
+
+  /// No description provided for @qiblaCompass.
+  ///
+  /// In en, this message translates to:
+  /// **'Qibla Compass'**
+  String get qiblaCompass;
+
+  /// No description provided for @qiblaFromNorth.
+  ///
+  /// In en, this message translates to:
+  /// **'from North · {km} km to Makkah'**
+  String qiblaFromNorth(String km);
+
+  /// No description provided for @qiblaNoCompass.
+  ///
+  /// In en, this message translates to:
+  /// **'No compass on this device — bearing shown above'**
+  String get qiblaNoCompass;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
