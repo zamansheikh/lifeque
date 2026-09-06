@@ -146,12 +146,26 @@ class MedicineCubit extends Cubit<MedicineState> {
 
   Future<void> deleteMedicine(String id) async {
     emit(MedicineLoading());
+
+    // Read the doses before the delete cascades them away: their follow-up
+    // nudges are keyed by dose id, and cancelMedicineNotifications only knows
+    // about the daily reminders. Without this a deleted medicine could still
+    // ask about itself twenty minutes later.
+    final dosesResult = await getDosesForMedicineUseCase(
+      GetDosesForMedicineParams(medicineId: id),
+    );
+    final doseIds = dosesResult.fold(
+      (_) => <String>[],
+      (doses) => doses.map((d) => d.id).toList(),
+    );
+
     final result = await deleteMedicineUseCase(DeleteMedicineParams(id: id));
-    result.fold(
-      (failure) => emit(MedicineError(message: _getFailureMessage(failure))),
+    await result.fold(
+      (failure) async =>
+          emit(MedicineError(message: _getFailureMessage(failure))),
       (_) async {
-        // Cancel notifications for the deleted medicine
         await notificationService.cancelMedicineNotifications(id);
+        await notificationService.cancelDoseFollowUps(doseIds);
         emit(MedicineOperationSuccess(message: MedicineMessage.deleted.name));
         loadAllMedicines(); // Refresh the list
       },

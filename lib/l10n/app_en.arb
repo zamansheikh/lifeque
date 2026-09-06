@@ -1614,5 +1614,10 @@
         "format": "decimalPattern"
       }
     }
-  }
+  },
+  "medNotifAskTitle": "Did you take it?",
+  "medNotifFeedbackTaken": "Marked as taken",
+  "medNotifFeedbackSkipped": "Dose skipped",
+  "medNotifFeedbackMissed": "Marked as missed",
+  "medNotifFeedbackSnoozed": "Reminding again in 15 minutes"
 }

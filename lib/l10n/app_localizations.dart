@@ -5592,6 +5592,36 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 day ago} other{{count} days ago}}'**
   String medDaysAgo(int count);
+
+  /// No description provided for @medNotifAskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you take it?'**
+  String get medNotifAskTitle;
+
+  /// No description provided for @medNotifFeedbackTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as taken'**
+  String get medNotifFeedbackTaken;
+
+  /// No description provided for @medNotifFeedbackSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose skipped'**
+  String get medNotifFeedbackSkipped;
+
+  /// No description provided for @medNotifFeedbackMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as missed'**
+  String get medNotifFeedbackMissed;
+
+  /// No description provided for @medNotifFeedbackSnoozed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminding again in 15 minutes'**
+  String get medNotifFeedbackSnoozed;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

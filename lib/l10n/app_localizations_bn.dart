@@ -3196,4 +3196,19 @@ class LBn extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get medNotifAskTitle => 'নিয়েছেন কি?';
+
+  @override
+  String get medNotifFeedbackTaken => 'নেওয়া হয়েছে বলে চিহ্নিত';
+
+  @override
+  String get medNotifFeedbackSkipped => 'ডোজ বাদ দেওয়া হয়েছে';
+
+  @override
+  String get medNotifFeedbackMissed => 'মিস বলে চিহ্নিত';
+
+  @override
+  String get medNotifFeedbackSnoozed => '১৫ মিনিট পরে আবার মনে করিয়ে দেব';
 }

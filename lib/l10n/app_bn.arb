@@ -915,5 +915,10 @@
   "medYesterday": "গতকাল",
   "medNotifStillPending": "এখনো নেওয়া হয়নি?",
   "medCatchUpCount": "{count, plural, other{{count}টি ডোজ নিশ্চিত করতে হবে}}",
-  "medDaysAgo": "{count, plural, other{{count} দিন আগে}}"
+  "medDaysAgo": "{count, plural, other{{count} দিন আগে}}",
+  "medNotifAskTitle": "নিয়েছেন কি?",
+  "medNotifFeedbackTaken": "নেওয়া হয়েছে বলে চিহ্নিত",
+  "medNotifFeedbackSkipped": "ডোজ বাদ দেওয়া হয়েছে",
+  "medNotifFeedbackMissed": "মিস বলে চিহ্নিত",
+  "medNotifFeedbackSnoozed": "১৫ মিনিট পরে আবার মনে করিয়ে দেব"
 }

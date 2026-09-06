@@ -363,6 +363,15 @@ class NotificationService {
     // Add retry mechanism for cold app starts
     await _ensureServicesReady();
 
+    // A question about one particular dose, answered by its id.
+    if (payload.startsWith(dosePayloadPrefix)) {
+      await _handleDoseAnswer(
+        actionId,
+        payload.substring(dosePayloadPrefix.length),
+      );
+      return;
+    }
+
     // Check if this is a medicine notification
     if (payload.startsWith('medicine_')) {
       await _handleMedicineNotificationAction(
@@ -2343,13 +2352,80 @@ class NotificationService {
               '${_medicineNotificationTitle(medicine)} · '
               '${_getMedicineNotificationBody(medicine)}',
           scheduledDate: tz.TZDateTime.from(when, tz.local),
-          notificationDetails: _getMedicineNotificationDetails(medicine, when),
-          payload: 'medicine_${medicine.id}',
+          // Asks about this dose rather than repeating the reminder: by now
+          // the answer is either "already took it" or "missed it", and both
+          // can be given without opening the app.
+          notificationDetails: _doseQuestionDetails(medicine, when),
+          payload: '$dosePayloadPrefix${dose.id}',
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         );
       } catch (e) {
         debugPrint('🩺 Could not schedule follow-up for ${dose.id}: $e');
       }
+    }
+  }
+
+  /// Payload marker for a notification that asks about one dose by id.
+  static const String dosePayloadPrefix = 'dose_';
+
+  static const String actionDoseTaken = 'dose_taken';
+  static const String actionDoseMissed = 'dose_missed';
+
+  NotificationDetails _doseQuestionDetails(Medicine medicine, DateTime when) {
+    return NotificationDetails(
+      android: _androidAlert(
+        channelId: channelMedicines,
+        channelName: 'Medicine Reminders',
+        kind: 'Medicine',
+        color: _medicineColor,
+        body: _getMedicineNotificationBody(medicine),
+        group: _groupMedicines,
+        when: when,
+        actions: [
+          _action(actionDoseTaken, _l.medCatchUpTaken),
+          _action(actionDoseMissed, _l.medCatchUpMissed),
+        ],
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        categoryIdentifier: 'medicine_category',
+      ),
+    );
+  }
+
+  /// Answers a dose question straight from the notification.
+  Future<void> _handleDoseAnswer(String actionId, String doseId) async {
+    await _ensureServicesReady();
+    try {
+      final cubit = di.sl<MedicineCubit>();
+      if (actionId == actionDoseTaken) {
+        await cubit.markDoseAsTaken(doseId, '');
+        await _showActionFeedbackNotification(
+          _l.medNotifAskTitle,
+          _l.medNotifFeedbackTaken,
+          const Color(0xFF4CAF50),
+        );
+      } else {
+        await cubit.markDoseAsMissed(doseId, '');
+        await _showActionFeedbackNotification(
+          _l.medNotifAskTitle,
+          _l.medNotifFeedbackMissed,
+          const Color(0xFFEF4444),
+        );
+      }
+    } catch (e) {
+      debugPrint('🩺 Could not answer dose $doseId: $e');
+    }
+  }
+
+  /// Cancels the follow-ups for a whole set of doses — used when the medicine
+  /// they belong to is deleted, so nothing nudges about a course that no
+  /// longer exists.
+  Future<void> cancelDoseFollowUps(Iterable<String> doseIds) async {
+    for (final doseId in doseIds) {
+      await cancelDoseFollowUp(doseId);
     }
   }
 
@@ -2593,8 +2669,8 @@ class NotificationService {
           await _markCurrentPendingDoseAsTaken(medicineId, medicineCubit);
 
           await _showActionFeedbackNotification(
-            'Dose taken',
-            'Marked as taken',
+            _l.medNotifTaken,
+            _l.medNotifFeedbackTaken,
             const Color(0xFF4CAF50),
           );
           break;
@@ -2606,8 +2682,8 @@ class NotificationService {
           await _markCurrentPendingDoseAsSkipped(medicineId, medicineCubit);
 
           await _showActionFeedbackNotification(
-            'Dose skipped',
-            'Marked as skipped',
+            _l.medNotifSkip,
+            _l.medNotifFeedbackSkipped,
             const Color(0xFFFF9800),
           );
           break;
@@ -2616,8 +2692,8 @@ class NotificationService {
           debugPrint('🩺 User snoozed dose from notification');
           await _snoozeMedicineNotification(medicineId, 15);
           await _showActionFeedbackNotification(
-            'Snoozed',
-            'Back in 15 minutes',
+            _l.medNotifSnooze,
+            _l.medNotifFeedbackSnoozed,
             const Color(0xFF2196F3),
           );
           break;

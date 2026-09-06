@@ -3208,4 +3208,19 @@ class LEn extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get medNotifAskTitle => 'Did you take it?';
+
+  @override
+  String get medNotifFeedbackTaken => 'Marked as taken';
+
+  @override
+  String get medNotifFeedbackSkipped => 'Dose skipped';
+
+  @override
+  String get medNotifFeedbackMissed => 'Marked as missed';
+
+  @override
+  String get medNotifFeedbackSnoozed => 'Reminding again in 15 minutes';
 }
