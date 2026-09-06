@@ -4,6 +4,7 @@ import '../../domain/entities/category_budget.dart';
 import '../../domain/entities/expense_category.dart';
 import '../../domain/entities/monthly_budget.dart';
 import '../../../../injection_container.dart' as di;
+import '../../../../l10n/app_localizations.dart';
 
 class UnifiedBudgetCard extends StatefulWidget {
   final MonthlyBudget? budget;
@@ -109,11 +110,11 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
       .toList();
 
   String _getBudgetStatus(double percentage, bool isOverBudget) {
-    if (isOverBudget) return 'Over budget!';
-    if (percentage >= 0.9) return 'Almost at limit';
-    if (percentage >= 0.7) return 'Spending cautiously';
-    if (percentage >= 0.5) return 'Halfway through';
-    return 'On track';
+    if (isOverBudget) return L.of(context).expOverBudget;
+    if (percentage >= 0.9) return L.of(context).expAlmostAtLimit;
+    if (percentage >= 0.7) return L.of(context).expSpendingCautiously;
+    if (percentage >= 0.5) return L.of(context).expHalfway;
+    return L.of(context).expOnTrack;
   }
 
   @override
@@ -198,8 +199,8 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Monthly Budget',
+                          Text(
+                            L.of(context).expMonthlyBudget,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -294,13 +295,13 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                       _infoTile(
                         icon: Icons.receipt_long_rounded,
                         value: '৳${widget.monthlyTotal.toStringAsFixed(0)}',
-                        label: 'Planned',
+                        label: L.of(context).expPlanned,
                       ),
                       const SizedBox(width: 8),
                       _infoTile(
                         icon: Icons.remove_shopping_cart_rounded,
                         value: '৳${widget.monthlyMissed.toStringAsFixed(0)}',
-                        label: 'Not bought',
+                        label: L.of(context).expNotBought,
                       ),
                     ],
                   ),
@@ -415,7 +416,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                                 alignment: Alignment.centerRight,
                                 padding: const EdgeInsets.only(right: 20),
                                 color: Colors.red[400],
-                                child: const Row(
+                                child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
@@ -425,7 +426,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                                     ),
                                     SizedBox(width: 4),
                                     Text(
-                                      'Delete',
+                                      L.of(context).commonDelete,
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w600,
@@ -715,8 +716,8 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Unallocated',
+                  Text(
+                    L.of(context).expUnallocated,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -929,7 +930,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Delete',
+                      L.of(context).commonDelete,
                       style: TextStyle(fontSize: 13, color: Colors.red[400]),
                     ),
                   ],
@@ -1007,7 +1008,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'No budget set',
+                  L.of(context).expNoBudgetSet,
                   style: TextStyle(
                     fontSize: 10,
                     color: Colors.orange[600],
@@ -1027,7 +1028,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             onPressed: widget.onSetBudget,
-            tooltip: 'Set budget',
+            tooltip: L.of(context).expSetBudget,
           ),
         ],
       ),
@@ -1105,12 +1106,12 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Monthly Budget',
+                      L.of(context).expMonthlyBudget,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -1118,7 +1119,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
                       ),
                     ),
                     Text(
-                      'No budget set for this month',
+                      L.of(context).expNoBudgetThisMonth,
                       style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                     ),
                   ],
@@ -1132,7 +1133,7 @@ class _UnifiedBudgetCardState extends State<UnifiedBudgetCard>
             child: ElevatedButton.icon(
               onPressed: widget.onSetBudget,
               icon: const Icon(Icons.add_rounded),
-              label: const Text('Set Monthly Budget'),
+              label: Text(L.of(context).expSetBudget),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3B82F6),
                 foregroundColor: Colors.white,

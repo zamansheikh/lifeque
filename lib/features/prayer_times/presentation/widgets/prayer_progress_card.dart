@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../utils/prayer_palette.dart';
 
 /// Today's salat progress, the current streak and the last seven days — the
@@ -61,7 +62,7 @@ class PrayerProgressCard extends StatelessWidget {
                 children: [
                   _ring(),
                   const SizedBox(width: 14),
-                  Expanded(child: _headline()),
+                  Expanded(child: _headline(context)),
                   const SizedBox(width: 6),
                   Icon(
                     Icons.chevron_right_rounded,
@@ -115,11 +116,12 @@ class PrayerProgressCard extends StatelessWidget {
     );
   }
 
-  Widget _headline() {
+  Widget _headline(BuildContext context) {
+    final l = L.of(context);
     final complete = prayed >= total;
     final title = isToday
-        ? (complete ? 'All five prayed today' : 'Prayers logged today')
-        : 'Prayers logged';
+        ? (complete ? l.progressAllFive : l.progressLoggedToday)
+        : l.progressLogged;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,11 +140,11 @@ class PrayerProgressCard extends StatelessWidget {
         const SizedBox(height: 5),
         Row(
           children: [
-            if (isToday) _streakChip(),
+            if (isToday) _streakChip(context),
             if (isToday) const SizedBox(width: 8),
             Flexible(
               child: Text(
-                'View stats',
+                l.progressViewStats,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -158,7 +160,7 @@ class PrayerProgressCard extends StatelessWidget {
     );
   }
 
-  Widget _streakChip() {
+  Widget _streakChip(BuildContext context) {
     final live = streak > 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -176,7 +178,9 @@ class PrayerProgressCard extends StatelessWidget {
           ),
           const SizedBox(width: 3),
           Text(
-            live ? '$streak-day streak' : 'No streak yet',
+            live
+                ? L.of(context).progressStreak(streak)
+                : L.of(context).progressNoStreak,
             style: TextStyle(
               color: live ? const Color(0xFF8A5418) : PrayerPalette.inkA(0.45),
               fontSize: 11,

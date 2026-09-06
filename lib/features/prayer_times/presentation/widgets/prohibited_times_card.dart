@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../utils/prayer_palette.dart';
 
 /// One makruh window shown as a chip in [ProhibitedTimesCard].
@@ -47,9 +48,9 @@ class ProhibitedTimesCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Prohibited Times for Prayer',
+                  L.of(context).prohibitedCardTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -62,11 +63,14 @@ class ProhibitedTimesCard extends StatelessWidget {
               InkWell(
                 onTap: onSeeReference,
                 borderRadius: BorderRadius.circular(8),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
                   child: Text(
-                    'See Reference',
-                    style: TextStyle(
+                    L.of(context).prohibitedSeeReference,
+                    style: const TextStyle(
                       color: PrayerPalette.accent,
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,

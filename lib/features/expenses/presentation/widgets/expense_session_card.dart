@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/expense_item.dart';
 import '../../domain/entities/expense_session.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class ExpenseSessionCard extends StatefulWidget {
   final ExpenseSession session;
@@ -167,19 +168,22 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    itemBuilder: (context) => const [
+                    itemBuilder: (context) => [
                       PopupMenuItem(
                         value: 'edit',
                         height: 38,
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.edit_rounded,
                               size: 16,
                               color: Color(0xFF3B82F6),
                             ),
-                            SizedBox(width: 10),
-                            Text('Edit', style: TextStyle(fontSize: 13)),
+                            const SizedBox(width: 10),
+                            Text(
+                              L.of(context).commonEdit,
+                              style: const TextStyle(fontSize: 13),
+                            ),
                           ],
                         ),
                       ),
@@ -188,15 +192,15 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                         height: 38,
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.delete_rounded,
                               size: 16,
                               color: Color(0xFFEF4444),
                             ),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                             Text(
-                              'Delete',
-                              style: TextStyle(
+                              L.of(context).commonDelete,
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: Color(0xFFEF4444),
                               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../utils/prayer_palette.dart';
 
 /// Tabs in the prayer section's bottom bar.
@@ -22,13 +23,24 @@ class PrayerBottomNav extends StatelessWidget {
     required this.onSelect,
   });
 
-  static const _items = <(PrayerTab, IconData, String)>[
-    (PrayerTab.prayer, Icons.mosque, 'Prayer'),
-    (PrayerTab.calendar, Icons.calendar_month_outlined, 'Calendar'),
-    (PrayerTab.tasbih, Icons.blur_circular_outlined, 'Tasbih'),
-    (PrayerTab.resources, Icons.menu_book_rounded, 'Learn'),
-    (PrayerTab.more, Icons.more_horiz_rounded, 'More'),
+  static const _items = <(PrayerTab, IconData)>[
+    (PrayerTab.prayer, Icons.mosque),
+    (PrayerTab.calendar, Icons.calendar_month_outlined),
+    (PrayerTab.tasbih, Icons.blur_circular_outlined),
+    (PrayerTab.resources, Icons.menu_book_rounded),
+    (PrayerTab.more, Icons.more_horiz_rounded),
   ];
+
+  static String _label(BuildContext context, PrayerTab tab) {
+    final l = L.of(context);
+    return switch (tab) {
+      PrayerTab.prayer => l.prayerNavPrayer,
+      PrayerTab.calendar => l.prayerNavCalendar,
+      PrayerTab.tasbih => l.prayerNavTasbih,
+      PrayerTab.resources => l.prayerNavLearn,
+      PrayerTab.more => l.prayerNavMore,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +60,8 @@ class PrayerBottomNav extends StatelessWidget {
       ),
       child: Row(
         children: [
-          for (final (tab, icon, label) in _items)
-            Expanded(child: _item(tab, icon, label)),
+          for (final (tab, icon) in _items)
+            Expanded(child: _item(tab, icon, _label(context, tab))),
         ],
       ),
     );

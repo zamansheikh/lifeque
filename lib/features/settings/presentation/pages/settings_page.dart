@@ -139,9 +139,11 @@ class _SettingsPageState extends State<SettingsPage> {
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                L.of(ctx).navOrderHomePage(
-                                  tempItems.first.labelFor(ctx),
-                                ),
+                                L
+                                    .of(ctx)
+                                    .navOrderHomePage(
+                                      tempItems.first.labelFor(ctx),
+                                    ),
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -724,7 +726,10 @@ class _SettingsPageState extends State<SettingsPage> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
           // ── General section ─────────────────────────────────────
-          _SectionHeader(label: l.settingsSectionGeneral, color: colorScheme.primary),
+          _SectionHeader(
+            label: l.settingsSectionGeneral,
+            color: colorScheme.primary,
+          ),
           _SettingsGroup(
             children: [
               _SettingsTile(
@@ -751,7 +756,10 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 24),
 
           // ── App section ─────────────────────────────────────────
-          _SectionHeader(label: l.settingsSectionApp, color: colorScheme.primary),
+          _SectionHeader(
+            label: l.settingsSectionApp,
+            color: colorScheme.primary,
+          ),
           _SettingsGroup(
             children: [
               _SettingsTile(
@@ -776,7 +784,10 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 24),
 
           // ── Legal section ───────────────────────────────────────
-          _SectionHeader(label: l.settingsSectionLegal, color: colorScheme.primary),
+          _SectionHeader(
+            label: l.settingsSectionLegal,
+            color: colorScheme.primary,
+          ),
           _SettingsGroup(
             children: [
               _SettingsTile(

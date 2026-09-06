@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../core/widgets/detail_kit.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../domain/entities/task.dart';
 import '../../bloc/task_bloc.dart';
 
@@ -44,6 +45,7 @@ class _TraditionalTaskDetailState extends State<TraditionalTaskDetail> {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     final accent = _accent();
     final remaining = _task.endDate.difference(DateTime.now());
 
@@ -55,7 +57,7 @@ class _TraditionalTaskDetailState extends State<TraditionalTaskDetail> {
           accent: accent,
           status: _status(),
           title: _task.title,
-          subtitle: 'Due ${_full(_task.endDate)}',
+          subtitle: '${l.detailDue} ${_full(_task.endDate)}',
           description: _task.description,
           isDone: _task.isCompleted,
           action: DetailCheckCircle(
@@ -68,21 +70,21 @@ class _TraditionalTaskDetailState extends State<TraditionalTaskDetail> {
         const SizedBox(height: 12),
         if (!_task.isCompleted) ...[
           DetailSection(
-            title: 'TIME LEFT',
+            title: l.detailSectionTimeLeft,
             icon: Icons.hourglass_bottom_rounded,
             accent: accent,
             children: [
               DetailCountdown(
                 remaining: remaining,
                 color: accent,
-                caption: 'Until the deadline',
-                passedLabel: 'The deadline has passed',
+                caption: l.detailUntilDeadline,
+                passedLabel: l.detailDeadlinePassed,
               ),
               const SizedBox(height: 16),
               DetailProgress(
                 value: _task.progressPercentage,
                 color: accent,
-                label: 'Time elapsed',
+                label: l.detailTimeElapsed,
               ),
               const SizedBox(height: 16),
               Row(
@@ -90,7 +92,7 @@ class _TraditionalTaskDetailState extends State<TraditionalTaskDetail> {
                   Expanded(
                     child: DetailStat(
                       value: '${_task.daysLeft}',
-                      label: 'days left',
+                      label: l.detailDaysLeft,
                       icon: Icons.schedule_rounded,
                       color: accent,
                     ),
@@ -99,7 +101,7 @@ class _TraditionalTaskDetailState extends State<TraditionalTaskDetail> {
                   Expanded(
                     child: DetailStat(
                       value: '${_totalDays()}',
-                      label: 'days total',
+                      label: l.detailDaysTotal,
                       icon: Icons.calendar_month_rounded,
                       color: const Color(0xFF7C3AED),
                     ),
@@ -111,28 +113,28 @@ class _TraditionalTaskDetailState extends State<TraditionalTaskDetail> {
           const SizedBox(height: 12),
         ],
         DetailSection(
-          title: 'TIMELINE',
+          title: l.detailSectionTimeline,
           icon: Icons.timeline_rounded,
           accent: const Color(0xFFEA580C),
           children: [
             DetailTimelineTile(
               icon: Icons.play_circle_outline_rounded,
               color: const Color(0xFF10B981),
-              label: 'Started',
+              label: l.detailStarted,
               value: _full(_task.startDate),
               hasNext: true,
             ),
             DetailTimelineTile(
               icon: Icons.flag_rounded,
               color: _task.isOverdue ? Colors.red.shade500 : accent,
-              label: _task.isOverdue ? 'Was due' : 'Due',
+              label: _task.isOverdue ? l.detailWasDue : l.detailDue,
               value: _full(_task.endDate),
             ),
           ],
         ),
         const SizedBox(height: 12),
         DetailSection(
-          title: 'DETAILS',
+          title: l.detailSectionDetails,
           icon: Icons.info_outline_rounded,
           accent: Colors.grey.shade500,
           children: [
@@ -140,24 +142,24 @@ class _TraditionalTaskDetailState extends State<TraditionalTaskDetail> {
               icon: _task.isNotificationEnabled
                   ? Icons.notifications_active_rounded
                   : Icons.notifications_off_rounded,
-              label: 'Reminder',
+              label: l.detailReminderRow,
               value: _reminderLabel(),
             ),
             if (_task.isPinnedToNotification)
-              const DetailRow(
+              DetailRow(
                 icon: Icons.push_pin_rounded,
-                label: 'Pinned',
-                value: 'Kept in the shade',
+                label: l.detailPinned,
+                value: l.detailPinnedValue,
               ),
             DetailRow(
               icon: Icons.add_circle_outline_rounded,
-              label: 'Created',
+              label: l.detailCreated,
               value: DateFormat('d MMM y').format(_task.createdAt),
             ),
             if (_task.updatedAt != null)
               DetailRow(
                 icon: Icons.edit_rounded,
-                label: 'Last edited',
+                label: l.detailLastEdited,
                 value: DateFormat('d MMM y').format(_task.updatedAt!),
               ),
           ],
@@ -174,21 +176,35 @@ class _TraditionalTaskDetailState extends State<TraditionalTaskDetail> {
   /// The reminder in the same words the form used to set it, rather than a
   /// bare "Enabled" that says nothing about when.
   String _reminderLabel() {
-    if (!_task.isNotificationEnabled) return 'Off';
+    final l = L.of(context);
+    if (!_task.isNotificationEnabled) return l.commonOff;
 
     return switch (_task.notificationType) {
       NotificationType.beforeEnd =>
         _task.beforeEndOption == null
-            ? 'Before it is due'
-            : '${_task.beforeEndOption!.displayName} before',
+            ? l.detailReminderBeforeDue
+            : l.detailReminderBefore(_beforeEndLabel(_task.beforeEndOption!)),
       NotificationType.daily =>
         _task.dailyNotificationTime == null
-            ? 'Every day'
-            : '${_task.dailyNotificationTime!.format(context)} daily',
+            ? l.taskFormModeDaily
+            : l.detailReminderDaily(
+                _task.dailyNotificationTime!.format(context),
+              ),
       NotificationType.specificTime =>
         _task.notificationTime == null
-            ? 'At a set time'
+            ? l.detailReminderAtTime
             : _full(_task.notificationTime!),
+    };
+  }
+
+  String _beforeEndLabel(BeforeEndOption option) {
+    final l = L.of(context);
+    return switch (option) {
+      BeforeEndOption.tenMinutes => l.beforeEnd10Minutes,
+      BeforeEndOption.thirtyMinutes => l.beforeEnd30Minutes,
+      BeforeEndOption.oneHour => l.beforeEnd1Hour,
+      BeforeEndOption.twoHours => l.beforeEnd2Hours,
+      BeforeEndOption.oneDay => l.beforeEnd1Day,
     };
   }
 
@@ -203,9 +219,10 @@ class _TraditionalTaskDetailState extends State<TraditionalTaskDetail> {
   }
 
   String _status() {
-    if (_task.isCompleted) return 'Completed';
-    if (_task.isOverdue) return 'Overdue';
-    if (_task.isActive) return 'In progress';
-    return 'Not started yet';
+    final l = L.of(context);
+    if (_task.isCompleted) return l.detailStatusCompleted;
+    if (_task.isOverdue) return l.detailStatusOverdue;
+    if (_task.isActive) return l.detailStatusInProgress;
+    return l.detailStatusNotStarted;
   }
 }

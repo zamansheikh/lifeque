@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../services/study_timer_service.dart';
+import '../../../../l10n/app_localizations.dart';
 
 extension StudyPhaseUI on StudyPhase {
   Color get color => switch (this) {
@@ -26,12 +27,23 @@ extension StudyPhaseUI on StudyPhase {
     StudyPhase.stopped => Icons.timer_outlined,
   };
 
+  /// English, for logs and for text built away from a BuildContext.
   String get displayName => switch (this) {
     StudyPhase.focus => 'Focus',
     StudyPhase.shortBreak => 'Short break',
     StudyPhase.longBreak => 'Long break',
     StudyPhase.stopped => 'Ready when you are',
   };
+
+  String labelFor(BuildContext context) {
+    final l = L.of(context);
+    return switch (this) {
+      StudyPhase.focus => l.studyFocusBlock,
+      StudyPhase.shortBreak => l.studyShortBreak,
+      StudyPhase.longBreak => l.studyLongBreak,
+      StudyPhase.stopped => l.studyReady,
+    };
+  }
 }
 
 class StudyTimerPage extends StatefulWidget {
@@ -90,8 +102,8 @@ class _StudyTimerPageState extends State<StudyTimerPage>
           backgroundColor: phase.tint,
           drawer: const AppDrawer(currentRoute: '/study-timer'),
           appBar: AppBar(
-            title: const Text(
-              'Study Timer',
+            title: Text(
+              L.of(context).studyTitle,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 22,
@@ -112,7 +124,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
             actions: [
               IconButton(
                 icon: const Icon(Icons.tune_rounded, color: _muted),
-                tooltip: 'Timer settings',
+                tooltip: L.of(context).studySettings,
                 onPressed: _showSettings,
               ),
               const SizedBox(width: 4),
@@ -176,7 +188,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                   Icon(phase.icon, size: 22, color: phase.color),
                   const SizedBox(height: 8),
                   Text(
-                    phase.displayName.toUpperCase(),
+                    phase.labelFor(context).toUpperCase(),
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w800,
@@ -219,11 +231,13 @@ class _StudyTimerPageState extends State<StudyTimerPage>
   }
 
   String _subtitle(StudyPhase phase) {
-    if (!_service.hasActiveSession) return '$_focusDuration min to start';
-    if (_service.isPaused) return 'Paused';
+    if (!_service.hasActiveSession) {
+      return L.of(context).studyMinutesToStart(_focusDuration);
+    }
+    if (_service.isPaused) return L.of(context).studyPaused;
     final next = _service.nextPhase;
     if (next == StudyPhase.stopped) return '';
-    return 'Then ${next.displayName.toLowerCase()}';
+    return L.of(context).studyThenNext(next.labelFor(context).toLowerCase());
   }
 
   // ── Cycle dots ──────────────────────────────────────────────────────────
@@ -290,7 +304,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
             child: FilledButton.icon(
               onPressed: _start,
               icon: const Icon(Icons.play_arrow_rounded, size: 22),
-              label: const Text('Start focusing'),
+              label: Text(L.of(context).studyStart),
               style: FilledButton.styleFrom(
                 backgroundColor: StudyPhase.focus.color,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -326,7 +340,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                   running ? Icons.pause_rounded : Icons.play_arrow_rounded,
                   size: 22,
                 ),
-                label: Text(running ? 'Pause' : 'Resume'),
+                label: Text(running ? 'Pause' : L.of(context).studyResume),
                 style: FilledButton.styleFrom(
                   backgroundColor: phase.color,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -411,7 +425,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
               Row(
                 children: [
                   _stat(
-                    'Focused',
+                    L.of(context).studyFocused,
                     focusMinutes >= 60
                         ? '${(focusMinutes / 60).toStringAsFixed(1)} h'
                         : '$focusMinutes min',
@@ -420,7 +434,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                   ),
                   _divider(),
                   _stat(
-                    'Blocks',
+                    L.of(context).studyBlocks,
                     '$done',
                     Icons.done_all_rounded,
                     StudyPhase.shortBreak.color,
@@ -454,8 +468,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Alarms are set for every block and break, so you can '
-                        'put the phone down.',
+                        L.of(context).studyAlarmNote,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[700],
@@ -480,8 +493,8 @@ class _StudyTimerPageState extends State<StudyTimerPage>
         children: [
           Row(
             children: [
-              const Text(
-                'Your plan',
+              Text(
+                L.of(context).studyYourPlan,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -493,7 +506,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
               TextButton.icon(
                 onPressed: _showSettings,
                 icon: const Icon(Icons.tune_rounded, size: 16),
-                label: const Text('Adjust'),
+                label: Text(L.of(context).studyAdjust),
                 style: TextButton.styleFrom(
                   foregroundColor: StudyPhase.focus.color,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -620,26 +633,25 @@ class _StudyTimerPageState extends State<StudyTimerPage>
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'End this session?',
+        title: Text(
+          L.of(context).studyEndSessionTitle,
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
-        content: const Text(
-          'The countdown stops and every alarm for the rest of the session is '
-          'cancelled.',
+        content: Text(
+          L.of(context).studyEndSessionBody,
           style: TextStyle(height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Keep going'),
+            child: Text(L.of(context).studyKeepGoing),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFFDC2626),
             ),
-            child: const Text('End session'),
+            child: Text(L.of(context).studyEndSession),
           ),
         ],
       ),
@@ -684,8 +696,8 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                 ),
               ),
               const SizedBox(height: 18),
-              const Text(
-                'Timer settings',
+              Text(
+                L.of(context).studySettings,
                 style: TextStyle(
                   fontSize: 19,
                   fontWeight: FontWeight.w700,
@@ -695,8 +707,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
               if (running) ...[
                 const SizedBox(height: 8),
                 Text(
-                  'A session is running — these take effect the next time you '
-                  'start one.',
+                  L.of(context).studyRunningNote,
                   style: TextStyle(
                     fontSize: 12.5,
                     color: Colors.grey[600],
@@ -736,7 +747,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                 (v) => '$v min',
               ),
               _slider(
-                'Blocks before a long break',
+                L.of(context).studyBlocksBeforeLong,
                 _cyclesBeforeLongBreak,
                 2,
                 8,

@@ -5,6 +5,9 @@ import '../../../../core/widgets/app_drawer.dart';
 import '../../domain/entities/todo.dart';
 import '../bloc/todo_bloc.dart';
 import '../widgets/todo_card.dart';
+import '../utils/todo_l10n.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../core/utils/local_numbers.dart';
 
 /// The to-do list.
 ///
@@ -23,12 +26,15 @@ class TodoListPage extends StatefulWidget {
 enum _StatusFilter { open, today, upcoming, done }
 
 extension on _StatusFilter {
-  String get label => switch (this) {
-    _StatusFilter.open => 'All',
-    _StatusFilter.today => 'Today',
-    _StatusFilter.upcoming => 'Upcoming',
-    _StatusFilter.done => 'Done',
-  };
+  String labelFor(BuildContext context) {
+    final l = L.of(context);
+    return switch (this) {
+      _StatusFilter.open => l.todosTabAll,
+      _StatusFilter.today => l.todosTabToday,
+      _StatusFilter.upcoming => l.todosTabUpcoming,
+      _StatusFilter.done => l.todosTabDone,
+    };
+  }
 }
 
 class _TodoListPageState extends State<TodoListPage> {
@@ -61,8 +67,8 @@ class _TodoListPageState extends State<TodoListPage> {
       backgroundColor: const Color(0xFFF8FAFC),
       drawer: const AppDrawer(currentRoute: '/todos'),
       appBar: AppBar(
-        title: const Text(
-          'To Do List',
+        title: Text(
+          L.of(context).todosTitle,
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 22,
@@ -76,7 +82,7 @@ class _TodoListPageState extends State<TodoListPage> {
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu_rounded, color: _muted),
-            tooltip: 'Menu',
+            tooltip: L.of(context).commonMenu,
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
@@ -108,7 +114,7 @@ class _TodoListPageState extends State<TodoListPage> {
           if (all.isEmpty) return _firstRun();
 
           final visible = _apply(all);
-          final sections = _sections(visible);
+          final sections = _sections(context, visible);
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
@@ -157,8 +163,8 @@ class _TodoListPageState extends State<TodoListPage> {
             backgroundColor: _brand,
             foregroundColor: Colors.white,
             icon: const Icon(Icons.add_rounded),
-            label: const Text(
-              'New to-do',
+            label: Text(
+              L.of(context).todosNew,
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
             ),
           );
@@ -203,7 +209,8 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Groups by when something is due, most pressing first, so the list reads
   /// as a plan for the day instead of an undifferentiated pile.
-  List<_Section> _sections(List<Todo> todos) {
+  List<_Section> _sections(BuildContext context, List<Todo> todos) {
+    final l = L.of(context);
     if (_status == _StatusFilter.done) {
       final done = [...todos]
         ..sort((a, b) {
@@ -213,7 +220,7 @@ class _TodoListPageState extends State<TodoListPage> {
         });
       return done.isEmpty
           ? const []
-          : [_Section('Completed', done, Colors.grey.shade500)];
+          : [_Section(l.todosGroupCompleted, done, Colors.grey.shade500)];
     }
 
     final overdue = <Todo>[];
@@ -265,15 +272,20 @@ class _TodoListPageState extends State<TodoListPage> {
     noDate.sort(byPriority);
 
     return [
-      if (overdue.isNotEmpty) _Section('Overdue', overdue, _danger),
+      if (overdue.isNotEmpty) _Section(l.todosGroupOverdue, overdue, _danger),
       if (today.isNotEmpty)
-        _Section('Today', today, const Color(0xFFD97706), showsDueDate: false),
+        _Section(
+          l.todosGroupToday,
+          today,
+          const Color(0xFFD97706),
+          showsDueDate: false,
+        ),
       if (tomorrow.isNotEmpty)
-        _Section('Tomorrow', tomorrow, _brand, showsDueDate: false),
-      if (thisWeek.isNotEmpty) _Section('This week', thisWeek, _brand),
-      if (later.isNotEmpty) _Section('Later', later, _muted),
+        _Section(l.todosGroupTomorrow, tomorrow, _brand, showsDueDate: false),
+      if (thisWeek.isNotEmpty) _Section(l.todosGroupThisWeek, thisWeek, _brand),
+      if (later.isNotEmpty) _Section(l.todosGroupLater, later, _muted),
       if (noDate.isNotEmpty)
-        _Section('No date', noDate, _muted, showsDueDate: false),
+        _Section(l.todosGroupNoDate, noDate, _muted, showsDueDate: false),
     ];
   }
 
@@ -313,7 +325,7 @@ class _TodoListPageState extends State<TodoListPage> {
                 child: Text(
                   dueToday.isEmpty
                       ? (open == 0
-                            ? 'Nothing left — enjoy it'
+                            ? L.of(context).todosNothingLeft
                             : '$open open, none due today')
                       : '$doneToday of ${dueToday.length} done today',
                   style: const TextStyle(
@@ -385,14 +397,14 @@ class _TodoListPageState extends State<TodoListPage> {
         onChanged: (value) => setState(() => _query = value),
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: 'Search your to-dos',
+          hintText: L.of(context).todosSearchHint,
           hintStyle: TextStyle(color: Colors.grey[500]),
           prefixIcon: const Icon(Icons.search_rounded, color: _brand, size: 22),
           suffixIcon: _query.isEmpty
               ? null
               : IconButton(
                   icon: const Icon(Icons.clear_rounded),
-                  tooltip: 'Clear search',
+                  tooltip: L.of(context).todosClearSearch,
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _query = '');
@@ -428,7 +440,7 @@ class _TodoListPageState extends State<TodoListPage> {
           final filter = _StatusFilter.values[i];
           final selected = _status == filter;
           return _pill(
-            label: '${filter.label} · ${countFor(filter)}',
+            label: '${filter.labelFor(context)} · ${N.of(countFor(filter))}',
             selected: selected,
             color: _brand,
             onTap: () => setState(() => _status = filter),
@@ -454,7 +466,7 @@ class _TodoListPageState extends State<TodoListPage> {
         itemBuilder: (context, i) {
           if (i == 0) {
             return _pill(
-              label: 'Any category',
+              label: L.of(context).todosAnyCategory,
               selected: _category == null,
               color: _muted,
               small: true,
@@ -463,7 +475,7 @@ class _TodoListPageState extends State<TodoListPage> {
           }
           final category = used[i - 1];
           return _pill(
-            label: category.displayName,
+            label: category.labelFor(context),
             icon: category.icon,
             selected: _category == category,
             color: category.color,
@@ -570,11 +582,11 @@ class _TodoListPageState extends State<TodoListPage> {
           const SizedBox(height: 12),
           Text(
             switch (_status) {
-              _ when filtered => 'Nothing matched',
-              _StatusFilter.done => 'Nothing finished yet',
-              _StatusFilter.today => 'Nothing due today',
-              _StatusFilter.upcoming => 'Nothing scheduled ahead',
-              _StatusFilter.open => 'All clear',
+              _ when filtered => L.of(context).todosNothingMatched,
+              _StatusFilter.done => L.of(context).todosNothingFinished,
+              _StatusFilter.today => L.of(context).todosNothingToday,
+              _StatusFilter.upcoming => L.of(context).todosNothingAhead,
+              _StatusFilter.open => L.of(context).todosAllClear,
             },
             style: const TextStyle(
               fontSize: 16,
@@ -585,8 +597,8 @@ class _TodoListPageState extends State<TodoListPage> {
           const SizedBox(height: 6),
           Text(
             filtered
-                ? 'Try a different word, or clear the category filter.'
-                : 'Nothing to do in this view.',
+                ? L.of(context).todosNothingMatchedBody
+                : L.of(context).todosNothingInView,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13.5, color: Colors.grey[600]),
           ),
@@ -615,8 +627,8 @@ class _TodoListPageState extends State<TodoListPage> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Your list is empty',
+            Text(
+              L.of(context).todosEmptyTitle,
               style: TextStyle(
                 fontSize: 19,
                 fontWeight: FontWeight.w700,
@@ -625,8 +637,7 @@ class _TodoListPageState extends State<TodoListPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Add something you need to get done. Give it a due date and a '
-              'reminder, and the app will nudge you when it matters.',
+              L.of(context).todosEmptyBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -634,11 +645,11 @@ class _TodoListPageState extends State<TodoListPage> {
                 height: 1.45,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () => context.push('/todos/add'),
-              icon: const Icon(Icons.add_rounded),
-              label: const Text('Add your first to-do'),
+              icon: Icon(Icons.add_rounded),
+              label: Text(L.of(context).todosAddFirst),
               style: FilledButton.styleFrom(
                 backgroundColor: _brand,
                 padding: const EdgeInsets.symmetric(
@@ -688,19 +699,18 @@ class _TodoListPageState extends State<TodoListPage> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete this to-do?',
+        title: Text(
+          L.of(context).todosDeleteTitle,
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          '“${todo.title}” and its reminder will be removed. '
-          'This can\'t be undone.',
-          style: const TextStyle(height: 1.4),
+          L.of(context).todosDeleteBody(todo.title),
+          style: TextStyle(height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Keep it'),
+            child: Text(L.of(context).todosKeepIt),
           ),
           FilledButton(
             onPressed: () {

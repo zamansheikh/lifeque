@@ -10,6 +10,7 @@ import '../../domain/entities/monthly_budget.dart';
 import '../../domain/repositories/expense_repository.dart';
 import '../../../../injection_container.dart' as di;
 import '../bloc/expense_bloc.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class SetBudgetPage extends StatefulWidget {
   final DateTime selectedMonth;
@@ -299,7 +300,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(
-          isEditing ? 'Edit Budget' : 'Set Budget',
+          isEditing ? L.of(context).expEditBudget : L.of(context).expSetBudget,
           style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 24,
@@ -349,7 +350,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 size: 20,
               ),
               label: Text(
-                isEditing ? 'Update' : 'Save',
+                isEditing ? L.of(context).expUpdate : 'Save',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -391,7 +392,11 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
               child: ElevatedButton.icon(
                 onPressed: _saveBudget,
                 icon: const Icon(Icons.save_rounded, size: 18),
-                label: Text(isEditing ? 'Update Budget' : 'Set Budget'),
+                label: Text(
+                  isEditing
+                      ? L.of(context).expUpdateBudget
+                      : L.of(context).expSetBudget,
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   foregroundColor: Colors.white,
@@ -460,8 +465,8 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                         color: Color(0xFF1E293B),
                       ),
                     ),
-                    const Text(
-                      'Monthly Budget',
+                    Text(
+                      L.of(context).expMonthlyBudget,
                       style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                     ),
                   ],
@@ -479,7 +484,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
               color: Color(0xFF1E293B),
             ),
             decoration: InputDecoration(
-              labelText: 'Total Budget Amount',
+              labelText: L.of(context).expBudgetAmount,
               hintText: '0',
               prefixText: '৳ ',
               prefixStyle: const TextStyle(
@@ -509,11 +514,11 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
             onChanged: (_) => setState(() {}),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Please enter a budget amount';
+                return L.of(context).expNeedAmount;
               }
               final amount = double.tryParse(value);
               if (amount == null || amount <= 0) {
-                return 'Please enter a valid amount greater than 0';
+                return L.of(context).expNeedValidAmount;
               }
               return null;
             },
@@ -663,9 +668,9 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 ),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Category Budgets',
+                  L.of(context).expCategoryBudgets,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -739,7 +744,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        'Category budgets exceed monthly budget — please reduce.',
+                        L.of(context).expCategoryOverBudget,
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.red[600],
@@ -793,7 +798,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
           OutlinedButton.icon(
             onPressed: _showAddCustomCategoryDialog,
             icon: const Icon(Icons.add_rounded, size: 18),
-            label: const Text('Add Custom Category'),
+            label: Text(L.of(context).expAddCustomCategory),
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFF8B5CF6),
               side: BorderSide(
@@ -941,9 +946,11 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 ),
                 validator: (value) {
                   if (_enabledCategories[cat] != true) return null;
-                  if (value == null || value.isEmpty) return 'Enter amount';
+                  if (value == null || value.isEmpty) {
+                    return L.of(context).expEnterAmount;
+                  }
                   final amt = double.tryParse(value);
-                  if (amt == null || amt <= 0) return 'Invalid';
+                  if (amt == null || amt <= 0) return L.of(context).expInvalid;
                   return null;
                 },
               ),
@@ -1117,13 +1124,13 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.delete_rounded, color: Colors.white, size: 20),
             SizedBox(width: 6),
             Text(
-              'Delete',
+              L.of(context).commonDelete,
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
@@ -1248,9 +1255,13 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                   ),
                   validator: (value) {
                     if (_enabledCustomCategories[cc.name] != true) return null;
-                    if (value == null || value.isEmpty) return 'Enter amount';
+                    if (value == null || value.isEmpty) {
+                      return L.of(context).expEnterAmount;
+                    }
                     final amt = double.tryParse(value);
-                    if (amt == null || amt <= 0) return 'Invalid';
+                    if (amt == null || amt <= 0) {
+                      return L.of(context).expInvalid;
+                    }
                     return null;
                   },
                 ),
@@ -1309,8 +1320,8 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete Category',
+        title: Text(
+          L.of(context).expDeleteCategory,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
         content: Column(
@@ -1378,12 +1389,12 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(L.of(context).commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red[600]),
-            child: const Text('Delete'),
+            child: Text(L.of(context).commonDelete),
           ),
         ],
       ),
@@ -1446,8 +1457,8 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            title: const Text(
-              'Create Custom Category',
+            title: Text(
+              L.of(context).expCreateCustomCategory,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             content: SingleChildScrollView(
@@ -1470,7 +1481,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                     controller: nameCtrl,
                     textCapitalization: TextCapitalization.words,
                     decoration: InputDecoration(
-                      labelText: 'Category Name',
+                      labelText: L.of(context).expCategoryName,
                       hintText: 'e.g. Rent, Gym, Pet',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -1565,7 +1576,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
+                child: Text(L.of(context).commonCancel),
               ),
               FilledButton(
                 onPressed: () async {
@@ -1586,9 +1597,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                   );
                   if (!added && ctx.mounted) {
                     ScaffoldMessenger.of(ctx).showSnackBar(
-                      const SnackBar(
-                        content: Text('Category name already exists'),
-                      ),
+                      SnackBar(content: Text(L.of(ctx).expCategoryExists)),
                     );
                     return;
                   }
@@ -1602,7 +1611,7 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                     _enabledCustomCategories[name] = true;
                   });
                 },
-                child: const Text('Create'),
+                child: Text(L.of(context).expCreate),
               ),
             ],
           );

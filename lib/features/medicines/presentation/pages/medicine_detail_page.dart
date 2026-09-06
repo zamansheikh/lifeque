@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/widgets/detail_kit.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/medicine.dart';
 import '../../domain/entities/medicine_dose.dart';
 import '../bloc/medicine_cubit.dart';
@@ -44,9 +45,9 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text(
-          'Medicine',
-          style: TextStyle(
+        title: Text(
+          L.of(context).medDetailTitle,
+          style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 19,
             letterSpacing: -0.3,
@@ -64,7 +65,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
           // Refresh used to be a third button up here; the list pulls to
           // refresh instead.
           IconButton(
-            tooltip: 'Edit',
+            tooltip: L.of(context).commonEdit,
             icon: const Icon(Icons.edit_rounded, size: 21),
             onPressed: () async {
               await Navigator.of(context).push(
@@ -124,7 +125,10 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
               style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: _reload, child: const Text('Try again')),
+            FilledButton(
+              onPressed: _reload,
+              child: Text(L.of(context).commonRetry),
+            ),
           ],
         ),
       ),
@@ -134,6 +138,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
   Widget _detail(MedicineDetailLoaded state) {
     final medicine = state.medicine;
     final accent = _statusAccent(medicine);
+    final l = L.of(context);
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(
@@ -144,23 +149,24 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
         DetailHero(
           icon: Icons.medication_rounded,
           accent: accent,
-          status: _statusLabel(medicine),
+          status: _statusLabel(context, medicine),
           title: medicine.name,
           subtitle:
-              '${medicine.dosageDisplay} · ${medicine.timesPerDay}× a day '
-              '· ${medicine.mealTimingDisplayName}',
+              '${medicine.dosageDisplay} · '
+              '${l.medTimesADay(medicine.timesPerDay)} · '
+              '${medicine.mealTimingDisplayName}',
           description: medicine.description,
         ),
         const SizedBox(height: 12),
         DetailSection(
-          title: 'THIS COURSE',
+          title: l.medSectionCourse,
           icon: Icons.insights_rounded,
           accent: accent,
           children: [
             DetailProgress(
               value: state.adherencePercent,
               color: accent,
-              label: 'Doses taken',
+              label: l.medDosesTaken,
             ),
             const SizedBox(height: 14),
             DetailProgress(
@@ -168,7 +174,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                   ? 0
                   : state.daysElapsed / state.daysTotal,
               color: const Color(0xFF7C3AED),
-              label: 'Day ${state.daysElapsed} of ${state.daysTotal}',
+              label: l.medDayOf(state.daysElapsed, state.daysTotal),
             ),
             const SizedBox(height: 16),
             Row(
@@ -176,7 +182,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                 Expanded(
                   child: DetailStat(
                     value: '${state.taken}',
-                    label: 'taken',
+                    label: l.medDoseTaken,
                     icon: Icons.check_circle_rounded,
                     color: const Color(0xFF10B981),
                   ),
@@ -185,7 +191,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                 Expanded(
                   child: DetailStat(
                     value: '${state.pending}',
-                    label: 'to come',
+                    label: l.medDoseToCome,
                     icon: Icons.schedule_rounded,
                     color: const Color(0xFF06B6D4),
                   ),
@@ -194,7 +200,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                 Expanded(
                   child: DetailStat(
                     value: '${state.skipped}',
-                    label: 'skipped',
+                    label: l.medDoseSkipped,
                     icon: Icons.skip_next_rounded,
                     color: const Color(0xFFF59E0B),
                   ),
@@ -203,7 +209,7 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
                 Expanded(
                   child: DetailStat(
                     value: '${state.missed}',
-                    label: 'missed',
+                    label: l.medDoseMissed,
                     icon: Icons.cancel_rounded,
                     color: const Color(0xFFEF4444),
                   ),
@@ -214,45 +220,45 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
         ),
         const SizedBox(height: 12),
         DetailSection(
-          title: 'ABOUT',
+          title: l.detailSectionAbout,
           icon: Icons.info_outline_rounded,
           accent: Colors.grey.shade500,
           children: [
             DetailRow(
               icon: Icons.category_rounded,
-              label: 'Type',
+              label: l.medType,
               value: medicine.typeDisplayName,
             ),
             DetailRow(
               icon: Icons.science_rounded,
-              label: 'Dosage',
+              label: l.medDosage,
               value: medicine.dosageDisplay,
             ),
             DetailRow(
               icon: Icons.restaurant_rounded,
-              label: 'Timing',
+              label: l.medTiming,
               value: medicine.mealTimingDisplayName,
             ),
             DetailRow(
               icon: Icons.play_circle_outline_rounded,
-              label: 'Started',
+              label: l.medStarted,
               value: DateFormat('d MMM y').format(medicine.startDate),
             ),
             DetailRow(
               icon: Icons.flag_rounded,
-              label: 'Ends',
+              label: l.medEnds,
               value: DateFormat('d MMM y').format(medicine.calculatedEndDate),
             ),
             if (medicine.doctorName != null)
               DetailRow(
                 icon: Icons.person_rounded,
-                label: 'Doctor',
+                label: l.medDoctor,
                 value: medicine.doctorName!,
               ),
             if (medicine.notes != null && medicine.notes!.trim().isNotEmpty)
               DetailRow(
                 icon: Icons.sticky_note_2_outlined,
-                label: 'Notes',
+                label: l.medNotes,
                 value: medicine.notes!,
               ),
             if (medicine.notificationTimes.isNotEmpty) ...[
@@ -270,13 +276,13 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
         ),
         const SizedBox(height: 12),
         DetailSection(
-          title: 'DOSE HISTORY',
+          title: l.medSectionDoseHistory,
           icon: Icons.history_rounded,
           accent: _accent,
           children: [
             if (state.doses.isEmpty)
               Text(
-                'No doses recorded yet.',
+                l.medNoDoses,
                 style: TextStyle(fontSize: 13.5, color: Colors.grey.shade600),
               )
             else
@@ -335,7 +341,9 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
         title: Row(
           children: [
             Text(
-              isToday ? 'Today' : DateFormat('EEE, d MMM').format(date),
+              isToday
+                  ? L.of(context).commonToday
+                  : DateFormat('EEE, d MMM').format(date),
               style: TextStyle(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700,
@@ -424,12 +432,15 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
     DoseStatus.missed => Icons.cancel_rounded,
   };
 
-  String _doseLabel(DoseStatus status) => switch (status) {
-    DoseStatus.taken => 'Taken',
-    DoseStatus.pending => 'To come',
-    DoseStatus.skipped => 'Skipped',
-    DoseStatus.missed => 'Missed',
-  };
+  String _doseLabel(DoseStatus status) {
+    final l = L.of(context);
+    return switch (status) {
+      DoseStatus.taken => l.medDoseTaken,
+      DoseStatus.pending => l.medDoseToCome,
+      DoseStatus.skipped => l.medDoseSkipped,
+      DoseStatus.missed => l.medDoseMissed,
+    };
+  }
 
   Color _statusAccent(Medicine medicine) {
     if (medicine.isCompleted) return const Color(0xFF10B981);
@@ -437,9 +448,10 @@ class _MedicineDetailPageState extends State<MedicineDetailPage> {
     return const Color(0xFFF59E0B);
   }
 
-  String _statusLabel(Medicine medicine) {
-    if (medicine.isCompleted) return 'Course finished';
-    if (medicine.isActive) return 'On this course';
-    return 'Not started yet';
+  String _statusLabel(BuildContext context, Medicine medicine) {
+    final l = L.of(context);
+    if (medicine.isCompleted) return l.medStatusFinished;
+    if (medicine.isActive) return l.medStatusOnCourse;
+    return l.medStatusNotStarted;
   }
 }

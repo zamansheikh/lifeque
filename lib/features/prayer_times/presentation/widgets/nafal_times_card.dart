@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../utils/prayer_palette.dart';
 
 /// One optional-prayer window in [NafalTimesCard].
@@ -49,12 +50,12 @@ class NafalTimesCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Nafal Prayer Time',
+                  L.of(context).nafalTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: PrayerPalette.ink,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -64,11 +65,14 @@ class NafalTimesCard extends StatelessWidget {
               InkWell(
                 onTap: onSeeReference,
                 borderRadius: BorderRadius.circular(8),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
                   child: Text(
-                    'See Reference',
-                    style: TextStyle(
+                    L.of(context).prohibitedSeeReference,
+                    style: const TextStyle(
                       color: PrayerPalette.accent,
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/utils/local_numbers.dart';
 import '../../../../core/widgets/app_drawer.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../bloc/task_bloc.dart';
 import '../widgets/task_card_factory.dart';
 import '../../domain/entities/task.dart';
@@ -59,7 +61,7 @@ class _TaskListPageState extends State<TaskListPage>
           // Refresh used to sit here too; every list pulls to refresh now, so
           // the bar is down to the one thing it links to.
           IconButton(
-            tooltip: 'Medicines',
+            tooltip: L.of(context).tasksMedicinesTooltip,
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -139,10 +141,11 @@ class _TaskListPageState extends State<TaskListPage>
         ? state.tasks.where((t) => t.taskType == TaskType.task).toList()
         : <Task>[];
 
+    final l = L.of(context);
     final labels = [
-      ('Active', tasks.where((t) => t.isActive).length),
-      ('All', tasks.length),
-      ('Done', tasks.where((t) => t.isCompleted).length),
+      (l.tasksTabActive, tasks.where((t) => t.isActive).length),
+      (l.tasksTabAll, tasks.length),
+      (l.tasksTabDone, tasks.where((t) => t.isCompleted).length),
     ];
 
     return Container(
@@ -177,7 +180,10 @@ class _TaskListPageState extends State<TaskListPage>
         ),
         tabs: [
           for (final (label, count) in labels)
-            Tab(height: 36, text: count == 0 ? label : '$label  $count'),
+            Tab(
+              height: 36,
+              text: count == 0 ? label : '$label  ${N.of(count)}',
+            ),
         ],
       ),
     );
@@ -244,7 +250,7 @@ class _TaskListPageState extends State<TaskListPage>
           ),
           const SizedBox(width: 8),
           Text(
-            '$count',
+            N.of(count),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -259,18 +265,22 @@ class _TaskListPageState extends State<TaskListPage>
   }
 
   /// Deadline buckets, relative to the end of today.
-  static List<(String, List<Task>)> _byDeadline(List<Task> tasks) {
+  List<(String, List<Task>)> _byDeadline(
+    BuildContext context,
+    List<Task> tasks,
+  ) {
+    final l = L.of(context);
     final now = DateTime.now();
     final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
     final endOfWeek = endOfToday.add(const Duration(days: 7));
 
     return [
       (
-        'Due today',
+        l.tasksGroupDueToday,
         tasks.where((t) => !t.endDate.isAfter(endOfToday)).toList(),
       ),
       (
-        'Next 7 days',
+        l.tasksGroupNext7Days,
         tasks
             .where(
               (t) =>
@@ -279,7 +289,10 @@ class _TaskListPageState extends State<TaskListPage>
             )
             .toList(),
       ),
-      ('Later', tasks.where((t) => t.endDate.isAfter(endOfWeek)).toList()),
+      (
+        l.tasksGroupLater,
+        tasks.where((t) => t.endDate.isAfter(endOfWeek)).toList(),
+      ),
     ];
   }
 
@@ -308,7 +321,7 @@ class _TaskListPageState extends State<TaskListPage>
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'No tasks yet',
+                    L.of(context).tasksEmptyTitle,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -318,7 +331,7 @@ class _TaskListPageState extends State<TaskListPage>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap the + button to create your first task',
+                    L.of(context).tasksTapPlus,
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
                   ),
                 ],
@@ -331,19 +344,20 @@ class _TaskListPageState extends State<TaskListPage>
               .toList();
           all.sort((a, b) => a.nextOccurrence.compareTo(b.nextOccurrence));
 
+          final l = L.of(context);
           return _groupedList([
             (
-              'Overdue',
+              l.tasksGroupOverdue,
               all.where((t) => t.isOverdue && !t.isCompleted).toList(),
             ),
-            ('In progress', all.where((t) => t.isActive).toList()),
+            (l.tasksGroupInProgress, all.where((t) => t.isActive).toList()),
             (
-              'Not started yet',
+              l.tasksGroupNotStarted,
               all
                   .where((t) => !t.isCompleted && !t.isActive && !t.isOverdue)
                   .toList(),
             ),
-            ('Completed', all.where((t) => t.isCompleted).toList()),
+            (l.tasksGroupCompleted, all.where((t) => t.isCompleted).toList()),
           ]);
         } else if (state is TaskError) {
           return Center(
@@ -353,7 +367,7 @@ class _TaskListPageState extends State<TaskListPage>
                 const Icon(Icons.error_outline, size: 64, color: Colors.red),
                 const SizedBox(height: 16),
                 Text(
-                  'Error: ${state.message}',
+                  state.message,
                   style: const TextStyle(color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
@@ -362,7 +376,7 @@ class _TaskListPageState extends State<TaskListPage>
                   onPressed: () {
                     context.read<TaskBloc>().add(LoadTasks());
                   },
-                  child: const Text('Retry'),
+                  child: Text(L.of(context).commonRetry),
                 ),
               ],
             ),
@@ -405,7 +419,7 @@ class _TaskListPageState extends State<TaskListPage>
             return _buildEmptyActive(context, hasAnyTask: hasAnyTask);
           }
 
-          return _groupedList(_byDeadline(activeTasks));
+          return _groupedList(_byDeadline(context, activeTasks));
         }
         return _buildTaskList();
       },
@@ -422,6 +436,7 @@ class _TaskListPageState extends State<TaskListPage>
   /// anything exists.
   Widget _buildFirstRun(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = L.of(context);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 100),
@@ -439,7 +454,7 @@ class _TaskListPageState extends State<TaskListPage>
         ),
         const SizedBox(height: 18),
         Text(
-          'Welcome to LifeQue',
+          l.tasksFirstRunTitle,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 22,
@@ -450,7 +465,7 @@ class _TaskListPageState extends State<TaskListPage>
         ),
         const SizedBox(height: 6),
         Text(
-          'Pick somewhere to start. Everything here is also in the menu.',
+          l.tasksFirstRunBody,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 14,
@@ -462,29 +477,29 @@ class _TaskListPageState extends State<TaskListPage>
         _startHere(
           icon: Icons.add_task_rounded,
           color: colorScheme.primary,
-          title: 'Add your first task',
-          subtitle: 'Something with a deadline to work towards',
+          title: l.tasksStartTask,
+          subtitle: l.tasksStartTaskSub,
           onTap: () => context.push('/add-task'),
         ),
         _startHere(
           icon: Icons.mosque_rounded,
           color: const Color(0xFF0F8A5F),
-          title: 'Set up prayer times',
-          subtitle: 'Waqt times, jamaat and a home-screen widget',
+          title: l.tasksStartPrayer,
+          subtitle: l.tasksStartPrayerSub,
           onTap: () => context.push('/prayer-times'),
         ),
         _startHere(
           icon: Icons.cake_rounded,
           color: const Color(0xFFDB2777),
-          title: 'Save a birthday',
-          subtitle: 'Be reminded a day before, every year',
+          title: l.tasksStartBirthday,
+          subtitle: l.tasksStartBirthdaySub,
           onTap: () => context.push('/add-birthday'),
         ),
         _startHere(
           icon: Icons.checklist_rounded,
           color: const Color(0xFF7C3AED),
-          title: 'Start a to-do list',
-          subtitle: 'The small things, ticked off as you go',
+          title: l.tasksStartTodo,
+          subtitle: l.tasksStartTodoSub,
           onTap: () => context.push('/todos/add'),
         ),
       ],
@@ -577,6 +592,7 @@ class _TaskListPageState extends State<TaskListPage>
   /// first run. One line about the state you are actually in is more use.
   Widget _buildEmptyActive(BuildContext context, {required bool hasAnyTask}) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = L.of(context);
 
     return Center(
       child: Padding(
@@ -604,7 +620,7 @@ class _TaskListPageState extends State<TaskListPage>
             ),
             const SizedBox(height: 22),
             Text(
-              hasAnyTask ? 'Nothing on right now' : 'No tasks yet',
+              hasAnyTask ? l.tasksAllDoneTitle : l.tasksEmptyTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 20,
@@ -615,11 +631,7 @@ class _TaskListPageState extends State<TaskListPage>
             ),
             const SizedBox(height: 8),
             Text(
-              hasAnyTask
-                  ? 'Everything with a deadline is either finished or not '
-                        'started yet. Check All Tasks to see the rest.'
-                  : 'Add something with a start and an end date, and it will '
-                        'show up here while it is running.',
+              hasAnyTask ? l.tasksAllDoneBody : l.tasksEmptyBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -640,7 +652,7 @@ class _TaskListPageState extends State<TaskListPage>
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Tap + to add one',
+                  l.tasksTapPlus,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -684,7 +696,7 @@ class _TaskListPageState extends State<TaskListPage>
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'No completed tasks yet!',
+                    L.of(context).tasksNoCompletedTitle,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -694,7 +706,7 @@ class _TaskListPageState extends State<TaskListPage>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Complete some tasks to see them here.',
+                    L.of(context).tasksNoCompletedBody,
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
                   ),
                 ],
@@ -704,7 +716,9 @@ class _TaskListPageState extends State<TaskListPage>
 
           // Most recently finished first — the opposite of a deadline sort.
           completedTasks.sort((a, b) => b.endDate.compareTo(a.endDate));
-          return _groupedList([('Completed', completedTasks)]);
+          return _groupedList([
+            (L.of(context).tasksGroupCompleted, completedTasks),
+          ]);
         }
         return _buildTaskList();
       },
@@ -719,22 +733,22 @@ class _TaskListPageState extends State<TaskListPage>
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final l = L.of(context);
         return AlertDialog(
-          title: const Text('Delete Task'),
-          content: Text('Are you sure you want to delete "$taskTitle"?'),
+          title: Text(l.tasksDeleteTitle),
+          content: Text(l.tasksDeleteBody(taskTitle)),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l.commonCancel),
             ),
             TextButton(
               onPressed: () {
                 context.read<TaskBloc>().add(DeleteTaskEvent(taskId));
                 Navigator.of(context).pop();
               },
-              child: const Text('Delete'),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: Text(l.commonDelete),
             ),
           ],
         );

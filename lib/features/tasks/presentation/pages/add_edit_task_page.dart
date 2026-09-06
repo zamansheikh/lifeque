@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
 
@@ -116,7 +117,9 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
           icon: const Icon(Icons.arrow_back_rounded),
         ),
         title: Text(
-          _isEditing ? 'Edit task' : 'New task',
+          _isEditing
+              ? L.of(context).taskFormEditTitle
+              : L.of(context).taskFormNewTitle,
           style: const TextStyle(
             fontSize: 19,
             fontWeight: FontWeight.w700,
@@ -171,7 +174,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
         letterSpacing: -0.3,
       ),
       decoration: InputDecoration(
-        hintText: 'What needs to be done?',
+        hintText: L.of(context).taskFormTitleHint,
         hintStyle: TextStyle(
           fontSize: 19,
           fontWeight: FontWeight.w600,
@@ -190,8 +193,9 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
         errorBorder: _fieldBorder(Colors.red.shade300),
         focusedErrorBorder: _fieldBorder(Colors.red.shade400, 1.6),
       ),
-      validator: (value) =>
-          (value == null || value.trim().isEmpty) ? 'Give it a name' : null,
+      validator: (value) => (value == null || value.trim().isEmpty)
+          ? L.of(context).taskFormTitleEmpty
+          : null,
     );
   }
 
@@ -209,10 +213,11 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
   /// Two date-and-time pickers used to be the only way to answer "when", which
   /// is four dialogs deep for "by tonight".
   Widget _whenCard() {
+    final l = L.of(context);
     return _card(
       icon: Icons.event_rounded,
       iconColor: const Color(0xFF2563EB),
-      title: 'Due',
+      title: l.taskFormDue,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -221,17 +226,17 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
             runSpacing: 8,
             children: [
               _presetChip(
-                'Today',
+                l.taskFormPresetToday,
                 _isPreset(_endOfToday()),
                 () => _applyPreset(_endOfToday()),
               ),
               _presetChip(
-                'Tomorrow',
+                l.taskFormPresetTomorrow,
                 _isPreset(_endOfToday().add(const Duration(days: 1))),
                 () => _applyPreset(_endOfToday().add(const Duration(days: 1))),
               ),
               _presetChip(
-                'In a week',
+                l.taskFormPresetWeek,
                 _isPreset(_endOfToday().add(const Duration(days: 7))),
                 () => _applyPreset(_endOfToday().add(const Duration(days: 7))),
               ),
@@ -239,21 +244,21 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
           ),
           const SizedBox(height: 14),
           _dateRow(
-            label: 'Due',
+            label: l.taskFormDue,
             value: _humanDateTime(_endDate),
             emphasis: true,
             onTap: _selectEndDateTime,
           ),
           Divider(height: 18, color: Colors.grey.shade200),
           _dateRow(
-            label: 'Starts',
+            label: l.taskFormStarts,
             value: _startsLabel(),
             emphasis: false,
             onTap: _selectStartDateTime,
           ),
           if (!_endDate.isAfter(_startDate)) ...[
             const SizedBox(height: 10),
-            _inlineWarning('The due time needs to be after the start.'),
+            _inlineWarning(l.taskFormEndBeforeStart),
           ],
         ],
       ),
@@ -277,7 +282,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
   String _startsLabel() {
     // Anything within a minute of now is "now" — a timestamp there is noise.
     final delta = _startDate.difference(DateTime.now()).abs();
-    if (delta < const Duration(minutes: 1)) return 'Now';
+    if (delta < const Duration(minutes: 1)) return L.of(context).commonNow;
     return _humanDateTime(_startDate);
   }
 
@@ -288,7 +293,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
         value.month == now.month &&
         value.day == now.day;
     final day = sameDay
-        ? 'Today'
+        ? L.of(context).commonToday
         : DateFormat(
             value.year == now.year ? 'EEE, d MMM' : 'EEE, d MMM y',
           ).format(value);
@@ -343,10 +348,11 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
   // ── Reminder ────────────────────────────────────────────────────────────
 
   Widget _reminderCard() {
+    final l = L.of(context);
     return _card(
       icon: Icons.notifications_rounded,
       iconColor: const Color(0xFF7C3AED),
-      title: 'Remind me',
+      title: l.taskFormRemindMe,
       trailing: Switch(
         value: _isNotificationEnabled,
         onChanged: (value) => setState(() => _isNotificationEnabled = value),
@@ -361,17 +367,17 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                   runSpacing: 8,
                   children: [
                     _presetChip(
-                      'Before it is due',
+                      l.taskFormModeBeforeDue,
                       _remindMode == _RemindMode.beforeDue,
                       () => setState(() => _remindMode = _RemindMode.beforeDue),
                     ),
                     _presetChip(
-                      'At a set time',
+                      l.taskFormModeAtTime,
                       _remindMode == _RemindMode.atTime,
                       _chooseAtTimeMode,
                     ),
                     _presetChip(
-                      'Every day',
+                      l.taskFormModeDaily,
                       _remindMode == _RemindMode.daily,
                       _chooseDailyMode,
                     ),
@@ -385,7 +391,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                     children: [
                       for (final option in BeforeEndOption.values)
                         _presetChip(
-                          option.displayName,
+                          _beforeEndLabel(option),
                           _beforeEndOption == option,
                           () => setState(() => _beforeEndOption = option),
                           small: true,
@@ -393,18 +399,20 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                     ],
                   ),
                   _RemindMode.atTime => _dateRow(
-                    label: 'At',
+                    label: l.taskFormAt,
                     value: _notificationTime == null
-                        ? 'Pick a time'
+                        ? l.taskFormPickTime
                         : _humanDateTime(_notificationTime!),
                     emphasis: true,
                     onTap: _selectSpecificNotificationTime,
                   ),
                   _RemindMode.daily => _dateRow(
-                    label: 'At',
+                    label: l.taskFormAt,
                     value: _dailyNotificationTime == null
-                        ? 'Pick a time'
-                        : '${_dailyNotificationTime!.format(context)} every day',
+                        ? l.taskFormPickTime
+                        : l.taskFormEveryDayAt(
+                            _dailyNotificationTime!.format(context),
+                          ),
                     emphasis: true,
                     onTap: _selectDailyNotificationTime,
                   ),
@@ -454,7 +462,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'More options',
+                      L.of(context).taskFormMoreOptions,
                       style: TextStyle(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w700,
@@ -482,7 +490,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                 textCapitalization: TextCapitalization.sentences,
                 style: const TextStyle(fontSize: 14),
                 decoration: InputDecoration(
-                  hintText: 'Notes (optional)',
+                  hintText: L.of(context).taskFormNotesHint,
                   hintStyle: TextStyle(color: Colors.grey.shade400),
                   filled: true,
                   fillColor: Colors.grey.shade50,
@@ -497,12 +505,15 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
             ),
             SwitchListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              title: const Text(
-                'Keep it in the notification shade',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              title: Text(
+                L.of(context).taskFormPinTitle,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               subtitle: Text(
-                'An ongoing notification you can see at a glance',
+                L.of(context).taskFormPinSubtitle,
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
               value: _isPinnedToNotification,
@@ -552,7 +563,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    timing.displayName,
+                    _pinTimingTitle(timing),
                     style: TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w700,
@@ -561,7 +572,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    timing.description,
+                    _pinTimingBody(timing),
                     style: TextStyle(
                       fontSize: 11.5,
                       color: Colors.grey.shade600,
@@ -575,6 +586,29 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
       ),
     );
   }
+
+  /// The entity's `displayName` is English-only, so the labels come from the
+  /// bundle instead of the enum.
+  String _beforeEndLabel(BeforeEndOption option) {
+    final l = L.of(context);
+    return switch (option) {
+      BeforeEndOption.tenMinutes => l.beforeEnd10Minutes,
+      BeforeEndOption.thirtyMinutes => l.beforeEnd30Minutes,
+      BeforeEndOption.oneHour => l.beforeEnd1Hour,
+      BeforeEndOption.twoHours => l.beforeEnd2Hours,
+      BeforeEndOption.oneDay => l.beforeEnd1Day,
+    };
+  }
+
+  String _pinTimingTitle(PinNotificationTiming timing) => switch (timing) {
+    PinNotificationTiming.beforeNotification => L.of(context).pinBeforeTitle,
+    PinNotificationTiming.afterNotification => L.of(context).pinAfterTitle,
+  };
+
+  String _pinTimingBody(PinNotificationTiming timing) => switch (timing) {
+    PinNotificationTiming.beforeNotification => L.of(context).pinBeforeBody,
+    PinNotificationTiming.afterNotification => L.of(context).pinAfterBody,
+  };
 
   // ── Shared pieces ───────────────────────────────────────────────────────
 
@@ -690,7 +724,9 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
           ),
         ),
         child: Text(
-          _isEditing ? 'Save changes' : 'Create task',
+          _isEditing
+              ? L.of(context).taskFormSaveChanges
+              : L.of(context).taskFormCreate,
           style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
         ),
       ),
@@ -773,7 +809,7 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
     if (!_formKey.currentState!.validate()) return;
 
     if (!_endDate.isAfter(_startDate)) {
-      _complain('The due time needs to be after the start time.');
+      _complain(L.of(context).taskFormEndBeforeStart);
       return;
     }
 
@@ -781,11 +817,11 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
     // so these are backstops rather than the usual path.
     if (_isNotificationEnabled) {
       if (_remindMode == _RemindMode.atTime && _notificationTime == null) {
-        _complain('Pick the time you want to be reminded.');
+        _complain(L.of(context).taskFormNeedReminderTime);
         return;
       }
       if (_remindMode == _RemindMode.daily && _dailyNotificationTime == null) {
-        _complain('Pick the time of day for the reminder.');
+        _complain(L.of(context).taskFormNeedDailyTime);
         return;
       }
     }

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Add or edit a birthday.
 ///
@@ -123,7 +124,9 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
       backgroundColor: _field,
       appBar: AppBar(
         title: Text(
-          widget.isEditing ? 'Edit birthday' : 'New birthday',
+          widget.isEditing
+              ? L.of(context).birthdayFormEdit
+              : L.of(context).birthdayFormNew,
           style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 22,
@@ -163,9 +166,12 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
           children: [
             _card(children: [_nameField(), ..._noteRow()]),
             const SizedBox(height: 12),
-            _card(title: 'Date of birth', children: [_dateRow()]),
+            _card(title: L.of(context).birthdayFormDob, children: [_dateRow()]),
             const SizedBox(height: 12),
-            _card(title: 'Remind me', children: [_scheduleList()]),
+            _card(
+              title: L.of(context).taskFormRemindMe,
+              children: [_scheduleList()],
+            ),
           ],
         ),
       ),
@@ -219,7 +225,7 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
         color: _ink,
       ),
       decoration: InputDecoration(
-        hintText: 'Whose birthday?',
+        hintText: L.of(context).birthdayFormNameLabel,
         hintStyle: TextStyle(
           color: Colors.grey[500],
           fontWeight: FontWeight.w500,
@@ -228,7 +234,9 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       ),
       validator: (value) {
-        if (value == null || value.trim().isEmpty) return 'Add their name';
+        if (value == null || value.trim().isEmpty) {
+          return L.of(context).birthdayFormNameEmpty;
+        }
         return null;
       },
     );
@@ -246,7 +254,7 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
             child: InkWell(
               borderRadius: BorderRadius.circular(10),
               onTap: () => setState(() => _showNote = true),
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -254,7 +262,7 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
                     Icon(Icons.notes_rounded, size: 15, color: _pink),
                     SizedBox(width: 7),
                     Text(
-                      'Add a note',
+                      L.of(context).reminderFormNote,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -285,7 +293,7 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
           textCapitalization: TextCapitalization.sentences,
           style: const TextStyle(fontSize: 14, color: _ink),
           decoration: InputDecoration(
-            hintText: 'Gift ideas, how you know them…',
+            hintText: L.of(context).birthdayFormNoteHint,
             hintStyle: TextStyle(color: Colors.grey[500]),
             border: InputBorder.none,
           ),
@@ -340,8 +348,8 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
                     const SizedBox(height: 2),
                     Text(
                       age != null
-                          ? 'Turning $age on their next birthday'
-                          : 'Set the year of birth to show their age',
+                          ? L.of(context).birthdayFormTurning(age)
+                          : L.of(context).birthdayFormSetYear,
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
@@ -370,7 +378,7 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
           ),
         Text(
           _schedule.isEmpty
-              ? 'No reminders — the date is just saved here for you to look up.'
+              ? L.of(context).birthdayFormNoReminders
               : 'You\'ll be reminded ${_schedule.length == 1 ? 'once' : '${_schedule.length} times'} every year.',
           style: TextStyle(fontSize: 12, color: Colors.grey[600], height: 1.35),
         ),
@@ -455,10 +463,13 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
   /// The stored labels are written for the task form ("1 day before (gift
   /// prep)"); on a screen that is only ever about birthdays they can be plain.
   String _label(BirthdayNotificationOption option) => switch (option) {
-    BirthdayNotificationOption.oneDayBefore => 'The day before',
-    BirthdayNotificationOption.twoHoursBefore => 'Two hours before',
-    BirthdayNotificationOption.tenMinutesBefore => 'Ten minutes before',
-    BirthdayNotificationOption.exactTime => 'On the day, at midnight',
+    BirthdayNotificationOption.oneDayBefore =>
+      L.of(context).birthdayFormDayBefore,
+    BirthdayNotificationOption.twoHoursBefore =>
+      L.of(context).birthdayFormTwoHours,
+    BirthdayNotificationOption.tenMinutesBefore =>
+      L.of(context).birthdayFormTenMinutes,
+    BirthdayNotificationOption.exactTime => L.of(context).birthdayFormMidnight,
   };
 
   Future<void> _pickDate() async {
@@ -468,7 +479,7 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
       initialDate: _birthDate,
       firstDate: DateTime(1900),
       lastDate: now,
-      helpText: 'Date of birth',
+      helpText: L.of(context).birthdayFormDob,
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: Theme.of(context).colorScheme.copyWith(

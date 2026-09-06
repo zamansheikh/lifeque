@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/entities/expense_session.dart';
 import '../../domain/entities/expense_item.dart';
 import '../bloc/expense_bloc.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class ExpenseSessionDetailPage extends StatelessWidget {
   final ExpenseSession session;
@@ -186,7 +187,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                       ),
                       const SizedBox(width: 10),
                       _stat(
-                        'Not bought',
+                        L.of(context).expNotBought,
                         session.missedAmount,
                         session.missedCount,
                         const Color(0xFFD97706),
@@ -194,7 +195,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                       ),
                       const SizedBox(width: 10),
                       _stat(
-                        'List total',
+                        L.of(context).expListTotal,
                         session.totalAmount,
                         totalCount,
                         const Color(0xFF2563EB),
@@ -267,7 +268,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                       const Spacer(),
                       Text(
                         totalCount == purchasedCount
-                            ? 'All bought'
+                            ? L.of(context).expAllBought
                             : '${totalCount - purchasedCount} left',
                         style: TextStyle(
                           fontSize: 13,
@@ -430,7 +431,7 @@ class ExpenseSessionDetailPage extends StatelessWidget {
                 ),
                 if (!item.isPurchased)
                   Text(
-                    'Tap when bought',
+                    L.of(context).expTapWhenBought,
                     style: TextStyle(fontSize: 10, color: Colors.grey[500]),
                   ),
               ],

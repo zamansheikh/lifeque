@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Add or edit a reminder.
 ///
@@ -76,7 +77,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: const Text('Pick a time in the future'),
+            content: Text(L.of(context).reminderFormFutureTime),
             backgroundColor: const Color(0xFFDC2626),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -127,7 +128,9 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
       backgroundColor: _field,
       appBar: AppBar(
         title: Text(
-          widget.isEditing ? 'Edit reminder' : 'New reminder',
+          widget.isEditing
+              ? L.of(context).reminderFormEdit
+              : L.of(context).reminderFormNew,
           style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 22,
@@ -167,7 +170,10 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
           children: [
             _card(children: [_titleField(), ..._noteRow()]),
             const SizedBox(height: 12),
-            _card(title: 'Remind me', children: [_whenRow()]),
+            _card(
+              title: L.of(context).taskFormRemindMe,
+              children: [_whenRow()],
+            ),
             const SizedBox(height: 12),
             _card(children: [_pinRow()]),
           ],
@@ -223,7 +229,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
         color: _ink,
       ),
       decoration: InputDecoration(
-        hintText: 'Remind me to…',
+        hintText: L.of(context).reminderFormTitleLabel,
         hintStyle: TextStyle(
           color: Colors.grey[500],
           fontWeight: FontWeight.w500,
@@ -233,7 +239,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
       ),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return 'Say what to remind you about';
+          return L.of(context).reminderFormTitleEmpty;
         }
         return null;
       },
@@ -252,7 +258,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
             child: InkWell(
               borderRadius: BorderRadius.circular(10),
               onTap: () => setState(() => _showNote = true),
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -260,7 +266,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
                     Icon(Icons.notes_rounded, size: 15, color: _amber),
                     SizedBox(width: 7),
                     Text(
-                      'Add a note',
+                      L.of(context).reminderFormNote,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -291,7 +297,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
           textCapitalization: TextCapitalization.sentences,
           style: const TextStyle(fontSize: 14, color: _ink),
           decoration: InputDecoration(
-            hintText: 'Anything worth remembering',
+            hintText: L.of(context).reminderFormNoteHint,
             hintStyle: TextStyle(color: Colors.grey[500]),
             border: InputBorder.none,
           ),
@@ -351,10 +357,10 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _choice('In an hour', hour),
+            _choice(L.of(context).reminderFormInAnHour, hour),
             if (evening.isAfter(DateTime.now()))
-              _choice('This evening', evening),
-            _choice('Tomorrow 9am', morning),
+              _choice(L.of(context).reminderFormThisEvening, evening),
+            _choice(L.of(context).reminderFormTomorrow9, morning),
             _pickChoice(),
           ],
         ),
@@ -378,7 +384,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
       _tomorrowAt(9),
     ].any((d) => _when.difference(d).inMinutes.abs() < 1);
     return _pill(
-      label: 'Pick…',
+      label: L.of(context).reminderFormPick,
       icon: Icons.schedule_rounded,
       selected: !preset,
       onTap: _pickDateTime,
@@ -442,7 +448,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Keep it in the shade',
+                L.of(context).reminderFormKeepShade,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -499,7 +505,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
       initialDate: _when.isAfter(now) ? _when : now,
       firstDate: DateTime(now.year, now.month, now.day),
       lastDate: DateTime(now.year + 5),
-      helpText: 'Remind me on',
+      helpText: L.of(context).reminderFormOnDate,
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: Theme.of(context).colorScheme.copyWith(
@@ -517,7 +523,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_when),
-      helpText: 'Remind me at',
+      helpText: L.of(context).reminderFormAtTime,
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: Theme.of(context).colorScheme.copyWith(
@@ -551,8 +557,8 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
 
     final label = switch (diff) {
       0 => 'Today',
-      1 => 'Tomorrow',
-      -1 => 'Yesterday',
+      1 => L.of(context).commonTomorrow,
+      -1 => L.of(context).commonYesterday,
       _ => DateFormat('EEE d MMM').format(dateTime),
     };
     return '$label, ${DateFormat('HH:mm').format(dateTime)}';

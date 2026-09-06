@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Reminders, on their own screen.
 ///
@@ -40,8 +41,8 @@ class _ReminderListPageState extends State<ReminderListPage> {
       backgroundColor: const Color(0xFFFFFBEB),
       drawer: const AppDrawer(currentRoute: '/reminders'),
       appBar: AppBar(
-        title: const Text(
-          'Reminders',
+        title: Text(
+          L.of(context).remindersTitle,
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 22,
@@ -55,7 +56,7 @@ class _ReminderListPageState extends State<ReminderListPage> {
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu_rounded, color: _muted),
-            tooltip: 'Menu',
+            tooltip: L.of(context).commonMenu,
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
@@ -63,19 +64,17 @@ class _ReminderListPageState extends State<ReminderListPage> {
       body: BlocBuilder<TaskBloc, TaskState>(
         builder: (context, state) {
           if (state is TaskLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: _amber),
-            );
+            return Center(child: CircularProgressIndicator(color: _amber));
           }
           if (state is TaskError) {
             return _message(
               icon: Icons.error_outline_rounded,
-              title: 'Something went wrong',
+              title: L.of(context).commonSomethingWrong,
               body: state.message,
               action: FilledButton.icon(
                 onPressed: () => context.read<TaskBloc>().add(LoadTasks()),
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Try again'),
+                icon: Icon(Icons.refresh_rounded),
+                label: Text(L.of(context).commonRetry),
                 style: FilledButton.styleFrom(backgroundColor: _amber),
               ),
             );
@@ -89,14 +88,12 @@ class _ReminderListPageState extends State<ReminderListPage> {
           if (all.isEmpty) {
             return _message(
               icon: Icons.notifications_active_rounded,
-              title: 'No reminders set',
-              body:
-                  'Set one for anything you\'d rather not keep in your '
-                  'head — a call to make, a bill to pay, a bin to put out.',
+              title: L.of(context).remindersEmptyTitle,
+              body: L.of(context).remindersEmptyBodyLong,
               action: FilledButton.icon(
                 onPressed: _add,
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Set a reminder'),
+                icon: Icon(Icons.add_rounded),
+                label: Text(L.of(context).remindersSetOne),
                 style: FilledButton.styleFrom(backgroundColor: _amber),
               ),
             );
@@ -115,7 +112,7 @@ class _ReminderListPageState extends State<ReminderListPage> {
                   padding: const EdgeInsets.only(top: 30),
                   child: Center(
                     child: Text(
-                      'Nothing pending — everything here is done.',
+                      L.of(context).remindersAllDoneBody,
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                   ),
@@ -153,8 +150,8 @@ class _ReminderListPageState extends State<ReminderListPage> {
             backgroundColor: _amber,
             foregroundColor: Colors.white,
             icon: const Icon(Icons.add_rounded),
-            label: const Text(
-              'New reminder',
+            label: Text(
+              L.of(context).remindersNewOne,
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
             ),
           );
@@ -194,10 +191,14 @@ class _ReminderListPageState extends State<ReminderListPage> {
     }
 
     return [
-      if (missed.isNotEmpty) _Section('Missed', missed, _danger),
-      if (today.isNotEmpty) _Section('Today', today, _amber),
-      if (tomorrow.isNotEmpty) _Section('Tomorrow', tomorrow, _amber),
-      if (later.isNotEmpty) _Section('Later', later, _muted),
+      if (missed.isNotEmpty)
+        _Section(L.of(context).remindersGroupMissed, missed, _danger),
+      if (today.isNotEmpty)
+        _Section(L.of(context).remindersGroupToday, today, _amber),
+      if (tomorrow.isNotEmpty)
+        _Section(L.of(context).remindersGroupTomorrow, tomorrow, _amber),
+      if (later.isNotEmpty)
+        _Section(L.of(context).remindersGroupLater, later, _muted),
     ];
   }
 
@@ -243,7 +244,9 @@ class _ReminderListPageState extends State<ReminderListPage> {
               ),
               const SizedBox(width: 8),
               Text(
-                next.isEmpty ? 'Nothing pending' : 'Next reminder',
+                next.isEmpty
+                    ? L.of(context).remindersNothingPending
+                    : L.of(context).remindersNextUp,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.9),
                   fontSize: 13,
@@ -275,7 +278,9 @@ class _ReminderListPageState extends State<ReminderListPage> {
           ),
           const SizedBox(height: 12),
           Text(
-            next.isEmpty ? 'You\'re all caught up' : next.first.title,
+            next.isEmpty
+                ? L.of(context).remindersAllCaughtUp
+                : next.first.title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -288,7 +293,7 @@ class _ReminderListPageState extends State<ReminderListPage> {
           if (next.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
-              '${_formatDateTime(next.first.endDate)} · ${_relative(next.first.endDate)}',
+              '${_formatDateTime(context, next.first.endDate)} · ${_relative(next.first.endDate)}',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.95),
                 fontSize: 13,
@@ -403,7 +408,7 @@ class _ReminderListPageState extends State<ReminderListPage> {
                                   const SizedBox(width: 5),
                                   Flexible(
                                     child: Text(
-                                      _formatDateTime(task.endDate),
+                                      _formatDateTime(context, task.endDate),
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         fontSize: 12,
@@ -444,7 +449,7 @@ class _ReminderListPageState extends State<ReminderListPage> {
                               _confirmDelete(task);
                             }
                           },
-                          itemBuilder: (context) => const [
+                          itemBuilder: (context) => [
                             PopupMenuItem(
                               value: 'edit',
                               height: 40,
@@ -456,7 +461,10 @@ class _ReminderListPageState extends State<ReminderListPage> {
                                     color: _amber,
                                   ),
                                   SizedBox(width: 10),
-                                  Text('Edit', style: TextStyle(fontSize: 13)),
+                                  Text(
+                                    L.of(context).commonEdit,
+                                    style: TextStyle(fontSize: 13),
+                                  ),
                                 ],
                               ),
                             ),
@@ -472,7 +480,7 @@ class _ReminderListPageState extends State<ReminderListPage> {
                                   ),
                                   SizedBox(width: 10),
                                   Text(
-                                    'Delete',
+                                    L.of(context).commonDelete,
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: _danger,
@@ -554,7 +562,7 @@ class _ReminderListPageState extends State<ReminderListPage> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '$count done',
+                  L.of(context).remindersDoneCount(count),
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
@@ -634,19 +642,19 @@ class _ReminderListPageState extends State<ReminderListPage> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete this reminder?',
+        title: Text(
+          L.of(context).remindersDeleteTitle,
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: Text(
           '“${task.title}” will be removed and won\'t go off. '
           'This can\'t be undone.',
-          style: const TextStyle(height: 1.4),
+          style: TextStyle(height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Keep it'),
+            child: Text(L.of(context).remindersKeepIt),
           ),
           FilledButton(
             onPressed: () {
@@ -654,26 +662,27 @@ class _ReminderListPageState extends State<ReminderListPage> {
               Navigator.of(dialogContext).pop();
             },
             style: FilledButton.styleFrom(backgroundColor: _danger),
-            child: const Text('Delete'),
+            child: Text(L.of(context).commonDelete),
           ),
         ],
       ),
     );
   }
 
-  String _formatDateTime(DateTime dateTime) {
+  String _formatDateTime(BuildContext context, DateTime dateTime) {
+    final l = L.of(context);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final day = DateTime(dateTime.year, dateTime.month, dateTime.day);
     final diff = day.difference(today).inDays;
 
     final label = switch (diff) {
-      0 => 'Today',
-      1 => 'Tomorrow',
-      -1 => 'Yesterday',
+      0 => l.commonToday,
+      1 => l.commonTomorrow,
+      -1 => l.commonYesterday,
       _ => DateFormat('EEE d MMM').format(dateTime),
     };
-    return '$label, ${DateFormat('HH:mm').format(dateTime)}';
+    return l.reminderAtTime(label, DateFormat('h:mm a').format(dateTime));
   }
 
   String _relative(DateTime dateTime) {

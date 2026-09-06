@@ -1,9 +1,9 @@
 {
   "@@locale": "en",
-
   "appName": "LifeQue",
-  "@appName": { "description": "Product name. Not translated." },
-
+  "@appName": {
+    "description": "Product name. Not translated."
+  },
   "navTasks": "Tasks",
   "navTodoList": "To Do List",
   "navReminders": "Reminders",
@@ -14,7 +14,6 @@
   "navStudyTimer": "Study Timer",
   "navSettings": "Settings",
   "drawerTagline": "Your Personal Life Manager",
-
   "commonSave": "Save",
   "commonCancel": "Cancel",
   "commonDelete": "Delete",
@@ -28,7 +27,6 @@
   "commonNow": "Now",
   "commonOff": "Off",
   "commonNone": "None",
-
   "settingsTitle": "Settings",
   "settingsSectionGeneral": "General",
   "settingsSectionApp": "App",
@@ -36,7 +34,11 @@
   "settingsNavigationOrder": "Navigation Order",
   "settingsNavigationOrderSubtitle": "Home: {page}",
   "@settingsNavigationOrderSubtitle": {
-    "placeholders": { "page": { "type": "String" } }
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
   },
   "settingsLanguage": "Language",
   "settingsCheckUpdates": "Check for Updates",
@@ -48,27 +50,879 @@
   "settingsTerms": "Terms & Conditions",
   "settingsTermsSubtitle": "Usage terms of the app",
   "settingsMadeBy": "Made with ❤️ by Zaman Sheikh",
-
   "navOrderTitle": "Navigation Order",
   "navOrderSubtitle": "Drag to reorder. First item = home page.",
   "navOrderHomePage": "Home page:  {page}",
   "@navOrderHomePage": {
-    "placeholders": { "page": { "type": "String" } }
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
   },
   "navOrderHomeBadge": "Home page",
   "navOrderSave": "Save Order",
   "navOrderSaved": "Navigation order saved",
-
   "languageComingSoon": "{language} · coming soon",
   "@languageComingSoon": {
-    "placeholders": { "language": { "type": "String" } }
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
   },
   "languageSet": "Language set to {language}",
   "@languageSet": {
-    "placeholders": { "language": { "type": "String" } }
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
   },
   "languageSavedPending": "{language} is saved. The app stays in English until the translation ships.",
   "@languageSavedPending": {
-    "placeholders": { "language": { "type": "String" } }
-  }
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksTabActive": "Active",
+  "tasksTabAll": "All",
+  "tasksTabDone": "Done",
+  "tasksGroupDueToday": "Due today",
+  "tasksGroupNext7Days": "Next 7 days",
+  "tasksGroupLater": "Later",
+  "tasksGroupOverdue": "Overdue",
+  "tasksGroupInProgress": "In progress",
+  "tasksGroupNotStarted": "Not started yet",
+  "tasksGroupCompleted": "Completed",
+  "tasksEmptyTitle": "No tasks yet",
+  "tasksEmptyBody": "Add something with a start and an end date, and it will show up here while it is running.",
+  "tasksAllDoneTitle": "Nothing on right now",
+  "tasksAllDoneBody": "Everything with a deadline is either finished or not started yet. Check All Tasks to see the rest.",
+  "tasksTapPlus": "Tap + to add one",
+  "tasksNoCompletedTitle": "No completed tasks yet",
+  "tasksNoCompletedBody": "Complete some tasks to see them here.",
+  "tasksFirstRunTitle": "Welcome to LifeQue",
+  "tasksFirstRunBody": "Pick somewhere to start. Everything here is also in the menu.",
+  "tasksStartTask": "Add your first task",
+  "tasksStartTaskSub": "Something with a deadline to work towards",
+  "tasksStartPrayer": "Set up prayer times",
+  "tasksStartPrayerSub": "Waqt times, jamaat and a home-screen widget",
+  "tasksStartBirthday": "Save a birthday",
+  "tasksStartBirthdaySub": "Be reminded a day before, every year",
+  "tasksStartTodo": "Start a to-do list",
+  "tasksStartTodoSub": "The small things, ticked off as you go",
+  "tasksDeleteTitle": "Delete task?",
+  "tasksDeleteBody": "“{title}” will be removed.",
+  "@tasksDeleteBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksMedicinesTooltip": "Medicines",
+  "taskCardDone": "Done",
+  "taskCardStartsIn": "starts in {time}",
+  "@taskCardStartsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "taskCardLeft": "{time} left",
+  "@taskCardLeft": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "taskCardOver": "{time} over",
+  "@taskCardOver": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "taskUnitDays": "{count}d",
+  "@taskUnitDays": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "taskUnitHours": "{count}h",
+  "@taskUnitHours": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "taskUnitMinutes": "{count}m",
+  "@taskUnitMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "taskUnitSeconds": "{count}s",
+  "@taskUnitSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "taskFormNewTitle": "New task",
+  "taskFormEditTitle": "Edit task",
+  "taskFormTitleHint": "What needs to be done?",
+  "taskFormTitleEmpty": "Give it a name",
+  "taskFormDue": "Due",
+  "taskFormStarts": "Starts",
+  "taskFormPresetToday": "Today",
+  "taskFormPresetTomorrow": "Tomorrow",
+  "taskFormPresetWeek": "In a week",
+  "taskFormEndBeforeStart": "The due time needs to be after the start.",
+  "taskFormRemindMe": "Remind me",
+  "taskFormModeBeforeDue": "Before it is due",
+  "taskFormModeAtTime": "At a set time",
+  "taskFormModeDaily": "Every day",
+  "taskFormAt": "At",
+  "taskFormPickTime": "Pick a time",
+  "taskFormEveryDayAt": "{time} every day",
+  "@taskFormEveryDayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "taskFormMoreOptions": "More options",
+  "taskFormNotesHint": "Notes (optional)",
+  "taskFormPinTitle": "Keep it in the notification shade",
+  "taskFormPinSubtitle": "An ongoing notification you can see at a glance",
+  "taskFormCreate": "Create task",
+  "taskFormSaveChanges": "Save changes",
+  "taskFormNeedReminderTime": "Pick the time you want to be reminded.",
+  "taskFormNeedDailyTime": "Pick the time of day for the reminder.",
+  "beforeEnd10Minutes": "10 minutes",
+  "beforeEnd30Minutes": "30 minutes",
+  "beforeEnd1Hour": "1 hour",
+  "beforeEnd2Hours": "2 hours",
+  "beforeEnd1Day": "1 day",
+  "pinBeforeTitle": "Pin before the reminder",
+  "pinBeforeBody": "Stays pinned until the reminder fires",
+  "pinAfterTitle": "Pin after the reminder",
+  "pinAfterBody": "Pins once the reminder has fired",
+  "detailTask": "Task",
+  "detailReminder": "Reminder",
+  "detailBirthday": "Birthday",
+  "detailGeneric": "Details",
+  "detailNotFound": "Task not found",
+  "detailSectionTimeLeft": "TIME LEFT",
+  "detailSectionCountdown": "COUNTDOWN",
+  "detailSectionTimeline": "TIMELINE",
+  "detailSectionDetails": "DETAILS",
+  "detailSectionReminders": "REMINDERS",
+  "detailSectionAbout": "ABOUT",
+  "detailSectionWhen": "WHEN",
+  "detailSectionToday": "TODAY",
+  "detailUntilDeadline": "Until the deadline",
+  "detailDeadlinePassed": "The deadline has passed",
+  "detailTimeElapsed": "Time elapsed",
+  "detailDaysLeft": "days left",
+  "detailDaysTotal": "days total",
+  "detailStarted": "Started",
+  "detailDue": "Due",
+  "detailWasDue": "Was due",
+  "detailReminderRow": "Reminder",
+  "detailPinned": "Pinned",
+  "detailPinnedValue": "Kept in the shade",
+  "detailCreated": "Created",
+  "detailLastEdited": "Last edited",
+  "detailStatusCompleted": "Completed",
+  "detailStatusOverdue": "Overdue",
+  "detailStatusInProgress": "In progress",
+  "detailStatusNotStarted": "Not started yet",
+  "detailReminderBefore": "{option} before",
+  "@detailReminderBefore": {
+    "placeholders": {
+      "option": {
+        "type": "String"
+      }
+    }
+  },
+  "detailReminderDaily": "{time} daily",
+  "@detailReminderDaily": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "detailReminderAtTime": "At a set time",
+  "detailReminderBeforeDue": "Before it is due",
+  "detailUntilItFires": "Until it goes off",
+  "detailAlreadyFired": "This reminder has already gone off",
+  "detailStatusDone": "Done",
+  "detailStatusPassed": "Already passed",
+  "detailStatusAnyMinute": "Any minute now",
+  "detailStatusWaiting": "Waiting",
+  "detailRowDate": "Date",
+  "detailRowTime": "Time",
+  "remindersTitle": "Reminders",
+  "remindersEmptyTitle": "No reminders set",
+  "remindersEmptyBody": "Set a reminder for the things you would otherwise forget.",
+  "remindersSetOne": "Set a reminder",
+  "remindersNewOne": "New reminder",
+  "remindersNothingPending": "Nothing pending",
+  "remindersAllCaughtUp": "You're all caught up",
+  "remindersAllDoneBody": "Nothing pending — everything here is done.",
+  "remindersNextUp": "Next reminder",
+  "remindersGroupMissed": "Missed",
+  "remindersGroupToday": "Today",
+  "remindersGroupTomorrow": "Tomorrow",
+  "remindersGroupLater": "Later",
+  "remindersDoneCount": "{count} done",
+  "@remindersDoneCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "remindersDeleteTitle": "Delete this reminder?",
+  "remindersKeepIt": "Keep it",
+  "birthdaysTitle": "Birthdays",
+  "birthdaysEmptyTitle": "No birthdays saved",
+  "birthdaysEmptyBody": "Add the people you keep meaning to wish and this page will tell you who is next.",
+  "birthdaysAddOne": "Add a birthday",
+  "birthdaysAdd": "Add birthday",
+  "birthdaysEveryone": "Everyone",
+  "birthdaysMatching": "Matching “{query}”",
+  "@birthdaysMatching": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "birthdaysNoMatch": "Nobody by that name",
+  "birthdaysSearchHint": "Search by name",
+  "birthdaysClearSearch": "Clear search",
+  "birthdaysNextUp": "Next up",
+  "birthdaysToday": "Birthday today",
+  "birthdaysInDays": "In {days} days",
+  "@birthdaysInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "birthdaysRemindersOn": "Reminders on",
+  "birthdaysRemindersOff": "Reminders off",
+  "birthdaysDeleteTitle": "Remove this birthday?",
+  "birthdaysTurning": "turning {age}",
+  "@birthdaysTurning": {
+    "placeholders": {
+      "age": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "birthdaysTodayLine": "It is today — they turn {age}.",
+  "@birthdaysTodayLine": {
+    "placeholders": {
+      "age": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "birthdaysUntilBigDay": "Until the big day",
+  "birthdaysYearsOldNow": "years old now",
+  "birthdaysDaysToGo": "days to go",
+  "birthdaysTheBigDay": "the big day",
+  "birthdaysNoReminders": "No reminders set for this birthday.",
+  "birthdaysBorn": "Born",
+  "birthdaysNext": "Next birthday",
+  "birthdaysSaved": "Saved",
+  "birthdaysTomorrow": "Birthday tomorrow",
+  "commonSomethingWrong": "Something went wrong",
+  "commonMenu": "Menu",
+  "commonDetails": "Details",
+  "commonSearch": "Search",
+  "countdownDays": "days",
+  "countdownHours": "hrs",
+  "countdownMinutes": "min",
+  "countdownSeconds": "sec",
+  "todosTitle": "To Do List",
+  "todosTabAll": "All",
+  "todosTabToday": "Today",
+  "todosTabUpcoming": "Upcoming",
+  "todosTabDone": "Done",
+  "todosNew": "New to-do",
+  "todosGroupOverdue": "Overdue",
+  "todosGroupToday": "Today",
+  "todosGroupTomorrow": "Tomorrow",
+  "todosGroupThisWeek": "This week",
+  "todosGroupLater": "Later",
+  "todosGroupNoDate": "No date",
+  "todosGroupCompleted": "Completed",
+  "todosSearchHint": "Search your to-dos",
+  "todosClearSearch": "Clear search",
+  "todosAnyCategory": "Any category",
+  "todosNothingMatched": "Nothing matched",
+  "todosNothingMatchedBody": "Try a different word, or clear the category filter.",
+  "todosNothingFinished": "Nothing finished yet",
+  "todosNothingToday": "Nothing due today",
+  "todosNothingAhead": "Nothing scheduled ahead",
+  "todosAllClear": "All clear",
+  "todosNothingInView": "Nothing to do in this view.",
+  "todosNothingLeft": "Nothing left — enjoy it",
+  "todosEmptyTitle": "Your list is empty",
+  "todosEmptyBody": "Add something you need to get done. Give it a due date and a reminder, and the app will nudge you when it matters.",
+  "todosAddFirst": "Add your first to-do",
+  "todosDeleteTitle": "Delete this to-do?",
+  "todosKeepIt": "Keep it",
+  "todoDetailTitle": "To-do",
+  "todoRowCategory": "Category",
+  "todoRowPriority": "Priority",
+  "todoRowDue": "Due",
+  "todoRowNoDue": "No due date",
+  "todoRowReminder": "Reminder",
+  "todoRowCreated": "Created",
+  "todoRowCompleted": "Completed",
+  "todoStatusDone": "Done",
+  "todoStatusOverdue": "Overdue",
+  "todoStatusDueToday": "Due today",
+  "todoStatusDueTomorrow": "Due tomorrow",
+  "todoStatusPriority": "{priority} priority",
+  "@todoStatusPriority": {
+    "placeholders": {
+      "priority": {
+        "type": "String"
+      }
+    }
+  },
+  "todoAtTime": "{day} at {time}",
+  "@todoAtTime": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "priorityLow": "Low",
+  "priorityMedium": "Medium",
+  "priorityHigh": "High",
+  "priorityUrgent": "Urgent",
+  "categoryPersonal": "Personal",
+  "categoryWork": "Work",
+  "categoryShopping": "Shopping",
+  "categoryHealth": "Health",
+  "categoryEducation": "Education",
+  "categoryFinance": "Finance",
+  "categoryTravel": "Travel",
+  "categoryHome": "Home",
+  "categoryOther": "Other",
+  "todosDeleteBody": "“{title}” and its reminder will be removed. This can't be undone.",
+  "@todosDeleteBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderAtTime": "{day}, {time}",
+  "@reminderAtTime": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "birthdaysInDaysShort": "in {days} d",
+  "@birthdaysInDaysShort": {
+    "placeholders": {
+      "days": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "birthdaysInMonthsShort": "in {months} mo",
+  "@birthdaysInMonthsShort": {
+    "placeholders": {
+      "months": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "birthdayOptOneDay": "1 day before (gift prep)",
+  "birthdayOptOneDayBody": "Get reminded to prepare gifts",
+  "birthdayOptTwoHours": "2 hours before",
+  "birthdayOptTwoHoursBody": "Final preparation reminder",
+  "birthdayOptTenMinutes": "10 minutes before",
+  "birthdayOptTenMinutesBody": "Almost time to celebrate",
+  "birthdayOptExact": "At exactly 12:00 AM",
+  "birthdayOptExactBody": "Birthday celebration time",
+  "prayerFajr": "Fajr",
+  "prayerDhuhr": "Dhuhr",
+  "prayerAsr": "Asr",
+  "prayerMaghrib": "Maghrib",
+  "prayerIsha": "Isha",
+  "prayerTahajjud": "Tahajjud",
+  "prayerSunrise": "Sunrise",
+  "prayerNavPrayer": "Prayer",
+  "prayerNavCalendar": "Calendar",
+  "prayerNavTasbih": "Tasbih",
+  "prayerNavLearn": "Learn",
+  "prayerNavMore": "More",
+  "salatTimesTitle": "Salat Times",
+  "salatSetAlarm": "Set Alarm",
+  "salatSetJamaat": "Set jamaat",
+  "salatJamaatAt": "Jamaat {time}",
+  "@salatJamaatAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "salatTill": "till {time}",
+  "@salatTill": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "salatNowBadge": "NOW",
+  "gaugeWaqtEndsIn": "Waqt ends in",
+  "gaugeStartsIn": "Starts in",
+  "gaugeBeginsIn": "Begins in",
+  "gaugeStartsAt": "Starts at {time}",
+  "@gaugeStartsAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "gaugeBeginsAt": "Begins at {time}",
+  "@gaugeBeginsAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "gaugeEndsAtFajr": "Ends at Fajr, in",
+  "prohibitedCardTitle": "Prohibited Times for Prayer",
+  "prohibitedSeeReference": "See Reference",
+  "prohibitedSubtitle": "Salat is prohibited during these times.",
+  "prohibitedActiveNow": "Active now · {left} left — salat is prohibited during these times.",
+  "@prohibitedActiveNow": {
+    "placeholders": {
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "prohibitedNext": "Salat is prohibited during these times · next: {window} {time}",
+  "@prohibitedNext": {
+    "placeholders": {
+      "window": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "prohibitedNowTitle": "Salat is prohibited right now",
+  "prohibitedNowBody": "{window} · ends at {time} (in {left})",
+  "@prohibitedNowBody": {
+    "placeholders": {
+      "window": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "prohibitedDismiss": "Dismiss",
+  "prohibitedSunrise": "While the sun rises",
+  "prohibitedZawal": "While the sun is at its peak",
+  "prohibitedSunset": "While the sun sets",
+  "prohibitedMorning": "Morning",
+  "prohibitedNoon": "Noon",
+  "prohibitedEvening": "Evening",
+  "restrictedTimesTitle": "Restricted Times",
+  "nafalTitle": "Nafal Prayer Time",
+  "nafalIshraq": "Ishraq / Duha",
+  "nafalZawalStart": "Zawal Start",
+  "nafalAwabin": "Awabin",
+  "nafalAfterMaghrib": "After Maghrib – {time}",
+  "@nafalAfterMaghrib": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "nafalAfterIsha": "After Isha – {time}",
+  "@nafalAfterIsha": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "nafalLastThird": "Last ⅓ of night begins: {time}",
+  "@nafalLastThird": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "progressAllFive": "All five prayed today",
+  "progressLoggedToday": "Prayers logged today",
+  "progressLogged": "Prayers logged",
+  "progressViewStats": "View stats",
+  "progressNoStreak": "No streak yet",
+  "progressStreak": "{days}-day streak",
+  "@progressStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "prayerBackToToday": "Back to today",
+  "prayerSettingsTitle": "Prayer settings",
+  "prayerSettingsSubtitle": "How prayer times are calculated",
+  "prayerSectionMethod": "CALCULATION METHOD",
+  "prayerSectionMadhab": "MADHAB — FOR ASR",
+  "prayerSectionLocation": "LOCATION",
+  "prayerSetLocationManually": "Set location manually",
+  "prayerSetLocation": "Set Location",
+  "prayerLocationName": "Location Name",
+  "prayerLatitude": "Latitude",
+  "prayerLongitude": "Longitude",
+  "prayerCurrentLocation": "Current Location",
+  "prayerDefaultLocationNote": "Using default location (Dhaka). Tap the location pin to set yours.",
+  "prayerUnableToCompute": "Unable to compute prayer times",
+  "prayerAlarmSetFor": "{prayer} alarm set for {time} {day}",
+  "@prayerAlarmSetFor": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "prayerAlarmSet": "{prayer} alarm set",
+  "@prayerAlarmSet": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "prayerAlarmOff": "{prayer} alarm turned off",
+  "@prayerAlarmOff": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "prayerDayToday": "today",
+  "prayerDayTomorrow": "tomorrow",
+  "madhabHanafi": "Hanafi",
+  "madhabHanafiNote": "Later Asr",
+  "madhabShafi": "Shafi",
+  "madhabShafiNote": "Earlier Asr",
+  "ramadanMode": "RAMADAN MODE",
+  "ramadanDay": "RAMADAN · DAY {day}",
+  "@ramadanDay": {
+    "placeholders": {
+      "day": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "prohibitedAllPassed": "Salat is prohibited during these times · all have passed today.",
+  "reminderFormNew": "New reminder",
+  "reminderFormEdit": "Edit reminder",
+  "reminderFormTitleLabel": "Remind me to…",
+  "reminderFormTitleEmpty": "Say what to remind you about",
+  "reminderFormNote": "Add a note",
+  "reminderFormNoteHint": "Anything worth remembering",
+  "reminderFormInAnHour": "In an hour",
+  "reminderFormThisEvening": "This evening",
+  "reminderFormTomorrow9": "Tomorrow 9am",
+  "reminderFormPick": "Pick…",
+  "reminderFormKeepShade": "Keep it in the shade",
+  "reminderFormOnDate": "Remind me on",
+  "reminderFormAtTime": "Remind me at",
+  "reminderFormFutureTime": "Pick a time in the future",
+  "birthdayFormNew": "New birthday",
+  "birthdayFormEdit": "Edit birthday",
+  "birthdayFormNameLabel": "Whose birthday?",
+  "birthdayFormNameEmpty": "Add their name",
+  "birthdayFormNoteHint": "Gift ideas, how you know them…",
+  "birthdayFormDob": "Date of birth",
+  "birthdayFormTurning": "Turning {age} on their next birthday",
+  "@birthdayFormTurning": {
+    "placeholders": {
+      "age": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "birthdayFormSetYear": "Set the year of birth to show their age",
+  "birthdayFormNoReminders": "No reminders — the date is just saved here for you to look up.",
+  "birthdayFormDayBefore": "The day before",
+  "birthdayFormTwoHours": "Two hours before",
+  "birthdayFormTenMinutes": "Ten minutes before",
+  "birthdayFormMidnight": "On the day, at midnight",
+  "todoFormNew": "New to-do",
+  "todoFormEdit": "Edit to-do",
+  "todoFormTitleLabel": "What needs doing?",
+  "todoFormTitleEmpty": "Give it a name",
+  "todoFormNoteHint": "Any detail worth remembering",
+  "todoFormPriority": "Priority",
+  "todoFormCategory": "Category",
+  "todoFormNoDate": "No date",
+  "todoFormDueDate": "Due date",
+  "todoFormDueTime": "Due time",
+  "todoFormAtDueTime": "At due time",
+  "todoFormDayBefore": "A day before",
+  "todoFormPassed": "That time has already passed — pick a later one or the reminder will not fire.",
+  "todoFormNotificationOn": "Notification on {when}",
+  "@todoFormNotificationOn": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "medTitle": "Medications",
+  "medAdd": "Add Medicine",
+  "medEdit": "Edit Medicine",
+  "medDetailTitle": "Medicine",
+  "medEmptyTitle": "No medications yet",
+  "medViewAll": "View All Medicines",
+  "medQuickAdd": "Quick Add",
+  "medRefresh": "Refresh",
+  "medNameLabel": "Medicine Name",
+  "medNameEmpty": "Please enter medicine name",
+  "medDosage": "Dosage",
+  "medDuration": "Duration (days)",
+  "medStartDate": "Start Date",
+  "medTimesPerDay": "Times per day:",
+  "medNotificationTimes": "Notification Times:",
+  "medMealTiming": "Meal Timing",
+  "medBeforeMeal": "Before Meal",
+  "medAfterMeal": "After Meal",
+  "medWithMeal": "With Meal",
+  "medEmptyStomach": "Empty Stomach",
+  "medAnytime": "Anytime",
+  "medTablet": "Tablet",
+  "medCapsule": "Capsule",
+  "medInjection": "Injection",
+  "medDoctor": "Doctor",
+  "medDoctorName": "Doctor Name",
+  "medDescription": "Description",
+  "medAdditionalInfo": "Additional Info (Optional)",
+  "medDeleteTitle": "Delete Medicine",
+  "medDeleteBody": "Are you sure you want to delete this medicine and its doses?",
+  "medSectionCourse": "THIS COURSE",
+  "medSectionDoseHistory": "DOSE HISTORY",
+  "medDosesTaken": "Doses taken",
+  "medDayOf": "Day {day} of {total}",
+  "@medDayOf": {
+    "placeholders": {
+      "day": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "medNoDoses": "No doses recorded yet.",
+  "medStatusOnCourse": "On this course",
+  "medStatusFinished": "Course finished",
+  "medStatusNotStarted": "Not started yet",
+  "medDoseTaken": "Taken",
+  "medDoseToCome": "To come",
+  "medDoseSkipped": "Skipped",
+  "medDoseMissed": "Missed",
+  "medType": "Type",
+  "medTiming": "Timing",
+  "medStarted": "Started",
+  "medEnds": "Ends",
+  "medNotes": "Notes",
+  "medTimesADay": "{count}× a day",
+  "@medTimesADay": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "medNotFound": "Medicine not found",
+  "medUnexpectedError": "An unexpected error occurred",
+  "studyTitle": "Study Timer",
+  "studySettings": "Timer settings",
+  "studyYourPlan": "Your plan",
+  "studyReady": "Ready when you are",
+  "studyStart": "Start focusing",
+  "studyResume": "Resume",
+  "studyKeepGoing": "Keep going",
+  "studyPaused": "Paused",
+  "studyFocused": "Focused",
+  "studyFocusBlock": "Focus block",
+  "studyShortBreak": "Short break",
+  "studyLongBreak": "Long break",
+  "studyBlocks": "Blocks",
+  "studyBlocksBeforeLong": "Blocks before a long break",
+  "studyAdjust": "Adjust",
+  "studyEndSession": "End session",
+  "studyEndSessionTitle": "End this session?",
+  "studyAlarmNote": "Alarms are set for every block and break, so you can put the phone down.",
+  "studyRunningNote": "A session is running — these take effect the next time you start.",
+  "studyThenNext": "Then {phase}",
+  "@studyThenNext": {
+    "placeholders": {
+      "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "studyMinutesToStart": "{minutes} min to start",
+  "@studyMinutesToStart": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "expTitle": "Expense Tracker",
+  "expLoading": "Loading your expenses…",
+  "expShoppingLists": "Shopping lists",
+  "expNewList": "New list",
+  "expNewShoppingList": "New shopping list",
+  "expEditList": "Edit list",
+  "expCreateList": "Create a list",
+  "expStartFirstList": "Start your first list",
+  "expListName": "List name",
+  "expGiveListName": "Give this list a name",
+  "expListTotal": "List total",
+  "expListSaved": "List saved",
+  "expListUpdated": "List updated",
+  "expDeleteListTitle": "Delete this list?",
+  "expAddItem": "Add an item",
+  "expItemName": "Item name",
+  "expUntitledItem": "Untitled item",
+  "expEditingItem": "Editing item",
+  "expRemoveItem": "Remove item",
+  "expNeedOneItem": "Add at least one item before saving",
+  "expItemHelp": "Type a name, add a price if you know it, press +",
+  "expBought": "Already bought",
+  "expNotBought": "Not bought",
+  "expAllBought": "All bought",
+  "expTapWhenBought": "Tap when bought",
+  "expPlanned": "Planned",
+  "expPurchased": "Purchased",
+  "expSearchHint": "Search lists and items…",
+  "expSearchResults": "Search results",
+  "expNothingMatched": "Nothing matched",
+  "expPickMonth": "Pick a month",
+  "expPreviousMonth": "Previous month",
+  "expNextMonth": "Next month",
+  "expBudget": "Budget",
+  "expMonthlyBudget": "Monthly Budget",
+  "expSetBudget": "Set Budget",
+  "expEditBudget": "Edit Budget",
+  "expUpdateBudget": "Update Budget",
+  "expNoBudgetSet": "No budget set",
+  "expNoBudgetThisMonth": "No budget set for this month",
+  "expBudgetAmount": "Budget Amount",
+  "expEnterAmount": "Enter amount",
+  "expInvalidAmount": "Invalid amount",
+  "expNeedAmount": "Please enter a budget amount",
+  "expNeedValidAmount": "Please enter a valid amount greater than 0",
+  "expCategoryBudgets": "Category Budgets",
+  "expSelectCategory": "Select Category",
+  "expCategoryName": "Category Name",
+  "expAddCustomCategory": "Add Custom Category",
+  "expCreateCustomCategory": "Create Custom Category",
+  "expDeleteCategory": "Delete Category",
+  "expCategoryExists": "Category name already exists",
+  "expCategoryOverBudget": "Category budgets exceed monthly budget — please reduce.",
+  "expUnallocated": "Unallocated",
+  "expOnTrack": "On track",
+  "expGoodProgress": "Good progress",
+  "expHalfway": "Halfway through",
+  "expSpendingCautiously": "Spending cautiously",
+  "expAlmostAtLimit": "Almost at limit",
+  "expOverBudget": "Over budget!",
+  "expBudgetExceeded": "Budget exceeded",
+  "expBudgetMet": "Budget exactly met! Great job!",
+  "expNoteOptional": "Note (optional)",
+  "expRequired": "Required",
+  "expInvalid": "Invalid",
+  "expCreate": "Create",
+  "expUpdate": "Update",
+  "expEndSession": "End session",
+  "medEmptyBody": "Add your first medication to start tracking your daily doses",
+  "remindersEmptyBodyLong": "Set one for anything you'd rather not keep in your head — a call to make, a bill to pay, a bin to put out.",
+  "studyEndSessionBody": "The countdown stops and every alarm for the rest of the session is cancelled.",
+  "expListsHelp": "Write down what you plan to buy with a price for each item, then tick things off as you buy them.",
+  "widgetLocationNote": "Set your location first and these will fill in with your own prayer times."
 }

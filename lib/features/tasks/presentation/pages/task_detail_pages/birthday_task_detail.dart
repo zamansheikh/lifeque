@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../../core/utils/local_numbers.dart';
 import '../../../../../core/widgets/detail_kit.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../domain/entities/task.dart';
 import '../../bloc/task_bloc.dart';
 
@@ -45,6 +47,7 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
   @override
   Widget build(BuildContext context) {
     const accent = Color(0xFFDB2777);
+    final l = L.of(context);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -60,11 +63,11 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
         DetailHero(
           icon: isToday ? Icons.celebration_rounded : Icons.cake_rounded,
           accent: accent,
-          status: _status(daysUntil),
+          status: _status(context, daysUntil),
           title: _task.title,
           subtitle:
-              '${DateFormat('EEEE, d MMMM').format(next)}'
-              ' · turning ${next.year - _birth.year}',
+              '${DateFormat('EEEE, d MMMM').format(next)} · '
+              '${l.birthdaysTurning(next.year - _birth.year)}',
           description: _task.description,
           isDone: _task.isCompleted,
           action: DetailCheckCircle(
@@ -76,7 +79,7 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
         ),
         const SizedBox(height: 12),
         DetailSection(
-          title: isToday ? 'TODAY' : 'COUNTDOWN',
+          title: isToday ? l.detailSectionToday : l.detailSectionCountdown,
           icon: Icons.hourglass_bottom_rounded,
           accent: accent,
           children: [
@@ -87,7 +90,7 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'It is today — they turn ${next.year - _birth.year}.',
+                      l.birthdaysTodayLine(next.year - _birth.year),
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -101,7 +104,7 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
               DetailCountdown(
                 remaining: next.difference(now),
                 color: accent,
-                caption: 'Until the big day',
+                caption: l.birthdaysUntilBigDay,
               ),
             const SizedBox(height: 16),
             Row(
@@ -109,7 +112,7 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
                 Expanded(
                   child: DetailStat(
                     value: '${_ageOn(today)}',
-                    label: 'years old now',
+                    label: l.birthdaysYearsOldNow,
                     icon: Icons.person_rounded,
                     color: const Color(0xFF2563EB),
                   ),
@@ -117,8 +120,8 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: DetailStat(
-                    value: isToday ? 'Today' : '$daysUntil',
-                    label: isToday ? 'the big day' : 'days to go',
+                    value: isToday ? l.commonToday : N.of(daysUntil),
+                    label: isToday ? l.birthdaysTheBigDay : l.birthdaysDaysToGo,
                     icon: Icons.event_rounded,
                     color: accent,
                   ),
@@ -129,49 +132,49 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
         ),
         const SizedBox(height: 12),
         DetailSection(
-          title: 'REMINDERS',
+          title: l.detailSectionReminders,
           icon: Icons.notifications_active_rounded,
           accent: const Color(0xFF7C3AED),
           children: [
             if (_task.birthdayNotificationSchedule.isEmpty)
               Text(
-                'No reminders set for this birthday.',
+                l.birthdaysNoReminders,
                 style: TextStyle(fontSize: 13.5, color: Colors.grey.shade600),
               )
             else
               for (final option in _task.birthdayNotificationSchedule)
                 DetailRow(
                   icon: Icons.check_circle_outline_rounded,
-                  label: option.displayName,
-                  value: option.description,
+                  label: _optionTitle(option),
+                  value: _optionBody(option),
                 ),
           ],
         ),
         const SizedBox(height: 12),
         DetailSection(
-          title: 'DETAILS',
+          title: l.detailSectionDetails,
           icon: Icons.info_outline_rounded,
           accent: Colors.grey.shade500,
           children: [
             DetailRow(
               icon: Icons.cake_rounded,
-              label: 'Born',
+              label: l.birthdaysBorn,
               value: DateFormat('d MMMM y').format(_birth),
             ),
             DetailRow(
               icon: Icons.event_repeat_rounded,
-              label: 'Next birthday',
+              label: l.birthdaysNext,
               value: DateFormat('EEE, d MMM y').format(next),
             ),
             DetailRow(
               icon: Icons.add_circle_outline_rounded,
-              label: 'Saved',
+              label: l.birthdaysSaved,
               value: DateFormat('d MMM y').format(_task.createdAt),
             ),
             if (_task.updatedAt != null)
               DetailRow(
                 icon: Icons.edit_rounded,
-                label: 'Last edited',
+                label: l.detailLastEdited,
                 value: DateFormat('d MMM y').format(_task.updatedAt!),
               ),
           ],
@@ -191,10 +194,32 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
     return age < 0 ? 0 : age;
   }
 
-  String _status(int daysUntil) {
-    if (daysUntil == 0) return 'Birthday today';
-    if (daysUntil == 1) return 'Birthday tomorrow';
-    if (daysUntil <= 7) return 'In $daysUntil days';
-    return 'In $daysUntil days';
+  String _status(BuildContext context, int daysUntil) {
+    final l = L.of(context);
+    if (daysUntil == 0) return l.birthdaysToday;
+    if (daysUntil == 1) return l.birthdaysTomorrow;
+    return l.birthdaysInDays(daysUntil);
+  }
+
+  /// The schedule enum's own strings are English-only.
+  String _optionTitle(BirthdayNotificationOption option) {
+    final l = L.of(context);
+    return switch (option) {
+      BirthdayNotificationOption.oneDayBefore => l.birthdayOptOneDay,
+      BirthdayNotificationOption.twoHoursBefore => l.birthdayOptTwoHours,
+      BirthdayNotificationOption.tenMinutesBefore => l.birthdayOptTenMinutes,
+      BirthdayNotificationOption.exactTime => l.birthdayOptExact,
+    };
+  }
+
+  String _optionBody(BirthdayNotificationOption option) {
+    final l = L.of(context);
+    return switch (option) {
+      BirthdayNotificationOption.oneDayBefore => l.birthdayOptOneDayBody,
+      BirthdayNotificationOption.twoHoursBefore => l.birthdayOptTwoHoursBody,
+      BirthdayNotificationOption.tenMinutesBefore =>
+        l.birthdayOptTenMinutesBody,
+      BirthdayNotificationOption.exactTime => l.birthdayOptExactBody,
+    };
   }
 }

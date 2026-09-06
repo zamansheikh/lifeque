@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/category_budget.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class CategoryBudgetCard extends StatelessWidget {
   final CategoryBudget budget;
@@ -89,17 +90,17 @@ class CategoryBudgetCard extends StatelessWidget {
                     if (value == 'delete') onDelete();
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'edit',
                       child: Row(
                         children: [
                           Icon(Icons.edit_rounded, size: 18),
                           SizedBox(width: 8),
-                          Text('Edit Budget'),
+                          Text(L.of(context).expEditBudget),
                         ],
                       ),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
                       child: Row(
                         children: [
@@ -109,7 +110,10 @@ class CategoryBudgetCard extends StatelessWidget {
                             color: Colors.red,
                           ),
                           SizedBox(width: 8),
-                          Text('Delete', style: TextStyle(color: Colors.red)),
+                          Text(
+                            L.of(context).commonDelete,
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ],
                       ),
                     ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/task.dart';
 import 'base_task_card.dart';
 
@@ -199,23 +201,24 @@ class _TraditionalTaskCardState extends BaseTaskCardState<TraditionalTaskCard> {
   }
 
   (String, Color) _remaining() {
-    if (_task.isCompleted) return ('Done', const Color(0xFF059669));
+    final l = L.of(context);
+    if (_task.isCompleted) return (l.taskCardDone, const Color(0xFF059669));
 
     final now = DateTime.now();
     if (now.isBefore(_task.startDate)) {
       // One unit here, not two: "starts in 15h" fits beside a title where
       // "starts in 15h 49m" would push it off.
       return (
-        'starts in ${_coarse(_task.startDate.difference(now))}',
+        l.taskCardStartsIn(_coarse(_task.startDate.difference(now))),
         Colors.grey.shade600,
       );
     }
 
     final left = _task.endDate.difference(now);
     if (left.isNegative) {
-      return ('${_short(-left)} over', Colors.red.shade600);
+      return (l.taskCardOver(_short(-left)), Colors.red.shade600);
     }
-    return ('${_short(left)} left', _urgencyColor(left));
+    return (l.taskCardLeft(_short(left)), _urgencyColor(left));
   }
 
   Color _urgencyColor(Duration left) {
@@ -228,18 +231,28 @@ class _TraditionalTaskCardState extends BaseTaskCardState<TraditionalTaskCard> {
 
   /// A single rounded unit, for labels that share a row with the title.
   String _coarse(Duration d) {
-    if (d.inDays > 0) return '${d.inDays}d';
-    if (d.inHours > 0) return '${d.inHours}h';
-    if (d.inMinutes > 0) return '${d.inMinutes}m';
-    return '${d.inSeconds}s';
+    final l = L.of(context);
+    if (d.inDays > 0) return l.taskUnitDays(d.inDays);
+    if (d.inHours > 0) return l.taskUnitHours(d.inHours);
+    if (d.inMinutes > 0) return l.taskUnitMinutes(d.inMinutes);
+    return l.taskUnitSeconds(d.inSeconds);
   }
 
   /// Two units at most — "1d 6h" reads faster than four zero-padded tiles.
   String _short(Duration d) {
-    if (d.inDays > 0) return '${d.inDays}d ${d.inHours % 24}h';
-    if (d.inHours > 0) return '${d.inHours}h ${d.inMinutes % 60}m';
-    if (d.inMinutes > 0) return '${d.inMinutes}m ${d.inSeconds % 60}s';
-    return '${d.inSeconds}s';
+    final l = L.of(context);
+    if (d.inDays > 0) {
+      return '${l.taskUnitDays(d.inDays)} ${l.taskUnitHours(d.inHours % 24)}';
+    }
+    if (d.inHours > 0) {
+      return '${l.taskUnitHours(d.inHours)} '
+          '${l.taskUnitMinutes(d.inMinutes % 60)}';
+    }
+    if (d.inMinutes > 0) {
+      return '${l.taskUnitMinutes(d.inMinutes)} '
+          '${l.taskUnitSeconds(d.inSeconds % 60)}';
+    }
+    return l.taskUnitSeconds(d.inSeconds);
   }
 
   Widget _progressBar(Color accent) {
@@ -262,7 +275,7 @@ class _TraditionalTaskCardState extends BaseTaskCardState<TraditionalTaskCard> {
         SizedBox(
           width: 30,
           child: Text(
-            '${(progress * 100).round()}%',
+            N.percent((progress * 100).round()),
             textAlign: TextAlign.right,
             style: TextStyle(
               fontSize: 11,
@@ -334,23 +347,30 @@ class _TraditionalTaskCardState extends BaseTaskCardState<TraditionalTaskCard> {
           if (value == 'delete') widget.onDelete?.call();
         },
         itemBuilder: (context) => [
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'edit',
             child: Row(
               children: [
-                Icon(Icons.edit_rounded, size: 16),
-                SizedBox(width: 10),
-                Text('Edit'),
+                const Icon(Icons.edit_rounded, size: 16),
+                const SizedBox(width: 10),
+                Text(L.of(context).commonEdit),
               ],
             ),
           ),
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'delete',
             child: Row(
               children: [
-                Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red),
-                SizedBox(width: 10),
-                Text('Delete', style: TextStyle(color: Colors.red)),
+                const Icon(
+                  Icons.delete_outline_rounded,
+                  size: 16,
+                  color: Colors.red,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  L.of(context).commonDelete,
+                  style: const TextStyle(color: Colors.red),
+                ),
               ],
             ),
           ),

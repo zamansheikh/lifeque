@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/todo.dart';
+import '../utils/todo_l10n.dart';
 
 /// A single to-do row.
 ///
@@ -69,7 +70,7 @@ class TodoCard extends StatelessWidget {
                       children: [
                         _checkbox(context, done),
                         const SizedBox(width: 12),
-                        Expanded(child: _body(done, overdue)),
+                        Expanded(child: _body(context, done, overdue)),
                         if (onEdit != null || onDelete != null) _menu(),
                       ],
                     ),
@@ -111,7 +112,7 @@ class TodoCard extends StatelessWidget {
     );
   }
 
-  Widget _body(bool done, bool overdue) {
+  Widget _body(BuildContext context, bool done, bool overdue) {
     final description = todo.description?.trim();
     final showDue = showDueDate && todo.dueDate != null;
     final showReminder = todo.hasReminder && todo.reminderTime != null && !done;
@@ -152,7 +153,7 @@ class TodoCard extends StatelessWidget {
             children: [
               _chip(
                 icon: todo.category.icon,
-                label: todo.category.displayName,
+                label: todo.category.labelFor(context),
                 color: todo.category.color,
               ),
               if (showDue)

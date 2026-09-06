@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/entities/category_budget.dart';
 import '../../domain/entities/expense_category.dart';
 import '../bloc/expense_bloc.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class SetCategoryBudgetsPage extends StatefulWidget {
   final DateTime selectedMonth;
@@ -167,8 +168,8 @@ class _SetCategoryBudgetsPageState extends State<SetCategoryBudgetsPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text(
-          'Category Budgets',
+        title: Text(
+          L.of(context).expCategoryBudgets,
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 24,
@@ -409,7 +410,7 @@ class _SetCategoryBudgetsPageState extends State<SetCategoryBudgetsPage> {
                 controller: _controllers[category],
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Budget Amount',
+                  labelText: L.of(context).expBudgetAmount,
                   hintText: '0.00',
                   prefixIcon: Icon(Icons.currency_lira, color: category.color),
                   border: OutlineInputBorder(
@@ -435,11 +436,11 @@ class _SetCategoryBudgetsPageState extends State<SetCategoryBudgetsPage> {
                 validator: (value) {
                   if (isEnabled) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Enter amount';
+                      return L.of(context).expEnterAmount;
                     }
                     final amount = double.tryParse(value);
                     if (amount == null || amount <= 0) {
-                      return 'Invalid amount';
+                      return L.of(context).expInvalidAmount;
                     }
                   }
                   return null;

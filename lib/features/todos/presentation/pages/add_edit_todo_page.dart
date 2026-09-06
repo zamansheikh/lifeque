@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/todo.dart';
 import '../bloc/todo_bloc.dart';
+import '../utils/todo_l10n.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Create or edit a to-do.
 ///
@@ -106,7 +108,9 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
       backgroundColor: _field,
       appBar: AppBar(
         title: Text(
-          widget.isEditing ? 'Edit to-do' : 'New to-do',
+          widget.isEditing
+              ? L.of(context).todoFormEdit
+              : L.of(context).todoFormNew,
           style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 22,
@@ -151,9 +155,15 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
               children: [_dueRow(), const SizedBox(height: 12), _reminderRow()],
             ),
             const SizedBox(height: 12),
-            _card(title: 'Priority', children: [_priorityRow()]),
+            _card(
+              title: L.of(context).todoFormPriority,
+              children: [_priorityRow()],
+            ),
             const SizedBox(height: 12),
-            _card(title: 'Category', children: [_categoryWrap()]),
+            _card(
+              title: L.of(context).todoFormCategory,
+              children: [_categoryWrap()],
+            ),
           ],
         ),
       ),
@@ -207,7 +217,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
         color: _ink,
       ),
       decoration: InputDecoration(
-        hintText: 'What needs doing?',
+        hintText: L.of(context).todoFormTitleLabel,
         hintStyle: TextStyle(
           color: Colors.grey[500],
           fontWeight: FontWeight.w500,
@@ -216,7 +226,9 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       ),
       validator: (value) {
-        if (value == null || value.trim().isEmpty) return 'Give it a name';
+        if (value == null || value.trim().isEmpty) {
+          return L.of(context).todoFormTitleEmpty;
+        }
         return null;
       },
     );
@@ -230,7 +242,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
           alignment: Alignment.centerLeft,
           child: _chipButton(
             icon: Icons.notes_rounded,
-            label: 'Add a note',
+            label: L.of(context).reminderFormNote,
             onTap: () => setState(() => _showNote = true),
           ),
         ),
@@ -252,7 +264,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
           textCapitalization: TextCapitalization.sentences,
           style: const TextStyle(fontSize: 14, color: _ink),
           decoration: InputDecoration(
-            hintText: 'Any detail worth remembering',
+            hintText: L.of(context).todoFormNoteHint,
             hintStyle: TextStyle(color: Colors.grey[500]),
             border: InputBorder.none,
           ),
@@ -306,7 +318,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
           runSpacing: 8,
           children: [
             _choice(
-              'No date',
+              L.of(context).todoFormNoDate,
               selected: _dueDate == null,
               onTap: () => setState(() {
                 _dueDate = null;
@@ -319,12 +331,12 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
               onTap: () => _setDue(today),
             ),
             _choice(
-              'Tomorrow',
+              L.of(context).commonTomorrow,
               selected: _isSameDay(_dueDate, tomorrow),
               onTap: () => _setDue(tomorrow),
             ),
             _choice(
-              'Pick…',
+              L.of(context).reminderFormPick,
               icon: Icons.calendar_month_rounded,
               selected:
                   _dueDate != null &&
@@ -368,7 +380,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Remind me',
+                  L.of(context).taskFormRemindMe,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -394,7 +406,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
               children: [
                 if (_dueDate != null) ...[
                   _choice(
-                    'At due time',
+                    L.of(context).todoFormAtDueTime,
                     selected: _reminderMatches(_dueDate!),
                     onTap: () => setState(() => _reminderAt = _dueDate),
                   ),
@@ -410,7 +422,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                     ),
                   ),
                   _choice(
-                    'A day before',
+                    L.of(context).todoFormDayBefore,
                     selected: _reminderMatches(
                       _dueDate!.subtract(const Duration(days: 1)),
                     ),
@@ -422,7 +434,9 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                   ),
                 ],
                 _choice(
-                  _dueDate == null ? _formatDateTime(_reminderAt!) : 'Pick…',
+                  _dueDate == null
+                      ? _formatDateTime(_reminderAt!)
+                      : L.of(context).reminderFormPick,
                   icon: Icons.schedule_rounded,
                   selected: _dueDate == null,
                   onTap: _pickReminder,
@@ -432,9 +446,10 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
             const SizedBox(height: 6),
             Text(
               stale
-                  ? 'That time has already passed — pick a later one or the '
-                        'reminder won\'t be saved.'
-                  : 'Notification on ${_formatDateTime(_reminderAt!)}',
+                  ? L.of(context).todoFormPassed
+                  : L
+                        .of(context)
+                        .todoFormNotificationOn(_formatDateTime(_reminderAt!)),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -485,7 +500,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      priority.displayName,
+                      priority.labelFor(context),
                       style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
@@ -533,7 +548,7 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  category.displayName,
+                  category.labelFor(context),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -647,14 +662,14 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
       initialDate: _dueDate ?? now,
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 5),
-      helpText: 'Due date',
+      helpText: L.of(context).todoFormDueDate,
     );
     if (date == null || !mounted) return;
 
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_dueDate ?? DateTime(0, 1, 1, 18)),
-      helpText: 'Due time',
+      helpText: L.of(context).todoFormDueTime,
     );
     if (!mounted) return;
 
@@ -676,14 +691,14 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
       initialDate: base,
       firstDate: DateTime(now.year, now.month, now.day),
       lastDate: DateTime(now.year + 5),
-      helpText: 'Remind me on',
+      helpText: L.of(context).reminderFormOnDate,
     );
     if (date == null || !mounted) return;
 
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(base),
-      helpText: 'Remind me at',
+      helpText: L.of(context).reminderFormAtTime,
     );
     if (!mounted) return;
 
@@ -723,8 +738,8 @@ class _AddEditTodoPageState extends State<AddEditTodoPage> {
 
     final label = switch (diff) {
       0 => 'Today',
-      1 => 'Tomorrow',
-      -1 => 'Yesterday',
+      1 => L.of(context).commonTomorrow,
+      -1 => L.of(context).commonYesterday,
       _ => DateFormat('d MMM').format(dateTime),
     };
     return '$label, ${DateFormat('HH:mm').format(dateTime)}';

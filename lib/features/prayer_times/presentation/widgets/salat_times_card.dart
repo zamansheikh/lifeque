@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
+import '../utils/prayer_l10n.dart';
 import '../utils/prayer_palette.dart';
 
 /// One prayer's worth of data for [SalatTimesCard].
 class SalatRow {
+  /// The English key — used for callbacks, stored completions and alarms, so
+  /// it must not be translated. [prayerLabel] turns it into display text.
   final String name;
 
   /// Waqt start, formatted e.g. `11:54 am`.
@@ -68,8 +72,8 @@ class SalatTimesCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text(
-                'Salat Times',
+              Text(
+                L.of(context).salatTimesTitle,
                 style: TextStyle(
                   color: PrayerPalette.ink,
                   fontSize: 16,
@@ -80,11 +84,14 @@ class SalatTimesCard extends StatelessWidget {
               InkWell(
                 onTap: onSetAlarm,
                 borderRadius: BorderRadius.circular(8),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
                   child: Text(
-                    'Set Alarm',
-                    style: TextStyle(
+                    L.of(context).salatSetAlarm,
+                    style: const TextStyle(
                       color: PrayerPalette.accent,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -96,13 +103,13 @@ class SalatTimesCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           for (var i = 0; i < rows.length; i++)
-            _row(rows[i], isLast: i == rows.length - 1),
+            _row(context, rows[i], isLast: i == rows.length - 1),
         ],
       ),
     );
   }
 
-  Widget _row(SalatRow row, {required bool isLast}) {
+  Widget _row(BuildContext context, SalatRow row, {required bool isLast}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
@@ -126,7 +133,7 @@ class SalatTimesCard extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        row.name,
+                        prayerLabel(context, row.name),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -149,9 +156,9 @@ class SalatTimesCard extends StatelessWidget {
                           color: PrayerPalette.ink,
                           borderRadius: BorderRadius.circular(9),
                         ),
-                        child: const Text(
-                          'NOW',
-                          style: TextStyle(
+                        child: Text(
+                          L.of(context).salatNowBadge,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 9,
                             fontWeight: FontWeight.w800,
@@ -163,7 +170,10 @@ class SalatTimesCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 2),
-                Align(alignment: Alignment.centerLeft, child: _jamaatChip(row)),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _jamaatChip(context, row),
+                ),
               ],
             ),
           ),
@@ -184,7 +194,7 @@ class SalatTimesCard extends StatelessWidget {
               if (row.endTime != null) ...[
                 const SizedBox(height: 1),
                 Text(
-                  'till ${row.endTime}',
+                  L.of(context).salatTill(row.endTime!),
                   style: TextStyle(
                     color: PrayerPalette.inkA(0.5),
                     fontSize: 10.5,
@@ -227,7 +237,7 @@ class SalatTimesCard extends StatelessWidget {
     );
   }
 
-  Widget _jamaatChip(SalatRow row) {
+  Widget _jamaatChip(BuildContext context, SalatRow row) {
     return InkWell(
       onTap: () => onEditJamaat(row.name),
       borderRadius: BorderRadius.circular(9),
@@ -243,7 +253,9 @@ class SalatTimesCard extends StatelessWidget {
             const Icon(Icons.mosque, size: 10, color: PrayerPalette.accent),
             const SizedBox(width: 4),
             Text(
-              row.jamaat == null ? 'Set jamaat ✎' : 'Jamaat ${row.jamaat} ✎',
+              row.jamaat == null
+                  ? '${L.of(context).salatSetJamaat} ✎'
+                  : '${L.of(context).salatJamaatAt(row.jamaat!)} ✎',
               style: const TextStyle(
                 color: PrayerPalette.accent,
                 fontSize: 10,

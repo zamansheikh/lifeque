@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+
 /// Hijri month names.
 ///
 /// These are the full transliterated names rather than the "Rabiʿ I / Rabiʿ II"
@@ -40,6 +42,24 @@ class HijriNames {
     'ذُو ٱلْحِجَّة',
   ];
 
+  /// Bangla forms, as they are written in Bangladesh — not a transliteration
+  /// of the English transliteration. "Rabi' al-Thani" is রবিউস সানি here, for
+  /// instance, which is the form people actually read.
+  static const _bangla = <String>[
+    'মুহাররম',
+    'সফর',
+    'রবিউল আউয়াল',
+    'রবিউস সানি',
+    'জমাদিউল আউয়াল',
+    'জমাদিউস সানি',
+    'রজব',
+    'শাবান',
+    'রমজান',
+    'শাওয়াল',
+    'জিলকদ',
+    'জিলহজ',
+  ];
+
   /// Short forms for dense table rows, where the full names don't fit.
   static const _short = <String>[
     'Muh',
@@ -58,6 +78,14 @@ class HijriNames {
 
   /// 1-based month number → full name.
   static String month(int m) => _full[(m - 1).clamp(0, 11)];
+
+  /// The month name in the app's current language.
+  static String monthFor(BuildContext context, int m) {
+    final index = (m - 1).clamp(0, 11);
+    return Localizations.localeOf(context).languageCode == 'bn'
+        ? _bangla[index]
+        : _full[index];
+  }
 
   /// 1-based month number → Arabic name.
   static String arabicMonth(int m) => _arabic[(m - 1).clamp(0, 11)];

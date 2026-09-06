@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class MonthlySummaryCard extends StatelessWidget {
   final double monthlyTotal;
@@ -124,7 +125,7 @@ class MonthlySummaryCard extends StatelessWidget {
               Expanded(
                 child: _buildStat(
                   Icons.check_circle,
-                  'Purchased',
+                  L.of(context).expPurchased,
                   purchased,
                   Colors.white,
                   isMoney: true,

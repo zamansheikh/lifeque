@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Birthdays, on their own screen.
 ///
@@ -48,8 +49,8 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
       backgroundColor: const Color(0xFFFDF7FA),
       drawer: const AppDrawer(currentRoute: '/birthdays'),
       appBar: AppBar(
-        title: const Text(
-          'Birthdays',
+        title: Text(
+          L.of(context).birthdaysTitle,
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 22,
@@ -63,7 +64,7 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu_rounded, color: _muted),
-            tooltip: 'Menu',
+            tooltip: L.of(context).commonMenu,
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
@@ -71,17 +72,17 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
       body: BlocBuilder<TaskBloc, TaskState>(
         builder: (context, state) {
           if (state is TaskLoading) {
-            return const Center(child: CircularProgressIndicator(color: _pink));
+            return Center(child: CircularProgressIndicator(color: _pink));
           }
           if (state is TaskError) {
             return _message(
               icon: Icons.error_outline_rounded,
-              title: 'Something went wrong',
+              title: L.of(context).commonSomethingWrong,
               body: state.message,
               action: FilledButton.icon(
                 onPressed: () => context.read<TaskBloc>().add(LoadTasks()),
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Try again'),
+                icon: Icon(Icons.refresh_rounded),
+                label: Text(L.of(context).commonRetry),
               ),
             );
           }
@@ -94,14 +95,12 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
           if (all.isEmpty) {
             return _message(
               icon: Icons.cake_rounded,
-              title: 'No birthdays saved',
-              body:
-                  'Add the people you keep meaning to wish and this page '
-                  'will tell you who is next.',
+              title: L.of(context).birthdaysEmptyTitle,
+              body: L.of(context).birthdaysEmptyBody,
               action: FilledButton.icon(
                 onPressed: _addBirthday,
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Add a birthday'),
+                icon: Icon(Icons.add_rounded),
+                label: Text(L.of(context).birthdaysAddOne),
                 style: FilledButton.styleFrom(backgroundColor: _pink),
               ),
             );
@@ -122,7 +121,9 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                 const SizedBox(height: 16),
               ],
               Text(
-                q.isEmpty ? 'Everyone' : 'Matching “$_query”',
+                q.isEmpty
+                    ? L.of(context).birthdaysEveryone
+                    : L.of(context).birthdaysMatching(_query),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -144,7 +145,7 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                   padding: const EdgeInsets.only(top: 24),
                   child: Center(
                     child: Text(
-                      'Nobody by that name',
+                      L.of(context).birthdaysNoMatch,
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                   ),
@@ -168,8 +169,8 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
             backgroundColor: _pink,
             foregroundColor: Colors.white,
             icon: const Icon(Icons.add_rounded),
-            label: const Text(
-              'Add birthday',
+            label: Text(
+              L.of(context).birthdaysAdd,
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
             ),
           );
@@ -184,11 +185,12 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
   Widget _nextUpCard(Task birthday) {
     final days = _daysUntil(birthday);
     final age = _ageTurning(birthday);
+    final l = L.of(context);
     final when = days == 0
-        ? 'Today'
+        ? l.commonToday
         : days == 1
-        ? 'Tomorrow'
-        : 'In $days days';
+        ? l.commonTomorrow
+        : l.birthdaysInDays(days);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -215,7 +217,9 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
               const Icon(Icons.cake_rounded, color: Colors.white, size: 18),
               const SizedBox(width: 8),
               Text(
-                days == 0 ? 'Birthday today' : 'Next up',
+                days == 0
+                    ? L.of(context).birthdaysToday
+                    : L.of(context).birthdaysNextUp,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.9),
                   fontSize: 13,
@@ -257,8 +261,8 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                 child: _heroButton(
                   icon: Icons.notifications_active_rounded,
                   label: birthday.isNotificationEnabled
-                      ? 'Reminders on'
-                      : 'Reminders off',
+                      ? L.of(context).birthdaysRemindersOn
+                      : L.of(context).birthdaysRemindersOff,
                   onTap: () => context.push('/edit-birthday/${birthday.id}'),
                 ),
               ),
@@ -266,7 +270,7 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
               Expanded(
                 child: _heroButton(
                   icon: Icons.open_in_new_rounded,
-                  label: 'Details',
+                  label: L.of(context).commonDetails,
                   onTap: () => context.push('/task-detail/${birthday.id}'),
                 ),
               ),
@@ -333,14 +337,14 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
         onChanged: (v) => setState(() => _query = v),
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: 'Search by name',
+          hintText: L.of(context).birthdaysSearchHint,
           hintStyle: TextStyle(color: Colors.grey[500]),
           prefixIcon: const Icon(Icons.search_rounded, color: _pink, size: 22),
           suffixIcon: _query.isEmpty
               ? null
               : IconButton(
                   icon: const Icon(Icons.clear_rounded),
-                  tooltip: 'Clear search',
+                  tooltip: L.of(context).birthdaysClearSearch,
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _query = '');
@@ -441,7 +445,9 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    isToday ? 'Today' : _shortCountdown(days),
+                    isToday
+                        ? L.of(context).commonToday
+                        : _shortCountdown(context, days),
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
@@ -465,7 +471,7 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                       _confirmDelete(birthday);
                     }
                   },
-                  itemBuilder: (context) => const [
+                  itemBuilder: (context) => [
                     PopupMenuItem(
                       value: 'edit',
                       height: 40,
@@ -473,7 +479,10 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                         children: [
                           Icon(Icons.edit_rounded, size: 16, color: _pink),
                           SizedBox(width: 10),
-                          Text('Edit', style: TextStyle(fontSize: 13)),
+                          Text(
+                            L.of(context).commonEdit,
+                            style: TextStyle(fontSize: 13),
+                          ),
                         ],
                       ),
                     ),
@@ -489,7 +498,7 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                           ),
                           SizedBox(width: 10),
                           Text(
-                            'Delete',
+                            L.of(context).commonDelete,
                             style: TextStyle(
                               fontSize: 13,
                               color: Color(0xFFDC2626),
@@ -576,11 +585,11 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
     return age > 0 ? age : null;
   }
 
-  String _shortCountdown(int days) {
-    if (days == 1) return 'Tomorrow';
-    if (days < 30) return 'in $days d';
-    final months = (days / 30).round();
-    return 'in $months mo';
+  String _shortCountdown(BuildContext context, int days) {
+    final l = L.of(context);
+    if (days == 1) return l.commonTomorrow;
+    if (days < 30) return l.birthdaysInDaysShort(days);
+    return l.birthdaysInMonthsShort((days / 30).round());
   }
 
   String _initial(String name) {
@@ -595,29 +604,27 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Remove this birthday?',
+        title: Text(
+          L.of(context).birthdaysDeleteTitle,
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: Text(
           '“${birthday.title}” and its reminders will be deleted. '
           'This can\'t be undone.',
-          style: const TextStyle(height: 1.4),
+          style: TextStyle(height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Keep it'),
+            child: Text(L.of(context).remindersKeepIt),
           ),
           FilledButton(
             onPressed: () {
               context.read<TaskBloc>().add(DeleteTaskEvent(birthday.id));
               Navigator.of(dialogContext).pop();
             },
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFDC2626),
-            ),
-            child: const Text('Delete'),
+            style: FilledButton.styleFrom(backgroundColor: Color(0xFFDC2626)),
+            child: Text(L.of(context).commonDelete),
           ),
         ],
       ),

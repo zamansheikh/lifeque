@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
 import 'task_detail_pages/traditional_task_detail.dart';
@@ -30,7 +31,7 @@ class TaskDetailPage extends StatelessWidget {
               try {
                 final task = state.tasks.firstWhere((t) => t.id == taskId);
                 return Text(
-                  _getAppBarTitle(task.taskType),
+                  _getAppBarTitle(context, task.taskType),
                   style: const TextStyle(
                     fontSize: 19,
                     fontWeight: FontWeight.w700,
@@ -38,10 +39,10 @@ class TaskDetailPage extends StatelessWidget {
                   ),
                 );
               } catch (e) {
-                return const Text('Details');
+                return Text(L.of(context).detailGeneric);
               }
             }
-            return const Text('Details');
+            return Text(L.of(context).detailGeneric);
           },
         ),
         actions: [
@@ -65,10 +66,10 @@ class TaskDetailPage extends StatelessWidget {
                 child: _buildTaskTypeDetail(task),
               );
             } catch (e) {
-              return _buildErrorView('Task not found');
+              return _buildErrorView(L.of(context).detailNotFound);
             }
           } else if (state is TaskError) {
-            return _buildErrorView('Error: ${state.message}');
+            return _buildErrorView(state.message);
           }
           return const Center(child: CircularProgressIndicator());
         },
@@ -104,14 +105,12 @@ class TaskDetailPage extends StatelessWidget {
     );
   }
 
-  String _getAppBarTitle(TaskType taskType) {
-    switch (taskType) {
-      case TaskType.task:
-        return 'Task';
-      case TaskType.reminder:
-        return 'Reminder';
-      case TaskType.birthday:
-        return 'Birthday';
-    }
+  String _getAppBarTitle(BuildContext context, TaskType taskType) {
+    final l = L.of(context);
+    return switch (taskType) {
+      TaskType.task => l.detailTask,
+      TaskType.reminder => l.detailReminder,
+      TaskType.birthday => l.detailBirthday,
+    };
   }
 }

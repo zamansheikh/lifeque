@@ -7,6 +7,7 @@ import '../../domain/entities/expense_session.dart';
 import '../bloc/expense_bloc.dart';
 import '../widgets/expense_session_card.dart';
 import '../widgets/unified_budget_card.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// The expense tracker home.
 ///
@@ -77,7 +78,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
       initialDatePickerMode: DatePickerMode.year,
-      helpText: 'Pick a month',
+      helpText: L.of(context).expPickMonth,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -128,8 +129,8 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
       backgroundColor: const Color(0xFFF8FAFC),
       drawer: const AppDrawer(currentRoute: '/expenses'),
       appBar: AppBar(
-        title: const Text(
-          'Expense Tracker',
+        title: Text(
+          L.of(context).expTitle,
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 22,
@@ -207,8 +208,8 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
               foregroundColor: Colors.white,
               elevation: 0,
               icon: const Icon(Icons.add_rounded, size: 24),
-              label: const Text(
-                'New list',
+              label: Text(
+                L.of(context).expNewList,
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
               ),
             ),
@@ -240,7 +241,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
         children: [
           _monthArrow(
             icon: Icons.chevron_left_rounded,
-            tooltip: 'Previous month',
+            tooltip: L.of(context).expPreviousMonth,
             onTap: () => _onMonthChanged(
               DateTime(_selectedMonth.year, _selectedMonth.month - 1),
             ),
@@ -282,7 +283,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
           ),
           _monthArrow(
             icon: Icons.chevron_right_rounded,
-            tooltip: 'Next month',
+            tooltip: L.of(context).expNextMonth,
             onTap: () => _onMonthChanged(
               DateTime(_selectedMonth.year, _selectedMonth.month + 1),
             ),
@@ -316,7 +317,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
     if (state is ExpenseLoaded) return _loaded(state);
     if (state is ExpenseError) return [_errorCard(state.message)];
     return [
-      const SizedBox(
+      SizedBox(
         height: 280,
         child: Center(
           child: Column(
@@ -325,7 +326,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
               CircularProgressIndicator(color: _brand),
               SizedBox(height: 16),
               Text(
-                'Loading your expenses…',
+                L.of(context).expLoading,
                 style: TextStyle(
                   color: _muted,
                   fontSize: 15,
@@ -422,13 +423,13 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
         textInputAction: TextInputAction.search,
         style: const TextStyle(fontSize: 16),
         decoration: InputDecoration(
-          hintText: 'Search lists and items…',
+          hintText: L.of(context).expSearchHint,
           hintStyle: TextStyle(color: Colors.grey[500]),
           prefixIcon: const Icon(Icons.search_rounded, color: _brand, size: 22),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear_rounded),
-                  tooltip: 'Clear search',
+                  tooltip: L.of(context).todosClearSearch,
                   onPressed: () {
                     _searchController.clear();
                     _onSearchChanged('');
@@ -457,7 +458,9 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          state.isSearching ? 'Search results' : 'Shopping lists',
+          state.isSearching
+              ? L.of(context).expSearchResults
+              : L.of(context).expShoppingLists,
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -542,8 +545,8 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Start your first list',
+        Text(
+          L.of(context).expStartFirstList,
           style: TextStyle(
             fontSize: 18,
             color: _ink,
@@ -552,9 +555,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
         ),
         const SizedBox(height: 8),
         Text(
-          'Write down what you plan to buy with a price for each item, '
-          'then tick things off as you shop. Whatever you skip is counted '
-          'as money saved.',
+          L.of(context).expListsHelp,
           style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.45),
           textAlign: TextAlign.center,
         ),
@@ -569,7 +570,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
             child: ElevatedButton.icon(
               onPressed: _addShoppingList,
               icon: const Icon(Icons.add_rounded),
-              label: const Text('Create a list'),
+              label: Text(L.of(context).expCreateList),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 foregroundColor: Colors.white,
@@ -606,8 +607,8 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Nothing matched',
+        Text(
+          L.of(context).expNothingMatched,
           style: TextStyle(
             fontSize: 18,
             color: _ink,
@@ -654,7 +655,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
           ),
           const SizedBox(height: 20),
           Text(
-            'Something went wrong',
+            L.of(context).commonSomethingWrong,
             style: TextStyle(
               fontSize: 19,
               fontWeight: FontWeight.w700,
@@ -671,7 +672,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
           ElevatedButton.icon(
             onPressed: () => context.read<ExpenseBloc>().add(LoadSessions()),
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Try again'),
+            label: Text(L.of(context).commonRetry),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red[600],
               foregroundColor: Colors.white,
@@ -726,8 +727,8 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete this list?',
+        title: Text(
+          L.of(context).expDeleteListTitle,
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: Text(
@@ -739,7 +740,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Keep it'),
+            child: Text(L.of(context).todosKeepIt),
           ),
           FilledButton(
             onPressed: () {
@@ -750,7 +751,7 @@ class _ExpensesDashboardPageState extends State<ExpensesDashboardPage>
               backgroundColor: const Color(0xFFDC2626),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text(L.of(context).commonDelete),
           ),
         ],
       ),

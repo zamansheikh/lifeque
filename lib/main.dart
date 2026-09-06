@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as timezone;
 import 'package:alarm/alarm.dart';
@@ -7,7 +8,6 @@ import 'core/app.dart';
 import 'core/services/language_preference_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/prayer_alarm_service.dart';
-// import 'core/services/update_service.dart'; // Commented out - using in-app updates now
 import 'features/medicines/domain/repositories/medicine_repository.dart';
 import 'features/tasks/domain/repositories/task_repository.dart';
 import 'features/todos/domain/repositories/todo_repository.dart';
@@ -141,6 +141,9 @@ void main() async {
   // Before the first frame, so the app opens in the chosen language rather
   // than flashing English.
   await LanguagePreferenceService.instance.load();
+  // DateFormat needs each locale's month and weekday names loaded before it
+  // can render them; without this a Bangla date throws at build time.
+  await initializeDateFormatting();
 
   runApp(const MyApp());
 }

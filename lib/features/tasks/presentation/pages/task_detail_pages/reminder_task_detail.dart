@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../core/widgets/detail_kit.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../domain/entities/task.dart';
 import '../../bloc/task_bloc.dart';
 
@@ -47,6 +48,7 @@ class _ReminderTaskDetailState extends State<ReminderTaskDetail> {
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     final remaining = _at.difference(DateTime.now());
     final accent = _accent(remaining);
 
@@ -71,50 +73,50 @@ class _ReminderTaskDetailState extends State<ReminderTaskDetail> {
         const SizedBox(height: 12),
         if (!_task.isCompleted) ...[
           DetailSection(
-            title: 'COUNTDOWN',
+            title: l.detailSectionCountdown,
             icon: Icons.hourglass_bottom_rounded,
             accent: accent,
             children: [
               DetailCountdown(
                 remaining: remaining,
                 color: accent,
-                caption: 'Until it goes off',
-                passedLabel: 'This reminder has already gone off',
+                caption: l.detailUntilItFires,
+                passedLabel: l.detailAlreadyFired,
               ),
             ],
           ),
           const SizedBox(height: 12),
         ],
         DetailSection(
-          title: 'DETAILS',
+          title: l.detailSectionDetails,
           icon: Icons.info_outline_rounded,
           accent: Colors.grey.shade500,
           children: [
             DetailRow(
               icon: Icons.event_rounded,
-              label: 'Date',
+              label: l.detailRowDate,
               value: DateFormat('EEEE, d MMMM y').format(_at),
             ),
             DetailRow(
               icon: Icons.schedule_rounded,
-              label: 'Time',
+              label: l.detailRowTime,
               value: DateFormat('h:mm a').format(_at),
             ),
             if (_task.isPinnedToNotification)
-              const DetailRow(
+              DetailRow(
                 icon: Icons.push_pin_rounded,
-                label: 'Pinned',
-                value: 'Kept in the shade',
+                label: l.detailPinned,
+                value: l.detailPinnedValue,
               ),
             DetailRow(
               icon: Icons.add_circle_outline_rounded,
-              label: 'Created',
+              label: l.detailCreated,
               value: DateFormat('d MMM y').format(_task.createdAt),
             ),
             if (_task.updatedAt != null)
               DetailRow(
                 icon: Icons.edit_rounded,
-                label: 'Last edited',
+                label: l.detailLastEdited,
                 value: DateFormat('d MMM y').format(_task.updatedAt!),
               ),
           ],
@@ -131,9 +133,10 @@ class _ReminderTaskDetailState extends State<ReminderTaskDetail> {
   }
 
   String _status(Duration remaining) {
-    if (_task.isCompleted) return 'Done';
-    if (remaining.isNegative) return 'Already passed';
-    if (remaining.inMinutes < 60) return 'Any minute now';
-    return 'Waiting';
+    final l = L.of(context);
+    if (_task.isCompleted) return l.detailStatusDone;
+    if (remaining.isNegative) return l.detailStatusPassed;
+    if (remaining.inMinutes < 60) return l.detailStatusAnyMinute;
+    return l.detailStatusWaiting;
   }
 }

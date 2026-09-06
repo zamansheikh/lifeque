@@ -22,6 +22,9 @@ import '../../data/services/prayer_settings_service.dart';
 import '../utils/bangla_date.dart';
 import '../utils/hijri_names.dart';
 import '../utils/islamic_colors.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../utils/prayer_l10n.dart';
 import '../utils/prayer_palette.dart';
 import '../widgets/mosque_time_edit_sheet.dart';
 import '../widgets/nafal_times_card.dart';
@@ -177,8 +180,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         await _requestLocationPermission();
         if (!_isLocationFromGps) {
           setState(() {
-            _error =
-                'Using default location (Dhaka). Tap the location pin to set yours.';
+            _error = L.of(context).prayerDefaultLocationNote;
             _isLoading = false;
           });
         }
@@ -426,14 +428,14 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             Icon(Icons.error_outline, color: PrayerPalette.inkA(0.5), size: 56),
             const SizedBox(height: 12),
             Text(
-              _error ?? 'Unable to compute prayer times',
+              _error ?? L.of(context).prayerUnableToCompute,
               textAlign: TextAlign.center,
               style: TextStyle(color: PrayerPalette.inkA(0.7)),
             ),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: _loadFromSavedData,
-              child: const Text('Retry'),
+              child: Text(L.of(context).commonRetry),
             ),
           ],
         ),
@@ -592,9 +594,11 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
             child: NafalTimesCard(
               rows: _nafalRows(calc, date, times),
-              footnote:
-                  'Last ⅓ of night begins: '
-                  '${_fmt12(calc.getSunnahTimes().lastThirdOfTheNight)}',
+              footnote: L
+                  .of(context)
+                  .nafalLastThird(
+                    _fmt12(calc.getSunnahTimes().lastThirdOfTheNight),
+                  ),
               onSeeReference: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -622,24 +626,17 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   // ── Formatting helpers ──────────────────────────────────────────────────
 
   /// `4:28 am`
-  String _fmt12(DateTime t) {
-    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
-    final m = t.minute.toString().padLeft(2, '0');
-    return '$h:$m ${t.hour < 12 ? 'am' : 'pm'}';
-  }
+  String _fmt12(DateTime t) => DateFormat('h:mm a').format(t);
 
   /// `4:28` — no meridiem, for the Ramadan strip's split layout.
-  String _fmtBare(DateTime t) {
-    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
-    return '$h:${t.minute.toString().padLeft(2, '0')}';
-  }
+  String _fmtBare(DateTime t) => DateFormat('h:mm').format(t);
 
-  String _meridiem(DateTime t) => t.hour < 12 ? 'am' : 'pm';
+  String _meridiem(DateTime t) => DateFormat('a').format(t);
 
   /// `01:23:45`
   String _fmtHms(Duration d) {
     final s = d.isNegative ? 0 : d.inSeconds;
-    String two(int v) => v.toString().padLeft(2, '0');
+    String two(int v) => N.padded2(v);
     return '${two(s ~/ 3600)}:${two((s ~/ 60) % 60)}:${two(s % 60)}';
   }
 
@@ -656,7 +653,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final dowEn = DateFormat('EEEE').format(date);
     final hijri = HijriCalendar.fromDate(date);
     return [
-      '$dowEn, ${hijri.hDay} ${HijriNames.month(hijri.hMonth)} ${hijri.hYear}',
+      '$dowEn, ${N.of(hijri.hDay)} '
+          '${HijriNames.monthFor(context, hijri.hMonth)} ${N.plain(hijri.hYear)}',
       '$dowEn, ${DateFormat('MMMM d, y').format(date)}',
       '${BanglaDate.weekdayName(date)}, '
           '${BanglaDate.fromDate(date).formatted}',
@@ -716,8 +714,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       final span = end.difference(start).inMilliseconds;
       final gone = now.difference(start).inMilliseconds;
       return GaugeData(
-        name: current,
-        label: 'Waqt ends in',
+        name: prayerLabel(context, current),
+        label: L.of(context).gaugeWaqtEndsIn,
         countdown: _fmtHms(end.difference(now)),
         progress: span <= 0 ? 0 : (gone / span).clamp(0.0, 1.0),
       );
@@ -735,8 +733,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final span = target.difference(windowStart).inMilliseconds;
     final gone = now.difference(windowStart).inMilliseconds;
     return GaugeData(
-      name: next ?? 'Fajr',
-      label: isToday ? 'Starts in' : 'Starts at ${_fmt12(target)}',
+      name: prayerLabel(context, next ?? 'Fajr'),
+      label: isToday
+          ? L.of(context).gaugeStartsIn
+          : L.of(context).gaugeStartsAt(_fmt12(target)),
       countdown: isToday ? _fmtHms(target.difference(now)) : '--:--:--',
       progress: span <= 0 ? 0 : (gone / span).clamp(0.0, 1.0),
     );
@@ -768,8 +768,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
     if (!isToday) {
       return GaugeData(
-        name: 'Tahajjud',
-        label: 'Begins at ${_fmt12(start)}',
+        name: L.of(context).prayerTahajjud,
+        label: L.of(context).gaugeBeginsAt(_fmt12(start)),
         countdown: '--:--:--',
         progress: 0,
       );
@@ -779,8 +779,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       final span = end.difference(start).inMilliseconds;
       final gone = now.difference(start).inMilliseconds;
       return GaugeData(
-        name: 'Tahajjud',
-        label: 'Ends at Fajr, in',
+        name: L.of(context).prayerTahajjud,
+        label: L.of(context).gaugeEndsAtFajr,
         countdown: _fmtHms(end.difference(now)),
         progress: span <= 0 ? 0 : (gone / span).clamp(0.0, 1.0),
       );
@@ -795,7 +795,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final gone = now.difference(windowStart).inMilliseconds;
     return GaugeData(
       name: 'Tahajjud',
-      label: 'Begins in',
+      label: L.of(context).gaugeBeginsIn,
       countdown: _fmtHms(target.difference(now)),
       progress: span <= 0 ? 0 : (gone / span).clamp(0.0, 1.0),
     );
@@ -846,7 +846,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       if (!mounted) return;
       PrayerSnack.show(
         context,
-        '$prayer alarm turned off',
+        L.of(context).prayerAlarmOff(prayerLabel(context, prayer)),
         kind: PrayerSnackKind.muted,
       );
       return;
@@ -867,8 +867,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final maghrib = times['Maghrib']!;
     final hijri = HijriCalendar.fromDate(now);
     final heading = hijri.hMonth == 9
-        ? 'RAMADAN · DAY ${hijri.hDay}'
-        : 'RAMADAN MODE';
+        ? L.of(context).ramadanDay(hijri.hDay)
+        : L.of(context).ramadanMode;
     final iftarTarget = now.isBefore(maghrib)
         ? maghrib
         : maghrib.add(const Duration(days: 1));
@@ -942,7 +942,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Salat is prohibited right now',
+                    L.of(context).prohibitedNowTitle,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -951,8 +951,16 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${_restrictedLabel(period['name'] as String)} · '
-                    'ends at ${_fmt12(end)} (in ${_fmtHms(remaining)})',
+                    L
+                        .of(context)
+                        .prohibitedNowBody(
+                          restrictedWindowLabel(
+                            context,
+                            period['name'] as String,
+                          ),
+                          _fmt12(end),
+                          _fmtHms(remaining),
+                        ),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 12,
@@ -963,7 +971,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               ),
             ),
             IconButton(
-              tooltip: 'Dismiss',
+              tooltip: L.of(context).prohibitedDismiss,
               onPressed: () => setState(() => _dismissedRestriction = key),
               icon: const Icon(
                 Icons.close_rounded,
@@ -981,14 +989,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   /// pushed up by this much while it shows.
   static const double _bannerHeight = 84;
 
-  /// Plain-language name for a restricted window.
-  String _restrictedLabel(String name) => switch (name) {
-    'Sunrise Period' => 'While the sun rises',
-    'Zawal (Midday)' => 'While the sun is at its peak',
-    'Sunset Period' => 'While the sun sets',
-    _ => name,
-  };
-
   // ── Prohibited times ────────────────────────────────────────────────────
 
   /// Windows in the order the design shows them: morning, noon, evening.
@@ -997,7 +997,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     'Zawal (Midday)',
     'Sunset Period',
   ];
-  static const List<String> _restrictedLabels = ['Morning', 'Noon', 'Evening'];
 
   List<ProhibitedChip> _prohibitedChips(
     SalahTimeCalculator calc,
@@ -1012,7 +1011,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           final start = w['start'] as DateTime;
           final end = w['end'] as DateTime;
           return ProhibitedChip(
-            label: _restrictedLabels[i],
+            label: restrictedChipLabel(context, _restrictedOrder[i]),
             range: '${_fmtBare(start)} – ${_fmt12(end)}',
             isActive: isToday && now.isAfter(start) && now.isBefore(end),
           );
@@ -1032,23 +1031,23 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           'prohibited during these times.';
     }
     if (!isToday) {
-      return 'Salat is prohibited during these times.';
+      return L.of(context).prohibitedSubtitle;
     }
     final upcoming = _restrictedOrder
         .map((k) => calc.getRestrictedTimes()[k]!)
         .where((w) => (w['start'] as DateTime).isAfter(now))
         .firstOrNull;
     if (upcoming == null) {
-      return 'Salat is prohibited during these times · '
-          'all have passed today.';
+      return L.of(context).prohibitedAllPassed;
     }
     final start = upcoming['start'] as DateTime;
     final idx = _restrictedOrder.indexWhere(
       (k) => calc.getRestrictedTimes()[k]!['start'] == start,
     );
-    final name = idx >= 0 ? _restrictedLabels[idx] : 'next';
-    return 'Salat is prohibited during these times · '
-        'next: $name ${_fmt12(start)}';
+    final name = idx >= 0
+        ? restrictedChipLabel(context, _restrictedOrder[idx])
+        : '';
+    return L.of(context).prohibitedNext(name, _fmt12(start));
   }
 
   // ── Nafal times ─────────────────────────────────────────────────────────
@@ -1068,23 +1067,23 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     return [
       NafalRow(
         glyph: Icons.wb_sunny_outlined,
-        name: 'Ishraq / Duha',
+        name: L.of(context).nafalIshraq,
         range: '${_fmtBare(sunriseEnd)} – ${_fmt12(zawalStart)}',
       ),
       NafalRow(
         glyph: Icons.contrast_rounded,
-        name: 'Zawal Start',
+        name: L.of(context).nafalZawalStart,
         range: _fmt12(zawalStart),
       ),
       NafalRow(
         glyph: Icons.cloud_outlined,
-        name: 'Awabin',
-        range: 'After Maghrib – ${_fmt12(times['Isha']!)}',
+        name: L.of(context).nafalAwabin,
+        range: L.of(context).nafalAfterMaghrib(_fmt12(times['Isha']!)),
       ),
       NafalRow(
         glyph: Icons.nightlight_outlined,
-        name: 'Tahajjud',
-        range: 'After Isha – ${_fmt12(tomorrowFajr)}',
+        name: L.of(context).prayerTahajjud,
+        range: L.of(context).nafalAfterIsha(_fmt12(tomorrowFajr)),
       ),
     ];
   }
@@ -1106,7 +1105,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           ),
         ),
         icon: const Icon(Icons.today_rounded, size: 16),
-        label: const Text('Back to today'),
+        label: Text(L.of(context).prayerBackToToday),
       ),
     );
   }
@@ -1168,7 +1167,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Restricted Times',
+      barrierLabel: L.of(context).restrictedTimesTitle,
       barrierColor: Colors.black.withValues(alpha: 0.55),
       transitionDuration: const Duration(milliseconds: 220),
       pageBuilder: (ctx, anim, _) {
@@ -1319,7 +1318,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       if (!mounted) return;
       PrayerSnack.show(
         context,
-        '$prayer alarm turned off',
+        L.of(context).prayerAlarmOff(prayerLabel(context, prayer)),
         kind: PrayerSnackKind.muted,
       );
       return;
@@ -1353,11 +1352,15 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   /// The confirmation used to read "Fajr · at waqt", which names the rule and
   /// not the time — leaving you to work out when it would actually go off.
   String _alarmSetMessage(String prayer, int minutesAfterStart) {
+    final l = L.of(context);
+    final label = prayerLabel(context, prayer);
     final at = _nextAlarmTime(prayer, minutesAfterStart);
-    if (at == null) return '$prayer alarm set';
+    if (at == null) return l.prayerAlarmSet(label);
 
-    final day = _isSameDay(at, DateTime.now()) ? 'today' : 'tomorrow';
-    return '$prayer alarm set for ${_fmt12(at)} $day';
+    final day = _isSameDay(at, DateTime.now())
+        ? l.prayerDayToday
+        : l.prayerDayTomorrow;
+    return l.prayerAlarmSetFor(label, _fmt12(at), day);
   }
 
   /// The instant the alarm will next ring: today's waqt if that is still
@@ -1416,15 +1419,15 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               const SizedBox(height: 14),
               _settingsHeader(),
               const SizedBox(height: 18),
-              _sectionLabel('CALCULATION METHOD'),
+              _sectionLabel(L.of(context).prayerSectionMethod),
               const SizedBox(height: 8),
               _methodDropdown(setSheetState),
               const SizedBox(height: 18),
-              _sectionLabel('MADHAB — FOR ASR'),
+              _sectionLabel(L.of(context).prayerSectionMadhab),
               const SizedBox(height: 8),
               _madhabRow(setSheetState),
               const SizedBox(height: 18),
-              _sectionLabel('LOCATION'),
+              _sectionLabel(L.of(context).prayerSectionLocation),
               const SizedBox(height: 8),
               _locationCard(setSheetState),
               const SizedBox(height: 8),
@@ -1444,8 +1447,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                     ),
                   ),
                   icon: const Icon(Icons.edit_location_alt_outlined, size: 18),
-                  label: const Text(
-                    'Set location manually',
+                  label: Text(
+                    L.of(context).prayerSetLocationManually,
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -1497,8 +1500,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Prayer settings',
+              Text(
+                L.of(context).prayerSettingsTitle,
                 style: TextStyle(
                   color: PrayerPalette.ink,
                   fontSize: 16,
@@ -1506,7 +1509,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                 ),
               ),
               Text(
-                'How prayer times are calculated',
+                L.of(context).prayerSettingsSubtitle,
                 style: TextStyle(
                   color: PrayerPalette.inkA(0.55),
                   fontSize: 11.5,
@@ -1578,8 +1581,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         Expanded(
           child: _madhabTile(
             madhab: Madhab.hanafi,
-            title: 'Hanafi',
-            subtitle: 'Later Asr',
+            title: L.of(context).madhabHanafi,
+            subtitle: L.of(context).madhabHanafiNote,
             setSheetState: setSheetState,
           ),
         ),
@@ -1587,8 +1590,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         Expanded(
           child: _madhabTile(
             madhab: Madhab.shafi,
-            title: 'Shafi',
-            subtitle: 'Earlier Asr',
+            title: L.of(context).madhabShafi,
+            subtitle: L.of(context).madhabShafiNote,
             setSheetState: setSheetState,
           ),
         ),
@@ -1794,36 +1797,38 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Set Location'),
+        title: Text(L.of(context).prayerSetLocation),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameC,
-              decoration: const InputDecoration(labelText: 'Location Name'),
+              decoration: InputDecoration(
+                labelText: L.of(context).prayerLocationName,
+              ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextField(
               controller: latC,
-              decoration: const InputDecoration(labelText: 'Latitude'),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+              decoration: InputDecoration(
+                labelText: L.of(context).prayerLatitude,
               ),
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextField(
               controller: lngC,
-              decoration: const InputDecoration(labelText: 'Longitude'),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+              decoration: InputDecoration(
+                labelText: L.of(context).prayerLongitude,
               ),
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(L.of(context).commonCancel),
           ),
           ElevatedButton(
             onPressed: () {

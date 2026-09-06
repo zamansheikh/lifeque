@@ -7,6 +7,7 @@ import '../bloc/medicine_cubit.dart';
 import '../bloc/medicine_state.dart';
 import 'add_edit_medicine_page.dart';
 import 'medicine_detail_page.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class MedicinesDashboardPage extends StatefulWidget {
   const MedicinesDashboardPage({super.key});
@@ -31,8 +32,8 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
       backgroundColor: const Color(0xFFF8FAFC),
       drawer: const AppDrawer(currentRoute: '/medicines'),
       appBar: AppBar(
-        title: const Text(
-          'Medications',
+        title: Text(
+          L.of(context).medTitle,
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 24,
@@ -54,7 +55,7 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
             child: IconButton(
               onPressed: _refresh,
               icon: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B)),
-              tooltip: 'Refresh',
+              tooltip: L.of(context).medRefresh,
             ),
           ),
           Container(
@@ -77,7 +78,7 @@ class _MedicinesDashboardPageState extends State<MedicinesDashboardPage> {
                 );
                 if (mounted) _refresh();
               },
-              tooltip: 'Add Medicine',
+              tooltip: L.of(context).medAdd,
             ),
           ),
         ],
@@ -206,8 +207,8 @@ class _EmptyState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'No medications yet',
+          Text(
+            L.of(context).medEmptyTitle,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w700,
@@ -216,7 +217,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Add your first medication to start\ntracking your daily doses',
+            L.of(context).medEmptyBody,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
@@ -244,8 +245,8 @@ class _EmptyState extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: onAdd,
               icon: const Icon(Icons.add_rounded, color: Colors.white),
-              label: const Text(
-                'Add Medicine',
+              label: Text(
+                L.of(context).medAdd,
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -662,8 +663,8 @@ class _MedicineProgressCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: next == null
-                        ? const Text(
-                            'Today completed',
+                        ? Text(
+                            L.of(context).medDoseTaken,
                             style: TextStyle(
                               color: Color(0xFF10B981),
                               fontWeight: FontWeight.w600,

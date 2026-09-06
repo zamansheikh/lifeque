@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/entities/medicine.dart';
 import '../bloc/medicine_cubit.dart';
 import '../bloc/medicine_state.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class AddEditMedicinePage extends StatefulWidget {
   final String? medicineId;
@@ -132,7 +133,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(
-          _isEditing ? 'Edit Medicine' : 'Add Medicine',
+          _isEditing ? L.of(context).medEdit : L.of(context).medAdd,
           style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 24,
@@ -356,7 +357,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
           TextFormField(
             controller: _nameController,
             decoration: InputDecoration(
-              labelText: 'Medicine Name',
+              labelText: L.of(context).medNameLabel,
               hintText: 'e.g., Paracetamol',
               prefixIcon: const Icon(
                 Icons.medication,
@@ -373,7 +374,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
               ),
             ),
             validator: (value) =>
-                value?.isEmpty ?? true ? 'Please enter medicine name' : null,
+                value?.isEmpty ?? true ? L.of(context).medNameEmpty : null,
           ),
           const SizedBox(height: 16),
 
@@ -423,7 +424,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   // ---------------------------------
                   initialValue: _selectedMealTiming,
                   decoration: InputDecoration(
-                    labelText: 'Meal Timing',
+                    labelText: L.of(context).medMealTiming,
                     prefixIcon: const Icon(
                       Icons.restaurant,
                       color: Color(0xFF3B82F6),
@@ -466,7 +467,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   controller: _dosageController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Dosage',
+                    labelText: L.of(context).medDosage,
                     hintText: '500',
                     prefixIcon: const Icon(
                       Icons.medical_services,
@@ -531,9 +532,9 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
           // Times per day with quick buttons
           Row(
             children: [
-              const Flexible(
+              Flexible(
                 child: Text(
-                  'Times per day:',
+                  L.of(context).medTimesPerDay,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -592,8 +593,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
 
           // Notification times - compact grid
           if (_timesPerDay > 0) ...[
-            const Text(
-              'Notification Times:',
+            Text(
+              L.of(context).medNotificationTimes,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -655,7 +656,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   controller: _durationController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Duration (days)',
+                    labelText: L.of(context).medDuration,
                     labelStyle: const TextStyle(
                       fontSize: 12,
                       color: Color(0xFF64748B),
@@ -709,8 +710,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text(
-                                'Start Date',
+                              Text(
+                                L.of(context).medStartDate,
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: Color(0xFF64748B),
@@ -747,8 +748,8 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: ExpansionTile(
-                title: const Text(
-                  'Additional Info (Optional)',
+                title: Text(
+                  L.of(context).medAdditionalInfo,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
                 tilePadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -758,7 +759,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   TextFormField(
                     controller: _descriptionController,
                     decoration: InputDecoration(
-                      labelText: 'Description',
+                      labelText: L.of(context).medDescription,
                       hintText: 'For fever and pain relief',
                       prefixIcon: const Icon(
                         Icons.description,
@@ -780,7 +781,7 @@ class _AddEditMedicinePageState extends State<AddEditMedicinePage> {
                   TextFormField(
                     controller: _doctorController,
                     decoration: InputDecoration(
-                      labelText: 'Doctor Name',
+                      labelText: L.of(context).medDoctorName,
                       hintText: 'Dr. Smith',
                       prefixIcon: const Icon(
                         Icons.person,

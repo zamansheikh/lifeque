@@ -9,6 +9,9 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+import '../utils/local_numbers.dart';
+
 /// The accent-tinted header at the top of a detail page.
 ///
 /// Answers the three questions worth answering above the fold: what it is,
@@ -477,11 +480,14 @@ class DetailCountdown extends StatelessWidget {
 
     // Three units at most, and never a leading zero unit — "4h 09m 12s" beats
     // "00d 04h 09m 12s".
+    final l = L.of(context);
     final units = <(String, String)>[
-      if (remaining.inDays > 0) ('${remaining.inDays}', 'days'),
-      if (remaining.inHours > 0) ('${remaining.inHours % 24}', 'hrs'),
-      ('${remaining.inMinutes % 60}', 'min'),
-      if (remaining.inHours < 1) ('${remaining.inSeconds % 60}', 'sec'),
+      if (remaining.inDays > 0) (N.padded2(remaining.inDays), l.countdownDays),
+      if (remaining.inHours > 0)
+        (N.padded2(remaining.inHours % 24), l.countdownHours),
+      (N.padded2(remaining.inMinutes % 60), l.countdownMinutes),
+      if (remaining.inHours < 1)
+        (N.padded2(remaining.inSeconds % 60), l.countdownSeconds),
     ];
 
     return Column(
@@ -518,7 +524,7 @@ class DetailCountdown extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            value.padLeft(2, '0'),
+            value,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -574,7 +580,7 @@ class DetailProgress extends StatelessWidget {
               ),
             ),
             Text(
-              '${(value * 100).round()}%',
+              N.percent((value * 100).round()),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,

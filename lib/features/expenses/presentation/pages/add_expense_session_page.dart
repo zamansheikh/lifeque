@@ -8,6 +8,7 @@ import '../../domain/entities/expense_session.dart';
 import '../../domain/entities/expense_category.dart';
 import '../bloc/expense_bloc.dart';
 import '../../../../injection_container.dart' as di;
+import '../../../../l10n/app_localizations.dart';
 
 class AddExpenseSessionPage extends StatefulWidget {
   final ExpenseSession? session; // For editing existing session
@@ -218,7 +219,11 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_isEditing ? 'List updated' : 'List saved'),
+            content: Text(
+              _isEditing
+                  ? L.of(context).expListUpdated
+                  : L.of(context).expListSaved,
+            ),
             backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -233,7 +238,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
     } else if (_items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Add at least one item before saving'),
+          content: Text(L.of(context).expNeedOneItem),
           backgroundColor: const Color(0xFFF59E0B),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -251,7 +256,9 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(
-          _isEditing ? 'Edit list' : 'New shopping list',
+          _isEditing
+              ? L.of(context).expEditList
+              : L.of(context).expNewShoppingList,
           style: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 24,
@@ -303,7 +310,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                 size: 20,
               ),
               label: Text(
-                _isEditing ? 'Update' : 'Save',
+                _isEditing ? L.of(context).expUpdate : 'Save',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -368,13 +375,13 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
           children: [
             _buildEnhancedTextField(
               controller: _titleController,
-              label: 'List name',
+              label: L.of(context).expListName,
               hint: 'e.g. Weekly bazar, Grocery run',
               icon: Icons.title_rounded,
               autofocus: !_isEditing,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Give this list a name';
+                  return L.of(context).expGiveListName;
                 }
                 return null;
               },
@@ -401,8 +408,8 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               const SizedBox(height: 10),
               _buildEnhancedTextField(
                 controller: _notesController,
-                label: 'Note (optional)',
-                hint: 'Anything worth remembering',
+                label: L.of(context).expNoteOptional,
+                hint: L.of(context).reminderFormNoteHint,
                 icon: Icons.notes_rounded,
               ),
             ],
@@ -513,7 +520,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               const SizedBox(height: 14),
               Center(
                 child: Text(
-                  'Type a name, add a price if you know it, press +',
+                  L.of(context).expItemHelp,
                   style: TextStyle(fontSize: 12.5, color: Colors.grey[500]),
                   textAlign: TextAlign.center,
                 ),
@@ -552,7 +559,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
         onSubmitted: (_) => _quickAmountFocus.requestFocus(),
         onChanged: (_) => setState(() {}),
         style: _entryNameStyle,
-        decoration: _entryDecoration('Add an item'),
+        decoration: _entryDecoration(L.of(context).expAddItem),
       ),
       price: TextField(
         controller: _quickAmountController,
@@ -707,7 +714,9 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    hasName ? item.nameController.text.trim() : 'Untitled item',
+                    hasName
+                        ? item.nameController.text.trim()
+                        : L.of(context).expUntitledItem,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -798,8 +807,8 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
           // out different heights.
           Row(
             children: [
-              const Text(
-                'Editing item',
+              Text(
+                L.of(context).expEditingItem,
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -810,7 +819,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               _headerAction(
                 icon: Icons.delete_rounded,
                 color: const Color(0xFFDC2626),
-                tooltip: 'Remove item',
+                tooltip: L.of(context).expRemoveItem,
                 onTap: () => _removeItem(index),
               ),
               const SizedBox(width: 8),
@@ -831,9 +840,11 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               textCapitalization: TextCapitalization.sentences,
               onChanged: (_) => setState(() {}),
               style: _entryNameStyle,
-              decoration: _entryDecoration('Item name'),
+              decoration: _entryDecoration(L.of(context).expItemName),
               validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Required';
+                if (value == null || value.trim().isEmpty) {
+                  return L.of(context).expRequired;
+                }
                 return null;
               },
             ),
@@ -850,7 +861,9 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               // the whole point of adding items this fast.
               validator: (value) {
                 if (value == null || value.trim().isEmpty) return null;
-                if (double.tryParse(value) == null) return 'Invalid';
+                if (double.tryParse(value) == null) {
+                  return L.of(context).expInvalid;
+                }
                 return null;
               },
             ),
@@ -962,7 +975,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Already bought',
+                    L.of(context).expBought,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -1137,8 +1150,8 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Category',
+                  Text(
+                    L.of(context).todoFormCategory,
                     style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
                   ),
                   Text(
@@ -1195,8 +1208,8 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
                 children: [
-                  const Text(
-                    'Select Category',
+                  Text(
+                    L.of(context).expSelectCategory,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -1336,8 +1349,8 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            title: const Text(
-              'Create Custom Category',
+            title: Text(
+              L.of(context).expCreateCustomCategory,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             content: SingleChildScrollView(
@@ -1362,7 +1375,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                     controller: nameCtrl,
                     textCapitalization: TextCapitalization.words,
                     decoration: InputDecoration(
-                      labelText: 'Category Name',
+                      labelText: L.of(context).expCategoryName,
                       hintText: 'e.g. Rent, Gym, Pet',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -1459,7 +1472,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
+                child: Text(L.of(context).commonCancel),
               ),
               FilledButton(
                 onPressed: () async {
@@ -1480,9 +1493,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                   );
                   if (!added && ctx.mounted) {
                     ScaffoldMessenger.of(ctx).showSnackBar(
-                      const SnackBar(
-                        content: Text('Category name already exists'),
-                      ),
+                      SnackBar(content: Text(L.of(ctx).expCategoryExists)),
                     );
                     return;
                   }
@@ -1492,7 +1503,7 @@ class _AddExpenseSessionPageState extends State<AddExpenseSessionPage>
                     item.customCategoryName = name;
                   });
                 },
-                child: const Text('Create'),
+                child: Text(L.of(context).expCreate),
               ),
             ],
           );
