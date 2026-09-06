@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../l10n/app_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:go_router/go_router.dart';
@@ -226,7 +228,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                       // Tagline
                       Text(
-                        'Smart Task & Reminder Manager',
+                        L.of(context).splashTagline,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey.shade600,

@@ -1589,5 +1589,30 @@
         "format": "decimalPattern"
       }
     }
+  },
+  "splashTagline": "Smart Task & Reminder Manager",
+  "medCatchUpTitle": "Did you take these?",
+  "medCatchUpBody": "These doses passed without an answer. Say what happened so your history stays right.",
+  "medCatchUpTaken": "I took it",
+  "medCatchUpMissed": "I missed it",
+  "medYesterday": "Yesterday",
+  "medNotifStillPending": "Still not taken?",
+  "medCatchUpCount": "{count, plural, =1{1 dose to confirm} other{{count} doses to confirm}}",
+  "@medCatchUpCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "medDaysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
+  "@medDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
   }
 }

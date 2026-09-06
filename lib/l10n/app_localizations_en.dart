@@ -3156,4 +3156,56 @@ class LEn extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get splashTagline => 'Smart Task & Reminder Manager';
+
+  @override
+  String get medCatchUpTitle => 'Did you take these?';
+
+  @override
+  String get medCatchUpBody =>
+      'These doses passed without an answer. Say what happened so your history stays right.';
+
+  @override
+  String get medCatchUpTaken => 'I took it';
+
+  @override
+  String get medCatchUpMissed => 'I missed it';
+
+  @override
+  String get medYesterday => 'Yesterday';
+
+  @override
+  String get medNotifStillPending => 'Still not taken?';
+
+  @override
+  String medCatchUpCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString doses to confirm',
+      one: '1 dose to confirm',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String medDaysAgo(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
 }

@@ -5538,6 +5538,60 @@ abstract class L {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 day left} other{{count} days left}}'**
   String medDaysLeft(int count);
+
+  /// No description provided for @splashTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Task & Reminder Manager'**
+  String get splashTagline;
+
+  /// No description provided for @medCatchUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you take these?'**
+  String get medCatchUpTitle;
+
+  /// No description provided for @medCatchUpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These doses passed without an answer. Say what happened so your history stays right.'**
+  String get medCatchUpBody;
+
+  /// No description provided for @medCatchUpTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'I took it'**
+  String get medCatchUpTaken;
+
+  /// No description provided for @medCatchUpMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'I missed it'**
+  String get medCatchUpMissed;
+
+  /// No description provided for @medYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get medYesterday;
+
+  /// No description provided for @medNotifStillPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Still not taken?'**
+  String get medNotifStillPending;
+
+  /// No description provided for @medCatchUpCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dose to confirm} other{{count} doses to confirm}}'**
+  String medCatchUpCount(int count);
+
+  /// No description provided for @medDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day ago} other{{count} days ago}}'**
+  String medDaysAgo(int count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

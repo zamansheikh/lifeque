@@ -906,5 +906,14 @@
   "medOverdue": "সময় পেরিয়েছে",
   "medUndo": "ফিরিয়ে নিন",
   "medDoseProgress": "{total}টির মধ্যে {taken}টি নেওয়া হয়েছে",
-  "medDaysLeft": "{count, plural, other{আর {count} দিন}}"
+  "medDaysLeft": "{count, plural, other{আর {count} দিন}}",
+  "splashTagline": "কাজ ও রিমাইন্ডারের স্মার্ট সহকারী",
+  "medCatchUpTitle": "এগুলো কি নিয়েছেন?",
+  "medCatchUpBody": "এই ডোজগুলোর সময় পেরিয়ে গেছে, কিন্তু উত্তর দেওয়া হয়নি। কী হয়েছে জানিয়ে দিন, যেন হিসাব ঠিক থাকে।",
+  "medCatchUpTaken": "নিয়েছি",
+  "medCatchUpMissed": "নেওয়া হয়নি",
+  "medYesterday": "গতকাল",
+  "medNotifStillPending": "এখনো নেওয়া হয়নি?",
+  "medCatchUpCount": "{count, plural, other{{count}টি ডোজ নিশ্চিত করতে হবে}}",
+  "medDaysAgo": "{count, plural, other{{count} দিন আগে}}"
 }

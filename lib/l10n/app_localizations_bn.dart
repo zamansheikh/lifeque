@@ -3146,4 +3146,54 @@ class LBn extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get splashTagline => 'কাজ ও রিমাইন্ডারের স্মার্ট সহকারী';
+
+  @override
+  String get medCatchUpTitle => 'এগুলো কি নিয়েছেন?';
+
+  @override
+  String get medCatchUpBody =>
+      'এই ডোজগুলোর সময় পেরিয়ে গেছে, কিন্তু উত্তর দেওয়া হয়নি। কী হয়েছে জানিয়ে দিন, যেন হিসাব ঠিক থাকে।';
+
+  @override
+  String get medCatchUpTaken => 'নিয়েছি';
+
+  @override
+  String get medCatchUpMissed => 'নেওয়া হয়নি';
+
+  @override
+  String get medYesterday => 'গতকাল';
+
+  @override
+  String get medNotifStillPending => 'এখনো নেওয়া হয়নি?';
+
+  @override
+  String medCatchUpCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countStringটি ডোজ নিশ্চিত করতে হবে',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String medDaysAgo(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString দিন আগে',
+    );
+    return '$_temp0';
+  }
 }
