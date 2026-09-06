@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 
+import '../services/language_preference_service.dart';
+
 /// A 12-hour clock the reader can actually read.
 ///
 /// `DateFormat('h:mm a')` is not enough on its own: under `bn` the CLDR data
@@ -13,7 +15,8 @@ import 'package:intl/intl.dart';
 class Clock {
   Clock._();
 
-  static bool get _bangla => (Intl.defaultLocale ?? 'en').startsWith('bn');
+  static bool get _bangla =>
+      (Intl.defaultLocale ?? AppLanguage.fallback.code).startsWith('bn');
 
   /// Hours and minutes alone, in the reader's digits.
   static String hm(DateTime time) => DateFormat('h:mm').format(time);

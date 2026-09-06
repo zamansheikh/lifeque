@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The languages the app is available in.
@@ -23,9 +24,13 @@ enum AppLanguage {
 
   Locale get locale => Locale(code);
 
+  /// What the app speaks before anyone has chosen — and the fallback for a
+  /// stored code we no longer recognise.
+  static const AppLanguage fallback = AppLanguage.bangla;
+
   static AppLanguage fromCode(String? code) => AppLanguage.values.firstWhere(
     (language) => language.code == code,
-    orElse: () => AppLanguage.english,
+    orElse: () => fallback,
   );
 }
 
@@ -43,7 +48,7 @@ class LanguagePreferenceService {
   LanguagePreferenceService._();
 
   final ValueNotifier<AppLanguage> language = ValueNotifier(
-    AppLanguage.english,
+    AppLanguage.fallback,
   );
 
   /// Reads the stored choice. Called once during startup, before `runApp`, so
@@ -51,10 +56,15 @@ class LanguagePreferenceService {
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
     language.value = AppLanguage.fromCode(prefs.getString(_key));
+    // Set here as well as in the widget tree: notifications and other work
+    // off the main isolate format dates and numbers without ever building a
+    // widget, and would otherwise fall back to English.
+    Intl.defaultLocale = language.value.code;
   }
 
   Future<void> setLanguage(AppLanguage value) async {
     if (language.value != value) language.value = value;
+    Intl.defaultLocale = value.code;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_key, value.code);
   }
