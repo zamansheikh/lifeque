@@ -342,6 +342,10 @@ const _ruku = SalahStep(
       'নিচে নামার সময় ‘আল্লাহু আকবার’ বলুন',
     ),
     LText(
+      'Shafi\'i & Hanbali raise the hands here — see Raf\' al-Yadain',
+      'শাফিঈ ও হাম্বলি মাজহাবে এখানে হাত ওঠানো হয় — দেখুন রফউল ইয়াদাইন',
+    ),
+    LText(
       'Back straight, horizontal with the head',
       'পিঠ সোজা, মাথা পিঠ বরাবর',
     ),
@@ -387,6 +391,10 @@ const _iktidal = SalahStep(
     LText(
       'Say Tasmee\' while rising up',
       'ওঠার সময় ‘সামিআল্লাহু লিমান হামিদাহ’ বলুন',
+    ),
+    LText(
+      'Shafi\'i & Hanbali raise the hands here — see Raf\' al-Yadain',
+      'শাফিঈ ও হাম্বলি মাজহাবে এখানে হাত ওঠানো হয় — দেখুন রফউল ইয়াদাইন',
     ),
     LText('Stand fully straight', 'পুরোপুরি সোজা হয়ে দাঁড়ান'),
     LText(
@@ -702,6 +710,51 @@ const _salam = SalahStep(
 );
 
 // ─── Vital Warnings ───────────────────────────────────────────────────────────
+const _rafulYadain = SalahStep(
+  id: 'raful_yadain',
+  arabicName: 'رَفْعُ الْيَدَيْن',
+  name: LText(
+    'Raf\' al-Yadain (Raising the Hands)',
+    'রফউল ইয়াদাইন (হাত ওঠানো)',
+  ),
+  phase: 'after',
+  icon: Icons.front_hand_rounded,
+  shortDesc: LText(
+    'When the hands are raised — and where the schools differ',
+    'কখন হাত ওঠাতে হয় — এবং মাজহাবগুলোর মতপার্থক্য',
+  ),
+  detailDesc: LText(
+    'Raf\' al-Yadain means raising both hands to shoulder level, or until the fingertips reach the earlobes, while saying the takbir. Both heights are narrated from the Prophet ﷺ and both are correct.\n\nAgreed by all four schools: the hands are raised at the opening takbir (Takbiratul Ihram).\n\nWhere the schools differ — going into ruku\', rising from ruku\', and standing up after the first tashahhud:\n• Shafi\'i and Hanbali: raise the hands at each of these.\n• Hanafi: raise them only at the opening takbir.\n• Maliki (the well-known view): only at the opening takbir.\n\nBoth positions rest on authentic narrations. Ibn \'Umar (may Allah be pleased with him) reported that the Prophet ﷺ raised his hands at the opening takbir, when going into ruku\', and when rising from it (Bukhari 735, Muslim 390). \'Abdullah ibn Mas\'ud (may Allah be pleased with him) demonstrated the Prophet\'s ﷺ prayer and raised his hands only the first time (Abu Dawud 748, Tirmidhi 257).\n\nHanafis also raise the hands at the takbir before Du\'a al-Qunut in Witr, and at the additional takbirs of the Eid prayer.\n\nThis is a difference over what is better, not over what is valid — the prayer is sound either way. Follow the practice of your school, or of a scholar you trust, and do not make it a cause of dispute.',
+    'রফউল ইয়াদাইন মানে তাকবির বলার সময় দুই হাত কাঁধ বরাবর ওঠানো, অথবা আঙুলের ডগা কানের লতি পর্যন্ত ওঠানো। নবিজি ﷺ থেকে দুটোই বর্ণিত এবং দুটোই শুদ্ধ।\n\nচার মাজহাবই একমত: তাকবিরে তাহরিমার সময় হাত ওঠাতে হয়।\n\nযেখানে মতপার্থক্য — রুকুতে যাওয়ার সময়, রুকু থেকে ওঠার সময় এবং প্রথম তাশাহহুদের পর দাঁড়ানোর সময়:\n• শাফিঈ ও হাম্বলি: এই প্রতিটি জায়গাতেই হাত ওঠান।\n• হানাফি: কেবল তাকবিরে তাহরিমাতেই ওঠান।\n• মালিকি (প্রসিদ্ধ মত): কেবল তাকবিরে তাহরিমাতেই।\n\nদুটি মতই সহিহ হাদিসের ভিত্তিতে। ইবনে উমর (রা.) বর্ণনা করেছেন, নবিজি ﷺ তাকবিরে তাহরিমায়, রুকুতে যাওয়ার সময় ও রুকু থেকে ওঠার সময় হাত ওঠাতেন (বুখারি ৭৩৫, মুসলিম ৩৯০)। আবদুল্লাহ ইবনে মাসউদ (রা.) নবিজি ﷺ-এর নামাজ করে দেখিয়েছেন এবং কেবল প্রথমবারই হাত ওঠিয়েছেন (আবু দাউদ ৭৪৮, তিরমিজি ২৫৭)।\n\nহানাফিদের মতে বিতরে দোয়া কুনুতের আগের তাকবিরে এবং ঈদের অতিরিক্ত তাকবিরগুলোতেও হাত ওঠাতে হয়।\n\nএটি কোনটি উত্তম তার মতপার্থক্য, শুদ্ধ-অশুদ্ধের নয় — উভয় অবস্থাতেই নামাজ শুদ্ধ। নিজের মাজহাব বা নির্ভরযোগ্য আলেমের আমল অনুসরণ করুন, আর এ নিয়ে বিবাদে জড়াবেন না।',
+  ),
+  keyPoints: [
+    LText(
+      'All four schools: raise the hands at the opening takbir',
+      'চার মাজহাবেই: তাকবিরে তাহরিমায় হাত ওঠান',
+    ),
+    LText(
+      'Shafi\'i & Hanbali: also at ruku\', rising from it, and after the first tashahhud',
+      'শাফিঈ ও হাম্বলি: রুকুতে, রুকু থেকে উঠে এবং প্রথম তাশাহহুদের পরও',
+    ),
+    LText(
+      'Hanafi & Maliki: only at the opening takbir',
+      'হানাফি ও মালিকি: কেবল তাকবিরে তাহরিমায়',
+    ),
+    LText(
+      'Hanafi: also before Du\'a al-Qunut and at the Eid takbirs',
+      'হানাফি: দোয়া কুনুতের আগে ও ঈদের তাকবিরগুলোতেও',
+    ),
+    LText(
+      'To the shoulders or the earlobes — both are narrated',
+      'কাঁধ বরাবর বা কানের লতি পর্যন্ত — দুটোই বর্ণিত',
+    ),
+    LText(
+      'Either practice is valid — follow your school, not a quarrel',
+      'উভয় আমলই শুদ্ধ — নিজের মাজহাব মানুন, বিবাদ নয়',
+    ),
+  ],
+);
+
 const _vitalWarnings = SalahStep(
   id: 'vital_warnings',
   arabicName: 'تَحْذِيرَاتٌ هَامَّة',
@@ -776,7 +829,7 @@ const _baseRakStepsFatihahOnly = [
   _jalsa,
   _sujud2,
 ];
-const _baseEndSteps = [_finalTashahhud, _salam, _vitalWarnings];
+const _baseEndSteps = [_finalTashahhud, _salam, _rafulYadain, _vitalWarnings];
 
 // ─── Exported Data Arrays ──────────────────────────────────────────────────
 final List<SalahTypeData> salahTypesData = [
