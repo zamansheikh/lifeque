@@ -2589,4 +2589,95 @@ class LBn extends L {
 
   @override
   String get duaBadgeMeaning => 'অর্থ';
+
+  @override
+  String get onbLanguagePrompt => 'আপনার ভাষা বেছে নিন';
+
+  @override
+  String get onbSkip => 'এড়িয়ে যান';
+
+  @override
+  String get onbNext => 'পরবর্তী';
+
+  @override
+  String get onbGetStarted => 'শুরু করুন';
+
+  @override
+  String get onbTitle1 => 'লাইফকিউ-তে\nস্বাগতম';
+
+  @override
+  String get onbBody1 =>
+      'সবকিছু একসঙ্গে সামলানোর অ্যাপ।\nগুছিয়ে রাখুন, হিসাব রাখুন, কিছুই ভুলবেন না।';
+
+  @override
+  String get onbChipTasks => 'কাজ';
+
+  @override
+  String get onbChipTodo => 'করণীয় তালিকা';
+
+  @override
+  String get onbChipExpenses => 'খরচ';
+
+  @override
+  String get onbChipMedicines => 'ওষুধ';
+
+  @override
+  String get onbChipPrayer => 'নামাজ';
+
+  @override
+  String get onbChipStudy => 'পড়াশোনা';
+
+  @override
+  String get onbTitle2 => 'সবকিছু\nগোছানো রাখুন';
+
+  @override
+  String get onbBody2 =>
+      'কয়েক সেকেন্ডেই অগ্রাধিকার, সময়সীমা ও\nপুনরাবৃত্ত রিমাইন্ডারসহ কাজ যোগ করুন।';
+
+  @override
+  String get onbChipPriorities => 'অগ্রাধিকার';
+
+  @override
+  String get onbChipRecurring => 'পুনরাবৃত্ত';
+
+  @override
+  String get onbChipBirthdays => 'জন্মদিন';
+
+  @override
+  String get onbChipReminders => 'রিমাইন্ডার';
+
+  @override
+  String get onbTitle3 => 'সবকিছুর\nহিসাব রাখুন';
+
+  @override
+  String get onbBody3 =>
+      'বাজেট করুন, খরচ লিখে রাখুন এবং\nওষুধের হিসাব সহজেই সামলান।';
+
+  @override
+  String get onbChipBudgets => 'বাজেট';
+
+  @override
+  String get onbChipMedReminders => 'ওষুধের রিমাইন্ডার';
+
+  @override
+  String get onbChipAnalytics => 'বিশ্লেষণ';
+
+  @override
+  String get onbTitle4 => 'কাজের\nসব টুল';
+
+  @override
+  String get onbBody4 =>
+      'নির্ভুল নামাজের সময়, পোমোডোরো স্টাডি টাইমার\nএবং নিজের মতো সাজানো হোম স্ক্রিন।';
+
+  @override
+  String get onbChipPrayerTimes => 'নামাজের সময়';
+
+  @override
+  String get onbChipQibla => 'কিবলা';
+
+  @override
+  String get onbChipPomodoro => 'পোমোডোরো';
+
+  @override
+  String get onbChipCustomise => 'নিজের মতো সাজান';
 }

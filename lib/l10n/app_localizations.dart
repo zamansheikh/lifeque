@@ -4608,6 +4608,180 @@ abstract class L {
   /// In en, this message translates to:
   /// **'EN'**
   String get duaBadgeMeaning;
+
+  /// No description provided for @onbLanguagePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your language'**
+  String get onbLanguagePrompt;
+
+  /// No description provided for @onbSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onbSkip;
+
+  /// No description provided for @onbNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onbNext;
+
+  /// No description provided for @onbGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Started'**
+  String get onbGetStarted;
+
+  /// No description provided for @onbTitle1.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to\nLifeQue'**
+  String get onbTitle1;
+
+  /// No description provided for @onbBody1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your all-in-one personal life manager.\nOrganise, track, and never miss a thing.'**
+  String get onbBody1;
+
+  /// No description provided for @onbChipTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks'**
+  String get onbChipTasks;
+
+  /// No description provided for @onbChipTodo.
+  ///
+  /// In en, this message translates to:
+  /// **'To Do List'**
+  String get onbChipTodo;
+
+  /// No description provided for @onbChipExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get onbChipExpenses;
+
+  /// No description provided for @onbChipMedicines.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicines'**
+  String get onbChipMedicines;
+
+  /// No description provided for @onbChipPrayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer'**
+  String get onbChipPrayer;
+
+  /// No description provided for @onbChipStudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Study'**
+  String get onbChipStudy;
+
+  /// No description provided for @onbTitle2.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay\nOrganised'**
+  String get onbTitle2;
+
+  /// No description provided for @onbBody2.
+  ///
+  /// In en, this message translates to:
+  /// **'Create tasks with priorities, deadlines,\nand recurring reminders in seconds.'**
+  String get onbBody2;
+
+  /// No description provided for @onbChipPriorities.
+  ///
+  /// In en, this message translates to:
+  /// **'Priorities'**
+  String get onbChipPriorities;
+
+  /// No description provided for @onbChipRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring'**
+  String get onbChipRecurring;
+
+  /// No description provided for @onbChipBirthdays.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthdays'**
+  String get onbChipBirthdays;
+
+  /// No description provided for @onbChipReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get onbChipReminders;
+
+  /// No description provided for @onbTitle3.
+  ///
+  /// In en, this message translates to:
+  /// **'Track\nEverything'**
+  String get onbTitle3;
+
+  /// No description provided for @onbBody3.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget your money, log expenses,\nand manage your medications effortlessly.'**
+  String get onbBody3;
+
+  /// No description provided for @onbChipBudgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get onbChipBudgets;
+
+  /// No description provided for @onbChipMedReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Med Reminders'**
+  String get onbChipMedReminders;
+
+  /// No description provided for @onbChipAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get onbChipAnalytics;
+
+  /// No description provided for @onbTitle4.
+  ///
+  /// In en, this message translates to:
+  /// **'Powerful\nTools'**
+  String get onbTitle4;
+
+  /// No description provided for @onbBody4.
+  ///
+  /// In en, this message translates to:
+  /// **'Accurate prayer times, Pomodoro study timer,\nand a fully customisable home screen.'**
+  String get onbBody4;
+
+  /// No description provided for @onbChipPrayerTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer Times'**
+  String get onbChipPrayerTimes;
+
+  /// No description provided for @onbChipQibla.
+  ///
+  /// In en, this message translates to:
+  /// **'Qibla'**
+  String get onbChipQibla;
+
+  /// No description provided for @onbChipPomodoro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pomodoro'**
+  String get onbChipPomodoro;
+
+  /// No description provided for @onbChipCustomise.
+  ///
+  /// In en, this message translates to:
+  /// **'Customise'**
+  String get onbChipCustomise;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

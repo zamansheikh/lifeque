@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/sujud_icon.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'salah_guide/salah_types_page.dart';
@@ -21,6 +22,8 @@ class IslamicColors {
   static const cardBg = Colors.white;
 }
 
+Widget _sujud(Color color, double size) => SujudIcon(color: color, size: size);
+
 // ─── category model ───────────────────────────────────────────────────────────
 class _ResourceCategory {
   /// The Arabic name stays as written — it is content, not a label.
@@ -31,6 +34,9 @@ class _ResourceCategory {
   final String Function(L) subtitle;
 
   final IconData icon;
+
+  /// Drawn instead of [icon] when the font has no glyph for the posture.
+  final Widget Function(Color color, double size)? iconBuilder;
   final Color iconBg;
   final Color iconColor;
   final Widget page;
@@ -40,6 +46,7 @@ class _ResourceCategory {
     required this.subtitle,
     required this.arabicTitle,
     required this.icon,
+    this.iconBuilder,
     required this.iconBg,
     required this.iconColor,
     required this.page,
@@ -62,6 +69,7 @@ class IslamicResourcesPage extends StatelessWidget {
       arabicTitle: 'دليل الصلاة',
       subtitle: (l) => l.resSalahGuideSub,
       icon: Icons.self_improvement_rounded,
+      iconBuilder: _sujud,
       iconBg: Color(0xFFE8F5EE),
       iconColor: IslamicColors.deepGreen,
       page: const SalahTypesPage(),
@@ -241,7 +249,11 @@ class _CategoryCard extends StatelessWidget {
                   color: category.iconBg,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(category.icon, size: 28, color: category.iconColor),
+                child: Center(
+                  child:
+                      category.iconBuilder?.call(category.iconColor, 30) ??
+                      Icon(category.icon, size: 28, color: category.iconColor),
+                ),
               ),
               const SizedBox(width: 16),
               // text column

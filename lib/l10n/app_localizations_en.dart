@@ -2595,4 +2595,95 @@ class LEn extends L {
 
   @override
   String get duaBadgeMeaning => 'EN';
+
+  @override
+  String get onbLanguagePrompt => 'Choose your language';
+
+  @override
+  String get onbSkip => 'Skip';
+
+  @override
+  String get onbNext => 'Next';
+
+  @override
+  String get onbGetStarted => 'Get Started';
+
+  @override
+  String get onbTitle1 => 'Welcome to\nLifeQue';
+
+  @override
+  String get onbBody1 =>
+      'Your all-in-one personal life manager.\nOrganise, track, and never miss a thing.';
+
+  @override
+  String get onbChipTasks => 'Tasks';
+
+  @override
+  String get onbChipTodo => 'To Do List';
+
+  @override
+  String get onbChipExpenses => 'Expenses';
+
+  @override
+  String get onbChipMedicines => 'Medicines';
+
+  @override
+  String get onbChipPrayer => 'Prayer';
+
+  @override
+  String get onbChipStudy => 'Study';
+
+  @override
+  String get onbTitle2 => 'Stay\nOrganised';
+
+  @override
+  String get onbBody2 =>
+      'Create tasks with priorities, deadlines,\nand recurring reminders in seconds.';
+
+  @override
+  String get onbChipPriorities => 'Priorities';
+
+  @override
+  String get onbChipRecurring => 'Recurring';
+
+  @override
+  String get onbChipBirthdays => 'Birthdays';
+
+  @override
+  String get onbChipReminders => 'Reminders';
+
+  @override
+  String get onbTitle3 => 'Track\nEverything';
+
+  @override
+  String get onbBody3 =>
+      'Budget your money, log expenses,\nand manage your medications effortlessly.';
+
+  @override
+  String get onbChipBudgets => 'Budgets';
+
+  @override
+  String get onbChipMedReminders => 'Med Reminders';
+
+  @override
+  String get onbChipAnalytics => 'Analytics';
+
+  @override
+  String get onbTitle4 => 'Powerful\nTools';
+
+  @override
+  String get onbBody4 =>
+      'Accurate prayer times, Pomodoro study timer,\nand a fully customisable home screen.';
+
+  @override
+  String get onbChipPrayerTimes => 'Prayer Times';
+
+  @override
+  String get onbChipQibla => 'Qibla';
+
+  @override
+  String get onbChipPomodoro => 'Pomodoro';
+
+  @override
+  String get onbChipCustomise => 'Customise';
 }

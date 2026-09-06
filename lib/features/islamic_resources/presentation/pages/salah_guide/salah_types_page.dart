@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../../../../core/widgets/sujud_icon.dart';
 import '../islamic_resources_page.dart';
 import 'salah_guide_data.dart';
 import 'salah_step_model.dart';
@@ -65,9 +67,8 @@ class SalahTypesPage extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Icon(
-                      Icons.self_improvement_rounded,
-                      size: 56,
+                    SujudIcon(
+                      size: 60,
                       color: Colors.white.withValues(alpha: 0.28),
                     ),
                     const SizedBox(height: 4),

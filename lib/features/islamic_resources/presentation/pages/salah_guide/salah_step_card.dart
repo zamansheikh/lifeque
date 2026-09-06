@@ -350,15 +350,24 @@ class _DuaCarousel extends StatefulWidget {
 class _DuaCarouselState extends State<_DuaCarousel> {
   int _currentIndex = 0;
 
+  /// Which way the last move went, so the incoming card enters from that side.
+  bool _forward = true;
+
   void _next() {
     if (_currentIndex < widget.duas.length - 1) {
-      setState(() => _currentIndex++);
+      setState(() {
+        _forward = true;
+        _currentIndex++;
+      });
     }
   }
 
   void _prev() {
     if (_currentIndex > 0) {
-      setState(() => _currentIndex--);
+      setState(() {
+        _forward = false;
+        _currentIndex--;
+      });
     }
   }
 
@@ -439,15 +448,38 @@ class _DuaCarouselState extends State<_DuaCarousel> {
               if (details.primaryVelocity! > 100) _prev();
             },
             child: AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
+              duration: const Duration(milliseconds: 340),
+              curve: Curves.easeOutCubic,
               alignment: Alignment.topCenter,
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                switchInCurve: Curves.easeIn,
-                switchOutCurve: Curves.easeOut,
-                transitionBuilder: (child, animation) =>
-                    FadeTransition(opacity: animation, child: child),
+                duration: const Duration(milliseconds: 260),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                // The default layout stacks both children, so the box jumps to
+                // whichever du'a is taller and then settles — very visible
+                // between two du'as of different lengths. Laying out only the
+                // incoming child lets AnimatedSize glide between the two
+                // heights while the outgoing one fades out over the top.
+                layoutBuilder: (currentChild, previousChildren) => Stack(
+                  alignment: Alignment.topCenter,
+                  children: [
+                    for (final child in previousChildren)
+                      Positioned(left: 0, right: 0, top: 0, child: child),
+                    ?currentChild,
+                  ],
+                ),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: animation.drive(
+                      Tween<Offset>(
+                        begin: Offset(_forward ? 0.06 : -0.06, 0),
+                        end: Offset.zero,
+                      ),
+                    ),
+                    child: child,
+                  ),
+                ),
                 child: _DuaContent(key: ValueKey(_currentIndex), dua: dua),
               ),
             ),

@@ -3,7 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/services/language_preference_service.dart';
 import '../../../../core/services/navigation_preferences_service.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../injection_container.dart' as di;
 
 // ─── Brand palette (matches the app's blue seed) ─────────────────────────────
@@ -14,8 +16,10 @@ const _kAccent = Color(0xFF06B6D4);
 // ─── Slide data ──────────────────────────────────────────────────────────────
 
 class _Slide {
-  final String title;
-  final String subtitle;
+  /// Resolved when the slide paints, so switching language on the first page
+  /// re-renders the rest of the tour rather than waiting for a restart.
+  final String Function(L) title;
+  final String Function(L) subtitle;
   final IconData heroIcon;
   final List<_FeatureChip> chips;
 
@@ -29,62 +33,85 @@ class _Slide {
 
 class _FeatureChip {
   final IconData icon;
-  final String label;
+  final String Function(L) label;
   const _FeatureChip(this.icon, this.label);
 }
 
 const _slides = [
   _Slide(
-    title: 'Welcome to\nLifeQue',
-    subtitle:
-        'Your all-in-one personal life manager.\nOrganise, track, and never miss a thing.',
+    title: _t1,
+    subtitle: _b1,
     heroIcon: Icons.auto_awesome_rounded,
     chips: [
-      _FeatureChip(Icons.task_alt_rounded, 'Tasks'),
-      _FeatureChip(Icons.checklist_rounded, 'To Do List'),
-      _FeatureChip(Icons.account_balance_wallet_rounded, 'Expenses'),
-      _FeatureChip(Icons.medication_rounded, 'Medicines'),
-      _FeatureChip(Icons.mosque_rounded, 'Prayer'),
-      _FeatureChip(Icons.timer_rounded, 'Study'),
+      _FeatureChip(Icons.task_alt_rounded, _cTasks),
+      _FeatureChip(Icons.checklist_rounded, _cTodo),
+      _FeatureChip(Icons.account_balance_wallet_rounded, _cExpenses),
+      _FeatureChip(Icons.medication_rounded, _cMedicines),
+      _FeatureChip(Icons.mosque_rounded, _cPrayer),
+      _FeatureChip(Icons.timer_rounded, _cStudy),
     ],
   ),
   _Slide(
-    title: 'Stay\nOrganised',
-    subtitle:
-        'Create tasks with priorities, deadlines,\nand recurring reminders in seconds.',
+    title: _t2,
+    subtitle: _b2,
     heroIcon: Icons.task_alt_rounded,
     chips: [
-      _FeatureChip(Icons.flag_rounded, 'Priorities'),
-      _FeatureChip(Icons.repeat_rounded, 'Recurring'),
-      _FeatureChip(Icons.cake_rounded, 'Birthdays'),
-      _FeatureChip(Icons.notifications_active_rounded, 'Reminders'),
+      _FeatureChip(Icons.flag_rounded, _cPriorities),
+      _FeatureChip(Icons.repeat_rounded, _cRecurring),
+      _FeatureChip(Icons.cake_rounded, _cBirthdays),
+      _FeatureChip(Icons.notifications_active_rounded, _cReminders),
     ],
   ),
   _Slide(
-    title: 'Track\nEverything',
-    subtitle:
-        'Budget your money, log expenses,\nand manage your medications effortlessly.',
+    title: _t3,
+    subtitle: _b3,
     heroIcon: Icons.insights_rounded,
     chips: [
-      _FeatureChip(Icons.pie_chart_rounded, 'Budgets'),
-      _FeatureChip(Icons.receipt_long_rounded, 'Expenses'),
-      _FeatureChip(Icons.medication_rounded, 'Med Reminders'),
-      _FeatureChip(Icons.bar_chart_rounded, 'Analytics'),
+      _FeatureChip(Icons.pie_chart_rounded, _cBudgets),
+      _FeatureChip(Icons.receipt_long_rounded, _cExpenses),
+      _FeatureChip(Icons.medication_rounded, _cMedReminders),
+      _FeatureChip(Icons.bar_chart_rounded, _cAnalytics),
     ],
   ),
   _Slide(
-    title: 'Powerful\nTools',
-    subtitle:
-        'Accurate prayer times, Pomodoro study timer,\nand a fully customisable home screen.',
+    title: _t4,
+    subtitle: _b4,
     heroIcon: Icons.bolt_rounded,
     chips: [
-      _FeatureChip(Icons.mosque_rounded, 'Prayer Times'),
-      _FeatureChip(Icons.explore_rounded, 'Qibla'),
-      _FeatureChip(Icons.timer_rounded, 'Pomodoro'),
-      _FeatureChip(Icons.dashboard_customize_rounded, 'Customise'),
+      _FeatureChip(Icons.mosque_rounded, _cPrayerTimes),
+      _FeatureChip(Icons.explore_rounded, _cQibla),
+      _FeatureChip(Icons.timer_rounded, _cPomodoro),
+      _FeatureChip(Icons.dashboard_customize_rounded, _cCustomise),
     ],
   ),
 ];
+
+// Tear-offs, so the slide list above can stay const.
+String _t1(L l) => l.onbTitle1;
+String _b1(L l) => l.onbBody1;
+String _t2(L l) => l.onbTitle2;
+String _b2(L l) => l.onbBody2;
+String _t3(L l) => l.onbTitle3;
+String _b3(L l) => l.onbBody3;
+String _t4(L l) => l.onbTitle4;
+String _b4(L l) => l.onbBody4;
+String _cTasks(L l) => l.onbChipTasks;
+String _cTodo(L l) => l.onbChipTodo;
+String _cExpenses(L l) => l.onbChipExpenses;
+String _cMedicines(L l) => l.onbChipMedicines;
+String _cPrayer(L l) => l.onbChipPrayer;
+String _cStudy(L l) => l.onbChipStudy;
+String _cPriorities(L l) => l.onbChipPriorities;
+String _cRecurring(L l) => l.onbChipRecurring;
+String _cBirthdays(L l) => l.onbChipBirthdays;
+String _cReminders(L l) => l.onbChipReminders;
+String _cBudgets(L l) => l.onbChipBudgets;
+String _cMedReminders(L l) => l.onbChipMedReminders;
+String _cAnalytics(L l) => l.onbChipAnalytics;
+String _cPrayerTimes(L l) => l.onbChipPrayerTimes;
+String _cQibla(L l) => l.onbChipQibla;
+String _cPomodoro(L l) => l.onbChipPomodoro;
+String _cCustomise(L l) => l.onbChipCustomise;
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
@@ -230,9 +257,12 @@ class _OnboardingPageState extends State<OnboardingPage>
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: const Text(
-                  'Skip',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                child: Text(
+                  L.of(context).onbSkip,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ),
@@ -299,8 +329,8 @@ class _OnboardingPageState extends State<OnboardingPage>
                         children: [
                           Text(
                             _page == _slides.length - 1
-                                ? 'Get Started'
-                                : 'Next',
+                                ? L.of(context).onbGetStarted
+                                : L.of(context).onbNext,
                             style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 17,
@@ -373,7 +403,7 @@ class _SlideContent extends StatelessWidget {
 
                 // Title
                 Text(
-                  slide.title,
+                  slide.title(L.of(context)),
                   style: const TextStyle(
                     fontSize: 34,
                     fontWeight: FontWeight.w800,
@@ -386,7 +416,7 @@ class _SlideContent extends StatelessWidget {
 
                 // Subtitle
                 Text(
-                  slide.subtitle,
+                  slide.subtitle(L.of(context)),
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w400,
@@ -396,6 +426,13 @@ class _SlideContent extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 28),
+
+                // Language, offered up front — the rest of the tour, and the
+                // app behind it, redraw in whatever is picked here.
+                if (isFirst) ...[
+                  const _LanguagePicker(),
+                  const SizedBox(height: 24),
+                ],
 
                 // Feature chips
                 Wrap(
@@ -407,6 +444,116 @@ class _SlideContent extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Language picker ─────────────────────────────────────────────────────────
+
+class _LanguagePicker extends StatelessWidget {
+  const _LanguagePicker();
+
+  @override
+  Widget build(BuildContext context) {
+    final service = LanguagePreferenceService.instance;
+    return ValueListenableBuilder<AppLanguage>(
+      valueListenable: service.language,
+      builder: (context, current, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.language_rounded,
+                size: 16,
+                color: Colors.grey.shade600,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                L.of(context).onbLanguagePrompt,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              for (final language in AppLanguage.values) ...[
+                if (language != AppLanguage.values.first)
+                  const SizedBox(width: 10),
+                Expanded(
+                  child: _LanguageOption(
+                    language: language,
+                    selected: language == current,
+                    onTap: () => service.setLanguage(language),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageOption extends StatelessWidget {
+  const _LanguageOption({
+    required this.language,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AppLanguage language;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? _kPrimary : Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      elevation: selected ? 4 : 0,
+      shadowColor: _kPrimary.withValues(alpha: 0.3),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          height: 46,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? _kPrimary : Colors.grey.shade300,
+              width: 1.4,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (selected) ...[
+                const Icon(Icons.check_rounded, size: 16, color: Colors.white),
+                const SizedBox(width: 6),
+              ],
+              Flexible(
+                child: Text(
+                  language.nativeLabel,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: selected ? Colors.white : const Color(0xFF1E293B),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -499,7 +646,7 @@ class _FeatureTag extends StatelessWidget {
           Icon(chip.icon, size: 16, color: _kPrimary),
           const SizedBox(width: 6),
           Text(
-            chip.label,
+            chip.label(L.of(context)),
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
