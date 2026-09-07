@@ -36,6 +36,15 @@ class TypedDigitsMaterialLocalizationBn extends MaterialLocalizationBn {
     required super.twoDigitZeroPaddedFormat,
   });
 
+  /// Twelve-hour with AM/PM, whatever the phone's clock setting says.
+  ///
+  /// Bangla's Material default is a 24-hour dial, which nobody here reads —
+  /// times are said as "রাত ১১টা", not "23:00". The dial, the typed hour and
+  /// every time this localization formats follow the same rule.
+  @override
+  TimeOfDayFormat timeOfDayFormat({bool alwaysUse24HourFormat = false}) =>
+      TimeOfDayFormat.h_colon_mm_space_a;
+
   @override
   DateTime? parseCompactDate(String? inputString) => super.parseCompactDate(
     inputString == null ? null : N.bangla(inputString),

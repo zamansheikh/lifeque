@@ -397,15 +397,24 @@ class _MyAppState extends State<MyApp> {
               scaffoldBackgroundColor: const Color(0xFFF8FAFC),
             ),
             builder: (context, child) {
-              return AnnotatedRegion<SystemUiOverlayStyle>(
-                value: const SystemUiOverlayStyle(
-                  statusBarColor: Colors.transparent,
-                  statusBarIconBrightness: Brightness.dark,
-                  statusBarBrightness: Brightness.light,
-                  systemNavigationBarColor: Colors.white,
-                  systemNavigationBarIconBrightness: Brightness.dark,
+              // Twelve-hour pickers everywhere, even on a phone set to a
+              // 24-hour clock: that is how time is read here, in either
+              // language. (Bangla's own default is handled in its
+              // localization; this covers English.)
+              return MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(alwaysUse24HourFormat: false),
+                child: AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: const SystemUiOverlayStyle(
+                    statusBarColor: Colors.transparent,
+                    statusBarIconBrightness: Brightness.dark,
+                    statusBarBrightness: Brightness.light,
+                    systemNavigationBarColor: Colors.white,
+                    systemNavigationBarIconBrightness: Brightness.dark,
+                  ),
+                  child: child ?? const SizedBox(),
                 ),
-                child: child ?? const SizedBox(),
               );
             },
             routerConfig: AppRouter.router,
