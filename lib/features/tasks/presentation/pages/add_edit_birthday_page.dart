@@ -147,7 +147,7 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
             child: FilledButton.icon(
               onPressed: _save,
               icon: const Icon(Icons.check_rounded, size: 18),
-              label: const Text('Save'),
+              label: Text(L.of(context).commonSave),
               style: FilledButton.styleFrom(
                 backgroundColor: _pink,
                 padding: const EdgeInsets.symmetric(horizontal: 16),

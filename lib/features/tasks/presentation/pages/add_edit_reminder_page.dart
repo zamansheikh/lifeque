@@ -151,7 +151,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
             child: FilledButton.icon(
               onPressed: _save,
               icon: const Icon(Icons.check_rounded, size: 18),
-              label: const Text('Save'),
+              label: Text(L.of(context).commonSave),
               style: FilledButton.styleFrom(
                 backgroundColor: _amber,
                 padding: const EdgeInsets.symmetric(horizontal: 16),

@@ -1,3 +1,4 @@
+import 'l10n/typed_digits_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
@@ -367,6 +368,9 @@ class _MyAppState extends State<MyApp> {
             supportedLocales: L.supportedLocales,
             localizationsDelegates: const [
               L.delegate,
+              // Before the stock one: for Bangla it takes over Material's
+              // pickers so typed Latin digits are understood.
+              TypedDigitsMaterialLocalizationBn.delegate,
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,

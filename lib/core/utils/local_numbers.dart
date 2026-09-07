@@ -33,4 +33,17 @@ class N {
 
   /// Two-digit clock-style padding that still localises: `7` → `07` / `০৭`.
   static String padded2(int value) => of(value).padLeft(2, of(0));
+
+  /// Any Bangla digits in [text] back to ASCII — what `int.parse` and the
+  /// keyboard speak. `"৭/৯/২০২৬"` → `"7/9/2026"`.
+  static String ascii(String text) => text.replaceAllMapped(
+    RegExp('[০-৯]'),
+    (m) => String.fromCharCode(m[0]!.codeUnitAt(0) - 0x09E6 + 0x30),
+  );
+
+  /// Any ASCII digits in [text] to Bangla. `"7/9/2026"` → `"৭/৯/২০২৬"`.
+  static String bangla(String text) => text.replaceAllMapped(
+    RegExp('[0-9]'),
+    (m) => String.fromCharCode(m[0]!.codeUnitAt(0) - 0x30 + 0x09E6),
+  );
 }
