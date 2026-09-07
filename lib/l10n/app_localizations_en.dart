@@ -111,6 +111,12 @@ class LEn extends L {
       'See if a newer version is available';
 
   @override
+  String get settingsWhatsNew => 'What\'s new';
+
+  @override
+  String get settingsWhatsNewSubtitle => 'See what changed in this version';
+
+  @override
   String get settingsAbout => 'About LifeQue';
 
   @override
@@ -666,6 +672,11 @@ class LEn extends L {
 
   @override
   String get birthdaysDeleteTitle => 'Remove this birthday?';
+
+  @override
+  String birthdaysDeleteBody(String name) {
+    return '“$name” and its reminders will be deleted. This can\'t be undone.';
+  }
 
   @override
   String birthdaysTurning(int age) {
@@ -3582,6 +3593,63 @@ class LEn extends L {
 
   @override
   String get widgetNextPrayer => 'Next prayer';
+
+  @override
+  String nudgeBirthdayTodayTitle(String name) {
+    return 'It\'s $name\'s birthday today! 🎂';
+  }
+
+  @override
+  String get nudgeBirthdayTodayBody => 'Send a wish card — it takes one tap.';
+
+  @override
+  String nudgeBirthdayTomorrowTitle(String name) {
+    return '$name\'s birthday is tomorrow';
+  }
+
+  @override
+  String get nudgeBirthdayTomorrowBody =>
+      'A good day to plan the gift or the message.';
+
+  @override
+  String get nudgeBirthdayTomorrowAction => 'See birthdays';
+
+  @override
+  String get nudgeJumuahTitle => 'Jumu\'ah Mubarak ✦';
+
+  @override
+  String get nudgeJumuahBody =>
+      'Share today\'s prayer times with family and friends.';
+
+  @override
+  String get nudgeShareTimesTitle => 'Share today\'s prayer times';
+
+  @override
+  String get nudgeShareTimesBody =>
+      'A card with the five waqts, ready for your status or a group.';
+
+  @override
+  String get nudgeShareTimesAction => 'Share the card';
+
+  @override
+  String get nudgeMonthTitle => 'New month, new timetable';
+
+  @override
+  String get nudgeMonthBody =>
+      'Share this month\'s prayer timetable with your mosque group.';
+
+  @override
+  String get nudgeLocationTitle => 'Set your location';
+
+  @override
+  String get nudgeLocationBody =>
+      'Prayer times and the widgets need it to be accurate.';
+
+  @override
+  String get nudgeLocationAction => 'Open prayer times';
+
+  @override
+  String get nudgeLater => 'Not now';
 
   @override
   String get whatsNewTitle => 'What\'s new';

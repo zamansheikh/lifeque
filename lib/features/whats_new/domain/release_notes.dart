@@ -40,6 +40,54 @@ class ReleaseNote {
 /// anything without an entry simply shows nothing.
 const List<ReleaseNote> kReleaseNotes = [
   ReleaseNote(
+    version: '2.2.0',
+    headlineEn: 'Wish cards, and widgets that behave',
+    headlineBn: 'শুভেচ্ছা কার্ড, আর ঠিকঠাক উইজেট',
+    lines: [
+      ReleaseLine(
+        Icons.cake_rounded,
+        'Birthday wish cards: five designs, ready-made wishes in Bangla and '
+            'English, your name on it, and a note of who you have wished.',
+        'জন্মদিনের শুভেচ্ছা কার্ড: পাঁচটি ডিজাইন, বাংলা-ইংরেজি তৈরি শুভেচ্ছা, '
+            'আপনার নাম, আর কাকে শুভেচ্ছা জানানো হয়েছে তার হিসাব।',
+      ),
+      ReleaseLine(
+        Icons.ios_share_rounded,
+        'Prayer-time share cards redesigned — a night-to-dawn skyline for '
+            'the day, and a printable sheet for the month.',
+        'নামাজের সময়ের শেয়ার কার্ড নতুন সাজে — দিনের জন্য রাত থেকে ভোরের '
+            'আকাশ, আর মাসের জন্য ছাপার উপযোগী সময়সূচি।',
+      ),
+      ReleaseLine(
+        Icons.widgets_rounded,
+        'Widgets keep your language after a refresh, fit every cell size, '
+            'and say "Next" when no waqt is running.',
+        'উইজেট রিফ্রেশের পরও আপনার ভাষায় থাকে, যেকোনো আকারে ঠিকঠাক বসে, '
+            'আর কোনো ওয়াক্ত না চললে "পরবর্তী" দেখায়।',
+      ),
+      ReleaseLine(
+        Icons.notifications_active_rounded,
+        'The alarm bell asks when to ring, remembers your choice, and a '
+            'long-press applies it instantly.',
+        'অ্যালার্মের ঘণ্টা কখন বাজবে জিজ্ঞেস করে, পছন্দ মনে রাখে, আর চেপে '
+            'ধরলে সঙ্গে সঙ্গে সেট হয়ে যায়।',
+      ),
+      ReleaseLine(
+        Icons.wb_twilight_rounded,
+        'Ishraq, Awwabin and Tahajjud get their own countdown while their '
+            'window is open.',
+        'ইশরাক, আওয়াবিন ও তাহাজ্জুদের সময় চলাকালে তাদের নিজস্ব কাউন্টডাউন।',
+      ),
+      ReleaseLine(
+        Icons.tips_and_updates_rounded,
+        'Gentle suggestions when you open the app — a birthday to wish, a '
+            'timetable worth sharing.',
+        'অ্যাপ খুললে ছোট্ট পরামর্শ — কারও জন্মদিনে শুভেচ্ছা, বা শেয়ার করার '
+            'মতো সময়সূচি।',
+      ),
+    ],
+  ),
+  ReleaseNote(
     version: '2.0.0',
     headlineEn: 'The app now speaks Bangla',
     headlineBn: 'অ্যাপ এখন বাংলায়',

@@ -8,6 +8,7 @@ import '../../../../core/services/in_app_update_service.dart';
 import '../../../../core/services/language_preference_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/navigation_preferences_service.dart';
+import '../../../whats_new/presentation/whats_new_sheet.dart';
 import '../../../../injection_container.dart' as di;
 
 class SettingsPage extends StatefulWidget {
@@ -782,6 +783,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: l.settingsCheckUpdates,
                 subtitle: l.settingsCheckUpdatesSubtitle,
                 onTap: _checkForUpdates,
+              ),
+              _SettingsTile(
+                icon: Icons.auto_awesome_rounded,
+                iconColor: Colors.amber.shade800,
+                iconBgColor: Colors.amber.withValues(alpha: 0.12),
+                title: l.settingsWhatsNew,
+                subtitle: l.settingsWhatsNewSubtitle,
+                onTap: () => WhatsNewSheet.showCurrent(context),
               ),
               _SettingsTile(
                 icon: Icons.info_outline_rounded,

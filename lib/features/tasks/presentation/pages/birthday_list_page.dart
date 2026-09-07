@@ -693,8 +693,7 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          '“${birthday.title}” and its reminders will be deleted. '
-          'This can\'t be undone.',
+          L.of(context).birthdaysDeleteBody(birthday.title),
           style: TextStyle(height: 1.4),
         ),
         actions: [

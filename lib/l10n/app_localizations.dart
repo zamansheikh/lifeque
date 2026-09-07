@@ -295,6 +295,18 @@ abstract class L {
   /// **'See if a newer version is available'**
   String get settingsCheckUpdatesSubtitle;
 
+  /// No description provided for @settingsWhatsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get settingsWhatsNew;
+
+  /// No description provided for @settingsWhatsNewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See what changed in this version'**
+  String get settingsWhatsNewSubtitle;
+
   /// No description provided for @settingsAbout.
   ///
   /// In en, this message translates to:
@@ -1266,6 +1278,12 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Remove this birthday?'**
   String get birthdaysDeleteTitle;
+
+  /// No description provided for @birthdaysDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” and its reminders will be deleted. This can\'t be undone.'**
+  String birthdaysDeleteBody(String name);
 
   /// No description provided for @birthdaysTurning.
   ///
@@ -6198,6 +6216,102 @@ abstract class L {
   /// In en, this message translates to:
   /// **'Next prayer'**
   String get widgetNextPrayer;
+
+  /// No description provided for @nudgeBirthdayTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s {name}\'s birthday today! 🎂'**
+  String nudgeBirthdayTodayTitle(String name);
+
+  /// No description provided for @nudgeBirthdayTodayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a wish card — it takes one tap.'**
+  String get nudgeBirthdayTodayBody;
+
+  /// No description provided for @nudgeBirthdayTomorrowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s birthday is tomorrow'**
+  String nudgeBirthdayTomorrowTitle(String name);
+
+  /// No description provided for @nudgeBirthdayTomorrowBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A good day to plan the gift or the message.'**
+  String get nudgeBirthdayTomorrowBody;
+
+  /// No description provided for @nudgeBirthdayTomorrowAction.
+  ///
+  /// In en, this message translates to:
+  /// **'See birthdays'**
+  String get nudgeBirthdayTomorrowAction;
+
+  /// No description provided for @nudgeJumuahTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Jumu\'ah Mubarak ✦'**
+  String get nudgeJumuahTitle;
+
+  /// No description provided for @nudgeJumuahBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Share today\'s prayer times with family and friends.'**
+  String get nudgeJumuahBody;
+
+  /// No description provided for @nudgeShareTimesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share today\'s prayer times'**
+  String get nudgeShareTimesTitle;
+
+  /// No description provided for @nudgeShareTimesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A card with the five waqts, ready for your status or a group.'**
+  String get nudgeShareTimesBody;
+
+  /// No description provided for @nudgeShareTimesAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the card'**
+  String get nudgeShareTimesAction;
+
+  /// No description provided for @nudgeMonthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New month, new timetable'**
+  String get nudgeMonthTitle;
+
+  /// No description provided for @nudgeMonthBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this month\'s prayer timetable with your mosque group.'**
+  String get nudgeMonthBody;
+
+  /// No description provided for @nudgeLocationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your location'**
+  String get nudgeLocationTitle;
+
+  /// No description provided for @nudgeLocationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer times and the widgets need it to be accurate.'**
+  String get nudgeLocationBody;
+
+  /// No description provided for @nudgeLocationAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open prayer times'**
+  String get nudgeLocationAction;
+
+  /// No description provided for @nudgeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get nudgeLater;
 
   /// No description provided for @whatsNewTitle.
   ///

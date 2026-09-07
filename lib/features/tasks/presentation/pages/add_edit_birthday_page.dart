@@ -426,7 +426,7 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      option.description,
+                      _optionBody(option),
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
@@ -462,6 +462,18 @@ class _AddEditBirthdayPageState extends State<AddEditBirthdayPage> {
 
   /// The stored labels are written for the task form ("1 day before (gift
   /// prep)"); on a screen that is only ever about birthdays they can be plain.
+  /// The enum's own body text is English-only.
+  String _optionBody(BirthdayNotificationOption option) {
+    final l = L.of(context);
+    return switch (option) {
+      BirthdayNotificationOption.oneDayBefore => l.birthdayOptOneDayBody,
+      BirthdayNotificationOption.twoHoursBefore => l.birthdayOptTwoHoursBody,
+      BirthdayNotificationOption.tenMinutesBefore =>
+        l.birthdayOptTenMinutesBody,
+      BirthdayNotificationOption.exactTime => l.birthdayOptExactBody,
+    };
+  }
+
   String _label(BirthdayNotificationOption option) => switch (option) {
     BirthdayNotificationOption.oneDayBefore =>
       L.of(context).birthdayFormDayBefore,

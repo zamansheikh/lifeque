@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lifeque/core/utils/local_numbers.dart';
 import 'package:lifeque/features/whats_new/domain/release_notes.dart';
 import 'package:lifeque/features/whats_new/presentation/whats_new_sheet.dart';
 import 'package:lifeque/l10n/app_localizations.dart';
@@ -38,7 +39,7 @@ void main() {
     expect(find.text('নতুন যা আছে'), findsOneWidget);
     expect(find.text(note.headlineBn), findsOneWidget);
     // 2.0.0 → ২.০.০
-    expect(find.text('সংস্করণ ২.০.০'), findsOneWidget);
+    expect(find.text('সংস্করণ ${N.digits(note.version)}'), findsOneWidget);
     expect(find.text('বুঝেছি'), findsOneWidget);
     expect(find.text(note.lines.first.bn), findsOneWidget);
     // and nothing leaks through in the other language
@@ -51,7 +52,7 @@ void main() {
 
     expect(find.text("What's new"), findsOneWidget);
     expect(find.text(note.headlineEn), findsOneWidget);
-    expect(find.text('Version 2.0.0'), findsOneWidget);
+    expect(find.text('Version ${note.version}'), findsOneWidget);
     expect(find.text('Got it'), findsOneWidget);
     expect(find.text(note.headlineBn), findsNothing);
   });

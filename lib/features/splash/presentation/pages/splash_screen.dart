@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../whats_new/presentation/whats_new_sheet.dart';
+import 'package:lifeque/features/nudges/launch_prompts.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -98,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen>
           context.go(pending ?? svc.getHomeRoute());
           // Not when a widget tap sent us somewhere specific — the user asked
           // for that screen, not for news about the update.
-          if (pending == null) WhatsNewSheet.scheduleAfterLaunch();
+          if (pending == null) LaunchPrompts.scheduleAfterLaunch();
         } else {
           debugPrint('⚠️ Permissions needed, navigating to permission screen');
           context.go('/permissions');

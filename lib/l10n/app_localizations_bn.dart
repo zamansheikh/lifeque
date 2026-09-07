@@ -110,6 +110,12 @@ class LBn extends L {
   String get settingsCheckUpdatesSubtitle => 'নতুন সংস্করণ এসেছে কি না দেখুন';
 
   @override
+  String get settingsWhatsNew => 'নতুন কী এসেছে';
+
+  @override
+  String get settingsWhatsNewSubtitle => 'এই সংস্করণে কী বদলেছে দেখুন';
+
+  @override
   String get settingsAbout => 'লাইফকিউ সম্পর্কে';
 
   @override
@@ -661,6 +667,11 @@ class LBn extends L {
 
   @override
   String get birthdaysDeleteTitle => 'এই জন্মদিনটি মুছবেন?';
+
+  @override
+  String birthdaysDeleteBody(String name) {
+    return '“$name” ও তার রিমাইন্ডারগুলো মুছে যাবে। এটি আর ফেরানো যাবে না।';
+  }
 
   @override
   String birthdaysTurning(int age) {
@@ -3569,6 +3580,62 @@ class LBn extends L {
 
   @override
   String get widgetNextPrayer => 'পরের নামাজ';
+
+  @override
+  String nudgeBirthdayTodayTitle(String name) {
+    return 'আজ $name-এর জন্মদিন! 🎂';
+  }
+
+  @override
+  String get nudgeBirthdayTodayBody => 'এক ট্যাপে শুভেচ্ছা কার্ড পাঠিয়ে দিন।';
+
+  @override
+  String nudgeBirthdayTomorrowTitle(String name) {
+    return 'কাল $name-এর জন্মদিন';
+  }
+
+  @override
+  String get nudgeBirthdayTomorrowBody =>
+      'উপহার বা শুভেচ্ছার কথাটা আজই ভেবে রাখুন।';
+
+  @override
+  String get nudgeBirthdayTomorrowAction => 'জন্মদিন দেখুন';
+
+  @override
+  String get nudgeJumuahTitle => 'জুমুআ মোবারক ✦';
+
+  @override
+  String get nudgeJumuahBody =>
+      'আজকের নামাজের সময়সূচি পরিবার ও বন্ধুদের সাথে শেয়ার করুন।';
+
+  @override
+  String get nudgeShareTimesTitle => 'আজকের নামাজের সময় শেয়ার করুন';
+
+  @override
+  String get nudgeShareTimesBody =>
+      'পাঁচ ওয়াক্তের সময় নিয়ে একটি কার্ড — স্ট্যাটাস বা গ্রুপে দেওয়ার জন্য তৈরি।';
+
+  @override
+  String get nudgeShareTimesAction => 'কার্ড শেয়ার করুন';
+
+  @override
+  String get nudgeMonthTitle => 'নতুন মাস, নতুন সময়সূচি';
+
+  @override
+  String get nudgeMonthBody =>
+      'এ মাসের নামাজের সময়সূচি মসজিদের গ্রুপে শেয়ার করুন।';
+
+  @override
+  String get nudgeLocationTitle => 'আপনার লোকেশন সেট করুন';
+
+  @override
+  String get nudgeLocationBody => 'সঠিক নামাজের সময় ও উইজেটের জন্য এটি দরকার।';
+
+  @override
+  String get nudgeLocationAction => 'নামাজের সময় খুলুন';
+
+  @override
+  String get nudgeLater => 'এখন নয়';
 
   @override
   String get whatsNewTitle => 'নতুন যা আছে';

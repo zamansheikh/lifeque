@@ -3,7 +3,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/utils/local_numbers.dart';
-import '../../../core/services/navigation_service.dart';
 import '../../../injection_container.dart' as di;
 import '../../../l10n/app_localizations.dart';
 import '../data/whats_new_service.dart';
@@ -19,38 +18,39 @@ class WhatsNewSheet extends StatelessWidget {
   ///
   /// Safe to call from anywhere on the way into the app: it decides for itself
   /// whether there is anything to say, and does nothing on a fresh install.
-  static Future<void> maybeShow(BuildContext context) async {
+  static Future<bool> maybeShow(BuildContext context) async {
     final service = WhatsNewService(di.sl<SharedPreferences>());
     final info = await PackageInfo.fromPlatform();
     final version = info.version;
 
-    if (!service.shouldShow(version)) return;
+    if (!service.shouldShow(version)) return false;
 
     final note = releaseNoteFor(version);
     // Mark it seen either way: a build with no note should not leave the old
     // version recorded, or the next update would show two versions of news.
     await service.markSeen(version);
+    if (note == null || !context.mounted) return false;
+
+    await _present(context, note);
+    return true;
+  }
+
+  /// The notes for the running build, on demand — the Settings entry.
+  /// Shows nothing when this version has no entry.
+  static Future<void> showCurrent(BuildContext context) async {
+    final info = await PackageInfo.fromPlatform();
+    final note = releaseNoteFor(info.version);
     if (note == null || !context.mounted) return;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => WhatsNewSheet(note: note),
-    );
+    await _present(context, note);
   }
 
-  /// Queues the sheet for just after the app lands on its home screen.
-  ///
-  /// Called right after `context.go(...)`, when the splash's own context is on
-  /// its way out — so it waits a beat and asks the navigator for the live one.
-  /// The pause also reads better: the app appears first, then the sheet rises.
-  static void scheduleAfterLaunch() {
-    Future.delayed(const Duration(milliseconds: 700), () {
-      final context = NavigationService.navigatorKey.currentContext;
-      if (context != null && context.mounted) maybeShow(context);
-    });
-  }
+  static Future<void> _present(BuildContext context, ReleaseNote note) =>
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => WhatsNewSheet(note: note),
+      );
 
   @override
   Widget build(BuildContext context) {
