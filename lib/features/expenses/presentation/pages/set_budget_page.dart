@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+
+import '../../../../core/utils/local_numbers.dart';
+import '../../../../injection_container.dart' as di;
+import '../../../../l10n/app_localizations.dart';
 import '../../data/services/custom_category_service.dart';
 import '../../domain/entities/category_budget.dart';
 import '../../domain/entities/custom_category.dart';
@@ -8,10 +14,12 @@ import '../../domain/entities/expense_category.dart';
 import '../../domain/entities/expense_session.dart';
 import '../../domain/entities/monthly_budget.dart';
 import '../../domain/repositories/expense_repository.dart';
-import '../../../../injection_container.dart' as di;
 import '../bloc/expense_bloc.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../utils/taka.dart';
 
+/// Set or change a month's budget: one total, then as much or as little of
+/// it split into categories as the person wants. Whatever is not assigned
+/// lands in "Other" automatically, so the split never has to add up.
 class SetBudgetPage extends StatefulWidget {
   final DateTime selectedMonth;
   final MonthlyBudget? existingBudget;
@@ -31,1435 +39,830 @@ class SetBudgetPage extends StatefulWidget {
 }
 
 class _SetBudgetPageState extends State<SetBudgetPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
-  final Map<ExpenseCategory, TextEditingController> _categoryControllers = {};
-  final Map<ExpenseCategory, bool> _enabledCategories = {};
+  static const _ink = Color(0xFF1E293B);
+  static const _muted = Color(0xFF64748B);
+  static const _green = Color(0xFF059669);
+  static const _red = Color(0xFFDC2626);
+  static const _quickAmounts = [
+    500.0,
+    1000.0,
+    3000.0,
+    5000.0,
+    7500.0,
+    10000.0,
+    15000.0,
+    20000.0,
+  ];
 
-  // Custom category tracking
-  List<CustomCategory> _customCategories = [];
-  final Map<String, TextEditingController> _customCategoryControllers = {};
-  final Map<String, bool> _enabledCustomCategories = {};
+  final _amount = TextEditingController();
+  final Map<ExpenseCategory, TextEditingController> _catAmount = {};
+  final Map<ExpenseCategory, bool> _catOn = {};
 
-  double get _totalBudget => double.tryParse(_amountController.text) ?? 0.0;
+  List<CustomCategory> _custom = [];
+  final Map<String, TextEditingController> _customAmount = {};
+  final Map<String, bool> _customOn = {};
 
-  /// Format currency: show decimals only when fractional part exists
-  String _fmt(double v) {
-    if (v == v.roundToDouble()) return v.toStringAsFixed(0);
-    return v.toStringAsFixed(2);
-  }
+  double get _total => double.tryParse(_amount.text) ?? 0.0;
 
-  /// Smart hint for category rows: shows % of budget allocated
-  String _categoryHint(double catValue, double budget) {
-    if (budget <= 0 || catValue <= 0) return '';
-    final pct = (catValue / budget * 100).toStringAsFixed(0);
-    return '$pct% of budget  •  ৳${_fmt(catValue)} / ৳${_fmt(budget)}';
-  }
+  double _of(TextEditingController? c) => double.tryParse(c?.text ?? '') ?? 0.0;
 
-  /// Sum of all enabled categories EXCEPT "Other" (which is auto-calculated).
-  double get _totalAllocated {
-    double total = 0;
+  /// Everything assigned to a category other than "Other".
+  double get _allocated {
+    var sum = 0.0;
     for (final cat in ExpenseCategory.values) {
-      if (cat == ExpenseCategory.other) continue; // skip – auto-calculated
-      if (_enabledCategories[cat] == true) {
-        total += double.tryParse(_categoryControllers[cat]?.text ?? '') ?? 0.0;
-      }
+      if (cat == ExpenseCategory.other) continue;
+      if (_catOn[cat] == true) sum += _of(_catAmount[cat]);
     }
-    for (final cc in _customCategories) {
-      if (_enabledCustomCategories[cc.name] == true) {
-        total +=
-            double.tryParse(_customCategoryControllers[cc.name]?.text ?? '') ??
-            0.0;
-      }
+    for (final cc in _custom) {
+      if (_customOn[cc.name] == true) sum += _of(_customAmount[cc.name]);
     }
-    return total;
+    return sum;
   }
 
-  /// The "Other" category always gets whatever is left over.
-  double get _otherBudgetAmount {
-    final left = _totalBudget - _totalAllocated;
+  double get _otherAmount {
+    final left = _total - _allocated;
     return left > 0 ? left : 0;
   }
+
+  bool get _overAllocated => _allocated > _total;
+
+  int get _activeCount =>
+      _catOn.values.where((v) => v).length +
+      _customOn.values.where((v) => v).length;
 
   @override
   void initState() {
     super.initState();
-    if (widget.existingBudget != null) {
-      _amountController.text = widget.existingBudget!.targetAmount
-          .toStringAsFixed(0);
+    final existing = widget.existingBudget;
+    if (existing != null) {
+      _amount.text = existing.targetAmount.toStringAsFixed(0);
     }
-    _amountController.addListener(() => setState(() {}));
+    _amount.addListener(_refresh);
 
     for (final cat in ExpenseCategory.values) {
-      final ctrl = TextEditingController();
-      final existing = widget.existingCategoryBudgets.where(
-        (b) => b.category == cat && b.customCategoryName == null,
-      );
-      if (existing.isNotEmpty && existing.first.budgetAmount > 0) {
-        ctrl.text = existing.first.budgetAmount.toStringAsFixed(0);
-        _enabledCategories[cat] = true;
-      } else {
-        _enabledCategories[cat] = false;
-      }
-      ctrl.addListener(() => setState(() {}));
-      _categoryControllers[cat] = ctrl;
+      final ctrl = TextEditingController()..addListener(_refresh);
+      final saved = widget.existingCategoryBudgets
+          .where((b) => b.category == cat && b.customCategoryName == null)
+          .firstOrNull;
+      final on = saved != null && saved.budgetAmount > 0;
+      if (on) ctrl.text = saved.budgetAmount.toStringAsFixed(0);
+      _catAmount[cat] = ctrl;
+      _catOn[cat] = on;
     }
 
-    // Load custom categories + populate controllers from existing budgets
-    _customCategories = di.sl<CustomCategoryService>().getAll();
-    for (final cc in _customCategories) {
-      final ctrl = TextEditingController();
-      final existing = widget.existingCategoryBudgets.where(
-        (b) => b.customCategoryName == cc.name,
-      );
-      if (existing.isNotEmpty && existing.first.budgetAmount > 0) {
-        ctrl.text = existing.first.budgetAmount.toStringAsFixed(0);
-        _enabledCustomCategories[cc.name] = true;
-      } else {
-        _enabledCustomCategories[cc.name] = false;
-      }
-      ctrl.addListener(() => setState(() {}));
-      _customCategoryControllers[cc.name] = ctrl;
+    _custom = di.sl<CustomCategoryService>().getAll();
+    for (final cc in _custom) {
+      final ctrl = TextEditingController()..addListener(_refresh);
+      final saved = widget.existingCategoryBudgets
+          .where((b) => b.customCategoryName == cc.name)
+          .firstOrNull;
+      final on = saved != null && saved.budgetAmount > 0;
+      if (on) ctrl.text = saved.budgetAmount.toStringAsFixed(0);
+      _customAmount[cc.name] = ctrl;
+      _customOn[cc.name] = on;
     }
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    _amountController.dispose();
-    for (final c in _categoryControllers.values) {
+    _amount.dispose();
+    for (final c in _catAmount.values) {
       c.dispose();
     }
-    for (final c in _customCategoryControllers.values) {
+    for (final c in _customAmount.values) {
       c.dispose();
     }
     super.dispose();
   }
 
-  void _saveBudget() {
-    if (!_formKey.currentState!.validate()) return;
+  // ── Save ──────────────────────────────────────────────────────────────
 
-    final amount = double.parse(_amountController.text);
-
-    // Validate: enabled category totals (excluding Other) must not exceed budget
-    final allocatedWithoutOther = _totalAllocated;
-    if (allocatedWithoutOther > amount) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Category budgets (৳${_fmt(allocatedWithoutOther)}) exceed total budget (৳${_fmt(amount)})',
-          ),
-          backgroundColor: Colors.red[600],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: const EdgeInsets.all(16),
-        ),
+  void _save() {
+    final l = L.of(context);
+    final amount = _total;
+    if (amount <= 0) {
+      _snack(l.expNeedValidAmount, error: true);
+      return;
+    }
+    if (_overAllocated) {
+      _snack(
+        l.expCategoryOverBudgetDetail(taka(_allocated), taka(amount)),
+        error: true,
       );
       return;
     }
 
-    // Save monthly budget
-    final budget = MonthlyBudget(
-      id:
-          widget.existingBudget?.id ??
-          DateTime.now().millisecondsSinceEpoch.toString(),
-      year: widget.selectedMonth.year,
-      month: widget.selectedMonth.month,
-      targetAmount: amount,
-      createdAt: widget.existingBudget?.createdAt ?? DateTime.now(),
-      updatedAt: DateTime.now(),
+    final bloc = context.read<ExpenseBloc>();
+    final now = DateTime.now();
+    final month = widget.selectedMonth;
+
+    bloc.add(
+      SetBudgetEvent(
+        MonthlyBudget(
+          id:
+              widget.existingBudget?.id ??
+              now.millisecondsSinceEpoch.toString(),
+          year: month.year,
+          month: month.month,
+          targetAmount: amount,
+          createdAt: widget.existingBudget?.createdAt ?? now,
+          updatedAt: now,
+        ),
+      ),
     );
-    context.read<ExpenseBloc>().add(SetBudgetEvent(budget));
 
-    // Save each enabled category budget (skip Other – handled below)
-    for (final cat in ExpenseCategory.values) {
-      if (cat == ExpenseCategory.other) continue;
-      if (_enabledCategories[cat] == true) {
-        final catAmount =
-            double.tryParse(_categoryControllers[cat]?.text ?? '') ?? 0.0;
-        if (catAmount > 0) {
-          final existing = widget.existingCategoryBudgets.where(
-            (b) => b.category == cat && b.customCategoryName == null,
-          );
-          final catBudget = CategoryBudget(
-            id: existing.isNotEmpty && existing.first.id.isNotEmpty
-                ? existing.first.id
-                : DateTime.now().millisecondsSinceEpoch.toString() + cat.name,
-            year: widget.selectedMonth.year,
-            month: widget.selectedMonth.month,
+    CategoryBudget? savedFor(ExpenseCategory cat, [String? custom]) => widget
+        .existingCategoryBudgets
+        .where(
+          (b) => custom != null
+              ? b.customCategoryName == custom
+              : b.category == cat && b.customCategoryName == null,
+        )
+        .firstOrNull;
+
+    void upsert(
+      ExpenseCategory cat,
+      double value, {
+      String? custom,
+      required String fallbackId,
+    }) {
+      final saved = savedFor(cat, custom);
+      bloc.add(
+        SetCategoryBudgetEvent(
+          CategoryBudget(
+            id: saved != null && saved.id.isNotEmpty ? saved.id : fallbackId,
+            year: month.year,
+            month: month.month,
             category: cat,
-            budgetAmount: catAmount,
-            createdAt: existing.isNotEmpty
-                ? existing.first.createdAt
-                : DateTime.now(),
-            updatedAt: DateTime.now(),
-          );
-          context.read<ExpenseBloc>().add(SetCategoryBudgetEvent(catBudget));
-        }
-      } else {
-        final existing = widget.existingCategoryBudgets.where(
-          (b) => b.category == cat && b.customCategoryName == null,
-        );
-        if (existing.isNotEmpty && existing.first.id.isNotEmpty) {
-          context.read<ExpenseBloc>().add(
-            DeleteCategoryBudgetEvent(existing.first.id),
-          );
-        }
-      }
-    }
-
-    // Always save the auto-calculated "Other" category budget
-    {
-      final otherAmount = _otherBudgetAmount;
-      final existing = widget.existingCategoryBudgets.where(
-        (b) =>
-            b.category == ExpenseCategory.other && b.customCategoryName == null,
-      );
-      final otherBudget = CategoryBudget(
-        id: existing.isNotEmpty && existing.first.id.isNotEmpty
-            ? existing.first.id
-            : '${DateTime.now().millisecondsSinceEpoch}other',
-        year: widget.selectedMonth.year,
-        month: widget.selectedMonth.month,
-        category: ExpenseCategory.other,
-        budgetAmount: otherAmount,
-        createdAt: existing.isNotEmpty
-            ? existing.first.createdAt
-            : DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-      context.read<ExpenseBloc>().add(SetCategoryBudgetEvent(otherBudget));
-    }
-
-    // Save each enabled custom category budget
-    for (final cc in _customCategories) {
-      if (_enabledCustomCategories[cc.name] == true) {
-        final catAmount =
-            double.tryParse(_customCategoryControllers[cc.name]?.text ?? '') ??
-            0.0;
-        if (catAmount > 0) {
-          final existing = widget.existingCategoryBudgets.where(
-            (b) => b.customCategoryName == cc.name,
-          );
-          final catBudget = CategoryBudget(
-            id: existing.isNotEmpty && existing.first.id.isNotEmpty
-                ? existing.first.id
-                : '${DateTime.now().millisecondsSinceEpoch}custom_${cc.name}',
-            year: widget.selectedMonth.year,
-            month: widget.selectedMonth.month,
-            category: ExpenseCategory.other,
-            budgetAmount: catAmount,
-            createdAt: existing.isNotEmpty
-                ? existing.first.createdAt
-                : DateTime.now(),
-            updatedAt: DateTime.now(),
-            customCategoryName: cc.name,
-          );
-          context.read<ExpenseBloc>().add(SetCategoryBudgetEvent(catBudget));
-        }
-      } else {
-        final existing = widget.existingCategoryBudgets.where(
-          (b) => b.customCategoryName == cc.name,
-        );
-        if (existing.isNotEmpty && existing.first.id.isNotEmpty) {
-          context.read<ExpenseBloc>().add(
-            DeleteCategoryBudgetEvent(existing.first.id),
-          );
-        }
-      }
-    }
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            widget.existingBudget != null
-                ? 'Budget updated successfully'
-                : 'Budget set successfully',
+            budgetAmount: value,
+            createdAt: saved?.createdAt ?? now,
+            updatedAt: now,
+            customCategoryName: custom,
           ),
-          backgroundColor: const Color(0xFF10B981),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: const EdgeInsets.all(16),
         ),
       );
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) context.pop();
-      });
     }
+
+    void dropIfSaved(ExpenseCategory cat, [String? custom]) {
+      final saved = savedFor(cat, custom);
+      if (saved != null && saved.id.isNotEmpty) {
+        bloc.add(DeleteCategoryBudgetEvent(saved.id));
+      }
+    }
+
+    for (final cat in ExpenseCategory.values) {
+      if (cat == ExpenseCategory.other) continue;
+      final value = _of(_catAmount[cat]);
+      if (_catOn[cat] == true && value > 0) {
+        upsert(
+          cat,
+          value,
+          fallbackId: '${now.millisecondsSinceEpoch}${cat.name}',
+        );
+      } else {
+        dropIfSaved(cat);
+      }
+    }
+
+    // "Other" is always written: it is the remainder, and the dashboard
+    // reads it back to show where the unassigned money went.
+    upsert(
+      ExpenseCategory.other,
+      _otherAmount,
+      fallbackId: '${now.millisecondsSinceEpoch}other',
+    );
+
+    for (final cc in _custom) {
+      final value = _of(_customAmount[cc.name]);
+      if (_customOn[cc.name] == true && value > 0) {
+        upsert(
+          ExpenseCategory.other,
+          value,
+          custom: cc.name,
+          fallbackId: '${now.millisecondsSinceEpoch}custom_${cc.name}',
+        );
+      } else {
+        dropIfSaved(ExpenseCategory.other, cc.name);
+      }
+    }
+
+    _snack(l.expBudgetSaved);
+    context.pop();
   }
+
+  void _snack(String text, {bool error = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        backgroundColor: error ? _red : _green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.existingBudget != null;
+    final l = L.of(context);
+    final editing = widget.existingBudget != null;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFF4F7FB),
       appBar: AppBar(
-        title: Text(
-          isEditing ? L.of(context).expEditBudget : L.of(context).expSetBudget,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 24,
-            color: Color(0xFF1E293B),
-          ),
-        ),
         backgroundColor: Colors.transparent,
-        scrolledUnderElevation: 0,
-        elevation: 0,
-        shadowColor: Colors.black12,
         surfaceTintColor: Colors.transparent,
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: Color(0xFF64748B),
-            ),
-            onPressed: () => context.pop(),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: _ink),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          editing ? l.expEditBudget : l.expSetBudget,
+          style: const TextStyle(
+            color: _ink,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF10B981), Color(0xFF059669)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: TextButton.icon(
-              onPressed: _saveBudget,
-              icon: const Icon(
-                Icons.save_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-              label: Text(
-                isEditing ? L.of(context).expUpdate : 'Save',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
+        children: [
+          _amountCard(l),
+          const SizedBox(height: 14),
+          _categoriesCard(l),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(12),
-          children: [
-            _buildBudgetAmountCard(),
-            const SizedBox(height: 10),
-            _buildQuickSelectCard(),
-            const SizedBox(height: 10),
-            _buildCategoryAllocationCard(),
-            const SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF10B981), Color(0xFF059669)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ElevatedButton.icon(
-                onPressed: _saveBudget,
-                icon: const Icon(Icons.save_rounded, size: 18),
-                label: Text(
-                  isEditing
-                      ? L.of(context).expUpdateBudget
-                      : L.of(context).expSetBudget,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+      bottomNavigationBar: _saveBar(l),
     );
   }
 
-  // ── Budget Amount Section ─────────────────────────────────────────────────
-  Widget _buildBudgetAmountCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+  // ── Total ─────────────────────────────────────────────────────────────
+
+  Widget _amountCard(L l) {
+    final month = DateFormat('MMMM y').format(widget.selectedMonth);
+    return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.wallet_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
+              _iconBox(Icons.calendar_month_rounded, const Color(0xFF2563EB)),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _formatMonthYear(widget.selectedMonth),
+                      month,
                       style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1E293B),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: _ink,
                       ),
                     ),
                     Text(
-                      L.of(context).expMonthlyBudget,
-                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                      l.expMonthlyBudget,
+                      style: const TextStyle(fontSize: 12.5, color: _muted),
                     ),
                   ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _amount,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: _ink,
+            ),
+            decoration: InputDecoration(
+              labelText: l.expBudgetAmount,
+              hintText: l.expEnterAmount,
+              prefixText: '৳ ',
+              prefixStyle: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: _green,
+              ),
+              suffixIcon: _amount.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => _amount.clear(),
+                    ),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: _green, width: 1.8),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l.expQuickPick,
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: _muted,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final a in _quickAmounts)
+                _chip(
+                  taka(a),
+                  selected: _total == a,
+                  onTap: () => _amount.text = a.toStringAsFixed(0),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.lightbulb_outline_rounded,
+                  size: 18,
+                  color: Color(0xFF2563EB),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l.expBudgetIntro,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      height: 1.4,
+                      color: Color(0xFF1D4ED8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Categories ────────────────────────────────────────────────────────
+
+  Widget _categoriesCard(L l) {
+    final total = _total;
+    final allocated = _allocated;
+    final fraction = total > 0 ? (allocated / total).clamp(0.0, 1.0) : 0.0;
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _iconBox(Icons.pie_chart_rounded, const Color(0xFF7C3AED)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l.expCategoryBudgets,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: _ink,
+                  ),
+                ),
+              ),
+              Text(
+                l.expActiveCount(_activeCount),
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF7C3AED),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          TextFormField(
-            controller: _amountController,
-            keyboardType: TextInputType.number,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
-            ),
-            decoration: InputDecoration(
-              labelText: L.of(context).expBudgetAmount,
-              hintText: '0',
-              prefixText: '৳ ',
-              prefixStyle: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF059669),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 14,
-              ),
-              suffixIcon: _amountController.text.isNotEmpty
-                  ? IconButton(
-                      onPressed: () {
-                        _amountController.clear();
-                        setState(() {});
-                      },
-                      icon: const Icon(Icons.clear_rounded),
-                    )
-                  : null,
-            ),
-            onChanged: (_) => setState(() {}),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return L.of(context).expNeedAmount;
-              }
-              final amount = double.tryParse(value);
-              if (amount == null || amount <= 0) {
-                return L.of(context).expNeedValidAmount;
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF3B82F6).withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
-              ),
-            ),
-            child: const Row(
-              children: [
-                Icon(
-                  Icons.lightbulb_outline_rounded,
-                  color: Color(0xFF3B82F6),
-                  size: 16,
+          Row(
+            children: [
+              Text(
+                '${l.expAllocated}: ${taka(allocated)}',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: _overAllocated ? _red : _ink,
                 ),
-                SizedBox(width: 8),
+              ),
+              const Spacer(),
+              Flexible(
+                child: Text(
+                  l.expOtherGetsRest(taka(_otherAmount)),
+                  textAlign: TextAlign.right,
+                  maxLines: 2,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _green,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: fraction,
+              minHeight: 7,
+              backgroundColor: const Color(0xFFE2E8F0),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                _overAllocated ? _red : const Color(0xFF7C3AED),
+              ),
+            ),
+          ),
+          if (_overAllocated) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Icons.error_outline_rounded, size: 16, color: _red),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Set a realistic monthly budget, then split into categories below.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF3B82F6),
-                      fontWeight: FontWeight.w500,
+                    l.expOverAllocated,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: _red,
                     ),
                   ),
                 ),
               ],
             ),
+          ],
+          const SizedBox(height: 14),
+          for (final cat in ExpenseCategory.values)
+            if (cat != ExpenseCategory.other)
+              _categoryTile(
+                l,
+                icon: cat.icon,
+                color: cat.color,
+                name: cat.labelFor(context),
+                on: _catOn[cat] ?? false,
+                controller: _catAmount[cat]!,
+                spent: widget.categorySpending[cat.name] ?? 0.0,
+                onToggle: (v) => setState(() => _catOn[cat] = v),
+              ),
+          for (final cc in _custom)
+            _categoryTile(
+              l,
+              icon: cc.icon,
+              color: cc.color,
+              name: cc.displayName,
+              on: _customOn[cc.name] ?? false,
+              controller: _customAmount[cc.name]!,
+              spent: widget.categorySpending['custom:${cc.name}'] ?? 0.0,
+              onToggle: (v) => setState(() => _customOn[cc.name] = v),
+              onDelete: () => _confirmDeleteCustom(cc),
+            ),
+          _otherTile(l),
+          const SizedBox(height: 6),
+          OutlinedButton.icon(
+            onPressed: _addCustom,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF7C3AED),
+              side: const BorderSide(color: Color(0xFFC4B5FD)),
+              minimumSize: const Size(double.infinity, 46),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            icon: const Icon(Icons.add_rounded, size: 18),
+            label: Text(
+              l.expAddCustomCategory,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ── Quick Select Section ──────────────────────────────────────────────────
-  Widget _buildQuickSelectCard() {
-    return Container(
-      padding: const EdgeInsets.all(12),
+  Widget _categoryTile(
+    L l, {
+    required IconData icon,
+    required Color color,
+    required String name,
+    required bool on,
+    required TextEditingController controller,
+    required double spent,
+    required ValueChanged<bool> onToggle,
+    VoidCallback? onDelete,
+  }) {
+    final value = _of(controller);
+    final percent = _total > 0 && value > 0 ? (value / _total * 100) : 0.0;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: on ? color.withValues(alpha: 0.06) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: on ? color.withValues(alpha: 0.45) : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-                  ),
+                  color: on
+                      ? color.withValues(alpha: 0.16)
+                      : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.flash_on_rounded,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
-              const SizedBox(width: 10),
-              const Text(
-                'Quick Select',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              500,
-              1000,
-              3000,
-              5000,
-              7500,
-              10000,
-              15000,
-              20000,
-            ].map((a) => _buildQuickAmountButton(a.toDouble())).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Category Allocation Section ───────────────────────────────────────────
-  Widget _buildCategoryAllocationCard() {
-    final totalBudget = _totalBudget;
-    final totalAllocated = _totalAllocated;
-    final remaining = totalBudget - totalAllocated;
-    final overAllocated = remaining < 0;
-    final allocationProgress = totalBudget > 0
-        ? (totalAllocated / totalBudget).clamp(0.0, 1.0)
-        : 0.0;
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.pie_chart_rounded,
-                  color: Colors.white,
-                  size: 16,
+                child: Icon(
+                  icon,
+                  size: 18,
+                  color: on ? color : const Color(0xFF94A3B8),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  L.of(context).expCategoryBudgets,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-              ),
-              Text(
-                '${_enabledCategories.values.where((e) => e).length + _enabledCustomCategories.values.where((e) => e).length} active',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF8B5CF6),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Allocation progress bar (only if total budget > 0)
-          if (totalBudget > 0) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Allocated: ৳${_fmt(totalAllocated)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: overAllocated
-                        ? Colors.red[600]
-                        : const Color(0xFF1E293B),
-                  ),
-                ),
-                Text(
-                  overAllocated
-                      ? '৳${_fmt(-remaining)} over limit!'
-                      : '৳${_fmt(remaining)} → Other',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: overAllocated
-                        ? Colors.red[600]
-                        : const Color(0xFF10B981),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: allocationProgress,
-                minHeight: 8,
-                backgroundColor: const Color(0xFFF1F5F9),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  overAllocated ? Colors.red : const Color(0xFF8B5CF6),
-                ),
-              ),
-            ),
-            if (overAllocated)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.warning_amber_rounded,
-                      size: 14,
-                      color: Colors.red[600],
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        L.of(context).expCategoryOverBudget,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.red[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 12),
-            const Divider(height: 1, color: Color(0xFFF1F5F9)),
-            const SizedBox(height: 10),
-          ] else ...[
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF7ED),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.info_outline_rounded,
-                    size: 15,
-                    color: Color(0xFFF59E0B),
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Enter a monthly budget above first to set category allocations.',
-                      style: TextStyle(fontSize: 12, color: Color(0xFFD97706)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-          ],
-
-          // All category rows (native + custom merged)
-          ...ExpenseCategory.values.map(
-            (cat) => _buildCategoryRow(cat, remaining),
-          ),
-          ..._customCategories.map(
-            (cc) => _buildCustomCategoryRow(cc, remaining),
-          ),
-
-          // Add Custom Category button
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: _showAddCustomCategoryDialog,
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: Text(L.of(context).expAddCustomCategory),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF8B5CF6),
-              side: BorderSide(
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoryRow(ExpenseCategory cat, double globalRemaining) {
-    // "Other" is always auto-calculated — render a special read-only row
-    if (cat == ExpenseCategory.other) {
-      return _buildOtherCategoryRow();
-    }
-
-    final isEnabled = _enabledCategories[cat] == true;
-    final currentValue =
-        double.tryParse(_categoryControllers[cat]?.text ?? '') ?? 0.0;
-    final spent = widget.categorySpending[cat.name] ?? 0.0;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: isEnabled
-            ? cat.color.withValues(alpha: 0.06)
-            : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isEnabled
-              ? cat.color.withValues(alpha: 0.3)
-              : const Color(0xFFE2E8F0),
-          width: isEnabled ? 1.5 : 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          // Category icon
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: isEnabled
-                  ? cat.color.withValues(alpha: 0.15)
-                  : const Color(0xFFE2E8F0),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              cat.icon,
-              color: isEnabled ? cat.color : const Color(0xFF94A3B8),
-              size: 17,
-            ),
-          ),
-          const SizedBox(width: 10),
-
-          // Name + hint
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  cat.displayName,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isEnabled
-                        ? const Color(0xFF1E293B)
-                        : const Color(0xFF94A3B8),
-                  ),
-                ),
-                if (isEnabled && _totalBudget > 0)
-                  Text(
-                    _categoryHint(currentValue, _totalBudget),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: cat.color,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                if (spent > 0)
-                  Text(
-                    '৳${_fmt(spent)} spent this month',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.orange[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          // Amount field (shows only when enabled)
-          if (isEnabled) ...[
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 95,
-              child: TextFormField(
-                controller: _categoryControllers[cat],
-                keyboardType: TextInputType.number,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: cat.color,
-                ),
-                decoration: InputDecoration(
-                  hintText: '0',
-                  prefixText: '৳',
-                  prefixStyle: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: cat.color,
-                  ),
-                  isDense: true,
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: cat.color.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: cat.color.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: cat.color, width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 8,
-                  ),
-                ),
-                validator: (value) {
-                  if (_enabledCategories[cat] != true) return null;
-                  if (value == null || value.isEmpty) {
-                    return L.of(context).expEnterAmount;
-                  }
-                  final amt = double.tryParse(value);
-                  if (amt == null || amt <= 0) return L.of(context).expInvalid;
-                  return null;
-                },
-              ),
-            ),
-            const SizedBox(width: 6),
-          ],
-
-          // Toggle switch
-          Switch(
-            value: isEnabled,
-            activeThumbColor: cat.color,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            onChanged: (val) {
-              setState(() {
-                _enabledCategories[cat] = val;
-                if (!val) _categoryControllers[cat]?.clear();
-              });
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Auto-calculated \"Other\" category row (read-only) ─────────────────────
-  Widget _buildOtherCategoryRow() {
-    const cat = ExpenseCategory.other;
-    final otherAmount = _otherBudgetAmount;
-    final hasAmount = otherAmount > 0;
-    final spent = widget.categorySpending[cat.name] ?? 0.0;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: hasAmount
-            ? cat.color.withValues(alpha: 0.06)
-            : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: hasAmount
-              ? cat.color.withValues(alpha: 0.3)
-              : const Color(0xFFE2E8F0),
-          width: hasAmount ? 1.5 : 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          // Icon
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: hasAmount
-                  ? cat.color.withValues(alpha: 0.15)
-                  : const Color(0xFFE2E8F0),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              cat.icon,
-              color: hasAmount ? cat.color : const Color(0xFF94A3B8),
-              size: 17,
-            ),
-          ),
-          const SizedBox(width: 10),
-
-          // Name + info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  cat.displayName,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: hasAmount
-                        ? const Color(0xFF1E293B)
-                        : const Color(0xFF94A3B8),
-                  ),
-                ),
-                Text(
-                  hasAmount
-                      ? _categoryHint(otherAmount, _totalBudget)
-                      : 'Auto-calculated from remaining budget',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: hasAmount ? cat.color : const Color(0xFF94A3B8),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                if (spent > 0)
-                  Text(
-                    '৳${_fmt(spent)} spent this month',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.orange[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          // Read-only amount display
-          if (hasAmount) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: cat.color.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: cat.color.withValues(alpha: 0.25)),
-              ),
-              child: Text(
-                '৳${_fmt(otherAmount)}',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: cat.color,
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
-          ],
-
-          // "Auto" badge instead of a switch
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: const Color(0xFF10B981).withValues(alpha: 0.3),
-              ),
-            ),
-            child: const Text(
-              'Auto',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF10B981),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Custom Category Row (swipe-to-delete) ──────────────────────────────────
-  Widget _buildCustomCategoryRow(CustomCategory cc, double globalRemaining) {
-    final isEnabled = _enabledCustomCategories[cc.name] == true;
-    final currentValue =
-        double.tryParse(_customCategoryControllers[cc.name]?.text ?? '') ?? 0.0;
-    // Spending map keys items by `effectiveCategoryKey` — for a custom
-    // category this is `'custom:<name>'`. Built-in rows do the equivalent
-    // lookup at line 819; custom rows were silently skipping it.
-    final spent = widget.categorySpending['custom:${cc.name}'] ?? 0.0;
-
-    return Dismissible(
-      key: ValueKey('custom_cat_${cc.name}'),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (_) => _confirmDeleteCustomCategory(cc),
-      background: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: Colors.red[500],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.delete_rounded, color: Colors.white, size: 20),
-            SizedBox(width: 6),
-            Text(
-              L.of(context).commonDelete,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      ),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: isEnabled
-              ? cc.color.withValues(alpha: 0.06)
-              : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isEnabled
-                ? cc.color.withValues(alpha: 0.3)
-                : const Color(0xFFE2E8F0),
-            width: isEnabled ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: isEnabled
-                    ? cc.color.withValues(alpha: 0.15)
-                    : const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                cc.icon,
-                color: isEnabled ? cc.color : const Color(0xFF94A3B8),
-                size: 17,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    cc.displayName,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isEnabled
-                          ? const Color(0xFF1E293B)
-                          : const Color(0xFF94A3B8),
-                    ),
-                  ),
-                  if (isEnabled && _totalBudget > 0)
-                    Text(
-                      _categoryHint(currentValue, _totalBudget),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: cc.color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  if (spent > 0)
-                    Text(
-                      '৳${_fmt(spent)} spent this month',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.orange[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (isEnabled) ...[
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 95,
-                child: TextFormField(
-                  controller: _customCategoryControllers[cc.name],
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: cc.color,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: '0',
-                    prefixText: '৳',
-                    prefixStyle: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: cc.color,
-                    ),
-                    isDense: true,
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: cc.color.withValues(alpha: 0.4),
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: cc.color.withValues(alpha: 0.4),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: cc.color, width: 2),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (_enabledCustomCategories[cc.name] != true) return null;
-                    if (value == null || value.isEmpty) {
-                      return L.of(context).expEnterAmount;
-                    }
-                    final amt = double.tryParse(value);
-                    if (amt == null || amt <= 0) {
-                      return L.of(context).expInvalid;
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(width: 6),
-            ],
-            Switch(
-              value: isEnabled,
-              activeThumbColor: cc.color,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              onChanged: (val) {
-                setState(() {
-                  _enabledCustomCategories[cc.name] = val;
-                  if (!val) _customCategoryControllers[cc.name]?.clear();
-                });
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<bool> _confirmDeleteCustomCategory(CustomCategory cc) async {
-    // Compute impact across ALL months — not just the selected month —
-    // because items referencing this custom category can live anywhere in
-    // history. Without this audit, deleting the category would silently
-    // orphan those items (their `effectiveCategoryKey` would point at a
-    // non-existent custom name forever).
-    final repo = di.sl<ExpenseRepository>();
-    final sessionsResult = await repo.getAllSessions();
-    final budgetsResult = await repo.getAllCategoryBudgets();
-
-    final allSessions = sessionsResult.getOrElse(() => <ExpenseSession>[]);
-    final allBudgets = budgetsResult.getOrElse(() => <CategoryBudget>[]);
-
-    int affectedItemCount = 0;
-    final affectedSessions = <ExpenseSession>[];
-    for (final session in allSessions) {
-      final touched = session.items.any((i) => i.customCategoryName == cc.name);
-      if (touched) {
-        affectedSessions.add(session);
-        affectedItemCount += session.items
-            .where((i) => i.customCategoryName == cc.name)
-            .length;
-      }
-    }
-
-    final affectedBudgets = allBudgets
-        .where((b) => b.customCategoryName == cc.name)
-        .toList();
-
-    if (!mounted) return false;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          L.of(context).expDeleteCategory,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Remove "${cc.displayName}" from your categories?',
-              style: const TextStyle(fontSize: 14),
-            ),
-            if (affectedItemCount > 0 || affectedBudgets.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: Colors.orange.withValues(alpha: 0.4),
-                  ),
-                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.warning_amber_rounded,
-                          size: 16,
-                          color: Colors.orange[700],
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'This will affect:',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.orange[800],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    if (affectedItemCount > 0)
-                      Text(
-                        '• $affectedItemCount item${affectedItemCount == 1 ? '' : 's'} '
-                        'across ${affectedSessions.length} '
-                        'list${affectedSessions.length == 1 ? '' : 's'} '
-                        '— will be moved to "Other"',
-                        style: const TextStyle(fontSize: 12),
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: on ? _ink : const Color(0xFF94A3B8),
                       ),
-                    if (affectedBudgets.isNotEmpty)
+                    ),
+                    if (spent > 0)
                       Text(
-                        '• ${affectedBudgets.length} budget '
-                        'entr${affectedBudgets.length == 1 ? 'y' : 'ies'} '
-                        '— will be removed',
-                        style: const TextStyle(fontSize: 12),
+                        l.expSpentSoFar(taka(spent)),
+                        style: const TextStyle(fontSize: 11.5, color: _muted),
                       ),
                   ],
                 ),
               ),
+              if (onDelete != null)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                  color: const Color(0xFF94A3B8),
+                  onPressed: onDelete,
+                  tooltip: l.expDeleteCategory,
+                ),
+              Switch.adaptive(
+                value: on,
+                onChanged: onToggle,
+                activeTrackColor: color,
+              ),
             ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(L.of(context).commonCancel),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red[600]),
-            child: Text(L.of(context).commonDelete),
+          if (on) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: _ink,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: l.expAmount,
+                      prefixText: '৳ ',
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(
+                          color: color.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(
+                          color: color.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: color, width: 1.6),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 96,
+                  child: Text(
+                    percent > 0
+                        ? l.expPercentOfBudget(N.of(percent.round()))
+                        : '',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// "Other" is not a switch: it is what is left, always.
+  Widget _otherTile(L l) {
+    final cat = ExpenseCategory.other;
+    final spent = widget.categorySpending[cat.name] ?? 0.0;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(12, 10, 14, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: cat.color.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(cat.icon, size: 18, color: cat.color),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  cat.labelFor(context),
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: _ink,
+                  ),
+                ),
+                Text(
+                  spent > 0 ? l.expSpentSoFar(taka(spent)) : l.expUnallocated,
+                  style: const TextStyle(fontSize: 11.5, color: _muted),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            taka(_otherAmount),
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: _green,
+            ),
           ),
         ],
       ),
     );
-
-    if (confirmed != true) return false;
-
-    // Cascade cleanup BEFORE removing the category, so if anything fails
-    // we don't leave a partially-deleted state.
-    for (final session in affectedSessions) {
-      final cleaned = session.copyWith(
-        items: session.items.map((i) {
-          if (i.customCategoryName != cc.name) return i;
-          return i.copyWith(
-            category: ExpenseCategory.other,
-            clearCustomCategory: true,
-          );
-        }).toList(),
-      );
-      await repo.updateSession(cleaned);
-    }
-
-    for (final budget in affectedBudgets) {
-      await repo.deleteCategoryBudget(budget.id);
-    }
-
-    await di.sl<CustomCategoryService>().remove(cc.name);
-
-    if (!mounted) return false;
-    setState(() {
-      _customCategories = di.sl<CustomCategoryService>().getAll();
-      _customCategoryControllers[cc.name]?.dispose();
-      _customCategoryControllers.remove(cc.name);
-      _enabledCustomCategories.remove(cc.name);
-    });
-
-    // Refresh the dashboard so the moved items + removed budgets show up.
-    if (mounted) {
-      context.read<ExpenseBloc>().add(
-        ChangeSelectedMonth(widget.selectedMonth),
-      );
-    }
-    return true;
   }
 
-  // ── Add Custom Category Dialog ────────────────────────────────────────────
-  void _showAddCustomCategoryDialog() {
-    final nameCtrl = TextEditingController();
-    int selectedIconIndex = 0;
-    int selectedColorIndex = 0;
+  // ── Save bar ──────────────────────────────────────────────────────────
 
-    showDialog(
+  Widget _saveBar(L l) {
+    final canSave = _total > 0 && !_overAllocated;
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        12 + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  taka(_total),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: _ink,
+                  ),
+                ),
+                Text(
+                  '${l.expAllocated}: ${taka(_allocated)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _overAllocated ? _red : _muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          FilledButton.icon(
+            onPressed: canSave ? _save : null,
+            style: FilledButton.styleFrom(
+              backgroundColor: _green,
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            icon: const Icon(Icons.check_rounded, size: 18),
+            label: Text(
+              l.expSaveBudget,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Custom categories ─────────────────────────────────────────────────
+
+  void _addCustom() {
+    final l = L.of(context);
+    final nameCtrl = TextEditingController();
+    var iconIndex = 0;
+    var colorIndex = 0;
+
+    showDialog<void>(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) {
-          final icon = CustomCategory.availableIcons[selectedIconIndex];
-          final color = CustomCategory.availableColors[selectedColorIndex];
-
+        builder: (ctx, setDialog) {
+          final color = CustomCategory.availableColors[colorIndex];
           return AlertDialog(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
             ),
             title: Text(
-              L.of(context).expCreateCustomCategory,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              l.expCreateCustomCategory,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             ),
             content: SingleChildScrollView(
               child: Column(
@@ -1468,107 +871,122 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
                 children: [
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      width: 60,
+                      height: 60,
                       decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(14),
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Icon(icon, color: color, size: 28),
+                      child: Icon(
+                        CustomCategory.availableIcons[iconIndex],
+                        color: color,
+                        size: 30,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 14),
                   TextField(
                     controller: nameCtrl,
+                    autofocus: true,
                     textCapitalization: TextCapitalization.words,
                     decoration: InputDecoration(
-                      labelText: L.of(context).expCategoryName,
-                      hintText: 'e.g. Rent, Gym, Pet',
+                      labelText: l.expCategoryName,
+                      hintText: l.expCustomCategoryHint,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      isDense: true,
                     ),
                   ),
                   const SizedBox(height: 14),
-                  const Text(
-                    'Icon',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  Text(
+                    l.expIcon,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: _muted,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
-                    children: List.generate(
-                      CustomCategory.availableIcons.length,
-                      (i) => GestureDetector(
-                        onTap: () =>
-                            setDialogState(() => selectedIconIndex = i),
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: selectedIconIndex == i
-                                ? color.withValues(alpha: 0.15)
-                                : Colors.grey.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(8),
-                            border: selectedIconIndex == i
-                                ? Border.all(color: color, width: 2)
-                                : null,
-                          ),
-                          child: Icon(
-                            CustomCategory.availableIcons[i],
-                            size: 18,
-                            color: selectedIconIndex == i
-                                ? color
-                                : Colors.grey[600],
+                    children: [
+                      for (
+                        var i = 0;
+                        i < CustomCategory.availableIcons.length;
+                        i++
+                      )
+                        InkWell(
+                          onTap: () => setDialog(() => iconIndex = i),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: i == iconIndex
+                                  ? color.withValues(alpha: 0.18)
+                                  : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: i == iconIndex
+                                    ? color
+                                    : Colors.transparent,
+                              ),
+                            ),
+                            child: Icon(
+                              CustomCategory.availableIcons[i],
+                              size: 20,
+                              color: i == iconIndex ? color : _muted,
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                    ],
                   ),
                   const SizedBox(height: 14),
-                  const Text(
-                    'Color',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  Text(
+                    l.expColor,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: _muted,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: List.generate(
-                      CustomCategory.availableColors.length,
-                      (i) => GestureDetector(
-                        onTap: () =>
-                            setDialogState(() => selectedColorIndex = i),
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: CustomCategory.availableColors[i],
-                            shape: BoxShape.circle,
-                            border: selectedColorIndex == i
-                                ? Border.all(color: Colors.white, width: 3)
-                                : null,
-                            boxShadow: selectedColorIndex == i
-                                ? [
-                                    BoxShadow(
-                                      color: CustomCategory.availableColors[i]
-                                          .withValues(alpha: 0.5),
-                                      blurRadius: 8,
-                                    ),
-                                  ]
+                    children: [
+                      for (
+                        var i = 0;
+                        i < CustomCategory.availableColors.length;
+                        i++
+                      )
+                        InkWell(
+                          onTap: () => setDialog(() => colorIndex = i),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: CustomCategory.availableColors[i],
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: i == colorIndex
+                                    ? _ink
+                                    : Colors.transparent,
+                                width: 2.5,
+                              ),
+                            ),
+                            child: i == colorIndex
+                                ? const Icon(
+                                    Icons.check_rounded,
+                                    size: 16,
+                                    color: Colors.white,
+                                  )
                                 : null,
                           ),
-                          child: selectedColorIndex == i
-                              ? const Icon(
-                                  Icons.check_rounded,
-                                  size: 16,
-                                  color: Colors.white,
-                                )
-                              : null,
                         ),
-                      ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -1576,42 +994,36 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: Text(L.of(context).commonCancel),
+                child: Text(l.commonCancel),
               ),
               FilledButton(
                 onPressed: () async {
                   final name = nameCtrl.text.trim();
                   if (name.isEmpty) return;
-                  final custom = CustomCategory(
-                    name: name,
-                    iconIndex: selectedIconIndex,
-                    // toARGB32 is the documented replacement for the
-                    // deprecated Color.value, and round-trips exactly through
-                    // the Color(colorValue) that reads it back.
-                    colorValue: CustomCategory
-                        .availableColors[selectedColorIndex]
-                        .toARGB32(),
-                  );
                   final added = await di.sl<CustomCategoryService>().add(
-                    custom,
+                    CustomCategory(
+                      name: name,
+                      iconIndex: iconIndex,
+                      colorValue: CustomCategory.availableColors[colorIndex]
+                          .toARGB32(),
+                    ),
                   );
-                  if (!added && ctx.mounted) {
+                  if (!ctx.mounted) return;
+                  if (!added) {
                     ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(content: Text(L.of(ctx).expCategoryExists)),
+                      SnackBar(content: Text(l.expCategoryExists)),
                     );
                     return;
                   }
-                  if (ctx.mounted) Navigator.pop(ctx);
-                  // Add to local state + create controller
+                  Navigator.pop(ctx);
                   setState(() {
-                    _customCategories = di.sl<CustomCategoryService>().getAll();
-                    final ctrl = TextEditingController();
-                    ctrl.addListener(() => setState(() {}));
-                    _customCategoryControllers[name] = ctrl;
-                    _enabledCustomCategories[name] = true;
+                    _custom = di.sl<CustomCategoryService>().getAll();
+                    _customAmount[name] = TextEditingController()
+                      ..addListener(_refresh);
+                    _customOn[name] = true;
                   });
                 },
-                child: Text(L.of(context).expCreate),
+                child: Text(l.expCreate),
               ),
             ],
           );
@@ -1620,74 +1032,157 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
     );
   }
 
-  Widget _buildQuickAmountButton(double amount) {
-    final isSelected = _amountController.text == amount.toInt().toString();
-    return Container(
-      decoration: BoxDecoration(
-        gradient: isSelected
-            ? const LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-              )
-            : null,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
-      ),
-      child: ElevatedButton(
-        onPressed: () {
-          _amountController.text = amount.toInt().toString();
-          setState(() {});
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected
-              ? Colors.transparent
-              : const Color(0xFFF8FAFC),
-          foregroundColor: isSelected ? Colors.white : const Color(0xFF64748B),
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: isSelected
-                  ? Colors.transparent
-                  : Colors.grey.withValues(alpha: 0.2),
+  /// Deleting a custom category touches every month, not just this one:
+  /// items filed under it move to "Other" and its budget rows go, so nothing
+  /// is left pointing at a name that no longer exists.
+  Future<void> _confirmDeleteCustom(CustomCategory cc) async {
+    final l = L.of(context);
+    final repo = di.sl<ExpenseRepository>();
+    final sessions = (await repo.getAllSessions()).getOrElse(
+      () => <ExpenseSession>[],
+    );
+    final budgets = (await repo.getAllCategoryBudgets()).getOrElse(
+      () => <CategoryBudget>[],
+    );
+
+    final touched = sessions
+        .where((s) => s.items.any((i) => i.customCategoryName == cc.name))
+        .toList();
+    final itemCount = touched.fold<int>(
+      0,
+      (n, s) =>
+          n + s.items.where((i) => i.customCategoryName == cc.name).length,
+    );
+    final affectedBudgets = budgets
+        .where((b) => b.customCategoryName == cc.name)
+        .toList();
+    if (!mounted) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(
+          l.expDeleteCategory,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l.expDeleteCustomBody(cc.displayName),
+              style: const TextStyle(fontSize: 14, height: 1.4),
             ),
-          ),
+            if (itemCount > 0 || affectedBudgets.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              if (itemCount > 0)
+                Text(
+                  '• ${l.expDeleteCustomItems(itemCount, touched.length)}',
+                  style: const TextStyle(fontSize: 13, color: _muted),
+                ),
+              if (affectedBudgets.isNotEmpty)
+                Text(
+                  '• ${l.expDeleteCustomBudgets(affectedBudgets.length)}',
+                  style: const TextStyle(fontSize: 13, color: _muted),
+                ),
+            ],
+          ],
         ),
-        child: Text(
-          '৳${amount.toInt()}',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-            color: isSelected ? Colors.white : const Color(0xFF1E293B),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.commonCancel),
           ),
-        ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: _red),
+            child: Text(l.commonDelete),
+          ),
+        ],
       ),
     );
+    if (confirmed != true) return;
+
+    for (final s in touched) {
+      await repo.updateSession(
+        s.copyWith(
+          items: [
+            for (final i in s.items)
+              if (i.customCategoryName == cc.name)
+                i.copyWith(
+                  category: ExpenseCategory.other,
+                  clearCustomCategory: true,
+                )
+              else
+                i,
+          ],
+        ),
+      );
+    }
+    for (final b in affectedBudgets) {
+      await repo.deleteCategoryBudget(b.id);
+    }
+    await di.sl<CustomCategoryService>().remove(cc.name);
+    if (!mounted) return;
+
+    setState(() {
+      _custom = di.sl<CustomCategoryService>().getAll();
+      _customAmount.remove(cc.name)?.dispose();
+      _customOn.remove(cc.name);
+    });
+    context.read<ExpenseBloc>().add(ChangeSelectedMonth(widget.selectedMonth));
   }
 
-  String _formatMonthYear(DateTime date) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return '${months[date.month - 1]} ${date.year}';
-  }
+  // ── Bits ──────────────────────────────────────────────────────────────
+
+  Widget _card({required Widget child}) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.04),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: child,
+  );
+
+  Widget _iconBox(IconData icon, Color color) => Container(
+    width: 42,
+    height: 42,
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Icon(icon, color: color, size: 22),
+  );
+
+  Widget _chip(
+    String label, {
+    required bool selected,
+    required VoidCallback onTap,
+  }) => Material(
+    color: selected ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
+    borderRadius: BorderRadius.circular(12),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
+            color: selected ? Colors.white : _ink,
+          ),
+        ),
+      ),
+    ),
+  );
 }

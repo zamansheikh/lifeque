@@ -2012,6 +2012,138 @@ class LEn extends L {
   String get expUnallocated => 'Unallocated';
 
   @override
+  String get expSpent => 'Spent';
+
+  @override
+  String get expLeft => 'Left';
+
+  @override
+  String get expOver => 'Over';
+
+  @override
+  String expShowCategoryBudgets(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'Show category budgets ($countString)';
+  }
+
+  @override
+  String get expHideCategoryBudgets => 'Hide category budgets';
+
+  @override
+  String expDaysLeft(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString days left this month';
+  }
+
+  @override
+  String expPerDay(String amount) {
+    return '$amount/day keeps you on budget';
+  }
+
+  @override
+  String expOverBy(String amount) {
+    return 'Over by $amount';
+  }
+
+  @override
+  String get expUnbudgetedSpend => 'Spending outside any category budget';
+
+  @override
+  String get expBudgetIntro =>
+      'Set a realistic monthly budget, then split it into categories below. Whatever you don\'t assign goes to Other.';
+
+  @override
+  String get expQuickPick => 'Quick pick';
+
+  @override
+  String expActiveCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString active';
+  }
+
+  @override
+  String get expAllocated => 'Allocated';
+
+  @override
+  String expOtherGetsRest(String amount) {
+    return 'Other gets what is left: $amount';
+  }
+
+  @override
+  String get expOverAllocated =>
+      'Category budgets add up to more than the total';
+
+  @override
+  String get expAmount => 'Amount';
+
+  @override
+  String expPercentOfBudget(String percent) {
+    return '$percent% of budget';
+  }
+
+  @override
+  String expSpentSoFar(String amount) {
+    return 'Spent so far: $amount';
+  }
+
+  @override
+  String expDeleteCustomBody(String name) {
+    return 'Remove “$name” from your categories?';
+  }
+
+  @override
+  String expDeleteCustomItems(int count, int lists) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+    final intl.NumberFormat listsNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String listsString = listsNumberFormat.format(lists);
+
+    return '$countString items across $listsString lists will move to Other.';
+  }
+
+  @override
+  String expDeleteCustomBudgets(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString budget entries will be removed.';
+  }
+
+  @override
+  String get expBudgetSaved => 'Budget saved';
+
+  @override
+  String expCategoryOverBudgetDetail(String allocated, String total) {
+    return 'Category budgets ($allocated) exceed the total budget ($total).';
+  }
+
+  @override
+  String get expSaveBudget => 'Save budget';
+
+  @override
+  String expOfBudget(String amount) {
+    return 'of $amount';
+  }
+
+  @override
+  String expUsedPercent(String percent) {
+    return '$percent% used';
+  }
+
+  @override
   String get expOnTrack => 'On track';
 
   @override

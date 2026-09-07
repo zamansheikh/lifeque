@@ -2007,6 +2007,137 @@ class LBn extends L {
   String get expUnallocated => 'অবণ্টিত';
 
   @override
+  String get expSpent => 'খরচ';
+
+  @override
+  String get expLeft => 'বাকি';
+
+  @override
+  String get expOver => 'অতিরিক্ত';
+
+  @override
+  String expShowCategoryBudgets(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'ধরনভিত্তিক বাজেট দেখুন ($countString)';
+  }
+
+  @override
+  String get expHideCategoryBudgets => 'ধরনভিত্তিক বাজেট লুকান';
+
+  @override
+  String expDaysLeft(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return 'মাসের আরও $daysString দিন বাকি';
+  }
+
+  @override
+  String expPerDay(String amount) {
+    return 'দিনে $amount খরচ করলে বাজেটে থাকবেন';
+  }
+
+  @override
+  String expOverBy(String amount) {
+    return '$amount বেশি খরচ হয়েছে';
+  }
+
+  @override
+  String get expUnbudgetedSpend => 'বাজেটের বাইরের ধরনে খরচ';
+
+  @override
+  String get expBudgetIntro =>
+      'বাস্তবসম্মত একটি মাসিক বাজেট ঠিক করুন, তারপর নিচে ধরন অনুযায়ী ভাগ করুন। যেটুকু ভাগ করবেন না, তা ‘অন্যান্য’-তে যাবে।';
+
+  @override
+  String get expQuickPick => 'দ্রুত বাছাই';
+
+  @override
+  String expActiveCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countStringটি চালু';
+  }
+
+  @override
+  String get expAllocated => 'বণ্টিত';
+
+  @override
+  String expOtherGetsRest(String amount) {
+    return 'বাকিটা যাবে ‘অন্যান্য’-তে: $amount';
+  }
+
+  @override
+  String get expOverAllocated => 'ধরনগুলোর যোগফল মোট বাজেটের চেয়ে বেশি';
+
+  @override
+  String get expAmount => 'পরিমাণ';
+
+  @override
+  String expPercentOfBudget(String percent) {
+    return 'বাজেটের $percent%';
+  }
+
+  @override
+  String expSpentSoFar(String amount) {
+    return 'এ পর্যন্ত খরচ: $amount';
+  }
+
+  @override
+  String expDeleteCustomBody(String name) {
+    return '“$name” ধরনটি মুছে ফেলবেন?';
+  }
+
+  @override
+  String expDeleteCustomItems(int count, int lists) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+    final intl.NumberFormat listsNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String listsString = listsNumberFormat.format(lists);
+
+    return '$listsStringটি তালিকার $countStringটি জিনিস ‘অন্যান্য’-তে চলে যাবে।';
+  }
+
+  @override
+  String expDeleteCustomBudgets(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countStringটি বাজেট এন্ট্রি মুছে যাবে।';
+  }
+
+  @override
+  String get expBudgetSaved => 'বাজেট সংরক্ষিত হয়েছে';
+
+  @override
+  String expCategoryOverBudgetDetail(String allocated, String total) {
+    return 'ধরনভিত্তিক বাজেট ($allocated) মোট বাজেটের ($total) চেয়ে বেশি।';
+  }
+
+  @override
+  String get expSaveBudget => 'বাজেট সংরক্ষণ';
+
+  @override
+  String expOfBudget(String amount) {
+    return '$amount-এর মধ্যে';
+  }
+
+  @override
+  String expUsedPercent(String percent) {
+    return '$percent% ব্যবহৃত';
+  }
+
+  @override
   String get expOnTrack => 'ঠিক পথে';
 
   @override

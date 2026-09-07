@@ -3619,6 +3619,162 @@ abstract class L {
   /// **'Unallocated'**
   String get expUnallocated;
 
+  /// No description provided for @expSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent'**
+  String get expSpent;
+
+  /// No description provided for @expLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get expLeft;
+
+  /// No description provided for @expOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Over'**
+  String get expOver;
+
+  /// No description provided for @expShowCategoryBudgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Show category budgets ({count})'**
+  String expShowCategoryBudgets(int count);
+
+  /// No description provided for @expHideCategoryBudgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide category budgets'**
+  String get expHideCategoryBudgets;
+
+  /// No description provided for @expDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days left this month'**
+  String expDaysLeft(int days);
+
+  /// No description provided for @expPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount}/day keeps you on budget'**
+  String expPerDay(String amount);
+
+  /// No description provided for @expOverBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Over by {amount}'**
+  String expOverBy(String amount);
+
+  /// No description provided for @expUnbudgetedSpend.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending outside any category budget'**
+  String get expUnbudgetedSpend;
+
+  /// No description provided for @expBudgetIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a realistic monthly budget, then split it into categories below. Whatever you don\'t assign goes to Other.'**
+  String get expBudgetIntro;
+
+  /// No description provided for @expQuickPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick pick'**
+  String get expQuickPick;
+
+  /// No description provided for @expActiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active'**
+  String expActiveCount(int count);
+
+  /// No description provided for @expAllocated.
+  ///
+  /// In en, this message translates to:
+  /// **'Allocated'**
+  String get expAllocated;
+
+  /// No description provided for @expOtherGetsRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Other gets what is left: {amount}'**
+  String expOtherGetsRest(String amount);
+
+  /// No description provided for @expOverAllocated.
+  ///
+  /// In en, this message translates to:
+  /// **'Category budgets add up to more than the total'**
+  String get expOverAllocated;
+
+  /// No description provided for @expAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get expAmount;
+
+  /// No description provided for @expPercentOfBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of budget'**
+  String expPercentOfBudget(String percent);
+
+  /// No description provided for @expSpentSoFar.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent so far: {amount}'**
+  String expSpentSoFar(String amount);
+
+  /// No description provided for @expDeleteCustomBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove “{name}” from your categories?'**
+  String expDeleteCustomBody(String name);
+
+  /// No description provided for @expDeleteCustomItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items across {lists} lists will move to Other.'**
+  String expDeleteCustomItems(int count, int lists);
+
+  /// No description provided for @expDeleteCustomBudgets.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} budget entries will be removed.'**
+  String expDeleteCustomBudgets(int count);
+
+  /// No description provided for @expBudgetSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget saved'**
+  String get expBudgetSaved;
+
+  /// No description provided for @expCategoryOverBudgetDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Category budgets ({allocated}) exceed the total budget ({total}).'**
+  String expCategoryOverBudgetDetail(String allocated, String total);
+
+  /// No description provided for @expSaveBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Save budget'**
+  String get expSaveBudget;
+
+  /// No description provided for @expOfBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'of {amount}'**
+  String expOfBudget(String amount);
+
+  /// No description provided for @expUsedPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% used'**
+  String expUsedPercent(String percent);
+
   /// No description provided for @expOnTrack.
   ///
   /// In en, this message translates to:
