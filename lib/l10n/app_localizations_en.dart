@@ -2092,6 +2092,20 @@ class LEn extends L {
   String get alarmSheetPaused => 'All alarms are paused';
 
   @override
+  String alarmQuickTitle(String prayer) {
+    return '$prayer alarm';
+  }
+
+  @override
+  String get alarmQuickLastUsed => 'last used';
+
+  @override
+  String get alarmQuickMore => 'More options…';
+
+  @override
+  String get alarmQuickHoldHint => 'Hold the bell to set this again next time';
+
+  @override
   String get alarmNone => 'No alarm';
 
   @override

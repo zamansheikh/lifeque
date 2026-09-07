@@ -45,7 +45,13 @@ class SalatTimesCard extends StatelessWidget {
 
   final VoidCallback onSetAlarm;
   final void Function(String prayer) onTogglePrayed;
-  final void Function(String prayer) onToggleAlarm;
+
+  /// A tap on the bell. [anchor] is the bell's own context, so the page can
+  /// open a small chooser right beside it instead of a full sheet.
+  final void Function(String prayer, BuildContext anchor) onToggleAlarm;
+
+  /// A long-press on the bell: apply the remembered choice with no chooser.
+  final void Function(String prayer) onHoldAlarm;
   final void Function(String prayer) onEditJamaat;
 
   const SalatTimesCard({
@@ -55,6 +61,7 @@ class SalatTimesCard extends StatelessWidget {
     required this.onSetAlarm,
     required this.onTogglePrayed,
     required this.onToggleAlarm,
+    required this.onHoldAlarm,
     required this.onEditJamaat,
   });
 
@@ -269,25 +276,30 @@ class SalatTimesCard extends StatelessWidget {
   }
 
   Widget _bell(SalatRow row) {
-    return InkWell(
-      onTap: () => onToggleAlarm(row.name),
-      borderRadius: BorderRadius.circular(11),
-      child: Container(
-        width: 32,
-        height: 32,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: row.alarmOn
-              ? PrayerPalette.accentA(0.10)
-              : PrayerPalette.inkA(0.05),
-          borderRadius: BorderRadius.circular(11),
-        ),
-        child: Icon(
-          row.alarmOn
-              ? Icons.notifications_outlined
-              : Icons.notifications_off_outlined,
-          size: 16,
-          color: row.alarmOn ? PrayerPalette.accent : PrayerPalette.inkA(0.35),
+    return Builder(
+      builder: (bellContext) => InkWell(
+        onTap: () => onToggleAlarm(row.name, bellContext),
+        onLongPress: () => onHoldAlarm(row.name),
+        borderRadius: BorderRadius.circular(11),
+        child: Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: row.alarmOn
+                ? PrayerPalette.accentA(0.10)
+                : PrayerPalette.inkA(0.05),
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Icon(
+            row.alarmOn
+                ? Icons.notifications_outlined
+                : Icons.notifications_off_outlined,
+            size: 16,
+            color: row.alarmOn
+                ? PrayerPalette.accent
+                : PrayerPalette.inkA(0.35),
+          ),
         ),
       ),
     );

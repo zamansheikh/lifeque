@@ -2085,6 +2085,20 @@ class LBn extends L {
   String get alarmSheetPaused => 'সব অ্যালার্ম বন্ধ আছে';
 
   @override
+  String alarmQuickTitle(String prayer) {
+    return '$prayer অ্যালার্ম';
+  }
+
+  @override
+  String get alarmQuickLastUsed => 'শেষবার';
+
+  @override
+  String get alarmQuickMore => 'আরও অপশন…';
+
+  @override
+  String get alarmQuickHoldHint => 'পরেরবার এটাই দিতে ঘণ্টা চেপে ধরুন';
+
+  @override
   String get alarmNone => 'অ্যালার্ম নেই';
 
   @override

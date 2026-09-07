@@ -3763,6 +3763,30 @@ abstract class L {
   /// **'All alarms are paused'**
   String get alarmSheetPaused;
 
+  /// No description provided for @alarmQuickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{prayer} alarm'**
+  String alarmQuickTitle(String prayer);
+
+  /// No description provided for @alarmQuickLastUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'last used'**
+  String get alarmQuickLastUsed;
+
+  /// No description provided for @alarmQuickMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More options…'**
+  String get alarmQuickMore;
+
+  /// No description provided for @alarmQuickHoldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the bell to set this again next time'**
+  String get alarmQuickHoldHint;
+
   /// No description provided for @alarmNone.
   ///
   /// In en, this message translates to:

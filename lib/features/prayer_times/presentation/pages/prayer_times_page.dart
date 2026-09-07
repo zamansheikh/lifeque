@@ -30,6 +30,7 @@ import '../widgets/mosque_time_edit_sheet.dart';
 import '../widgets/nafal_times_card.dart';
 import '../widgets/prayer_alarm_sheet.dart';
 import '../widgets/prayer_snack.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/prayer_focus_card.dart' show QuickAlarmChoice;
 import '../widgets/prayer_progress_card.dart';
 import '../widgets/prayer_sky_header.dart';
@@ -109,6 +110,11 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   /// Seven daily fard counts, oldest first, last entry = today.
   List<int> _weekCounts = const [];
   List<PrayerAlarmConfig> _alarms = const [];
+
+  /// The quick-alarm choice last picked for each prayer, so the chooser can
+  /// mark it and a long-press can apply it without asking.
+  final Map<String, QuickAlarmChoice> _quickChoices = {};
+  static const _quickChoicePrefix = 'quick_alarm_choice_';
   StreamSubscription<List<PrayerAlarmConfig>>? _alarmsSub;
 
   Map<String, TimeOfDay?> _mosqueTimes = {};
@@ -119,6 +125,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   @override
   void initState() {
     super.initState();
+    _loadQuickChoices();
     _loadSavedSettings();
     _loadMosqueState();
     _initAlarmStream();
@@ -573,6 +580,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                 onSetAlarm: _openAlarmSheet,
                 onTogglePrayed: (prayer) => _togglePrayed(date, prayer),
                 onToggleAlarm: _toggleQuickAlarm,
+                onHoldAlarm: _holdQuickAlarm,
                 onEditJamaat: (prayer) => _openMosqueEdit(prayer, times),
               ),
             ),
@@ -930,9 +938,11 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     await _loadDayState(_selectedDate);
   }
 
-  /// The bell toggles a plain on-time alarm; anything more specific lives in
-  /// the alarm page.
-  Future<void> _toggleQuickAlarm(String prayer) async {
+  /// The bell. Off is one tap. On opens a small chooser beside the bell —
+  /// three timings and a way to the full alarm page — with the timing last
+  /// used for this prayer marked. A silent default was the alternative, and
+  /// a bell that does something you cannot see is found out at 4:25 am.
+  Future<void> _toggleQuickAlarm(String prayer, BuildContext anchor) async {
     final existing = _alarms.where((a) => a.prayerName == prayer).firstOrNull;
     if (existing != null && existing.isEnabled) {
       await _alarmService.removeAlarm(prayer);
@@ -944,7 +954,175 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       );
       return;
     }
-    await _applyQuickAlarm(prayer, QuickAlarmChoice.atTime);
+    await _showQuickAlarmChooser(prayer, anchor);
+  }
+
+  /// Long-press on the bell: the remembered timing, no chooser. Falls back
+  /// to "at waqt" for a prayer that has never been set.
+  Future<void> _holdQuickAlarm(String prayer) async {
+    final choice = _quickChoices[prayer] ?? QuickAlarmChoice.atTime;
+    final existing = _alarms.where((a) => a.prayerName == prayer).firstOrNull;
+    if (_quickChoiceFromConfig(existing) == choice) {
+      // Already exactly this: say when it rings rather than switching it off.
+      PrayerSnack.show(
+        context,
+        _alarmSetMessage(prayer, choice.minutesAfterStart),
+        kind: PrayerSnackKind.scheduled,
+      );
+      return;
+    }
+    await _applyQuickAlarm(prayer, choice);
+  }
+
+  Future<void> _showQuickAlarmChooser(
+    String prayer,
+    BuildContext anchor,
+  ) async {
+    final l = L.of(context);
+    final box = anchor.findRenderObject() as RenderBox?;
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    if (box == null || overlay == null) return;
+    final origin = box.localToGlobal(Offset.zero, ancestor: overlay);
+    final position = RelativeRect.fromRect(
+      Rect.fromLTWH(origin.dx, origin.dy, box.size.width, box.size.height),
+      Offset.zero & overlay.size,
+    );
+
+    final remembered = _quickChoices[prayer];
+    final result = await showMenu<Object>(
+      context: context,
+      position: position,
+      color: Colors.white,
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      items: [
+        PopupMenuItem<Object>(
+          enabled: false,
+          height: 34,
+          child: Text(
+            l.alarmQuickTitle(prayerLabel(context, prayer)),
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w800,
+              color: PrayerPalette.inkA(0.55),
+            ),
+          ),
+        ),
+        for (final choice in QuickAlarmChoice.values)
+          PopupMenuItem<Object>(
+            value: choice,
+            height: 42,
+            child: Row(
+              children: [
+                Icon(
+                  choice == remembered
+                      ? Icons.check_circle_rounded
+                      : Icons.circle_outlined,
+                  size: 18,
+                  color: choice == remembered
+                      ? PrayerPalette.accent
+                      : PrayerPalette.inkA(0.25),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  _quickChoiceLabel(choice),
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: choice == remembered
+                        ? FontWeight.w800
+                        : FontWeight.w600,
+                    color: PrayerPalette.ink,
+                  ),
+                ),
+                if (choice == remembered) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    l.alarmQuickLastUsed,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: PrayerPalette.accent,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        const PopupMenuDivider(height: 6),
+        PopupMenuItem<Object>(
+          value: 'more',
+          height: 40,
+          child: Row(
+            children: [
+              Icon(
+                Icons.tune_rounded,
+                size: 18,
+                color: PrayerPalette.inkA(0.5),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                l.alarmQuickMore,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: PrayerPalette.inkA(0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<Object>(
+          enabled: false,
+          height: 30,
+          child: Text(
+            l.alarmQuickHoldHint,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: PrayerPalette.inkA(0.45),
+            ),
+          ),
+        ),
+      ],
+    );
+    if (!mounted || result == null) return;
+    if (result is QuickAlarmChoice) {
+      await _rememberQuickChoice(prayer, result);
+      await _applyQuickAlarm(prayer, result);
+    } else {
+      _openAlarmSheet();
+    }
+  }
+
+  String _quickChoiceLabel(QuickAlarmChoice choice) {
+    final l = L.of(context);
+    return switch (choice) {
+      QuickAlarmChoice.fiveBefore => l.alarmMinBeforeWaqt(5),
+      QuickAlarmChoice.atTime => l.alarmAtWaqt,
+      QuickAlarmChoice.tenAfter => l.alarmMinAfterWaqt(10),
+    };
+  }
+
+  Future<void> _loadQuickChoices() async {
+    final prefs = await SharedPreferences.getInstance();
+    for (final prayer in _fardPrayers) {
+      final name = prefs.getString('$_quickChoicePrefix$prayer');
+      final choice = QuickAlarmChoice.values
+          .where((c) => c.name == name)
+          .firstOrNull;
+      if (choice != null) _quickChoices[prayer] = choice;
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _rememberQuickChoice(
+    String prayer,
+    QuickAlarmChoice choice,
+  ) async {
+    _quickChoices[prayer] = choice;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('$_quickChoicePrefix$prayer', choice.name);
   }
 
   /// Everything alarm-related lives in this one sheet — timing, adhan sound
