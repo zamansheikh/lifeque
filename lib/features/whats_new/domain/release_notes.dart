@@ -40,7 +40,7 @@ class ReleaseNote {
 /// anything without an entry simply shows nothing.
 const List<ReleaseNote> kReleaseNotes = [
   ReleaseNote(
-    version: '2.2.3',
+    version: '2.2.4',
     headlineEn: 'Wish cards, and widgets that behave',
     headlineBn: 'শুভেচ্ছা কার্ড, আর ঠিকঠাক উইজেট',
     lines: [
@@ -84,6 +84,20 @@ const List<ReleaseNote> kReleaseNotes = [
             'timetable worth sharing.',
         'অ্যাপ খুললে ছোট্ট পরামর্শ — কারও জন্মদিনে শুভেচ্ছা, বা শেয়ার করার '
             'মতো সময়সূচি।',
+      ),
+      ReleaseLine(
+        Icons.account_balance_wallet_rounded,
+        'The monthly budget shows what is left and a safe daily figure; '
+            'the budget editor is simpler and fully in Bangla.',
+        'মাসিক বাজেটে এখন কত বাকি আর দিনে কত খরচ করা যাবে তা দেখায়; বাজেট '
+            'সম্পাদনা সহজ হয়েছে, পুরোটা বাংলায়।',
+      ),
+      ReleaseLine(
+        Icons.schedule_rounded,
+        'Time pickers are 12-hour with AM/PM, and dates typed on the '
+            'keyboard are accepted in either digit set.',
+        'সময় বাছাই এখন ১২ ঘণ্টার, AM/PM সহ; কিবোর্ডে লেখা তারিখ যেকোনো '
+            'সংখ্যায় গ্রহণ করা হয়।',
       ),
     ],
   ),
