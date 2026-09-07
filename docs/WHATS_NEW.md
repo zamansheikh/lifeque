@@ -27,7 +27,7 @@ in `pubspec.yaml`:
 
 ```dart
 ReleaseNote(
-  version: '2.1.0',
+  version: 'X.Y.Z',   // exactly the version name in pubspec.yaml
   headlineEn: '…',
   headlineBn: '…',
   lines: [
@@ -52,7 +52,7 @@ otherwise ship a release with the announcement silently disabled, and nothing
 would complain:
 
 ```
-pubspec is 2.1.0 — add a release note for it
+pubspec is X.Y.Z — add a release note for it
 ```
 
 ## Where it is triggered
@@ -70,3 +70,21 @@ home screen appears first:
 | `features/whats_new/domain/release_notes.dart` | The notes themselves |
 | `features/whats_new/data/whats_new_service.dart` | Remembers what was shown |
 | `features/whats_new/presentation/whats_new_sheet.dart` | The sheet, and `scheduleAfterLaunch()` |
+
+## Bumping the version
+
+`pubspec.yaml` is the only place the version is typed. Everything else reads
+it:
+
+- Android and iOS take `versionName`/`versionCode` from it at build time.
+- The About sheet, What's New and the update prompt read it at runtime through
+  `package_info_plus`.
+- The docs pages (`docs/index.html`, `docs/privacy-policy.html`) are static, so
+  after a bump run:
+
+```
+dart run tool/sync_version.dart
+```
+
+`test/version_consistency_test.dart` fails if the newest release note or the
+docs disagree with pubspec, so a forgotten step cannot ship.

@@ -40,7 +40,7 @@ class ReleaseNote {
 /// anything without an entry simply shows nothing.
 const List<ReleaseNote> kReleaseNotes = [
   ReleaseNote(
-    version: '2.2.0',
+    version: '2.2.3',
     headlineEn: 'Wish cards, and widgets that behave',
     headlineBn: 'শুভেচ্ছা কার্ড, আর ঠিকঠাক উইজেট',
     lines: [
