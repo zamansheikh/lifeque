@@ -236,23 +236,40 @@ class DayTimelineWidgetUI extends StatelessWidget {
     );
   }
 
+  /// Maghrib and Isha are often under an hour apart, which on a 24-hour
+  /// track is less than a label's width — "মাগ" and "এশা" were printing on
+  /// top of each other. A label that would land on its neighbour drops to
+  /// a second row instead.
   Widget _labels() {
     return SizedBox(
-      height: 11,
+      height: 21,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final w = constraints.maxWidth;
+          const labelWidth = 32.0;
+          final ordered = [...ticks]
+            ..sort((a, b) => a.position.compareTo(b.position));
+          final placed = <(TimelineTick, double, int)>[];
+          double? previousLeft;
+          var previousRow = 0;
+          for (final tick in ordered) {
+            final left = (w * tick.position.clamp(0.0, 1.0) - labelWidth / 2)
+                .clamp(0.0, w - labelWidth);
+            final crowded =
+                previousLeft != null && left - previousLeft < labelWidth + 2;
+            final row = crowded && previousRow == 0 ? 1 : 0;
+            placed.add((tick, left, row));
+            previousLeft = left;
+            previousRow = row;
+          }
           return Stack(
             clipBehavior: Clip.none,
             children: [
-              for (final tick in ticks)
+              for (final (tick, left, row) in placed)
                 Positioned(
-                  // Centre each label on its tick; 16 is half a label's width.
-                  left: (w * tick.position.clamp(0.0, 1.0) - 16).clamp(
-                    0.0,
-                    w - 32,
-                  ),
-                  width: 32,
+                  left: left,
+                  top: row * 10.0,
+                  width: labelWidth,
                   child: Text(
                     tick.label,
                     textAlign: TextAlign.center,

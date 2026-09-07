@@ -307,6 +307,8 @@
   "gaugeBeginsAt": "শুরু {time}-এ",
   "gaugeNext": "পরবর্তী: {prayer}",
   "gaugeStartsInAfter": "শুরু হতে বাকি · {prayer} শেষ {time}",
+  "durationHm": "{h} ঘ {m} মি",
+  "durationM": "{m} মি",
   "gaugeWindowEndsIn": "সময় শেষ হতে বাকি",
   "dayDaysAhead": "{n} দিন পরে",
   "dayDaysAgo": "{n} দিন আগে",

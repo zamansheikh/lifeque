@@ -196,23 +196,30 @@ class MosqueWidgetUI extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                label,
-                maxLines: 1,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.55),
-                  fontSize: 7,
-                  fontWeight: FontWeight.w700,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.55),
+                    fontSize: 7,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w800,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],
@@ -234,17 +241,20 @@ class MosqueWidgetUI extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          chip.label,
-          maxLines: 1,
-          style: TextStyle(
-            color: chip.isCurrent
-                ? _navyInk
-                : Colors.white.withValues(alpha: 0.6),
-            fontSize: 9.5,
-            fontWeight: FontWeight.w700,
-            // Rendered outside the app's theme, so name the fallback here.
-            fontFamilyFallback: const ['NotoSerifBengali'],
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            chip.label,
+            maxLines: 1,
+            style: TextStyle(
+              color: chip.isCurrent
+                  ? _navyInk
+                  : Colors.white.withValues(alpha: 0.6),
+              fontSize: 9.5,
+              fontWeight: FontWeight.w700,
+              // Rendered outside the app's theme, so name the fallback here.
+              fontFamilyFallback: const ['NotoSerifBengali'],
+            ),
           ),
         ),
         const SizedBox(height: 2),

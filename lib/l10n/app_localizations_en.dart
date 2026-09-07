@@ -1053,6 +1053,16 @@ class LEn extends L {
   }
 
   @override
+  String durationHm(String h, String m) {
+    return '${h}h ${m}m';
+  }
+
+  @override
+  String durationM(String m) {
+    return '${m}m';
+  }
+
+  @override
   String get gaugeWindowEndsIn => 'Time ends in';
 
   @override

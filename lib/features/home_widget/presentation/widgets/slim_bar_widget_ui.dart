@@ -44,32 +44,45 @@ class SlimBarWidgetUI extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(16),
           ),
+          // Two-column cells (under ~320 logical px) drop the time range:
+          // name and countdown are the point of this bar, and the range
+          // was what got cut to "সকাল ১১:৫৭ –…" when all four fought for
+          // the width.
           child: Row(
             children: [
               const Icon(Icons.mosque, size: 14, color: _gold),
               const SizedBox(width: 8),
-              Text(
-                prayerName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(width: 8),
               Flexible(
-                child: Text(
-                  windowRange,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.65),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    prayerName,
+                    maxLines: 1,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
+              if (size.width >= 320) ...[
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    windowRange,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.65),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+              ],
               const Spacer(),
               const SizedBox(width: 8),
               Text(

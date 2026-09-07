@@ -199,15 +199,20 @@ class HomeWidgetService {
   /// language.
   static String _t12(DateTime t) => Clock.h12(t);
 
+  /// `০২:০৪:৫০` — the countdown in the reader's own digits, like every
+  /// other number on the widget.
   static String _hms(Duration d) {
     final s = d.isNegative ? 0 : d.inSeconds;
-    String two(int v) => v.toString().padLeft(2, '0');
+    String two(int v) => N.padded2(v);
     return '${two(s ~/ 3600)}:${two((s ~/ 60) % 60)}:${two(s % 60)}';
   }
 
+  /// `2h 14m` / `২ ঘ ১৪ মি`
   static String _short(Duration d) {
     final m = d.isNegative ? 0 : d.inMinutes;
-    return m >= 60 ? '${m ~/ 60}h ${m % 60}m' : '${m}m';
+    return m >= 60
+        ? appStrings.durationHm(N.of(m ~/ 60), N.of(m % 60))
+        : appStrings.durationM(N.of(m));
   }
 
   /// Hands the native providers the words for their "not loaded yet" state.
@@ -239,6 +244,9 @@ class HomeWidgetService {
       HomeWidget.saveWidgetData('placeholder_day_body', l.widgetLoadingDayMap),
       HomeWidget.saveWidgetData('placeholder_slim_title', l.widgetNextPrayer),
       HomeWidget.saveWidgetData('placeholder_slim_body', l.widgetLoadingPrayer),
+      // The native side pushes the launcher-picker preview and needs to know
+      // when the language changed so it pushes a fresh one.
+      HomeWidget.saveWidgetData('widget_language', isBanglaUi ? 'bn' : 'en'),
     ]);
   }
 

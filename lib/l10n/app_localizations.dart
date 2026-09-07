@@ -1939,6 +1939,18 @@ abstract class L {
   /// **'Starts in · {prayer} ended {time}'**
   String gaugeStartsInAfter(String prayer, String time);
 
+  /// No description provided for @durationHm.
+  ///
+  /// In en, this message translates to:
+  /// **'{h}h {m}m'**
+  String durationHm(String h, String m);
+
+  /// No description provided for @durationM.
+  ///
+  /// In en, this message translates to:
+  /// **'{m}m'**
+  String durationM(String m);
+
   /// No description provided for @gaugeWindowEndsIn.
   ///
   /// In en, this message translates to:

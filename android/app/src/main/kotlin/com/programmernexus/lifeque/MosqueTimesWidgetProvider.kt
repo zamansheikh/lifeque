@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
+import es.antonborri.home_widget.HomeWidgetPlugin
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class MosqueTimesWidgetProvider : HomeWidgetProvider() {
@@ -19,8 +20,32 @@ class MosqueTimesWidgetProvider : HomeWidgetProvider() {
         WidgetSizeReporter.reportAll(context, appWidgetManager, appWidgetIds, "mosque_widget_image")
 
         appWidgetIds.forEach { widgetId ->
+            val sizeTag = WidgetSizeReporter.sizeTag(appWidgetManager, widgetId)
+            WidgetRender.ensureSized(context, widgetData, "mosque_widget_image", sizeTag)
+            appWidgetManager.updateAppWidget(widgetId, buildViews(context, widgetData, sizeTag))
+        }
+    }
 
-            val views = RemoteViews(context.packageName, R.layout.mosque_widget_layout).apply {
+    /**
+     * Every update broadcast — including one with no instances placed, which
+     * the base class ignores — refreshes the launcher-picker preview.
+     */
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
+            WidgetPreviewPusher.push(context, MosqueTimesWidgetProvider::class.java, "mosque_widget_image") {
+                buildViews(context, HomeWidgetPlugin.getData(context), null)
+            }
+        }
+    }
+
+    /**
+     * The RemoteViews for one instance. [sizeTag] picks the bitmap rendered
+     * for that instance's cell; null takes the un-suffixed image, which is
+     * what a fresh instance — or the picker preview — reads.
+     */
+    private fun buildViews(context: Context, widgetData: SharedPreferences, sizeTag: String?): RemoteViews =
+        RemoteViews(context.packageName, R.layout.mosque_widget_layout).apply {
                 // The "not loaded yet" wording comes from Flutter so it
                 // follows the language chosen in the app, not the one the
                 // phone happens to be set to. Falls back to the layout's
@@ -36,7 +61,6 @@ class MosqueTimesWidgetProvider : HomeWidgetProvider() {
                 // This instance's own size first — two of the same widget at
                 // different widths each get their own bitmap — then the
                 // un-suffixed image, which is rendered before any size is known.
-                val sizeTag = WidgetSizeReporter.sizeTag(appWidgetManager, widgetId)
                 val imagePath = sizeTag?.let { widgetData.getString("mosque_widget_image_$it", null) }
                     ?: widgetData.getString("mosque_widget_image", null)
                 var bitmap = if (imagePath.isNullOrEmpty()) null else
@@ -85,10 +109,7 @@ class MosqueTimesWidgetProvider : HomeWidgetProvider() {
                     Uri.parse("homewidget://refreshwidget")
                 )
                 setOnClickPendingIntent(R.id.mosque_refresh_button, refreshPending)
-            }
-            appWidgetManager.updateAppWidget(widgetId, views)
         }
-    }
 
     /** Keeps the reported size current when the user resizes the widget. */
     override fun onAppWidgetOptionsChanged(
@@ -102,5 +123,11 @@ class MosqueTimesWidgetProvider : HomeWidgetProvider() {
             android.content.ComponentName(context, MosqueTimesWidgetProvider::class.java)
         )
         WidgetSizeReporter.reportAll(context, appWidgetManager, ids, "mosque_widget_image")
+        WidgetRender.ensureSized(
+            context,
+            HomeWidgetPlugin.getData(context),
+            "mosque_widget_image",
+            WidgetSizeReporter.sizeTag(appWidgetManager, appWidgetId)
+        )
     }
 }

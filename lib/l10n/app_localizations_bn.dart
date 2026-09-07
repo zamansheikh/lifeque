@@ -1049,6 +1049,16 @@ class LBn extends L {
   }
 
   @override
+  String durationHm(String h, String m) {
+    return '$h ঘ $m মি';
+  }
+
+  @override
+  String durationM(String m) {
+    return '$m মি';
+  }
+
+  @override
   String get gaugeWindowEndsIn => 'সময় শেষ হতে বাকি';
 
   @override

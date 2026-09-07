@@ -651,10 +651,13 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     return '${two(s ~/ 3600)}:${two((s ~/ 60) % 60)}:${two(s % 60)}';
   }
 
-  /// `2h 14m` / `43m`
+  /// `2h 14m` / `২ ঘ ১৪ মি`
   String _fmtShort(Duration d) {
     final m = d.isNegative ? 0 : d.inMinutes;
-    return m >= 60 ? '${m ~/ 60}h ${m % 60}m' : '${m}m';
+    final l = L.of(context);
+    return m >= 60
+        ? l.durationHm(N.of(m ~/ 60), N.of(m % 60))
+        : l.durationM(N.of(m));
   }
 
   // ── Cycling date line ───────────────────────────────────────────────────
@@ -1117,8 +1120,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   ) {
     if (isToday && activeNow != null) {
       final remaining = activeNow['remaining'] as Duration;
-      return '⛔ Active now · ${_fmtShort(remaining)} left — salat is '
-          'prohibited during these times.';
+      return '⛔ ${L.of(context).prohibitedActiveNow(_fmtShort(remaining))}';
     }
     if (!isToday) {
       return L.of(context).prohibitedSubtitle;

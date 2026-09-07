@@ -143,14 +143,17 @@ class PrayerWidgetUI extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                hijriLine,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  hijriLine,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               Text(
@@ -192,40 +195,56 @@ class PrayerWidgetUI extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Text(
-          prayerName,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 34,
-            fontWeight: FontWeight.w800,
-            height: 1,
-            letterSpacing: -0.5,
+        // The title and range scale down to the column instead of being
+        // cut: a truncated "পরবতা…" says nothing, a smaller "পরবর্তী: যোহর"
+        // says everything. On the narrow two-column cell the title lands
+        // around two thirds of its full size, still the biggest thing there.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            prayerName,
+            maxLines: 1,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
+              height: 1,
+              letterSpacing: -0.5,
+            ),
           ),
         ),
         const SizedBox(height: 5),
-        Text(
-          windowRange,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.85),
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-            fontFeatures: const [FontFeature.tabularFigures()],
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            windowRange,
+            maxLines: 1,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
           ),
         ),
         const SizedBox(height: 4),
+        // The two small lines wrap to a second line rather than scale: at
+        // 11pt there is no room to shrink, and the cell has the height.
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.schedule_rounded, size: 10, color: _gold),
+            const Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: Icon(Icons.schedule_rounded, size: 10, color: _gold),
+            ),
             const SizedBox(width: 4),
             Flexible(
               child: Text(
                 endsLine,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: _gold,
@@ -262,7 +281,7 @@ class PrayerWidgetUI extends StatelessWidget {
               Flexible(
                 child: Text(
                   avoidText,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: avoidActive
