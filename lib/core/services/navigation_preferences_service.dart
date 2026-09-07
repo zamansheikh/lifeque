@@ -8,13 +8,17 @@ class NavigationPreferencesService {
   static const _keyOrder = 'nav_item_order';
   static const _keyOnboardingDone = 'onboarding_done';
 
-  /// The full ordered list of all routable main destinations.
+  /// Every main destination, in the default order — which is also the
+  /// drawer order and, for the first entry, the home page.
+  ///
+  /// Tasks and prayer first, then the reminder-style screens, then the
+  /// rest. A saved order always wins over this list.
   static const List<NavItem> allItems = [
     NavItem(route: '/', label: 'Tasks', iconData: Icons.task_alt_rounded),
     NavItem(
-      route: '/todos',
-      label: 'To Do List',
-      iconData: Icons.checklist_rounded,
+      route: '/prayer-times',
+      label: 'Prayer Times',
+      iconData: Icons.mosque_rounded,
     ),
     NavItem(
       route: '/reminders',
@@ -37,9 +41,9 @@ class NavigationPreferencesService {
       iconData: Icons.medication_rounded,
     ),
     NavItem(
-      route: '/prayer-times',
-      label: 'Prayer Times',
-      iconData: Icons.mosque_rounded,
+      route: '/todos',
+      label: 'To Do List',
+      iconData: Icons.checklist_rounded,
     ),
     NavItem(
       route: '/study-timer',

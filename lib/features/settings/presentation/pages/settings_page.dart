@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,6 +37,10 @@ class _SettingsPageState extends State<SettingsPage> {
     _items = _svc.getOrderedItems();
   }
 
+  /// Everything in the order sheet that is not a row: handle, header, home
+  /// chip and the two buttons.
+  static const _sheetChromeHeight = 246.0;
+
   // ── Navigation Order Bottom Sheet ──────────────────────────────
   void _showNavigationOrderSheet() {
     // Work on a copy so we can discard on cancel
@@ -59,7 +64,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 top: Radius.circular(24),
               ),
               child: SizedBox(
-                height: MediaQuery.of(ctx).size.height * 0.72,
+                // Tall enough for every row without scrolling — the whole
+                // point is to see the order at a glance — capped only on
+                // phones too short to hold it.
+                height: math.min(
+                  _OrderTile.height * tempItems.length +
+                      _sheetChromeHeight +
+                      MediaQuery.of(ctx).padding.bottom,
+                  MediaQuery.of(ctx).size.height * 0.94,
+                ),
                 child: Column(
                   children: [
                     // Handle bar
@@ -964,21 +977,27 @@ class _OrderTile extends StatelessWidget {
     required this.colorScheme,
   });
 
+  /// Fixed so the sheet can size itself to the row count.
+  static const height = 60.0;
+
   @override
   Widget build(BuildContext context) {
     // The fill rides on the tile, not on a DecoratedBox around it: anything
     // opaque between a ListTile and its Material hides the tile's ink splash.
     return Container(
+      height: height,
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(color: Colors.grey.shade100, width: 1),
         ),
       ),
       child: ListTile(
+        dense: true,
+        visualDensity: VisualDensity.compact,
         tileColor: isFirst
             ? colorScheme.primary.withValues(alpha: 0.04)
             : Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
