@@ -14,6 +14,7 @@ import '../utils/bangla_date.dart';
 import '../utils/hijri_names.dart';
 import '../utils/prayer_palette.dart';
 import 'prayer_snack.dart';
+import 'share_art.dart';
 import '../../../../core/utils/local_numbers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../utils/prayer_l10n.dart';
@@ -96,7 +97,7 @@ class _SheetState extends State<_Sheet> {
       final dir = await getTemporaryDirectory();
       final file = File(
         '${dir.path}/prayer-timetable-'
-        '${DateFormat('yyyy-MM').format(widget.month)}.png',
+        '${DateFormat('yyyy-MM', 'en_US').format(widget.month)}.png',
       );
       await file.writeAsBytes(bytes.buffer.asUint8List());
 
@@ -207,8 +208,9 @@ class _SheetState extends State<_Sheet> {
   }
 }
 
-/// The printable A4 sheet: a gradient rule, the month heading, a dark column
-/// header and one row per day with Hijri and Bengali dates alongside.
+/// The printable A4 sheet: a night-sky header over a mosque skyline, the
+/// month in three calendars, then one row per day with Fridays picked out
+/// in gold. Dense on purpose — it is pinned on mosque noticeboards.
 class MonthTimetableCard extends StatelessWidget {
   final DateTime month;
   final double latitude;
@@ -237,10 +239,17 @@ class MonthTimetableCard extends StatelessWidget {
     'Isha',
   ];
 
+  static const _night = Color(0xFF05130E);
+  static const _deep = Color(0xFF0E3A29);
+  static const _paper = Color(0xFFFBF8EF);
+  static const _gold = PrayerPalette.gold;
+  static const _fridayBg = Color(0xFFFBF0CF);
+
   String _fmt(DateTime t) => DateFormat('h:mm').format(t);
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final hijriStart = HijriCalendar.fromDate(month);
     final hijriEnd = HijriCalendar.fromDate(
@@ -254,210 +263,113 @@ class MonthTimetableCard extends StatelessWidget {
     final banglaSpan = banglaStart.monthName == banglaEnd.monthName
         ? banglaStart.monthName
         : '${banglaStart.monthName}–${banglaEnd.monthName}';
+    final hijriSpan = hijriStart.hMonth == hijriEnd.hMonth
+        ? HijriNames.monthFor(context, hijriStart.hMonth)
+        : '${HijriNames.monthFor(context, hijriStart.hMonth)} – '
+              '${HijriNames.monthFor(context, hijriEnd.hMonth)}';
     final madhabLabel = madhab == Madhab.hanafi
-        ? L.of(context).madhabHanafi
-        : L.of(context).madhabShafi;
+        ? l.madhabHanafi
+        : l.madhabShafi;
 
     return Directionality(
       textDirection: ui.TextDirection.ltr,
       child: Container(
         width: 794,
         height: 1123,
-        color: const Color(0xFFFDFBF4),
+        color: _paper,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              height: 12,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    PrayerPalette.ink,
-                    PrayerPalette.accent,
-                    PrayerPalette.goldRule,
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(46, 26, 46, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Centred above the heading — the conventional place for the
-                  // bismillah on a printed sheet, rather than crowding the
-                  // top-right corner.
-                  Center(
-                    child: SizedBox(
-                      width: 340,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          '\uFDFD',
-                          textDirection: ui.TextDirection.rtl,
-                          style: PrayerPalette.arabic(
-                            fontSize: 96,
-                            height: 1.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        DateFormat('MMMM y').format(month),
-                        style: const TextStyle(
-                          color: PrayerPalette.ink,
-                          fontSize: 34,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      // Hijri and Bangla get their own line: sharing the
-                      // title row left too little width and truncated them.
-                      Text(
-                        '${HijriNames.monthFor(context, hijriStart.hMonth)} – '
-                        '${HijriNames.monthFor(context, hijriEnd.hMonth)} '
-                        '${N.plain(hijriEnd.hYear)}  ·  $banglaSpan '
-                        '${BanglaDate.digits(banglaEnd.year)}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFFB8901E),
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        L
-                            .of(context)
-                            .calTimetableHeader(locationName, madhabLabel),
-                        style: TextStyle(
-                          color: PrayerPalette.inkA(0.6),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(46, 20, 46, 0),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: PrayerPalette.ink,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 96,
-                      child: Text(
-                        L.of(context).calDate,
-                        style: TextStyle(
-                          color: PrayerPalette.gold,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 150,
-                      child: Text(
-                        L.of(context).calHijriBangla,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                    for (final c in _columns)
-                      Expanded(
-                        child: Text(
-                          prayerLabel(context, c).toUpperCase(),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+            SizedBox(
+              height: 232,
+              child: _header(
+                context,
+                hijriSpan,
+                hijriEnd,
+                banglaSpan,
+                banglaEnd,
+                madhabLabel,
               ),
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(46, 6, 46, 0),
-                child: Column(
-                  children: [
-                    for (var d = 1; d <= daysInMonth; d++)
-                      Expanded(
-                        child: _row(
-                          context,
-                          DateTime(month.year, month.month, d),
-                        ),
+                padding: const EdgeInsets.fromLTRB(40, 16, 40, 0),
+                child: Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: PrayerPalette.inkA(0.10)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: PrayerPalette.ink.withValues(alpha: 0.08),
+                        blurRadius: 18,
+                        offset: const Offset(0, 6),
                       ),
-                  ],
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      _columnHeader(context),
+                      for (var d = 1; d <= daysInMonth; d++)
+                        Expanded(
+                          child: _row(
+                            context,
+                            DateTime(month.year, month.month, d),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(46, 12, 46, 26),
-              child: Container(
-                padding: const EdgeInsets.only(top: 12),
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: PrayerPalette.inkA(0.12)),
+              padding: const EdgeInsets.fromLTRB(40, 12, 40, 22),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(7),
+                    child: Image.asset(
+                      'assets/icon/icon.png',
+                      width: 26,
+                      height: 26,
+                      fit: BoxFit.cover,
+                      cacheWidth: 78,
+                    ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(7),
-                      child: Image.asset(
-                        'assets/icon/icon.png',
-                        width: 24,
-                        height: 24,
-                        fit: BoxFit.cover,
-                        cacheWidth: 72,
-                      ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'LifeQue',
+                    style: TextStyle(
+                      color: PrayerPalette.ink,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'LifeQue',
-                      style: TextStyle(
-                        color: PrayerPalette.ink,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                      ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '· ${l.shareTagline}',
+                    style: TextStyle(
+                      color: PrayerPalette.inkA(0.5),
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
                     ),
-                    const Spacer(),
-                    Text(
-                      L.of(context).calFridayNote,
+                  ),
+                  const Spacer(),
+                  Flexible(
+                    child: Text(
+                      l.calFridayNote,
+                      textAlign: TextAlign.right,
+                      maxLines: 2,
                       style: TextStyle(
                         color: PrayerPalette.inkA(0.55),
-                        fontSize: 11,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w600,
+                        height: 1.3,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -465,6 +377,195 @@ class MonthTimetableCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _header(
+    BuildContext context,
+    String hijriSpan,
+    HijriCalendar hijriEnd,
+    String banglaSpan,
+    BanglaDate banglaEnd,
+    String madhabLabel,
+  ) {
+    final l = L.of(context);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [_night, _deep, Color(0xFF7A6D34), Color(0xFFE9B85C)],
+              stops: [0.0, 0.55, 0.88, 1.0],
+            ),
+          ),
+        ),
+        const CustomPaint(painter: StarfieldPainter(fadeBy: 0.6)),
+        Positioned(
+          right: 120,
+          bottom: 30,
+          child: Container(
+            width: 150,
+            height: 150,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  _gold.withValues(alpha: 0.9),
+                  _gold.withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 84,
+          child: CustomPaint(painter: MosqueSkylinePainter(color: _paper)),
+        ),
+        const Positioned(
+          top: 22,
+          right: 46,
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: CustomPaint(painter: CrescentPainter(color: _gold)),
+          ),
+        ),
+        Positioned(
+          left: 40,
+          top: 22,
+          right: 110,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 230,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '﷽',
+                    textDirection: ui.TextDirection.rtl,
+                    style: PrayerPalette.arabic(
+                      fontSize: 60,
+                      height: 1.0,
+                      color: _gold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l.calTimetableTitle,
+                style: TextStyle(
+                  color: _gold.withValues(alpha: 0.9),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.6,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                DateFormat('MMMM y').format(month),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 40,
+                  fontWeight: FontWeight.w800,
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '$hijriSpan ${N.plain(hijriEnd.hYear)}  ·  '
+                '$banglaSpan ${BanglaDate.digits(banglaEnd.year)}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: _gold,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(
+                    Icons.place_rounded,
+                    size: 14,
+                    color: Colors.white.withValues(alpha: 0.75),
+                  ),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      '$locationName  ·  $madhabLabel',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _columnHeader(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    color: PrayerPalette.ink,
+    child: Row(
+      children: [
+        SizedBox(
+          width: 104,
+          child: Text(
+            L.of(context).calDate,
+            style: const TextStyle(
+              color: _gold,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 146,
+          child: Text(
+            L.of(context).calHijriBangla,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
+          ),
+        ),
+        for (final c in _columns)
+          Expanded(
+            child: Text(
+              prayerLabel(context, c).toUpperCase(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: c == 'Sunrise'
+                    ? Colors.white.withValues(alpha: 0.6)
+                    : Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1,
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
 
   Widget _row(BuildContext context, DateTime day) {
     final calc = SalahTimeCalculator(
@@ -480,24 +581,30 @@ class MonthTimetableCard extends StatelessWidget {
     final isFriday = day.weekday == DateTime.friday;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         // No "today" highlight: this sheet is printed or forwarded, and the
         // marker would be wrong for anyone reading it on another day.
         color: isFriday
-            ? const Color(0xFFF7EFD8)
+            ? _fridayBg
             : day.day.isEven
             ? PrayerPalette.inkA(0.035)
             : Colors.transparent,
-        borderRadius: BorderRadius.circular(9),
+        border: isFriday
+            ? const Border(
+                left: BorderSide(color: PrayerPalette.goldDeep, width: 3),
+              )
+            : null,
       ),
       child: Row(
         children: [
           SizedBox(
-            width: 96,
+            width: 104,
             child: Text(
               '${DateFormat('E d').format(day)}${isFriday ? ' ✦' : ''}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: isFriday ? PrayerPalette.fridayText : PrayerPalette.ink,
                 fontSize: 12.5,
@@ -506,7 +613,7 @@ class MonthTimetableCard extends StatelessWidget {
             ),
           ),
           SizedBox(
-            width: 150,
+            width: 146,
             child: Text(
               '${N.of(hijri.hDay)} ${HijriNames.shortMonthFor(context, hijri.hMonth)} · '
               '${BanglaDate.digits(bangla.day)} ${bangla.monthName}',
@@ -519,24 +626,19 @@ class MonthTimetableCard extends StatelessWidget {
               ),
             ),
           ),
-          for (final key in const [
-            'Fajr',
-            'Sunrise',
-            'Dhuhr',
-            'Asr',
-            'Maghrib',
-            'Isha',
-          ])
+          for (final key in _columns)
             Expanded(
               child: Text(
                 _fmt(times[key]!),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: key == 'Sunrise'
-                      ? PrayerPalette.inkA(0.6)
+                      ? PrayerPalette.inkA(0.5)
                       : const Color(0xFF1B2A1F),
                   fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: key == 'Sunrise'
+                      ? FontWeight.w500
+                      : FontWeight.w700,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),

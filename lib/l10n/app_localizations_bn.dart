@@ -2259,6 +2259,22 @@ class LBn extends L {
   String get shareIftar => 'ইফতার';
 
   @override
+  String get shareAyahTranslation =>
+      'নিশ্চয়ই নামাজ মুমিনদের উপর নির্দিষ্ট সময়ে ফরজ করা হয়েছে।';
+
+  @override
+  String get shareAyahRef => 'সূরা আন-নিসা ৪:১০৩';
+
+  @override
+  String get shareTagline => 'আপনার নামাজের সঙ্গী';
+
+  @override
+  String get shareFridayBadge => 'জুমুআ মোবারক';
+
+  @override
+  String get shareTimesFor => 'সময়সূচি';
+
+  @override
   String get shareFailed => 'কার্ডটি শেয়ার করা যায়নি';
 
   @override

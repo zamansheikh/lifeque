@@ -2266,6 +2266,22 @@ class LEn extends L {
   String get shareIftar => 'IFTAR';
 
   @override
+  String get shareAyahTranslation =>
+      'Indeed, prayer has been decreed upon the believers at fixed times.';
+
+  @override
+  String get shareAyahRef => 'Surah An-Nisa 4:103';
+
+  @override
+  String get shareTagline => 'your prayer companion';
+
+  @override
+  String get shareFridayBadge => 'Jumu\'ah Mubarak';
+
+  @override
+  String get shareTimesFor => 'Times for';
+
+  @override
   String get shareFailed => 'Could not share the card';
 
   @override

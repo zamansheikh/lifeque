@@ -4045,6 +4045,36 @@ abstract class L {
   /// **'IFTAR'**
   String get shareIftar;
 
+  /// No description provided for @shareAyahTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Indeed, prayer has been decreed upon the believers at fixed times.'**
+  String get shareAyahTranslation;
+
+  /// No description provided for @shareAyahRef.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah An-Nisa 4:103'**
+  String get shareAyahRef;
+
+  /// No description provided for @shareTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'your prayer companion'**
+  String get shareTagline;
+
+  /// No description provided for @shareFridayBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Jumu\'ah Mubarak'**
+  String get shareFridayBadge;
+
+  /// No description provided for @shareTimesFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Times for'**
+  String get shareTimesFor;
+
   /// No description provided for @shareFailed.
   ///
   /// In en, this message translates to:

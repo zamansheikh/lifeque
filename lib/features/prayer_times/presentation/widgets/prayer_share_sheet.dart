@@ -13,6 +13,7 @@ import '../utils/bangla_date.dart';
 import '../utils/hijri_names.dart';
 import '../utils/prayer_palette.dart';
 import 'prayer_snack.dart';
+import 'share_art.dart';
 import '../../../../core/utils/local_numbers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../utils/prayer_l10n.dart';
@@ -83,7 +84,9 @@ class _ShareSheetState extends State<_ShareSheet> {
       final dir = await getTemporaryDirectory();
       final file = File(
         '${dir.path}/prayer-times-'
-        '${DateFormat('yyyy-MM-dd').format(widget.date)}.png',
+        // Latin digits in the file name whatever the UI language — share
+        // targets and file pickers do not all cope with Bangla ones.
+        '${DateFormat('yyyy-MM-dd', 'en_US').format(widget.date)}.png',
       );
       await file.writeAsBytes(bytes.buffer.asUint8List());
 
@@ -189,8 +192,12 @@ class _ShareSheetState extends State<_ShareSheet> {
   }
 }
 
-/// The 1080×1350 social card: dawn gradient, the five waqts, and a sunrise /
-/// sahri / iftar footer strip.
+/// The 1080×1350 social card.
+///
+/// A night sky that warms into dawn over a mosque skyline, the five waqts as
+/// gold-on-green rows beneath it, and the ayah on fixed prayer times at the
+/// foot — so the picture says something worth passing on, not only when.
+/// 4:5, the tallest ratio Instagram and Facebook show uncropped in a feed.
 class PrayerShareCard extends StatelessWidget {
   final SalahTimeCalculator calculator;
   final DateTime date;
@@ -205,209 +212,81 @@ class PrayerShareCard extends StatelessWidget {
 
   static const _fard = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   static const _glyphs = {
-    'Fajr': Icons.nightlight_outlined,
-    'Dhuhr': Icons.wb_sunny_outlined,
-    'Asr': Icons.wb_sunny_outlined,
-    'Maghrib': Icons.brightness_4_outlined,
-    'Isha': Icons.nightlight_outlined,
+    'Fajr': Icons.nightlight_round,
+    'Dhuhr': Icons.wb_sunny_rounded,
+    'Asr': Icons.wb_twilight_rounded,
+    'Maghrib': Icons.brightness_4_rounded,
+    'Isha': Icons.bedtime_rounded,
   };
+
+  static const _night = Color(0xFF05130E);
+  static const _deep = Color(0xFF0E3A29);
+  static const _panel = Color(0xFF0A2519);
+  static const _gold = PrayerPalette.gold;
+  static const _ayah =
+      'إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا';
 
   String _fmt(DateTime t) => Clock.h12(t);
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     final times = calculator.getPrayerTimesMap();
-    final hijri = HijriCalendar.fromDate(date);
-    final bangla = BanglaDate.fromDate(date);
 
     return Directionality(
       textDirection: ui.TextDirection.ltr,
       child: Container(
         width: 1080,
         height: 1350,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              PrayerPalette.skyTop,
-              Color(0xFFEDF6E0),
-              Color(0xFFF7FBF5),
-              Color(0xFFFDFBF4),
-            ],
-            stops: [0.0, 0.34, 0.62, 1.0],
-          ),
-        ),
-        child: Stack(
+        color: _panel,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Positioned(
-              top: 118,
-              right: 154,
-              child: Container(
-                width: 76,
-                height: 76,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFFF2CE6B),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 330,
-              left: 0,
-              right: 0,
-              child: SizedBox(
-                height: 150,
-                child: CustomPaint(painter: _CardHillsPainter()),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(96, 62, 96, 54),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Amiri draws U+FDFD as one very wide calligraphic
-                  // ligature — far wider than the card's 888px content box,
-                  // so unconstrained it painted outside the card and came out
-                  // clipped in the exported PNG. Give it a fixed slot.
-                  SizedBox(
-                    // Stops short of the decorative sun at the card's top
-                    // right, which sits 154px in from that edge.
-                    width: 600,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        '\uFDFD',
-                        textDirection: ui.TextDirection.rtl,
-                        style: PrayerPalette.arabic(fontSize: 150, height: 1.0),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  Text(
-                    L.of(context).shareCardTitle,
-                    style: TextStyle(
-                      color: PrayerPalette.ink,
-                      fontSize: 66,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    '${DateFormat('EEEE').format(date)}, '
-                    '${N.of(hijri.hDay)} '
-                    '${HijriNames.monthFor(context, hijri.hMonth)} '
-                    '${N.plain(hijri.hYear)} · '
-                    '${DateFormat('MMM d, y').format(date)}',
-                    style: TextStyle(
-                      color: PrayerPalette.inkA(0.7),
-                      fontSize: 26,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${BanglaDate.weekdayName(date)}, ${bangla.formatted} '
-                    'বঙ্গাব্দ',
-                    style: const TextStyle(
-                      color: Color(0xFFB8901E),
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.place,
-                        size: 22,
-                        color: PrayerPalette.accent,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        locationName,
-                        style: const TextStyle(
-                          color: PrayerPalette.accent,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+            SizedBox(height: 500, child: _sky(context)),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(72, 30, 72, 34),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < _fard.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 12),
+                      _row(context, _fard[i], times[_fard[i]]!),
                     ],
-                  ),
-                  const SizedBox(height: 30),
-                  _divider(),
-                  // The hill silhouette sits behind this band, so the first
-                  // row needs clearance or it reads as colliding with it.
-                  const SizedBox(height: 44),
-                  for (var i = 0; i < _fard.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 14),
-                    _row(context, _fard[i], times[_fard[i]]!),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _pill(
+                            Icons.wb_sunny_outlined,
+                            l.shareSunrise,
+                            _fmt(times['Sunrise']!),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _pill(
+                            Icons.nightlight_outlined,
+                            l.shareSahriEnds,
+                            _fmt(times['Fajr']!),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _pill(
+                            Icons.restaurant_rounded,
+                            l.shareIftar,
+                            _fmt(times['Maghrib']!),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _ayahBlock(l),
+                    const Spacer(),
+                    _footer(l),
                   ],
-                  const SizedBox(height: 26),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _footerTile(
-                          '☀ ${L.of(context).shareSunrise}',
-                          _fmt(times['Sunrise']!),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _footerTile(
-                          '☾ ${L.of(context).shareSahriEnds}',
-                          _fmt(times['Fajr']!),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _footerTile(
-                          '✦ ${L.of(context).shareIftar}',
-                          _fmt(times['Maghrib']!),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
-                        child: Image.asset(
-                          'assets/icon/icon.png',
-                          width: 52,
-                          height: 52,
-                          fit: BoxFit.cover,
-                          // The source is 2048², far more than the 52pt slot
-                          // needs; decode it small rather than re-encoding
-                          // the launcher icon itself.
-                          cacheWidth: 156,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      const Text(
-                        'LifeQue',
-                        style: TextStyle(
-                          color: PrayerPalette.ink,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Text(
-                        '· your prayer companion',
-                        style: TextStyle(
-                          color: PrayerPalette.inkA(0.55),
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
           ],
@@ -416,73 +295,213 @@ class PrayerShareCard extends StatelessWidget {
     );
   }
 
-  Widget _divider() => Row(
-    children: [
-      Expanded(
-        child: Container(
-          height: 1.5,
+  // ── The sky ─────────────────────────────────────────────────────────────
+
+  Widget _sky(BuildContext context) {
+    final l = L.of(context);
+    final hijri = HijriCalendar.fromDate(date);
+    final bangla = BanglaDate.fromDate(date);
+    final isFriday = date.weekday == DateTime.friday;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                PrayerPalette.goldRule.withValues(alpha: 0),
-                PrayerPalette.goldRule.withValues(alpha: 0.6),
-              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [_night, _deep, Color(0xFF6E6A32), Color(0xFFE9B85C)],
+              stops: [0.0, 0.5, 0.84, 1.0],
             ),
           ),
         ),
-      ),
-      const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 18),
-        child: Text(
-          '✦',
-          style: TextStyle(color: PrayerPalette.goldDeep, fontSize: 26),
-        ),
-      ),
-      Expanded(
-        child: Container(
-          height: 1.5,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                PrayerPalette.goldRule.withValues(alpha: 0.6),
-                PrayerPalette.goldRule.withValues(alpha: 0),
-              ],
+        const CustomPaint(painter: StarfieldPainter(fadeBy: 0.62)),
+        // The rising sun, half behind the skyline.
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 40,
+          child: Center(
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    _gold.withValues(alpha: 0.95),
+                    _gold.withValues(alpha: 0.35),
+                    _gold.withValues(alpha: 0.0),
+                  ],
+                  stops: const [0.0, 0.45, 1.0],
+                ),
+              ),
             ),
           ),
         ),
-      ),
-    ],
-  );
+        // Sized so the heading block, location pill included, ends above the
+        // central dome's finial rather than sitting on it.
+        const Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 150,
+          child: CustomPaint(painter: MosqueSkylinePainter(color: _panel)),
+        ),
+        const Positioned(
+          top: 62,
+          left: 84,
+          child: SizedBox(
+            width: 82,
+            height: 82,
+            child: CustomPaint(painter: CrescentPainter(color: _gold)),
+          ),
+        ),
+        if (isFriday)
+          Positioned(
+            top: 70,
+            right: 72,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              decoration: BoxDecoration(
+                color: _gold,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Text(
+                l.shareFridayBadge,
+                style: const TextStyle(
+                  color: _night,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+        Positioned(
+          top: 44,
+          left: 72,
+          right: 72,
+          child: Column(
+            children: [
+              // Amiri draws U+FDFD as one very wide ligature; give it a slot
+              // narrower than the gap between the moon and the badge.
+              SizedBox(
+                width: 460,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '﷽',
+                    textDirection: ui.TextDirection.rtl,
+                    style: PrayerPalette.arabic(
+                      fontSize: 110,
+                      height: 1.0,
+                      color: _gold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l.shareCardTitle,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 76,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1,
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '${BanglaDate.weekdayName(date)}, '
+                '${N.of(hijri.hDay)} '
+                '${HijriNames.monthFor(context, hijri.hMonth)} '
+                '${N.plain(hijri.hYear)} · '
+                '${DateFormat('d MMMM y').format(date)}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: _gold,
+                  fontSize: 27,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${bangla.formatted} বঙ্গাব্দ',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.72),
+                  fontSize: 23,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.place_rounded, size: 22, color: _gold),
+                    const SizedBox(width: 8),
+                    Text(
+                      locationName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── The timetable ───────────────────────────────────────────────────────
 
   /// Every prayer renders identically. The card is a timetable people send
   /// to others, so marking "now" would be wrong the moment it's forwarded.
   Widget _row(BuildContext context, String name, DateTime time) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 46, vertical: 22),
+      height: 84,
+      padding: const EdgeInsets.only(left: 22, right: 30),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: PrayerPalette.inkA(0.10), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: PrayerPalette.ink.withValues(alpha: 0.07),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
       ),
       child: Row(
         children: [
-          SizedBox(
-            width: 52,
-            child: Icon(_glyphs[name], size: 34, color: PrayerPalette.goldDeep),
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _gold.withValues(alpha: 0.16),
+              border: Border.all(color: _gold.withValues(alpha: 0.55)),
+            ),
+            child: Icon(_glyphs[name], size: 28, color: _gold),
           ),
-          const SizedBox(width: 18),
+          const SizedBox(width: 22),
           Text(
             prayerLabel(context, name),
             style: const TextStyle(
-              color: PrayerPalette.ink,
-              fontSize: 37,
+              color: Colors.white,
+              fontSize: 36,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -490,8 +509,8 @@ class PrayerShareCard extends StatelessWidget {
           Text(
             _fmt(time),
             style: const TextStyle(
-              color: PrayerPalette.ink,
-              fontSize: 41,
+              color: _gold,
+              fontSize: 40,
               fontWeight: FontWeight.w800,
               fontFeatures: [FontFeature.tabularFigures()],
             ),
@@ -501,35 +520,40 @@ class PrayerShareCard extends StatelessWidget {
     );
   }
 
-  Widget _footerTile(String label, String value) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+  Widget _pill(IconData icon, String label, String value) => Container(
+    height: 72,
     decoration: BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.75),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: PrayerPalette.goldRule.withValues(alpha: 0.3)),
+      color: Colors.white.withValues(alpha: 0.05),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: _gold.withValues(alpha: 0.28)),
     ),
     child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: PrayerPalette.goldDeep,
-              fontSize: 19,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: _gold),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: _gold,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+              ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 4),
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
             value,
             style: const TextStyle(
-              color: PrayerPalette.ink,
-              fontSize: 27,
+              color: Colors.white,
+              fontSize: 26,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -537,46 +561,75 @@ class PrayerShareCard extends StatelessWidget {
       ],
     ),
   );
-}
 
-/// The two stacked hill bands behind the card's heading.
-class _CardHillsPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final sx = size.width / 1080.0;
-    final sy = size.height / 150.0;
+  Widget _ayahBlock(L l) => Column(
+    children: [
+      // One line, scaled to fit: the ayah must never wrap mid-phrase.
+      FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          _ayah,
+          textDirection: ui.TextDirection.rtl,
+          style: PrayerPalette.arabic(fontSize: 34, height: 1.5, color: _gold),
+        ),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        l.shareAyahTranslation,
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.8),
+          fontSize: 21,
+          fontWeight: FontWeight.w600,
+          height: 1.35,
+        ),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        '— ${l.shareAyahRef}',
+        style: TextStyle(
+          color: _gold.withValues(alpha: 0.8),
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    ],
+  );
 
-    Path band(List<List<double>> curves, double startY) {
-      final p = Path()
-        ..moveTo(0, size.height)
-        ..lineTo(0, startY * sy);
-      for (final c in curves) {
-        p.quadraticBezierTo(c[0] * sx, c[1] * sy, c[2] * sx, c[3] * sy);
-      }
-      return p
-        ..lineTo(size.width, size.height)
-        ..close();
-    }
-
-    canvas.drawPath(
-      band([
-        [140, 30, 300, 78],
-        [430, 116, 600, 58],
-        [760, 8, 900, 64],
-        [990, 96, 1080, 72],
-      ], 96),
-      Paint()..color = PrayerPalette.inkA(0.10),
-    );
-    canvas.drawPath(
-      band([
-        [230, 72, 470, 108],
-        [700, 142, 920, 96],
-        [1000, 106, 1080, 116],
-      ], 122),
-      Paint()..color = PrayerPalette.inkA(0.07),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_CardHillsPainter oldDelegate) => false;
+  Widget _footer(L l) => Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          'assets/icon/icon.png',
+          width: 44,
+          height: 44,
+          fit: BoxFit.cover,
+          // The source is 2048², far more than the slot needs.
+          cacheWidth: 132,
+        ),
+      ),
+      const SizedBox(width: 12),
+      const Text(
+        'LifeQue',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 26,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      const SizedBox(width: 10),
+      Text(
+        '· ${l.shareTagline}',
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.55),
+          fontSize: 22,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ],
+  );
 }
