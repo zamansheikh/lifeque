@@ -2144,6 +2144,15 @@ class LEn extends L {
   }
 
   @override
+  String expBoughtCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString bought';
+  }
+
+  @override
   String get expOnTrack => 'On track';
 
   @override

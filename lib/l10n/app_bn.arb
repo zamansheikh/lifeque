@@ -613,6 +613,7 @@
   "expSaveBudget": "বাজেট সংরক্ষণ",
   "expOfBudget": "{amount}-এর মধ্যে",
   "expUsedPercent": "{percent}% ব্যবহৃত",
+  "expBoughtCount": "{count}টি কেনা",
   "expOnTrack": "ঠিক পথে",
   "expGoodProgress": "ভালো এগোচ্ছে",
   "expHalfway": "অর্ধেক পথ",

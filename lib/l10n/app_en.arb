@@ -1026,6 +1026,8 @@
   "@expOfBudget": {"placeholders": {"amount": {"type": "String"}}},
   "expUsedPercent": "{percent}% used",
   "@expUsedPercent": {"placeholders": {"percent": {"type": "String"}}},
+  "expBoughtCount": "{count} bought",
+  "@expBoughtCount": {"placeholders": {"count": {"type": "int", "format": "decimalPattern"}}},
   "expOnTrack": "On track",
   "expGoodProgress": "Good progress",
   "expHalfway": "Halfway through",

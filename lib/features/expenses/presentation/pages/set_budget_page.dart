@@ -86,8 +86,11 @@ class _SetBudgetPageState extends State<SetBudgetPage> {
 
   bool get _overAllocated => _allocated > _total;
 
+  /// Switched-on categories. "Other" is never a switch, so it never counts.
   int get _activeCount =>
-      _catOn.values.where((v) => v).length +
+      _catOn.entries
+          .where((e) => e.key != ExpenseCategory.other && e.value)
+          .length +
       _customOn.values.where((v) => v).length;
 
   @override

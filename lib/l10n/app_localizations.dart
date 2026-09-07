@@ -3775,6 +3775,12 @@ abstract class L {
   /// **'{percent}% used'**
   String expUsedPercent(String percent);
 
+  /// No description provided for @expBoughtCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bought'**
+  String expBoughtCount(int count);
+
   /// No description provided for @expOnTrack.
   ///
   /// In en, this message translates to:

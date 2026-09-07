@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../utils/taka.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../../../../core/utils/local_clock.dart';
+import 'package:intl/intl.dart';
 import '../../domain/entities/expense_item.dart';
 import '../../domain/entities/expense_session.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -118,8 +122,8 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '$totalItems ${totalItems == 1 ? 'item' : 'items'} · '
-                          '$purchasedItems bought · '
+                          '${L.of(context).expItemCount(totalItems)} · '
+                          '${L.of(context).expBoughtCount(purchasedItems)} · '
                           '${_formatDateTime(widget.session.createdAt)}',
                           style: TextStyle(
                             fontSize: 11,
@@ -134,7 +138,7 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '৳${widget.session.purchasedAmount.toStringAsFixed(0)}',
+                        taka(widget.session.purchasedAmount),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
@@ -142,7 +146,9 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
                         ),
                       ),
                       Text(
-                        'of ৳${widget.session.totalAmount.toStringAsFixed(0)}',
+                        L
+                            .of(context)
+                            .expOfBudget(taka(widget.session.totalAmount)),
                         style: TextStyle(fontSize: 10, color: Colors.grey[500]),
                       ),
                     ],
@@ -357,22 +363,14 @@ class _ExpenseSessionCardState extends State<ExpenseSessionCard>
   }
 
   String _formatDateTime(DateTime dateTime) {
+    final l = L.of(context);
     final now = DateTime.now();
-    final difference = now.difference(dateTime);
-    if (difference.inDays == 0) {
-      return 'Today ${_formatTime(dateTime)}';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday ${_formatTime(dateTime)}';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    }
-  }
-
-  String _formatTime(DateTime dateTime) {
-    final hour = dateTime.hour.toString().padLeft(2, '0');
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    final days = today.difference(day).inDays;
+    if (days == 0) return '${l.commonToday} ${Clock.hm(dateTime)}';
+    if (days == 1) return '${l.commonYesterday} ${Clock.hm(dateTime)}';
+    if (days < 7) return l.dayDaysAgo(N.of(days));
+    return DateFormat('d MMM y').format(dateTime);
   }
 }

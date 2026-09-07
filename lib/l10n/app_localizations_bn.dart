@@ -2138,6 +2138,15 @@ class LBn extends L {
   }
 
   @override
+  String expBoughtCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countStringটি কেনা';
+  }
+
+  @override
   String get expOnTrack => 'ঠিক পথে';
 
   @override
