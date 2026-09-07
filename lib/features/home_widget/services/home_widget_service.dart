@@ -529,7 +529,7 @@ class HomeWidgetService {
             position: _dayFraction(times[p]!),
             label: _shortPrayerName(p),
             passed: !times[p]!.isAfter(date),
-            isCurrent: p == subject,
+            isCurrent: p == current,
           ),
       ],
     );
@@ -552,7 +552,8 @@ class HomeWidgetService {
       settings: settings,
       date: date,
       times: times,
-      current: subject,
+      current: current,
+      next: next,
     );
     Widget mosque(Size size) => MosqueWidgetUI(
       size: size,
@@ -585,7 +586,8 @@ class HomeWidgetService {
     required PrayerSettingsService settings,
     required DateTime date,
     required Map<String, DateTime> times,
-    required String current,
+    required String? current,
+    required String next,
   }) async {
     final ramadan = await settings.getRamadanMode();
 
@@ -614,7 +616,11 @@ class HomeWidgetService {
         JamaatChip(
           label: _banglaPrayerNames[i],
           time: _t12(jamaat).toUpperCase(),
+          // Filled only while that waqt is running. Between waqts the next
+          // one is outlined instead — a filled Dhuhr at ten in the morning
+          // read as "Dhuhr now", and someone could pray on that.
           isCurrent: prayer == current,
+          isNext: current == null && prayer == next,
         ),
       );
     }

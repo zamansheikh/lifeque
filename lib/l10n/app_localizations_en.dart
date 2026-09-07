@@ -3333,6 +3333,9 @@ class LEn extends L {
   String get widgetIftar => 'Iftar';
 
   @override
+  String get widgetNext => 'Next';
+
+  @override
   String get widgetNow => 'Now';
 
   @override

@@ -5797,6 +5797,12 @@ abstract class L {
   /// **'Iftar'**
   String get widgetIftar;
 
+  /// No description provided for @widgetNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get widgetNext;
+
   /// No description provided for @widgetNow.
   ///
   /// In en, this message translates to:

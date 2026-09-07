@@ -3320,6 +3320,9 @@ class LBn extends L {
   String get widgetIftar => 'ইফতার';
 
   @override
+  String get widgetNext => 'পরবর্তী';
+
+  @override
   String get widgetNow => 'এখন';
 
   @override

@@ -11,12 +11,17 @@ class JamaatChip {
   /// e.g. `4:39 AM`.
   final String time;
 
+  /// The waqt is running now: filled chip, "Now" caption.
   final bool isCurrent;
+
+  /// Nothing is running and this is the next waqt: outlined, "Next" caption.
+  final bool isNext;
 
   const JamaatChip({
     required this.label,
     required this.time,
     required this.isCurrent,
+    this.isNext = false,
   });
 }
 
@@ -230,17 +235,38 @@ class MosqueWidgetUI extends StatelessWidget {
   );
 
   Widget _jamaatChip(JamaatChip chip) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 5),
     decoration: BoxDecoration(
       color: chip.isCurrent ? _gold : Colors.white.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(11),
       border: Border.all(
-        color: chip.isCurrent ? _gold : Colors.white.withValues(alpha: 0.12),
+        color: chip.isCurrent || chip.isNext
+            ? _gold
+            : Colors.white.withValues(alpha: 0.12),
+        width: chip.isNext ? 1.5 : 1,
       ),
     ),
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // The caption is what makes the two highlights unmistakable: a
+        // filled chip says এখন, an outlined one says পরবর্তী.
+        if (chip.isCurrent || chip.isNext) ...[
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              chip.isCurrent ? appStrings.widgetNow : appStrings.widgetNext,
+              maxLines: 1,
+              style: TextStyle(
+                color: chip.isCurrent ? _navyInk : _gold,
+                fontSize: 6.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+          const SizedBox(height: 1),
+        ],
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
@@ -249,6 +275,8 @@ class MosqueWidgetUI extends StatelessWidget {
             style: TextStyle(
               color: chip.isCurrent
                   ? _navyInk
+                  : chip.isNext
+                  ? _gold
                   : Colors.white.withValues(alpha: 0.6),
               fontSize: 9.5,
               fontWeight: FontWeight.w700,
