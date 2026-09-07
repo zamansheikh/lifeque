@@ -382,7 +382,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
     final calc = _calcFor(now);
     final times = calc.getPrayerTimesMap();
     final bangla = BanglaDate.fromDate(now);
-    final current = _currentPrayer(times, now);
+    final current = calc.currentFard(now);
 
     return Container(
       // Symmetric gutter: the Share pill sits 14pt in from the card's edge,
@@ -528,19 +528,6 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
         ],
       ),
     );
-  }
-
-  String? _currentPrayer(Map<String, DateTime> times, DateTime now) {
-    String? current;
-    for (final p in _fard) {
-      final t = times[p];
-      if (t != null && t.isBefore(now)) {
-        current = p;
-      } else {
-        break;
-      }
-    }
-    return current;
   }
 
   // ── Month list ──────────────────────────────────────────────────────────

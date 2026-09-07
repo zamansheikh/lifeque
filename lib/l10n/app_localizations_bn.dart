@@ -3335,6 +3335,11 @@ class LBn extends L {
   }
 
   @override
+  String widgetStartsIn(String time, String left) {
+    return 'শুরু: $time · আর $left';
+  }
+
+  @override
   String widgetEndsIn(String time, String left) {
     return 'শেষ: $time · আর $left';
   }

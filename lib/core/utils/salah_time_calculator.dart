@@ -41,6 +41,31 @@ class SalahTimeCalculator {
     };
   }
 
+  static const fardPrayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+  /// The fard waqt running at [now], or null when none is.
+  ///
+  /// A waqt runs from its start until its end, and the ends are not the next
+  /// start: Fajr ends at sunrise, so from sunrise to Dhuhr nothing is running
+  /// and this returns null. Callers that only looked at start times kept
+  /// reporting Fajr all morning with a countdown stuck at zero.
+  ///
+  /// Before Fajr the running waqt is last night's Isha, which today's table
+  /// does not contain — tonight's Isha is still hours away — so it is
+  /// answered directly.
+  String? currentFard(DateTime now) {
+    final times = getPrayerTimesMap();
+    if (now.isBefore(times['Fajr']!)) return 'Isha';
+    final ends = getEndTimes(getStartTimes());
+    String? current;
+    for (final p in fardPrayers) {
+      final started = times[p]!.isBefore(now);
+      final ended = !ends[p]!.isAfter(now);
+      if (started && !ended) current = p;
+    }
+    return current;
+  }
+
   // Get formatted prayer times for display
   Map<String, String> getFormattedPrayerTimes() {
     final times = getPrayerTimesMap();

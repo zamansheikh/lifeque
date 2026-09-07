@@ -5833,6 +5833,12 @@ abstract class L {
   /// **'next avoid · {name} {time}'**
   String widgetNextAvoid(String name, String time);
 
+  /// No description provided for @widgetStartsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts: {time} · in {left}'**
+  String widgetStartsIn(String time, String left);
+
   /// No description provided for @widgetEndsIn.
   ///
   /// In en, this message translates to:

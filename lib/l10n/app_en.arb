@@ -1694,7 +1694,18 @@
       }
     }
   },
+  "widgetStartsIn": "Starts: {time} · in {left}",
   "widgetEndsIn": "Ends: {time} · in {left}",
+  "@widgetStartsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
   "@widgetEndsIn": {
     "placeholders": {
       "time": {

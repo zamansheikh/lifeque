@@ -21,8 +21,9 @@ class DayTimelineWidgetProvider : HomeWidgetProvider() {
         appWidgetIds: IntArray,
         widgetData: SharedPreferences
     ) {
+        WidgetSizeReporter.reportAll(context, appWidgetManager, appWidgetIds, "day_timeline_widget_image")
+
         appWidgetIds.forEach { widgetId ->
-            WidgetSizeReporter.report(context, appWidgetManager, widgetId, "day_timeline_widget_image")
 
             val views = RemoteViews(context.packageName, R.layout.day_timeline_widget_layout).apply {
                 // The "not loaded yet" wording comes from Flutter so it
@@ -37,7 +38,12 @@ class DayTimelineWidgetProvider : HomeWidgetProvider() {
                 // The rendered image, if the app has produced one. An empty
                 // path is how the app says "no location yet" — the placeholder
                 // in this layout takes over, on this widget's own background.
-                val imagePath = widgetData.getString("day_timeline_widget_image", null)
+                // This instance's own size first — two of the same widget at
+                // different widths each get their own bitmap — then the
+                // un-suffixed image, which is rendered before any size is known.
+                val sizeTag = WidgetSizeReporter.sizeTag(appWidgetManager, widgetId)
+                val imagePath = sizeTag?.let { widgetData.getString("day_timeline_widget_image_$it", null) }
+                    ?: widgetData.getString("day_timeline_widget_image", null)
                 val file = if (imagePath.isNullOrEmpty()) null else
                     java.io.File(imagePath).takeIf { it.exists() }
                         ?: java.io.File(context.filesDir, "day_timeline_widget_image.png")
@@ -82,6 +88,9 @@ class DayTimelineWidgetProvider : HomeWidgetProvider() {
         newOptions: android.os.Bundle
     ) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
-        WidgetSizeReporter.report(context, appWidgetManager, appWidgetId, "day_timeline_widget_image")
+        val ids = appWidgetManager.getAppWidgetIds(
+            android.content.ComponentName(context, DayTimelineWidgetProvider::class.java)
+        )
+        WidgetSizeReporter.reportAll(context, appWidgetManager, ids, "day_timeline_widget_image")
     }
 }

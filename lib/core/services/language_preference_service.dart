@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,6 +51,26 @@ class LanguagePreferenceService {
   final ValueNotifier<AppLanguage> language = ValueNotifier(
     AppLanguage.fallback,
   );
+
+  /// Everything an isolate must do before it formats a single date or number.
+  ///
+  /// Reads the stored language, sets `Intl.defaultLocale`, and loads the date
+  /// symbols — in that order. The order is not cosmetic: `intl` implements
+  /// `getCurrentLocale()` as `defaultLocale ??= systemLocale`, a *latching*
+  /// write that every `DateFormat` and `NumberFormat` constructor triggers.
+  /// So in an isolate that has not been told the app's language, the first
+  /// format call quietly pins the locale to the phone's `en_US` for the rest
+  /// of that isolate's life. That is how a Bangla widget re-rendered from the
+  /// refresh button, or from the 15-minute background job, came back half in
+  /// English: strings read before the first format were Bangla, everything
+  /// after it was not.
+  ///
+  /// Called from `main()` and from each background entry point. Cheap and
+  /// idempotent, so calling it again in the app is harmless.
+  static Future<void> prepareIsolate() async {
+    await instance.load();
+    await initializeDateFormatting();
+  }
 
   /// Reads the stored choice. Called once during startup, before `runApp`, so
   /// the first frame is already in the right language.

@@ -40,6 +40,31 @@ Future<void> initHomeWidget() async {
   }
 }
 
+/// Parses the `465x350,615x350` list the Android providers publish.
+///
+/// Keeps the tag string exactly as written: the provider builds its lookup key
+/// from the same integers, so re-formatting a double here ("465.0x350.0")
+/// would silently miss every bitmap.
+List<({String tag, Size size})> parseWidgetSizes(String? raw) {
+  if (raw == null || raw.trim().isEmpty) return const [];
+  final seen = <String>{};
+  final out = <({String tag, Size size})>[];
+  for (final part in raw.split(',')) {
+    final tag = part.trim();
+    final m = RegExp(r'^(\d+)x(\d+)$').firstMatch(tag);
+    if (m == null) continue;
+    final w = double.parse(m[1]!);
+    final h = double.parse(m[2]!);
+    if (w < 60 || h < 40) continue;
+    if (seen.add(tag)) out.add((tag: tag, size: Size(w, h)));
+  }
+  return out;
+}
+
+/// The tag a [Size] would be reported under.
+String widgetSizeTag(Size size) =>
+    '${size.width.round()}x${size.height.round()}';
+
 class HomeWidgetService {
   static const String _prayerQualifiedName =
       'com.programmernexus.lifeque.PrayerTimesWidgetProvider';
@@ -62,6 +87,58 @@ class HomeWidgetService {
   ///
   /// Rendering at the real cell size means the PNG lands 1:1 in the widget —
   /// no stretching from fitXY and no letterbox from fitCenter, on any device.
+  /// Every distinct cell size the launcher has reported for [key], each with
+  /// the exact tag the provider will look the bitmap up by.
+  ///
+  /// Falls back to the single legacy size — or the nominal design size — so a
+  /// widget added before any size was reported still gets an image.
+  Future<List<({String tag, Size size})>> _cellSizes(
+    String key,
+    Size fallback,
+  ) async {
+    try {
+      final parsed = parseWidgetSizes(
+        await HomeWidget.getWidgetData<String>('${key}_sizes'),
+      );
+      if (parsed.isNotEmpty) return parsed;
+    } catch (e) {
+      debugPrint('🕌 Could not read cell sizes for $key: $e');
+    }
+    final single = await _cellSize(key, fallback);
+    return [(tag: widgetSizeTag(single), size: single)];
+  }
+
+  /// Renders [build] once per reported size and once under the plain [key],
+  /// then tells the provider to redraw.
+  ///
+  /// The plain key is what an instance reads before it has told us its size,
+  /// so it is always written too — at the first size, which on most phones is
+  /// the only one.
+  Future<void> _renderAll({
+    required String key,
+    required Size fallback,
+    required String provider,
+    required Widget Function(Size) build,
+  }) async {
+    final sizes = await _cellSizes(key, fallback);
+    for (final (:tag, :size) in sizes) {
+      await HomeWidget.renderFlutterWidget(
+        _withFonts(build(size)),
+        key: '${key}_$tag',
+        logicalSize: size,
+        pixelRatio: 3.0,
+      );
+    }
+    final first = sizes.first.size;
+    await HomeWidget.renderFlutterWidget(
+      _withFonts(build(first)),
+      key: key,
+      logicalSize: first,
+      pixelRatio: 3.0,
+    );
+    await HomeWidget.updateWidget(qualifiedAndroidName: provider);
+  }
+
   Future<Size> _cellSize(String key, Size fallback) async {
     try {
       final raw = await HomeWidget.getWidgetData<String>('${key}_size');
@@ -86,6 +163,17 @@ class HomeWidgetService {
 
   static const _fard = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
   static const _banglaPrayerNames = ['ফজর', 'যোহর', 'আসর', 'মাগরিব', 'এশা'];
+
+  static const _shortPrayerNames = ['ফজ', 'জোহ', 'আস', 'মাগ', 'এশা'];
+
+  /// The three-letter tick under the day map: FAJ / ফজ.
+  static String _shortPrayerName(String key) {
+    final index = _fard.indexOf(key);
+    if (index < 0) return key;
+    return isBanglaUi
+        ? _shortPrayerNames[index]
+        : _fard[index].substring(0, 3).toUpperCase();
+  }
 
   /// The English keys are what the calculator returns; the widget shows them
   /// in whichever language the app is set to.
@@ -218,58 +306,46 @@ class HomeWidgetService {
 
         for (final (key, fallback, provider, gradient, radius)
             in placeholders) {
-          final size = await _cellSize(key, fallback);
-          await HomeWidget.renderFlutterWidget(
-            _withFonts(
-              WidgetPlaceholder(size: size, gradient: gradient, radius: radius),
-            ),
+          await _renderAll(
             key: key,
-            logicalSize: size,
-            pixelRatio: 3.0,
+            fallback: fallback,
+            provider: provider,
+            build: (size) => WidgetPlaceholder(
+              size: size,
+              gradient: gradient,
+              radius: radius,
+            ),
           );
-          await HomeWidget.updateWidget(qualifiedAndroidName: provider);
         }
         debugPrint('✅ Placeholder widgets rendered');
         return;
       }
 
-      await HomeWidget.renderFlutterWidget(
-        _withFonts(bundle.prayer),
+      await _renderAll(
         key: 'prayer_widget_image',
-        logicalSize: bundle.prayerSize,
-        pixelRatio: 3.0,
+        fallback: _widgetSize,
+        provider: _prayerQualifiedName,
+        build: bundle.prayer,
       );
-      await HomeWidget.updateWidget(qualifiedAndroidName: _prayerQualifiedName);
-      debugPrint('✅ Prayer widget updated successfully');
-
-      await HomeWidget.renderFlutterWidget(
-        _withFonts(bundle.timeline),
+      await _renderAll(
         key: 'day_timeline_widget_image',
-        logicalSize: bundle.timelineSize,
-        pixelRatio: 3.0,
+        fallback: _timelineSize,
+        provider: _timelineQualifiedName,
+        build: bundle.timeline,
       );
-      await HomeWidget.updateWidget(
-        qualifiedAndroidName: _timelineQualifiedName,
-      );
-      debugPrint('✅ Day timeline widget updated successfully');
-
-      await HomeWidget.renderFlutterWidget(
-        _withFonts(bundle.slim),
+      await _renderAll(
         key: 'slim_bar_widget_image',
-        logicalSize: bundle.slimSize,
-        pixelRatio: 3.0,
+        fallback: _slimSize,
+        provider: _slimQualifiedName,
+        build: bundle.slim,
       );
-      await HomeWidget.updateWidget(qualifiedAndroidName: _slimQualifiedName);
-      debugPrint('✅ Slim bar widget updated successfully');
-
-      await HomeWidget.renderFlutterWidget(
-        _withFonts(bundle.mosque),
+      await _renderAll(
         key: 'mosque_widget_image',
-        logicalSize: bundle.mosqueSize,
-        pixelRatio: 3.0,
+        fallback: _widgetSize,
+        provider: _mosqueQualifiedName,
+        build: bundle.mosque,
       );
-      await HomeWidget.updateWidget(qualifiedAndroidName: _mosqueQualifiedName);
-      debugPrint('✅ Mosque widget updated successfully');
+      debugPrint('✅ All widgets rendered at every reported size');
     } catch (e, stack) {
       debugPrint('❌ Error updating home widget: $e');
       debugPrint('Stack: $stack');
@@ -290,13 +366,13 @@ class HomeWidgetService {
       final bundle = await _buildAll(measured: false);
       if (bundle == null) return null;
       return WidgetPreviews(
-        currentWaqt: bundle.prayer,
+        currentWaqt: bundle.prayer(bundle.prayerSize),
         currentWaqtSize: bundle.prayerSize,
-        mosqueJamaat: bundle.mosque,
+        mosqueJamaat: bundle.mosque(bundle.mosqueSize),
         mosqueJamaatSize: bundle.mosqueSize,
-        dayMap: bundle.timeline,
+        dayMap: bundle.timeline(bundle.timelineSize),
         dayMapSize: bundle.timelineSize,
-        slimBar: bundle.slim,
+        slimBar: bundle.slim(bundle.slimSize),
         slimBarSize: bundle.slimSize,
       );
     } catch (e) {
@@ -340,22 +416,21 @@ class HomeWidgetService {
     final bangla = BanglaDate.fromDate(date);
 
     // The prayer the widget is about: the running waqt, else the next one.
-    String? current;
-    for (final p in _fard) {
-      if (times[p]!.isBefore(date)) current = p;
-    }
+    // Between sunrise and Dhuhr nothing is running, and the widget counts
+    // down to Dhuhr rather than showing a dead Fajr at 00:00:00.
+    final nextFajr = times['Fajr']!.add(const Duration(days: 1));
+    final current = calculator.currentFard(date);
     final next = _fard.firstWhere(
       (p) => times[p]!.isAfter(date),
       orElse: () => 'Fajr',
     );
     final subject = current ?? next;
-    final windowEnd =
-        endTimes[subject] ?? times['Fajr']!.add(const Duration(days: 1));
+    final windowEnd = endTimes[subject] ?? nextFajr;
+    // With no running waqt the countdown is to the next start, not its end.
+    final countdownTarget = current == null ? times[subject]! : windowEnd;
     final nextTime = current == null
         ? times[next]!
-        : (times[next]!.isAfter(date)
-              ? times[next]!
-              : times['Fajr']!.add(const Duration(days: 1)));
+        : (times[next]!.isAfter(date) ? times[next]! : nextFajr);
 
     // Prohibited-time state.
     final restricted = calculator.getRestrictedTimes();
@@ -396,8 +471,8 @@ class HomeWidgetService {
     final iftarStr = _t12(times['Maghrib']!).toUpperCase();
     final updatedAt = _t12(date).toUpperCase();
 
-    final prayer = PrayerWidgetUI(
-      size: prayerSize,
+    Widget prayer(Size size) => PrayerWidgetUI(
+      size: size,
       hijriLine:
           '${N.plain(hijri.hDay)} ${HijriNames.monthNow(hijri.hMonth)} '
           '${N.plain(hijri.hYear)}, ${DateFormat('EEEE').format(date)}',
@@ -408,10 +483,15 @@ class HomeWidgetService {
       windowRange:
           '${_t12(times[subject]!).toUpperCase()} – '
           '${_t12(windowEnd).toUpperCase()}',
-      endsLine: appStrings.widgetEndsIn(
-        _t12(windowEnd).toUpperCase(),
-        _hms(windowEnd.difference(date)),
-      ),
+      endsLine: current == null
+          ? appStrings.widgetStartsIn(
+              _t12(times[subject]!).toUpperCase(),
+              _hms(countdownTarget.difference(date)),
+            )
+          : appStrings.widgetEndsIn(
+              _t12(windowEnd).toUpperCase(),
+              _hms(countdownTarget.difference(date)),
+            ),
       nextChip: '${_prayerName(next)} ${_t12(nextTime).toUpperCase()}',
       avoidText: avoidText,
       avoidActive: activeWindow != null,
@@ -421,8 +501,8 @@ class HomeWidgetService {
       iftar: iftarStr,
     );
 
-    final timeline = DayTimelineWidgetUI(
-      size: timelineSize,
+    Widget timeline(Size size) => DayTimelineWidgetUI(
+      size: size,
       now: _dayFraction(date),
       avoidText: avoidText,
       avoidActive: activeWindow != null,
@@ -434,29 +514,36 @@ class HomeWidgetService {
         for (final p in _fard)
           TimelineTick(
             position: _dayFraction(times[p]!),
-            label: p.substring(0, 3).toUpperCase(),
+            label: _shortPrayerName(p),
             passed: !times[p]!.isAfter(date),
             isCurrent: p == subject,
           ),
       ],
     );
 
-    final slim = SlimBarWidgetUI(
-      size: slimSize,
-      prayerName: subject,
+    Widget slim(Size size) => SlimBarWidgetUI(
+      size: size,
+      prayerName: _prayerName(subject),
       windowRange:
           '${_t12(times[subject]!).toUpperCase()} – '
           '${_t12(windowEnd).toUpperCase()}',
-      countdown: _hms(windowEnd.difference(date)),
-      countdownLabel: current == null ? 'starts in' : 'waqt ends in',
+      countdown: _hms(countdownTarget.difference(date)),
+      countdownLabel: current == null
+          ? appStrings.gaugeStartsIn
+          : appStrings.gaugeWaqtEndsIn,
     );
 
-    final mosque = await _buildMosque(
-      size: mosqueSize,
+    // Jamaat times come from settings, so they are read once here rather
+    // than inside the per-size builder.
+    final jamaat = await _jamaatChips(
       settings: settings,
       date: date,
       times: times,
       current: subject,
+    );
+    Widget mosque(Size size) => MosqueWidgetUI(
+      size: size,
+      jamaat: jamaat,
       dateLine:
           '${N.plain(hijri.hDay)} ${HijriNames.monthNow(hijri.hMonth)} '
           '${N.plain(hijri.hYear)}, '
@@ -481,18 +568,11 @@ class HomeWidgetService {
     );
   }
 
-  Future<MosqueWidgetUI> _buildMosque({
-    required Size size,
+  Future<List<JamaatChip>> _jamaatChips({
     required PrayerSettingsService settings,
     required DateTime date,
     required Map<String, DateTime> times,
     required String current,
-    required String dateLine,
-    required String updatedAt,
-    required String sunrise,
-    required String sunset,
-    required String sahri,
-    required String iftar,
   }) async {
     final ramadan = await settings.getRamadanMode();
 
@@ -526,16 +606,7 @@ class HomeWidgetService {
       );
     }
 
-    return MosqueWidgetUI(
-      size: size,
-      dateLine: dateLine,
-      updatedAt: updatedAt,
-      sunrise: sunrise,
-      sunset: sunset,
-      sahri: sahri,
-      iftar: iftar,
-      jamaat: chips,
-    );
+    return chips;
   }
 
   /// `13:30` → `(13, 30)`.
@@ -551,14 +622,21 @@ class HomeWidgetService {
 }
 
 /// The four assembled widget UIs and the size each was laid out for.
+/// The four widget faces, as functions of a cell size.
+///
+/// Builders rather than built widgets because one launcher can hold two of
+/// the same widget at different sizes, and each needs its own bitmap. The
+/// `*Size` beside each is the size to use when nothing more specific is
+/// known: the in-app preview, and the un-suffixed image a fresh instance
+/// reads before it has reported its dimensions.
 class _WidgetBundle {
-  final Widget prayer;
+  final Widget Function(Size) prayer;
   final Size prayerSize;
-  final Widget timeline;
+  final Widget Function(Size) timeline;
   final Size timelineSize;
-  final Widget slim;
+  final Widget Function(Size) slim;
   final Size slimSize;
-  final Widget mosque;
+  final Widget Function(Size) mosque;
   final Size mosqueSize;
 
   const _WidgetBundle({

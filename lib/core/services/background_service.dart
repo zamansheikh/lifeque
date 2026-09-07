@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:lifeque/features/home_widget/services/home_widget_service.dart';
 import 'package:lifeque/core/services/prayer_alarm_service.dart';
+import 'package:lifeque/core/services/language_preference_service.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as timezone;
 
@@ -33,8 +34,11 @@ void callbackDispatcher() {
           timezone.setLocalLocation(timezone.getLocation('Asia/Dhaka'));
         }
 
-        // Update the widget (no-ops on platforms without widget support)
+        // Language first — this isolate formats widget text *and* prayer
+        // alarm notifications below, and without an explicit locale the
+        // first DateFormat call latches it to the phone's en_US.
         await initHomeWidget();
+        await LanguagePreferenceService.prepareIsolate();
         final service = HomeWidgetService();
         await service.updateWidget();
 

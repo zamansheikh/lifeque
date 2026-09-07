@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as timezone;
 import 'package:alarm/alarm.dart';
@@ -38,8 +37,12 @@ Future<void> homeWidgetBackgroundCallback(Uri? uri) async {
       uri.toString().contains('refreshwidget')) {
     debugPrint('🕌 Widget refresh triggered by tap - URI: $uri');
     try {
-      // Fresh isolate — the plugin's App Group id has to be set again here.
+      // Fresh isolate — the plugin's App Group id has to be set again here,
+      // and so does the language: without it the first DateFormat call pins
+      // this isolate to the phone's locale and the widget re-renders in
+      // English. See LanguagePreferenceService.prepareIsolate.
       await initHomeWidget();
+      await LanguagePreferenceService.prepareIsolate();
       // Create a fresh instance of the service
       final service = HomeWidgetService();
       debugPrint(
@@ -140,10 +143,9 @@ void main() async {
   debugPrint('🎯 Running app...');
   // Before the first frame, so the app opens in the chosen language rather
   // than flashing English.
-  await LanguagePreferenceService.instance.load();
+  await LanguagePreferenceService.prepareIsolate();
   // DateFormat needs each locale's month and weekday names loaded before it
   // can render them; without this a Bangla date throws at build time.
-  await initializeDateFormatting();
 
   runApp(const MyApp());
 }

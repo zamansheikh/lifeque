@@ -52,6 +52,17 @@ class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
   }
 
   @override
+  void didUpdateWidget(PrayerSkyHeader old) {
+    super.didUpdateWidget(old);
+    // The Tahajjud page comes and goes with Isha. If it vanishes while it is
+    // the one showing, the pager would sit on an index past the end.
+    if (_gaugePage >= widget.gauges.length && _gaugePages.hasClients) {
+      _gaugePage = 0;
+      _gaugePages.jumpToPage(0);
+    }
+  }
+
+  @override
   void dispose() {
     _advance?.cancel();
     _dates.dispose();

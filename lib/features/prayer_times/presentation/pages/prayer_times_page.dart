@@ -529,9 +529,17 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     final endTimes = calc.getEndTimes(calc.getStartTimes());
     final now = DateTime.now();
     final isToday = _isSameDay(date, now);
-    final current = isToday ? _currentPrayerName(times, now) : null;
+    final current = isToday ? calc.currentFard(now) : null;
 
-    final gauges = _gaugesFor(calc, date, times, endTimes, now, isToday);
+    final gauges = _gaugesFor(
+      calc,
+      date,
+      times,
+      endTimes,
+      now,
+      isToday,
+      current,
+    );
     final restrictedNow = isToday ? calc.getCurrentRestrictedPeriod() : null;
 
     return RefreshIndicator(
@@ -669,6 +677,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   ///
   /// Tahajjud earns a page because in the small hours it is the thing people
   /// are actually up for, and the single-gauge design had nowhere to say so.
+  /// For that same reason it only appears once Isha is in: a Tahajjud
+  /// countdown at nine in the morning is fifteen hours of noise, and it kept
+  /// being mistaken for a bug. Other days keep it as a plain "begins at".
   List<GaugeData> _gaugesFor(
     SalahTimeCalculator calc,
     DateTime date,
@@ -676,10 +687,12 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     Map<String, DateTime> endTimes,
     DateTime now,
     bool isToday,
+    String? current,
   ) {
     return [
-      _fardGauge(calc, date, times, endTimes, now, isToday),
-      _tahajjudGauge(calc, date, now, isToday),
+      _fardGauge(calc, date, times, endTimes, now, isToday, current),
+      if (!isToday || current == 'Isha')
+        _tahajjudGauge(calc, date, now, isToday),
     ];
   }
 
@@ -690,9 +703,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     Map<String, DateTime> endTimes,
     DateTime now,
     bool isToday,
+    String? current,
   ) {
-    final current = isToday ? _currentPrayerName(times, now) : null;
-
     if (current != null) {
       // Inside a waqt: count down to its end, fill as it elapses.
       //
@@ -1112,26 +1124,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   }
 
   // ── Focus + prayer math ─────────────────────────────────────────────────
-
-  String? _currentPrayerName(Map<String, DateTime> times, DateTime now) {
-    // Past midnight but before Fajr, the waqt that is actually running is
-    // Isha — it started last night and runs until this morning's Fajr. Walking
-    // only today's prayers found nothing had started yet and reported "Fajr
-    // starts in", while Isha still had hours left on it.
-    final fajr = times['Fajr'];
-    if (fajr != null && now.isBefore(fajr)) return 'Isha';
-
-    String? current;
-    for (final p in const ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) {
-      final t = times[p];
-      if (t != null && t.isBefore(now)) {
-        current = p;
-      } else {
-        break;
-      }
-    }
-    return current;
-  }
 
   // ── Mosque/Waqt integration ─────────────────────────────────────────────
 

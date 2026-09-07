@@ -3348,6 +3348,11 @@ class LEn extends L {
   }
 
   @override
+  String widgetStartsIn(String time, String left) {
+    return 'Starts: $time · in $left';
+  }
+
+  @override
   String widgetEndsIn(String time, String left) {
     return 'Ends: $time · in $left';
   }

@@ -16,8 +16,9 @@ import es.antonborri.home_widget.HomeWidgetProvider
 class PrayerTimesWidgetProvider : HomeWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray, widgetData: SharedPreferences) {
+        WidgetSizeReporter.reportAll(context, appWidgetManager, appWidgetIds, "prayer_widget_image")
+
         appWidgetIds.forEach { widgetId ->
-            WidgetSizeReporter.report(context, appWidgetManager, widgetId, "prayer_widget_image")
 
             val views = RemoteViews(context.packageName, R.layout.widget_layout).apply {
                 // The "not loaded yet" wording comes from Flutter so it
@@ -32,7 +33,12 @@ class PrayerTimesWidgetProvider : HomeWidgetProvider() {
                 // The rendered image, if the app has produced one. An empty
                 // path is how the app says "no location yet" — the placeholder
                 // in this layout takes over, on this widget's own background.
-                val imagePath = widgetData.getString("prayer_widget_image", null)
+                // This instance's own size first — two of the same widget at
+                // different widths each get their own bitmap — then the
+                // un-suffixed image, which is rendered before any size is known.
+                val sizeTag = WidgetSizeReporter.sizeTag(appWidgetManager, widgetId)
+                val imagePath = sizeTag?.let { widgetData.getString("prayer_widget_image_$it", null) }
+                    ?: widgetData.getString("prayer_widget_image", null)
                 var bitmap = if (imagePath.isNullOrEmpty()) null else
                     java.io.File(imagePath)
                         .takeIf { it.exists() }
@@ -92,6 +98,9 @@ class PrayerTimesWidgetProvider : HomeWidgetProvider() {
         newOptions: android.os.Bundle
     ) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
-        WidgetSizeReporter.report(context, appWidgetManager, appWidgetId, "prayer_widget_image")
+        val ids = appWidgetManager.getAppWidgetIds(
+            android.content.ComponentName(context, PrayerTimesWidgetProvider::class.java)
+        )
+        WidgetSizeReporter.reportAll(context, appWidgetManager, ids, "prayer_widget_image")
     }
 }
