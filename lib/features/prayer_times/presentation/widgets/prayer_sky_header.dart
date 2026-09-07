@@ -323,7 +323,7 @@ class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          width: 264,
+          width: 304,
           height: 142,
           child: PageView.builder(
             controller: _gaugePages,
@@ -376,7 +376,7 @@ class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
               // Width-capped to the arc's clear span at this height, so a
               // long name scales down rather than colliding with the stroke.
               SizedBox(
-                width: 150,
+                width: 176,
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
@@ -459,9 +459,11 @@ class _GaugePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Sized so the widest prayer name still clears the arc where it crosses
-    // the title's row — "Tahajjud" was running into it at the old radius.
-    const radius = 104.0;
+    // Sized so the widest title still clears the arc where it crosses the
+    // title's row. "Next: Dhuhr" — the waiting state's title — needs about
+    // 176 of clear width at that height, which this radius gives with the
+    // stroke accounted for; the old 104 left it touching both sides.
+    const radius = 118.0;
     final center = Offset(size.width / 2, 130);
     final rect = Rect.fromCircle(center: center, radius: radius);
 
