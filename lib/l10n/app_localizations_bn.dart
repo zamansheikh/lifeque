@@ -1039,6 +1039,29 @@ class LBn extends L {
   }
 
   @override
+  String gaugeNext(String prayer) {
+    return 'পরবর্তী: $prayer';
+  }
+
+  @override
+  String gaugeStartsInAfter(String prayer, String time) {
+    return 'শুরু হতে বাকি · $prayer শেষ $time';
+  }
+
+  @override
+  String get gaugeWindowEndsIn => 'সময় শেষ হতে বাকি';
+
+  @override
+  String dayDaysAhead(String n) {
+    return '$n দিন পরে';
+  }
+
+  @override
+  String dayDaysAgo(String n) {
+    return '$n দিন আগে';
+  }
+
+  @override
   String get gaugeEndsAtFajr => 'ফজর পর্যন্ত বাকি';
 
   @override

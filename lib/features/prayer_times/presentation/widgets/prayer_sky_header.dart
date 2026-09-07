@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:lifeque/l10n/app_localizations.dart';
 
 import '../utils/prayer_palette.dart';
 
@@ -18,6 +19,12 @@ class PrayerSkyHeader extends StatefulWidget {
   /// first, then Tahajjud.
   final List<GaugeData> gauges;
 
+  /// "Tomorrow", "3 days ago"… when the page is not today; null on today.
+  /// Shown as a pill with a way back, because a horizontal swipe changes
+  /// the day silently — the only tell was the date line, and it went unread.
+  final String? dayOffsetLabel;
+  final VoidCallback? onBackToToday;
+
   final VoidCallback onLocationTap;
   final VoidCallback onMenu;
 
@@ -26,6 +33,8 @@ class PrayerSkyHeader extends StatefulWidget {
     required this.locationName,
     required this.dateLines,
     required this.gauges,
+    this.dayOffsetLabel,
+    this.onBackToToday,
     required this.onLocationTap,
     required this.onMenu,
   });
@@ -119,6 +128,7 @@ class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
                 _locationRow(),
                 const SizedBox(height: 3),
                 _dateCarousel(),
+                if (widget.dayOffsetLabel != null) _otherDayPill(),
                 const SizedBox(height: 8),
                 Center(child: _gauge()),
               ],
@@ -261,6 +271,53 @@ class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
     );
   }
 
+  Widget _otherDayPill() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Center(
+        child: Material(
+          color: PrayerPalette.inkA(0.10),
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            onTap: widget.onBackToToday,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.swap_horiz_rounded,
+                    size: 15,
+                    color: PrayerPalette.inkA(0.7),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    widget.dayOffsetLabel!,
+                    style: TextStyle(
+                      color: PrayerPalette.inkA(0.8),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    L.of(context).prayerBackToToday,
+                    style: const TextStyle(
+                      color: PrayerPalette.accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _gauge() {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -306,7 +363,11 @@ class _PrayerSkyHeaderState extends State<PrayerSkyHeader> {
     return Stack(
       children: [
         Positioned.fill(
-          child: CustomPaint(painter: _GaugePainter(progress: gauge.progress)),
+          child: CustomPaint(
+            painter: _GaugePainter(
+              progress: gauge.waiting ? 0 : gauge.progress,
+            ),
+          ),
         ),
         Positioned.fill(
           child: Column(
@@ -372,11 +433,20 @@ class GaugeData {
   final String countdown;
   final double progress;
 
+  /// Counting down to a start rather than through a window.
+  ///
+  /// A waiting gauge never draws a fill. The arc means "how much of this
+  /// window has passed", and filling it over a nominal approach window
+  /// read as "Dhuhr in progress, 2h 23m elapsed" — the name is the same in
+  /// both states, so the fill was the only cue, and it pointed the wrong way.
+  final bool waiting;
+
   const GaugeData({
     required this.name,
     required this.label,
     required this.countdown,
     required this.progress,
+    this.waiting = false,
   });
 }
 

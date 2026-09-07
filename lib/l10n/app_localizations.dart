@@ -1927,6 +1927,36 @@ abstract class L {
   /// **'Begins at {time}'**
   String gaugeBeginsAt(String time);
 
+  /// No description provided for @gaugeNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {prayer}'**
+  String gaugeNext(String prayer);
+
+  /// No description provided for @gaugeStartsInAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts in · {prayer} ended {time}'**
+  String gaugeStartsInAfter(String prayer, String time);
+
+  /// No description provided for @gaugeWindowEndsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Time ends in'**
+  String get gaugeWindowEndsIn;
+
+  /// No description provided for @dayDaysAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days ahead'**
+  String dayDaysAhead(String n);
+
+  /// No description provided for @dayDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days ago'**
+  String dayDaysAgo(String n);
+
   /// No description provided for @gaugeEndsAtFajr.
   ///
   /// In en, this message translates to:

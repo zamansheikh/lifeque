@@ -1043,6 +1043,29 @@ class LEn extends L {
   }
 
   @override
+  String gaugeNext(String prayer) {
+    return 'Next: $prayer';
+  }
+
+  @override
+  String gaugeStartsInAfter(String prayer, String time) {
+    return 'Starts in · $prayer ended $time';
+  }
+
+  @override
+  String get gaugeWindowEndsIn => 'Time ends in';
+
+  @override
+  String dayDaysAhead(String n) {
+    return '$n days ahead';
+  }
+
+  @override
+  String dayDaysAgo(String n) {
+    return '$n days ago';
+  }
+
+  @override
   String get gaugeEndsAtFajr => 'Ends at Fajr, in';
 
   @override

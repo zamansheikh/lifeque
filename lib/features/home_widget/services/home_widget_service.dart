@@ -426,8 +426,13 @@ class HomeWidgetService {
     );
     final subject = current ?? next;
     final windowEnd = endTimes[subject] ?? nextFajr;
-    // With no running waqt the countdown is to the next start, not its end.
+    // With no running waqt the countdown is to the next start, not its end,
+    // and the name says "Next:" so the widget cannot pass for a waqt in
+    // progress — the same rule as the in-app gauge.
     final countdownTarget = current == null ? times[subject]! : windowEnd;
+    final subjectLabel = current == null
+        ? appStrings.gaugeNext(_prayerName(subject))
+        : _prayerName(subject);
     final nextTime = current == null
         ? times[next]!
         : (times[next]!.isAfter(date) ? times[next]! : nextFajr);
@@ -479,7 +484,7 @@ class HomeWidgetService {
       secondaryDateLine:
           '${DateFormat('d MMMM').format(date)} · ${bangla.formatted}',
       updatedAt: updatedAt,
-      prayerName: _prayerName(subject),
+      prayerName: subjectLabel,
       windowRange:
           '${_t12(times[subject]!).toUpperCase()} – '
           '${_t12(windowEnd).toUpperCase()}',
@@ -523,7 +528,7 @@ class HomeWidgetService {
 
     Widget slim(Size size) => SlimBarWidgetUI(
       size: size,
-      prayerName: _prayerName(subject),
+      prayerName: subjectLabel,
       windowRange:
           '${_t12(times[subject]!).toUpperCase()} – '
           '${_t12(windowEnd).toUpperCase()}',

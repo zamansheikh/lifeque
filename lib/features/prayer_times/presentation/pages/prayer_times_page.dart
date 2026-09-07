@@ -558,6 +558,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             locationName: _locationName,
             dateLines: _dateLines(date),
             gauges: gauges,
+            dayOffsetLabel: isToday ? null : _dayOffsetLabel(date, now),
+            onBackToToday: _goToToday,
             onLocationTap: _showSettingsBottomSheet,
             onMenu: () => Scaffold.of(context).openDrawer(),
           ),
@@ -691,9 +693,57 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   ) {
     return [
       _fardGauge(calc, date, times, endTimes, now, isToday, current),
+      if (isToday) ..._naflGauges(calc, times, now),
       if (!isToday || current == 'Isha')
         _tahajjudGauge(calc, date, now, isToday),
     ];
+  }
+
+  /// A page for each nafl window that is open right now: Ishraq/Duha fills
+  /// the morning gap after sunrise, Awwabin runs alongside Maghrib.
+  ///
+  /// Only while open — a countdown to a nafl window hours away is noise, and
+  /// the Nafl card below already lists the day's times.
+  List<GaugeData> _naflGauges(
+    SalahTimeCalculator calc,
+    Map<String, DateTime> times,
+    DateTime now,
+  ) {
+    final restricted = calc.getRestrictedTimes();
+    final sunriseEnd = restricted['Sunrise Period']!['end'] as DateTime;
+    final zawalStart = restricted['Zawal (Midday)']!['start'] as DateTime;
+    final windows = [
+      (L.of(context).nafalIshraq, sunriseEnd, zawalStart),
+      (L.of(context).nafalAwabin, times['Maghrib']!, times['Isha']!),
+    ];
+    return [
+      for (final (name, start, end) in windows)
+        if (!now.isBefore(start) && now.isBefore(end))
+          GaugeData(
+            name: name,
+            label: L.of(context).gaugeWindowEndsIn,
+            countdown: _fmtHms(end.difference(now)),
+            progress: _fraction(start, end, now),
+          ),
+    ];
+  }
+
+  double _fraction(DateTime start, DateTime end, DateTime now) {
+    final span = end.difference(start).inMilliseconds;
+    if (span <= 0) return 0;
+    return (now.difference(start).inMilliseconds / span).clamp(0.0, 1.0);
+  }
+
+  /// The fard whose waqt ended most recently with nothing running since:
+  /// Fajr, all morning. Names what the gap is, so "Next: Dhuhr" does not
+  /// leave someone wondering where Fajr went.
+  String? _lastEndedFard(Map<String, DateTime> endTimes, DateTime now) {
+    String? last;
+    for (final p in _fardPrayers) {
+      final end = endTimes[p];
+      if (end != null && end.isBefore(now)) last = p;
+    }
+    return last;
   }
 
   GaugeData _fardGauge(
@@ -734,26 +784,53 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       );
     }
 
-    // Another day: count down to the next start over a nominal three-hour
-    // approach window.
+    // Nothing running: count down to the next start. Named "Next:" and
+    // drawn without a fill so it cannot pass for a waqt in progress.
     final next = _fardPrayers
         .where((p) => times[p] != null && times[p]!.isAfter(now))
         .firstOrNull;
     final target = next != null
         ? times[next]!
         : times['Fajr']!.add(const Duration(days: 1));
-    final windowStart = target.subtract(const Duration(hours: 3));
-    final span = target.difference(windowStart).inMilliseconds;
-    final gone = now.difference(windowStart).inMilliseconds;
+    final ended = isToday ? _lastEndedFard(endTimes, now) : null;
+    final String label;
+    if (!isToday) {
+      label = L.of(context).gaugeStartsAt(_fmt12(target));
+    } else if (ended != null) {
+      label = L
+          .of(context)
+          .gaugeStartsInAfter(
+            prayerLabel(context, ended),
+            _fmt12(endTimes[ended]!),
+          );
+    } else {
+      label = L.of(context).gaugeStartsIn;
+    }
     return GaugeData(
-      name: prayerLabel(context, next ?? 'Fajr'),
-      label: isToday
-          ? L.of(context).gaugeStartsIn
-          : L.of(context).gaugeStartsAt(_fmt12(target)),
+      name: L.of(context).gaugeNext(prayerLabel(context, next ?? 'Fajr')),
+      label: label,
       countdown: isToday ? _fmtHms(target.difference(now)) : '--:--:--',
-      progress: span <= 0 ? 0 : (gone / span).clamp(0.0, 1.0),
+      progress: 0,
+      waiting: true,
     );
   }
+
+  /// "Tomorrow", "3 days ago" — how far the shown day is from today.
+  String _dayOffsetLabel(DateTime date, DateTime now) {
+    final today = DateTime(now.year, now.month, now.day);
+    final shown = DateTime(date.year, date.month, date.day);
+    final days = shown.difference(today).inDays;
+    final l = L.of(context);
+    if (days == 1) return l.commonTomorrow;
+    if (days == -1) return l.commonYesterday;
+    return days > 0 ? l.dayDaysAhead(N.of(days)) : l.dayDaysAgo(N.of(-days));
+  }
+
+  void _goToToday() => _pageController.animateToPage(
+    _todayPage,
+    duration: const Duration(milliseconds: 280),
+    curve: Curves.easeOut,
+  );
 
   /// The last third of the night, which runs until Fajr.
   ///
@@ -1104,11 +1181,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   Widget _backToTodayButton() {
     return Center(
       child: TextButton.icon(
-        onPressed: () => _pageController.animateToPage(
-          _todayPage,
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeOut,
-        ),
+        onPressed: _goToToday,
         style: TextButton.styleFrom(
           foregroundColor: Colors.white,
           backgroundColor: Colors.white.withValues(alpha: 0.15),

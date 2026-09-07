@@ -541,6 +541,15 @@
       }
     }
   },
+  "gaugeNext": "Next: {prayer}",
+  "@gaugeNext": {"placeholders": {"prayer": {"type": "String"}}},
+  "gaugeStartsInAfter": "Starts in · {prayer} ended {time}",
+  "@gaugeStartsInAfter": {"placeholders": {"prayer": {"type": "String"}, "time": {"type": "String"}}},
+  "gaugeWindowEndsIn": "Time ends in",
+  "dayDaysAhead": "{n} days ahead",
+  "@dayDaysAhead": {"placeholders": {"n": {"type": "String"}}},
+  "dayDaysAgo": "{n} days ago",
+  "@dayDaysAgo": {"placeholders": {"n": {"type": "String"}}},
   "gaugeEndsAtFajr": "Ends at Fajr, in",
   "prohibitedCardTitle": "Prohibited Times for Prayer",
   "prohibitedSeeReference": "See Reference",
