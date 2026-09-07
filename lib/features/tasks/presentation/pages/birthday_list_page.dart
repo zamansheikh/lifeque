@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
+import '../widgets/birthday_wish/birthday_wish_log.dart';
+import '../widgets/birthday_wish/birthday_wish_sheet.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Birthdays, on their own screen.
@@ -35,13 +37,23 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
   void initState() {
     super.initState();
     context.read<TaskBloc>().add(LoadTasks());
+    BirthdayWishLog.instance
+      ..addListener(_onWishLog)
+      ..load();
   }
 
   @override
   void dispose() {
+    BirthdayWishLog.instance.removeListener(_onWishLog);
     _searchController.dispose();
     super.dispose();
   }
+
+  void _onWishLog() {
+    if (mounted) setState(() {});
+  }
+
+  void _wish(Task birthday) => BirthdayWishSheet.show(context, birthday);
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +144,7 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
               ),
               const SizedBox(height: 2),
               Text(
-                '${visible.length} ${visible.length == 1 ? 'birthday' : 'birthdays'}',
+                L.of(context).birthdaysCount(visible.length),
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey[600],
@@ -246,7 +258,7 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
             [
               when,
               DateFormat('d MMMM').format(birthday.nextOccurrence),
-              if (age != null) 'turning $age',
+              if (age != null) l.birthdaysTurning(age),
             ].join(' · '),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.95),
@@ -276,7 +288,49 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          // The one thing to do about a birthday: send the wish. Solid white
+          // so it reads as the primary action on the pink card.
+          _wishButton(birthday),
         ],
+      ),
+    );
+  }
+
+  Widget _wishButton(Task birthday) {
+    final wished = BirthdayWishLog.instance.wishedThisYear(birthday.id);
+    final l = L.of(context);
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _wish(birthday),
+        child: Container(
+          height: 44,
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                wished
+                    ? Icons.check_circle_rounded
+                    : Icons.card_giftcard_rounded,
+                size: 18,
+                color: wished ? const Color(0xFF16A34A) : _pink,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                wished ? l.wishWishedThisYear : l.wishSendWishes,
+                style: TextStyle(
+                  color: wished ? const Color(0xFF16A34A) : _pink,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -427,7 +481,8 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                       Text(
                         [
                           DateFormat('d MMMM').format(birthday.nextOccurrence),
-                          if (age != null) 'turns $age',
+                          if (age != null)
+                            L.of(context).birthdaysTurnsShort(age),
                         ].join(' · '),
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
@@ -435,6 +490,15 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                   ),
                 ),
                 const SizedBox(width: 8),
+                if (BirthdayWishLog.instance.wishedThisYear(birthday.id))
+                  const Padding(
+                    padding: EdgeInsets.only(right: 6),
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      size: 18,
+                      color: Color(0xFF16A34A),
+                    ),
+                  ),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
@@ -465,13 +529,33 @@ class _BirthdayListPageState extends State<BirthdayListPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   onSelected: (value) {
-                    if (value == 'edit') {
+                    if (value == 'wish') {
+                      _wish(birthday);
+                    } else if (value == 'edit') {
                       context.push('/edit-birthday/${birthday.id}');
                     } else if (value == 'delete') {
                       _confirmDelete(birthday);
                     }
                   },
                   itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'wish',
+                      height: 40,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.card_giftcard_rounded,
+                            size: 16,
+                            color: _pink,
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            L.of(context).wishSendWishes,
+                            style: TextStyle(fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
                     PopupMenuItem(
                       value: 'edit',
                       height: 40,

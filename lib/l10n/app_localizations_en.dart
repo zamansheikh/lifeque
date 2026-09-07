@@ -1317,6 +1317,154 @@ class LEn extends L {
   String get reminderFormFutureTime => 'Pick a time in the future';
 
   @override
+  String get wishSheetTitle => 'Birthday wish card';
+
+  @override
+  String get wishSendWishes => 'Send wishes';
+
+  @override
+  String get wishCardTitle => 'Happy Birthday!';
+
+  @override
+  String wishNthBirthday(String age) {
+    return '$age birthday';
+  }
+
+  @override
+  String get wishMessageLabel => 'Your message';
+
+  @override
+  String get wishMessageHint => 'Pick a tone above, or write your own';
+
+  @override
+  String get wishFromLabel => 'Your name (optional)';
+
+  @override
+  String wishFromLine(String from) {
+    return 'With love, $from';
+  }
+
+  @override
+  String get wishShowAge => 'Show their age on the card';
+
+  @override
+  String get wishShareCard => 'Share card';
+
+  @override
+  String get wishCopyText => 'Copy text';
+
+  @override
+  String get wishCopied => 'Wish copied — paste it anywhere';
+
+  @override
+  String get wishWishedThisYear => 'Wished this year';
+
+  @override
+  String get wishMarkWished => 'Mark as wished';
+
+  @override
+  String wishCaption(String name) {
+    return 'Happy birthday, $name! 🎂';
+  }
+
+  @override
+  String get wishSectionTitle => 'Wish them';
+
+  @override
+  String get wishSectionBody =>
+      'Pick a card, add a few words, and send it in one tap.';
+
+  @override
+  String get wishStyleNight => 'Night sky';
+
+  @override
+  String get wishStyleConfetti => 'Confetti';
+
+  @override
+  String get wishStyleBalloons => 'Balloons';
+
+  @override
+  String get wishStyleFloral => 'Floral';
+
+  @override
+  String get wishStyleElegant => 'Elegant';
+
+  @override
+  String get wishToneWarm => 'Warm';
+
+  @override
+  String get wishToneDua => 'Du\'a';
+
+  @override
+  String get wishToneFriend => 'Friend';
+
+  @override
+  String get wishToneFamily => 'Family';
+
+  @override
+  String get wishToneShort => 'Short';
+
+  @override
+  String get wishToneElder => 'Respectful';
+
+  @override
+  String get wishToneChild => 'Child';
+
+  @override
+  String wishMsgWarm(String name) {
+    return 'Warmest wishes on your birthday, $name! May the year ahead bring you joy, good health and everything you hope for.';
+  }
+
+  @override
+  String wishMsgDua(String name) {
+    return 'Happy birthday, $name! May Allah grant you a long, righteous life full of barakah. Barakallahu fi umrik.';
+  }
+
+  @override
+  String wishMsgFriend(String name) {
+    return 'Happy birthday, $name! Having a friend like you is a blessing. Have a brilliant day!';
+  }
+
+  @override
+  String wishMsgFamily(String name) {
+    return 'Dear $name, love and prayers on your birthday. Stay well, stay blessed, always.';
+  }
+
+  @override
+  String wishMsgShort(String name) {
+    return 'Happy birthday, $name! 🎂 May your day be full of joy.';
+  }
+
+  @override
+  String wishMsgElder(String name) {
+    return 'Respected $name, wishing you good health and a long life on your birthday. May Allah keep you well always.';
+  }
+
+  @override
+  String wishMsgChild(String name) {
+    return 'Little $name, happy birthday! Grow up well, be kind, and keep that smile always.';
+  }
+
+  @override
+  String birthdaysCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString birthdays';
+  }
+
+  @override
+  String birthdaysTurnsShort(int age) {
+    final intl.NumberFormat ageNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String ageString = ageNumberFormat.format(age);
+
+    return 'turns $ageString';
+  }
+
+  @override
   String get birthdayFormNew => 'New birthday';
 
   @override

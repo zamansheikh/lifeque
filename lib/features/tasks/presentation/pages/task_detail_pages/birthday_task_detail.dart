@@ -9,6 +9,8 @@ import '../../../../../core/widgets/detail_kit.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../domain/entities/task.dart';
 import '../../bloc/task_bloc.dart';
+import '../../widgets/birthday_wish/birthday_wish_log.dart';
+import '../../widgets/birthday_wish/birthday_wish_sheet.dart';
 
 /// A birthday's detail view: how old they are, when the next one lands, and
 /// which reminders are set for it.
@@ -36,12 +38,20 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
       const Duration(seconds: 1),
       (_) => mounted ? setState(() {}) : null,
     );
+    BirthdayWishLog.instance
+      ..addListener(_onWishLog)
+      ..load();
   }
 
   @override
   void dispose() {
+    BirthdayWishLog.instance.removeListener(_onWishLog);
     _ticker?.cancel();
     super.dispose();
+  }
+
+  void _onWishLog() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -131,6 +141,8 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
           ],
         ),
         const SizedBox(height: 12),
+        _wishSection(context, accent),
+        const SizedBox(height: 12),
         DetailSection(
           title: l.detailSectionReminders,
           icon: Icons.notifications_active_rounded,
@@ -179,6 +191,69 @@ class _BirthdayTaskDetailState extends State<BirthdayTaskDetail> {
               ),
           ],
         ),
+      ],
+    );
+  }
+
+  Widget _wishSection(BuildContext context, Color accent) {
+    final l = L.of(context);
+    final wished = BirthdayWishLog.instance.wishedThisYear(_task.id);
+    return DetailSection(
+      title: l.wishSectionTitle,
+      icon: Icons.card_giftcard_rounded,
+      accent: accent,
+      children: [
+        Text(
+          l.wishSectionBody,
+          style: TextStyle(
+            fontSize: 13.5,
+            color: Colors.grey.shade700,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: () => BirthdayWishSheet.show(context, _task),
+                style: FilledButton.styleFrom(
+                  backgroundColor: accent,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.card_giftcard_rounded, size: 18),
+                label: Text(
+                  l.wishSendWishes,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (wished) ...[
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(
+                Icons.check_circle_rounded,
+                size: 16,
+                color: Color(0xFF16A34A),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                l.wishWishedThisYear,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF16A34A),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

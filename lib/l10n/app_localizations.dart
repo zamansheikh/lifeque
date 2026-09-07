@@ -2383,6 +2383,234 @@ abstract class L {
   /// **'Pick a time in the future'**
   String get reminderFormFutureTime;
 
+  /// No description provided for @wishSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday wish card'**
+  String get wishSheetTitle;
+
+  /// No description provided for @wishSendWishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Send wishes'**
+  String get wishSendWishes;
+
+  /// No description provided for @wishCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy Birthday!'**
+  String get wishCardTitle;
+
+  /// No description provided for @wishNthBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'{age} birthday'**
+  String wishNthBirthday(String age);
+
+  /// No description provided for @wishMessageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your message'**
+  String get wishMessageLabel;
+
+  /// No description provided for @wishMessageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a tone above, or write your own'**
+  String get wishMessageHint;
+
+  /// No description provided for @wishFromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name (optional)'**
+  String get wishFromLabel;
+
+  /// No description provided for @wishFromLine.
+  ///
+  /// In en, this message translates to:
+  /// **'With love, {from}'**
+  String wishFromLine(String from);
+
+  /// No description provided for @wishShowAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Show their age on the card'**
+  String get wishShowAge;
+
+  /// No description provided for @wishShareCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Share card'**
+  String get wishShareCard;
+
+  /// No description provided for @wishCopyText.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy text'**
+  String get wishCopyText;
+
+  /// No description provided for @wishCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Wish copied — paste it anywhere'**
+  String get wishCopied;
+
+  /// No description provided for @wishWishedThisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Wished this year'**
+  String get wishWishedThisYear;
+
+  /// No description provided for @wishMarkWished.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as wished'**
+  String get wishMarkWished;
+
+  /// No description provided for @wishCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy birthday, {name}! 🎂'**
+  String wishCaption(String name);
+
+  /// No description provided for @wishSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wish them'**
+  String get wishSectionTitle;
+
+  /// No description provided for @wishSectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a card, add a few words, and send it in one tap.'**
+  String get wishSectionBody;
+
+  /// No description provided for @wishStyleNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Night sky'**
+  String get wishStyleNight;
+
+  /// No description provided for @wishStyleConfetti.
+  ///
+  /// In en, this message translates to:
+  /// **'Confetti'**
+  String get wishStyleConfetti;
+
+  /// No description provided for @wishStyleBalloons.
+  ///
+  /// In en, this message translates to:
+  /// **'Balloons'**
+  String get wishStyleBalloons;
+
+  /// No description provided for @wishStyleFloral.
+  ///
+  /// In en, this message translates to:
+  /// **'Floral'**
+  String get wishStyleFloral;
+
+  /// No description provided for @wishStyleElegant.
+  ///
+  /// In en, this message translates to:
+  /// **'Elegant'**
+  String get wishStyleElegant;
+
+  /// No description provided for @wishToneWarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm'**
+  String get wishToneWarm;
+
+  /// No description provided for @wishToneDua.
+  ///
+  /// In en, this message translates to:
+  /// **'Du\'a'**
+  String get wishToneDua;
+
+  /// No description provided for @wishToneFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend'**
+  String get wishToneFriend;
+
+  /// No description provided for @wishToneFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get wishToneFamily;
+
+  /// No description provided for @wishToneShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Short'**
+  String get wishToneShort;
+
+  /// No description provided for @wishToneElder.
+  ///
+  /// In en, this message translates to:
+  /// **'Respectful'**
+  String get wishToneElder;
+
+  /// No description provided for @wishToneChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Child'**
+  String get wishToneChild;
+
+  /// No description provided for @wishMsgWarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Warmest wishes on your birthday, {name}! May the year ahead bring you joy, good health and everything you hope for.'**
+  String wishMsgWarm(String name);
+
+  /// No description provided for @wishMsgDua.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy birthday, {name}! May Allah grant you a long, righteous life full of barakah. Barakallahu fi umrik.'**
+  String wishMsgDua(String name);
+
+  /// No description provided for @wishMsgFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy birthday, {name}! Having a friend like you is a blessing. Have a brilliant day!'**
+  String wishMsgFriend(String name);
+
+  /// No description provided for @wishMsgFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Dear {name}, love and prayers on your birthday. Stay well, stay blessed, always.'**
+  String wishMsgFamily(String name);
+
+  /// No description provided for @wishMsgShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy birthday, {name}! 🎂 May your day be full of joy.'**
+  String wishMsgShort(String name);
+
+  /// No description provided for @wishMsgElder.
+  ///
+  /// In en, this message translates to:
+  /// **'Respected {name}, wishing you good health and a long life on your birthday. May Allah keep you well always.'**
+  String wishMsgElder(String name);
+
+  /// No description provided for @wishMsgChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Little {name}, happy birthday! Grow up well, be kind, and keep that smile always.'**
+  String wishMsgChild(String name);
+
+  /// No description provided for @birthdaysCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} birthdays'**
+  String birthdaysCount(int count);
+
+  /// No description provided for @birthdaysTurnsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'turns {age}'**
+  String birthdaysTurnsShort(int age);
+
   /// No description provided for @birthdayFormNew.
   ///
   /// In en, this message translates to:

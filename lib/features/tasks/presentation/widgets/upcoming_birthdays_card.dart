@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/task.dart';
+import 'birthday_wish/birthday_wish_sheet.dart';
 
 class UpcomingBirthdaysCard extends StatefulWidget {
   final List<Task> birthdays;
@@ -229,6 +231,15 @@ class _UpcomingBirthdaysCardState extends State<UpcomingBirthdaysCard>
                     ],
                   ),
                 ),
+                if (daysUntil == 0)
+                  IconButton(
+                    tooltip: L.of(context).wishSendWishes,
+                    icon: const Icon(
+                      Icons.card_giftcard_rounded,
+                      color: Color(0xFFDB2777),
+                    ),
+                    onPressed: () => BirthdayWishSheet.show(context, birthday),
+                  ),
                 // Days until
                 Container(
                   padding: const EdgeInsets.symmetric(

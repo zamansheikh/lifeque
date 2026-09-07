@@ -1313,6 +1313,154 @@ class LBn extends L {
   String get reminderFormFutureTime => 'ভবিষ্যতের একটি সময় বেছে নিন';
 
   @override
+  String get wishSheetTitle => 'জন্মদিনের শুভেচ্ছা কার্ড';
+
+  @override
+  String get wishSendWishes => 'শুভেচ্ছা পাঠান';
+
+  @override
+  String get wishCardTitle => 'শুভ জন্মদিন!';
+
+  @override
+  String wishNthBirthday(String age) {
+    return '$age জন্মদিন';
+  }
+
+  @override
+  String get wishMessageLabel => 'আপনার বার্তা';
+
+  @override
+  String get wishMessageHint => 'উপর থেকে একটি ধরন বেছে নিন, বা নিজে লিখুন';
+
+  @override
+  String get wishFromLabel => 'আপনার নাম (ঐচ্ছিক)';
+
+  @override
+  String wishFromLine(String from) {
+    return 'শুভেচ্ছান্তে, $from';
+  }
+
+  @override
+  String get wishShowAge => 'কার্ডে বয়স দেখান';
+
+  @override
+  String get wishShareCard => 'কার্ড শেয়ার করুন';
+
+  @override
+  String get wishCopyText => 'লেখা কপি করুন';
+
+  @override
+  String get wishCopied => 'শুভেচ্ছা কপি হয়েছে — যেকোনো জায়গায় পেস্ট করুন';
+
+  @override
+  String get wishWishedThisYear => 'এ বছর শুভেচ্ছা জানানো হয়েছে';
+
+  @override
+  String get wishMarkWished => 'শুভেচ্ছা জানানো হয়েছে';
+
+  @override
+  String wishCaption(String name) {
+    return 'শুভ জন্মদিন, $name! 🎂';
+  }
+
+  @override
+  String get wishSectionTitle => 'শুভেচ্ছা জানান';
+
+  @override
+  String get wishSectionBody =>
+      'একটি কার্ড বেছে নিন, দু\'কথা লিখুন, এক ট্যাপে পাঠিয়ে দিন।';
+
+  @override
+  String get wishStyleNight => 'রাতের আকাশ';
+
+  @override
+  String get wishStyleConfetti => 'কনফেত্তি';
+
+  @override
+  String get wishStyleBalloons => 'বেলুন';
+
+  @override
+  String get wishStyleFloral => 'ফুল';
+
+  @override
+  String get wishStyleElegant => 'মার্জিত';
+
+  @override
+  String get wishToneWarm => 'আন্তরিক';
+
+  @override
+  String get wishToneDua => 'দোয়া';
+
+  @override
+  String get wishToneFriend => 'বন্ধু';
+
+  @override
+  String get wishToneFamily => 'পরিবার';
+
+  @override
+  String get wishToneShort => 'সংক্ষিপ্ত';
+
+  @override
+  String get wishToneElder => 'শ্রদ্ধেয়';
+
+  @override
+  String get wishToneChild => 'শিশু';
+
+  @override
+  String wishMsgWarm(String name) {
+    return 'জন্মদিনে অনেক অনেক শুভেচ্ছা, $name! সামনের বছরটা আপনার জন্য আনন্দ, সুস্থতা আর সব ভালো কিছু নিয়ে আসুক।';
+  }
+
+  @override
+  String wishMsgDua(String name) {
+    return 'শুভ জন্মদিন, $name! আল্লাহ আপনাকে নেক হায়াত দান করুন আর জীবনকে বরকতে ভরিয়ে দিন। বারাকাল্লাহু ফী উমরিক।';
+  }
+
+  @override
+  String wishMsgFriend(String name) {
+    return 'শুভ জন্মদিন, $name! তোমার মতো বন্ধু পাওয়া সৌভাগ্যের। দিনটা দারুণ কাটুক!';
+  }
+
+  @override
+  String wishMsgFamily(String name) {
+    return 'প্রিয় $name, জন্মদিনে ভালোবাসা আর দোয়া। সবসময় ভালো থেকো, সুস্থ থেকো।';
+  }
+
+  @override
+  String wishMsgShort(String name) {
+    return 'শুভ জন্মদিন, $name! 🎂 দিনটা আনন্দে ভরে উঠুক।';
+  }
+
+  @override
+  String wishMsgElder(String name) {
+    return 'শ্রদ্ধেয় $name, জন্মদিনে আপনার সুস্বাস্থ্য ও দীর্ঘায়ু কামনা করি। আল্লাহ আপনাকে সবসময় ভালো রাখুন।';
+  }
+
+  @override
+  String wishMsgChild(String name) {
+    return 'ছোট্ট $name, শুভ জন্মদিন! বড় হও, ভালো মানুষ হও, আর হাসিটা সবসময় ধরে রেখো।';
+  }
+
+  @override
+  String birthdaysCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countStringটি জন্মদিন';
+  }
+
+  @override
+  String birthdaysTurnsShort(int age) {
+    final intl.NumberFormat ageNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String ageString = ageNumberFormat.format(age);
+
+    return '$ageString বছরে';
+  }
+
+  @override
   String get birthdayFormNew => 'নতুন জন্মদিন';
 
   @override
