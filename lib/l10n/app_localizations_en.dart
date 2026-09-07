@@ -117,6 +117,47 @@ class LEn extends L {
   String get settingsWhatsNewSubtitle => 'See what changed in this version';
 
   @override
+  String get updateAvailableTitle => 'A new version is ready';
+
+  @override
+  String get updateAvailableBody =>
+      'A newer LifeQue is on Google Play. Update to get the latest features and fixes.';
+
+  @override
+  String get updateNow => 'Update now';
+
+  @override
+  String get updateLater => 'Later';
+
+  @override
+  String get updateChecking => 'Checking for updates…';
+
+  @override
+  String get updateUpToDateTitle => 'You\'re up to date';
+
+  @override
+  String get updateUpToDateBody => 'You have the latest version of LifeQue.';
+
+  @override
+  String get updateErrorTitle => 'Couldn\'t check for updates';
+
+  @override
+  String get updateErrorBody =>
+      'Make sure you\'re connected to the internet and that the app was installed from Google Play, then try again.';
+
+  @override
+  String get updateDownloading => 'Downloading the update in the background…';
+
+  @override
+  String get updateDownloadedTitle => 'Update downloaded';
+
+  @override
+  String get updateDownloadedBody => 'Restart LifeQue to finish installing it.';
+
+  @override
+  String get updateInstall => 'Restart and install';
+
+  @override
   String get settingsAbout => 'About LifeQue';
 
   @override

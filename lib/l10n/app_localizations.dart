@@ -307,6 +307,84 @@ abstract class L {
   /// **'See what changed in this version'**
   String get settingsWhatsNewSubtitle;
 
+  /// No description provided for @updateAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version is ready'**
+  String get updateAvailableTitle;
+
+  /// No description provided for @updateAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A newer LifeQue is on Google Play. Update to get the latest features and fixes.'**
+  String get updateAvailableBody;
+
+  /// No description provided for @updateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update now'**
+  String get updateNow;
+
+  /// No description provided for @updateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get updateLater;
+
+  /// No description provided for @updateChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking for updates…'**
+  String get updateChecking;
+
+  /// No description provided for @updateUpToDateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re up to date'**
+  String get updateUpToDateTitle;
+
+  /// No description provided for @updateUpToDateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have the latest version of LifeQue.'**
+  String get updateUpToDateBody;
+
+  /// No description provided for @updateErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check for updates'**
+  String get updateErrorTitle;
+
+  /// No description provided for @updateErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Make sure you\'re connected to the internet and that the app was installed from Google Play, then try again.'**
+  String get updateErrorBody;
+
+  /// No description provided for @updateDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the update in the background…'**
+  String get updateDownloading;
+
+  /// No description provided for @updateDownloadedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update downloaded'**
+  String get updateDownloadedTitle;
+
+  /// No description provided for @updateDownloadedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart LifeQue to finish installing it.'**
+  String get updateDownloadedBody;
+
+  /// No description provided for @updateInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart and install'**
+  String get updateInstall;
+
   /// No description provided for @settingsAbout.
   ///
   /// In en, this message translates to:

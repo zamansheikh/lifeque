@@ -411,7 +411,7 @@ class _SettingsPageState extends State<SettingsPage> {
               const CircularProgressIndicator(),
               const SizedBox(height: 16),
               Text(
-                'Checking for updates...',
+                L.of(context).updateChecking,
                 style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
               ),
             ],
@@ -419,14 +419,14 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       );
 
-      final updateInfo = await InAppUpdateService.checkForUpdates();
+      final updateInfo = await InAppUpdateService.checkForUpdates(quiet: false);
       if (!mounted) return;
       Navigator.of(context).pop(); // close loading
 
       if (updateInfo == null) {
         _showUpToDateDialog();
       } else {
-        await InAppUpdateService.showUpdateDialog(context, updateInfo);
+        await InAppUpdateService.showUpdateSheet(context, updateInfo);
       }
     } catch (_) {
       if (!mounted) return;
@@ -455,11 +455,11 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             const SizedBox(width: 12),
-            const Text("You're Up to Date!"),
+            Expanded(child: Text(L.of(context).updateUpToDateTitle)),
           ],
         ),
         content: Text(
-          'You have the latest version of LifeQue.',
+          L.of(context).updateUpToDateBody,
           style: TextStyle(
             fontSize: 16,
             color: Colors.grey.shade700,
@@ -469,7 +469,7 @@ class _SettingsPageState extends State<SettingsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(L.of(context).commonDone),
           ),
         ],
       ),
@@ -496,11 +496,11 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             const SizedBox(width: 12),
-            const Text('Update Check Failed'),
+            Expanded(child: Text(L.of(context).updateErrorTitle)),
           ],
         ),
         content: Text(
-          'Unable to check for updates. Please ensure you have an active internet connection and try again.',
+          L.of(context).updateErrorBody,
           style: TextStyle(
             fontSize: 16,
             color: Colors.grey.shade700,
@@ -510,7 +510,7 @@ class _SettingsPageState extends State<SettingsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(L.of(context).commonDone),
           ),
         ],
       ),

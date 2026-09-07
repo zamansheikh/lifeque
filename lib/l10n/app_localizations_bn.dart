@@ -116,6 +116,47 @@ class LBn extends L {
   String get settingsWhatsNewSubtitle => 'এই সংস্করণে কী বদলেছে দেখুন';
 
   @override
+  String get updateAvailableTitle => 'নতুন সংস্করণ এসেছে';
+
+  @override
+  String get updateAvailableBody =>
+      'Google Play-তে LifeQue-এর নতুন সংস্করণ পাওয়া যাচ্ছে। নতুন ফিচার ও সমাধান পেতে আপডেট করুন।';
+
+  @override
+  String get updateNow => 'এখনই আপডেট করুন';
+
+  @override
+  String get updateLater => 'পরে';
+
+  @override
+  String get updateChecking => 'আপডেট খোঁজা হচ্ছে…';
+
+  @override
+  String get updateUpToDateTitle => 'আপনার অ্যাপ হালনাগাদ আছে';
+
+  @override
+  String get updateUpToDateBody => 'আপনার কাছে LifeQue-এর সর্বশেষ সংস্করণ আছে।';
+
+  @override
+  String get updateErrorTitle => 'আপডেট খোঁজা যায়নি';
+
+  @override
+  String get updateErrorBody =>
+      'ইন্টারনেট সংযোগ আছে কি না এবং অ্যাপটি Google Play থেকে ইনস্টল করা কি না দেখে আবার চেষ্টা করুন।';
+
+  @override
+  String get updateDownloading => 'ব্যাকগ্রাউন্ডে আপডেট ডাউনলোড হচ্ছে…';
+
+  @override
+  String get updateDownloadedTitle => 'আপডেট ডাউনলোড হয়েছে';
+
+  @override
+  String get updateDownloadedBody => 'ইনস্টল শেষ করতে LifeQue রিস্টার্ট করুন।';
+
+  @override
+  String get updateInstall => 'রিস্টার্ট করে ইনস্টল করুন';
+
+  @override
   String get settingsAbout => 'লাইফকিউ সম্পর্কে';
 
   @override

@@ -44,7 +44,6 @@ import '../features/settings/presentation/pages/settings_page.dart';
 import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import 'services/navigation_service.dart';
 import 'services/navigation_preferences_service.dart';
-import 'services/in_app_update_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../injection_container.dart' as di;
 
@@ -394,17 +393,15 @@ class _MyAppState extends State<MyApp> {
               scaffoldBackgroundColor: const Color(0xFFF8FAFC),
             ),
             builder: (context, child) {
-              return UpdateChecker(
-                child: AnnotatedRegion<SystemUiOverlayStyle>(
-                  value: const SystemUiOverlayStyle(
-                    statusBarColor: Colors.transparent,
-                    statusBarIconBrightness: Brightness.dark,
-                    statusBarBrightness: Brightness.light,
-                    systemNavigationBarColor: Colors.white,
-                    systemNavigationBarIconBrightness: Brightness.dark,
-                  ),
-                  child: child ?? const SizedBox(),
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: const SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: Brightness.dark,
+                  statusBarBrightness: Brightness.light,
+                  systemNavigationBarColor: Colors.white,
+                  systemNavigationBarIconBrightness: Brightness.dark,
                 ),
+                child: child ?? const SizedBox(),
               );
             },
             routerConfig: AppRouter.router,
@@ -413,35 +410,4 @@ class _MyAppState extends State<MyApp> {
       ),
     );
   }
-}
-
-/// A wrapper widget that checks for in-app updates once when the app starts.
-class UpdateChecker extends StatefulWidget {
-  final Widget child;
-  const UpdateChecker({super.key, required this.child});
-
-  @override
-  State<UpdateChecker> createState() => _UpdateCheckerState();
-}
-
-class _UpdateCheckerState extends State<UpdateChecker> {
-  @override
-  void initState() {
-    super.initState();
-    _checkUpdates();
-  }
-
-  void _checkUpdates() {
-    // Check for updates after a short delay once the app is ready
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          InAppUpdateService.checkAndHandleUpdates(context);
-        }
-      });
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => widget.child;
 }
