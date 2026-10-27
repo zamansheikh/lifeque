@@ -46,13 +46,15 @@ class BanglaDate {
   static bool _isGregorianLeap(int y) =>
       (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
 
-  /// Month lengths for the Bengali year that began in April [startYear].
-  /// Falgun (index 10) gains a day when the February it contains is a leap
-  /// February — that February falls in `startYear + 1`.
+  /// Month lengths for the Bengali year that began in April [startYear],
+  /// as revised by Bangladesh in 2019: Boishakh to Ashwin have 31 days,
+  /// Kartik to Magh 30, Falgun 29 — 30 when the February it contains, in
+  /// `startYear + 1`, is a leap February — and Choitro 30. National days
+  /// then fall on fixed dates: 1 Poush is always 16 December.
   static List<int> _monthLengths(int startYear) => <int>[
-    31, 31, 31, 31, 31, // Boishakh … Bhadro
-    30, 30, 30, 30, 30, // Ashwin … Magh
-    _isGregorianLeap(startYear + 1) ? 31 : 30, // Falgun
+    31, 31, 31, 31, 31, 31, // Boishakh … Ashwin
+    30, 30, 30, 30, // Kartik … Magh
+    _isGregorianLeap(startYear + 1) ? 30 : 29, // Falgun
     30, // Choitro
   ];
 

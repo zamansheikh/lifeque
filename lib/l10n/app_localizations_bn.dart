@@ -3024,6 +3024,18 @@ class LBn extends L {
   String get ramadanNavSub => 'সাহরি, ইফতার, রোজার হিসাব ও দোয়া';
 
   @override
+  String get moreHijriDate => 'হিজরি তারিখ';
+
+  @override
+  String get moreHijriDateHint => 'স্থানীয় চাঁদ দেখার সাথে মিলিয়ে নিন';
+
+  @override
+  String get moreHijriEarlier => 'এক দিন আগে';
+
+  @override
+  String get moreHijriLater => 'এক দিন পরে';
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

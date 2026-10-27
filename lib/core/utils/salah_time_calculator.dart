@@ -1,6 +1,15 @@
 import 'package:adhan/adhan.dart';
 import '../../core/utils/local_clock.dart';
+import 'sun_clock.dart';
 
+/// Prayer times for one place and one day.
+///
+/// The times come from [SunClock] — the NOAA solar equations, with each
+/// time found as the moment the sun reaches its altitude — and are rounded
+/// by [SafeMinute] so no time is ever shown on the unsafe side. The method
+/// still supplies the Fajr/Isha angles, the Asr shadow and any fixed
+/// adjustments. The adhan package remains as the fallback for days the sun
+/// never rises or sets.
 class SalahTimeCalculator {
   final Coordinates coordinates;
   final DateTime date;
@@ -19,6 +28,7 @@ class SalahTimeCalculator {
     params.madhab = madhab;
   }
 
+  /// The adhan package's own table — the fallback, and only that.
   PrayerTimes getPrayerTimes() {
     return PrayerTimes(coordinates, DateComponents.from(date), params);
   }
@@ -28,18 +38,105 @@ class SalahTimeCalculator {
     return Clock.h12(time);
   }
 
-  // Get prayer times with proper formatting
-  Map<String, DateTime> getPrayerTimesMap() {
-    final prayerTimes = getPrayerTimes();
+  late final SunClock _sun = SunClock(
+    latitude: coordinates.latitude,
+    longitude: coordinates.longitude,
+    date: date,
+  );
+
+  /// Unrounded instants, local time. Zawal start/end included.
+  late final Map<String, DateTime> _raw = _computeRaw();
+
+  Map<String, DateTime> _computeRaw() {
+    final sun = _sun;
+    final rise = sun.sunriseMinutes, set = sun.sunsetMinutes;
+    if (rise == null || set == null) return _adhanRaw();
+
+    final night = 1440 - (set - rise);
+    final portion = night / 7;
+    final highLatitude = coordinates.latitude.abs() >= 55;
+
+    double fajr;
+    double isha;
+    if (method == CalculationMethod.moon_sighting_committee) {
+      // Its Fajr and Isha follow seasonal tables, not a fixed angle.
+      final a = getPrayerTimes();
+      fajr = _minutesOf(a.fajr);
+      isha = _minutesOf(a.isha);
+    } else {
+      fajr = sun.minutesAt(-params.fajrAngle, morning: true) ?? rise - portion;
+      if (highLatitude && rise - fajr > portion) fajr = rise - portion;
+      if (params.ishaInterval > 0) {
+        isha = set + params.ishaInterval;
+      } else {
+        isha =
+            sun.minutesAt(-(params.ishaAngle ?? 18), morning: false) ??
+            set + portion;
+        if (highLatitude && isha - set > portion) isha = set + portion;
+      }
+    }
+
+    final transit = sun.transitMinutes;
+    var dhuhr = sun.zawalEndMinutes ?? transit;
+    // Some methods add a fixed cushion after noon; never start earlier
+    // than that either.
+    final cushion = transit + params.methodAdjustments.dhuhr;
+    if (cushion > dhuhr) dhuhr = cushion;
+    final asr =
+        sun.asrMinutes(params.madhab == Madhab.hanafi ? 2 : 1) ?? set - 1;
+    final maghribAngle = params.maghribAngle;
+    final maghrib = maghribAngle == null
+        ? set
+        : sun.minutesAt(-maghribAngle, morning: false) ?? set;
+
+    final m = params.methodAdjustments, u = params.adjustments;
+    DateTime at(double minutes, int a, int b) =>
+        sun.at(minutes + a + b).toLocal();
     return {
-      'Fajr': prayerTimes.fajr,
-      'Sunrise': prayerTimes.sunrise,
-      'Dhuhr': prayerTimes.dhuhr,
-      'Asr': prayerTimes.asr,
-      'Maghrib': prayerTimes.maghrib,
-      'Isha': prayerTimes.isha,
+      'Fajr': at(fajr, m.fajr, u.fajr),
+      'Sunrise': at(rise, m.sunrise, u.sunrise),
+      'Dhuhr': at(dhuhr, 0, u.dhuhr),
+      'Asr': at(asr, m.asr, u.asr),
+      'Maghrib': at(maghrib, m.maghrib, u.maghrib),
+      'Isha': at(isha, m.isha, u.isha),
+      'ZawalStart': at(sun.zawalStartMinutes ?? transit, 0, 0),
+      'Sunset': at(set, 0, 0),
     };
   }
+
+  double _minutesOf(DateTime t) =>
+      t
+          .toUtc()
+          .difference(DateTime.utc(date.year, date.month, date.day))
+          .inMicroseconds /
+      60e6;
+
+  Map<String, DateTime> _adhanRaw() {
+    final a = getPrayerTimes();
+    return {
+      'Fajr': a.fajr,
+      'Sunrise': a.sunrise,
+      'Dhuhr': a.dhuhr,
+      'Asr': a.asr,
+      'Maghrib': a.maghrib,
+      'Isha': a.isha,
+      'ZawalStart': a.dhuhr.subtract(const Duration(minutes: 6)),
+      'Sunset': a.maghrib,
+    };
+  }
+
+  /// The day's times as shown: starts rounded up, Fajr and sunrise down.
+  late final Map<String, DateTime> _times = {
+    'Fajr': SafeMinute.down(_raw['Fajr']!),
+    'Sunrise': SafeMinute.down(_raw['Sunrise']!),
+    'Dhuhr': SafeMinute.up(_raw['Dhuhr']!),
+    'Asr': SafeMinute.up(_raw['Asr']!),
+    'Maghrib': SafeMinute.up(_raw['Maghrib']!),
+    'Isha': SafeMinute.up(_raw['Isha']!),
+  };
+
+  // Get prayer times with proper formatting
+  Map<String, DateTime> getPrayerTimesMap() => Map.of(_times);
 
   static const fardPrayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
@@ -72,90 +169,110 @@ class SalahTimeCalculator {
     return times.map((key, value) => MapEntry(key, formatTime(value)));
   }
 
+  static const _order = [
+    (Prayer.fajr, 'Fajr'),
+    (Prayer.sunrise, 'Sunrise'),
+    (Prayer.dhuhr, 'Dhuhr'),
+    (Prayer.asr, 'Asr'),
+    (Prayer.maghrib, 'Maghrib'),
+    (Prayer.isha, 'Isha'),
+  ];
+
+  /// The time [prayer] starts on this day.
+  DateTime? timeForPrayer(Prayer prayer) {
+    for (final (p, key) in _order) {
+      if (p == prayer) return _times[key];
+    }
+    return null;
+  }
+
   // Get current prayer
-  Prayer? getCurrentPrayer() {
-    final prayerTimes = getPrayerTimes();
-    return prayerTimes.currentPrayer();
+  Prayer? getCurrentPrayer([DateTime? at]) {
+    final now = at ?? DateTime.now();
+    var current = Prayer.none;
+    for (final (p, key) in _order) {
+      if (!_times[key]!.isAfter(now)) current = p;
+    }
+    return current;
   }
 
   // Get next prayer
-  Prayer? getNextPrayer() {
-    final prayerTimes = getPrayerTimes();
-    return prayerTimes.nextPrayer();
+  Prayer? getNextPrayer([DateTime? at]) {
+    final now = at ?? DateTime.now();
+    for (final (p, key) in _order) {
+      if (_times[key]!.isAfter(now)) return p;
+    }
+    return Prayer.none;
   }
 
   // Get time until next prayer
   Duration? getTimeUntilNextPrayer() {
-    final prayerTimes = getPrayerTimes();
-    final nextPrayer = prayerTimes.nextPrayer();
-
-    final nextPrayerTime = prayerTimes.timeForPrayer(nextPrayer);
-    if (nextPrayerTime == null) return null;
-
-    return nextPrayerTime.difference(DateTime.now());
+    final next = timeForPrayer(getNextPrayer() ?? Prayer.none);
+    return next?.difference(DateTime.now());
   }
 
   // --- Methods to get start, end, and restricted times ---
 
-  Map<String, DateTime> getStartTimes() {
-    final prayerTimes = getPrayerTimes();
-    return {
-      'Fajr': prayerTimes.fajr,
-      'Sunrise': prayerTimes.sunrise,
-      'Dhuhr': prayerTimes.dhuhr,
-      'Asr': prayerTimes.asr,
-      'Maghrib': prayerTimes.maghrib,
-      'Isha': prayerTimes.isha,
-    };
-  }
+  Map<String, DateTime> getStartTimes() => Map.of(_times);
 
+  /// When each waqt ends. A waqt ends the second before the next one
+  /// starts, so its last minute reads one before the next start —
+  /// "Fajr 4:44 – 6:00, sunrise 6:01" — the way Bangladeshi timetables
+  /// print it. Isha runs until the next Fajr, which is already rounded
+  /// down to a minute that has fully passed.
   Map<String, DateTime> getEndTimes(Map<String, DateTime> startTimes) {
-    // Calculate proper prayer end times based on Islamic jurisprudence
-    final prayerTimes = getPrayerTimes();
-
-    // Get tomorrow's Fajr for Isha end time
-    final tomorrowCalculator = SalahTimeCalculator(
-      latitude: coordinates.latitude,
-      longitude: coordinates.longitude,
-      date: date.add(const Duration(days: 1)),
-      method: method,
-      madhab: params.madhab,
-    );
-    final tomorrowFajr = tomorrowCalculator.getPrayerTimes().fajr;
-
+    final t = _times;
+    DateTime before(DateTime next) => next.subtract(const Duration(seconds: 1));
     return {
-      'Fajr': prayerTimes.sunrise, // Fajr ends at sunrise
-      'Dhuhr': prayerTimes.asr, // Dhuhr ends at Asr time
-      'Asr': prayerTimes.maghrib, // Asr ends at Maghrib time
-      'Maghrib': prayerTimes.isha, // Maghrib ends at Isha time
-      'Isha': tomorrowFajr, // Isha ends at next day's Fajr
+      'Fajr': before(t['Sunrise']!),
+      'Dhuhr': before(t['Asr']!),
+      'Asr': before(t['Maghrib']!),
+      'Maghrib': before(t['Isha']!),
+      'Isha': _tomorrow._times['Fajr']!,
     };
   }
+
+  late final SalahTimeCalculator _tomorrow = SalahTimeCalculator(
+    latitude: coordinates.latitude,
+    longitude: coordinates.longitude,
+    date: DateTime(date.year, date.month, date.day + 1),
+    method: method,
+    madhab: params.madhab,
+  );
 
   // Get restricted prayer times (Makruh times) when prayer is discouraged
   // Based on Islamic Foundation Bangladesh guidelines
   Map<String, Map<String, dynamic>> getRestrictedTimes() {
-    final prayerTimes = getPrayerTimes();
+    final t = _times;
+    final dhuhr = t['Dhuhr']!;
+    // From the moment the sun is visibly at its peak until Dhuhr — and
+    // never less than six minutes, the Islamic Foundation's precaution.
+    final sixBefore = _raw['Dhuhr']!.subtract(const Duration(minutes: 6));
+    final peak = _raw['ZawalStart']!;
+    final zawalStart = SafeMinute.down(
+      peak.isBefore(sixBefore) ? peak : sixBefore,
+    );
+    final sunsetStart = SafeMinute.up(
+      _raw['Sunset']!.subtract(const Duration(minutes: 15)),
+    );
 
     return {
       // 1. Sunrise Time: From when sun begins to rise until fully risen (~15 minutes)
       'Sunrise Period': {
-        'start': prayerTimes.sunrise,
-        'end': prayerTimes.sunrise.add(
-          const Duration(minutes: 15),
-        ), // End 15 minutes after sunrise
+        'start': t['Sunrise']!,
+        'end': SafeMinute.up(
+          _raw['Sunrise']!.add(const Duration(minutes: 15)),
+        ).subtract(const Duration(seconds: 1)),
         'reason': 'Sunrise prohibited time (~15 minutes)',
         'duration': '~15 minutes',
         'description':
             'From the moment the sun begins to rise until it has fully risen',
       },
 
-      // 2. Midday (Zawal) Time: 6 minutes before zenith (precautionary measure)
+      // 2. Midday (Zawal): the sun at its height, until Dhuhr begins
       'Zawal (Midday)': {
-        'start': prayerTimes.dhuhr.subtract(const Duration(minutes: 6)),
-        'end': prayerTimes.dhuhr.add(
-          const Duration(minutes: 1),
-        ), // Small buffer after Dhuhr starts
+        'start': zawalStart,
+        'end': dhuhr.subtract(const Duration(seconds: 1)),
         'reason': 'Zawal - Sun at zenith (6 minutes precautionary)',
         'duration': '~6 minutes',
         'description':
@@ -165,10 +282,8 @@ class SalahTimeCalculator {
       // 3. Sunset Time: From when sun begins to set until completely disappeared (~15 minutes)
       // Note: Asr can be prayed during this time if not performed earlier
       'Sunset Period': {
-        'start': prayerTimes.maghrib.subtract(
-          const Duration(minutes: 15),
-        ), // Start 15 min before Maghrib
-        'end': prayerTimes.maghrib,
+        'start': sunsetStart,
+        'end': t['Maghrib']!.subtract(const Duration(seconds: 1)),
         'reason': 'Sunset prohibited time (~15 minutes)',
         'duration': '~15 minutes',
         'description':
@@ -220,10 +335,10 @@ class SalahTimeCalculator {
   }
 
   // Get Sunnah times
-  SunnahTimes getSunnahTimes() {
-    final prayerTimes = getPrayerTimes();
-    return SunnahTimes(prayerTimes);
-  }
+  NightTimes getSunnahTimes() => NightTimes(
+    maghrib: _times['Maghrib']!,
+    nextFajr: _tomorrow._times['Fajr']!,
+  );
 
   // Get Qibla direction
   double getQiblaDirection() {
@@ -232,27 +347,7 @@ class SalahTimeCalculator {
   }
 
   // Get Islamic midnight (midpoint between Maghrib and next Fajr)
-  DateTime getIslamicMidnight() {
-    final prayerTimes = getPrayerTimes();
-
-    // Calculate next day's Fajr
-    final tomorrowCalculator = SalahTimeCalculator(
-      latitude: coordinates.latitude,
-      longitude: coordinates.longitude,
-      date: date.add(const Duration(days: 1)),
-      method: method,
-      madhab: params.madhab,
-    );
-    final tomorrowFajr = tomorrowCalculator.getPrayerTimes().fajr;
-
-    // Calculate Islamic midnight (midpoint between Maghrib and next Fajr)
-    final maghribTime = prayerTimes.maghrib.millisecondsSinceEpoch;
-    final nextFajrTime = tomorrowFajr.millisecondsSinceEpoch;
-    final midnightTime =
-        maghribTime + ((nextFajrTime - maghribTime) / 2).round();
-
-    return DateTime.fromMillisecondsSinceEpoch(midnightTime);
-  }
+  DateTime getIslamicMidnight() => getSunnahTimes().middleOfTheNight;
 
   // Get detailed explanation about restricted times
   static String getRestrictedTimesExplanation() {
@@ -298,6 +393,20 @@ Therefore, in our current schedules, the previously estimated 23 minutes has now
   static String getTotalProhibitedDuration() {
     return "~36 minutes"; // 15 + 6 + 15 = 36 minutes
   }
+}
+
+/// The night between Maghrib and the next Fajr, and its parts.
+class NightTimes {
+  final DateTime middleOfTheNight;
+  final DateTime lastThirdOfTheNight;
+
+  NightTimes({required DateTime maghrib, required DateTime nextFajr})
+    : middleOfTheNight = SafeMinute.up(
+        maghrib.add(nextFajr.difference(maghrib) ~/ 2),
+      ),
+      lastThirdOfTheNight = SafeMinute.up(
+        maghrib.add(nextFajr.difference(maghrib) * 2 ~/ 3),
+      );
 }
 
 // Example of extending the built-in enum to provide user-friendly names

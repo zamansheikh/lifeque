@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -18,6 +17,7 @@ import '../../../../core/utils/local_numbers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../utils/prayer_l10n.dart';
 import '../../../../core/utils/local_clock.dart';
+import '../../../../core/utils/hijri_date.dart';
 
 /// Preview-and-share for the day's prayer times.
 ///
@@ -299,7 +299,7 @@ class PrayerShareCard extends StatelessWidget {
 
   Widget _sky(BuildContext context) {
     final l = L.of(context);
-    final hijri = HijriCalendar.fromDate(date);
+    final hijri = HijriDate.of(date);
     final bangla = BanglaDate.fromDate(date);
     final isFriday = date.weekday == DateTime.friday;
 

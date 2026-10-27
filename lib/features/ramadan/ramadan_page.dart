@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../core/utils/local_clock.dart';
@@ -11,13 +10,14 @@ import '../../core/utils/salah_time_calculator.dart';
 import '../../l10n/app_localizations.dart';
 import '../prayer_times/data/services/prayer_settings_service.dart';
 import 'ramadan_store.dart';
+import '../../core/utils/hijri_date.dart';
 
 const _night = Color(0xFF312E81);
 const _gold = Color(0xFFF59E0B);
 
 /// Which Ramadan the log opens on: the running one, else the last one.
 int defaultRamadanYear(DateTime now) {
-  final h = HijriCalendar.fromDate(now);
+  final h = HijriDate.of(now);
   return h.hMonth >= 9 ? h.hYear : h.hYear - 1;
 }
 
@@ -225,7 +225,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final h = HijriCalendar.fromDate(now);
+    final h = HijriDate.of(now);
     final String status;
     if (h.hMonth == 9) {
       status = l.ramadanToday(N.plain(h.hYear), h.hDay);

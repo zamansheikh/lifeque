@@ -11,6 +11,11 @@ import '../widgets/prayer_alarm_sheet.dart';
 import '../widgets/prayer_snack.dart';
 import 'prayer_stats_page.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/utils/hijri_date.dart';
+import '../../../../core/utils/local_numbers.dart';
+import '../utils/hijri_names.dart';
+import 'dart:async';
+import '../../../home_widget/services/home_widget_service.dart';
 
 /// "More" tab: shortcuts into stats/resources/duas, the adhan voice picker,
 /// and the prayer settings block (method, madhab, location, Ramadan mode).
@@ -493,6 +498,10 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
           ),
         ),
         _settingRow(
+          label: L.of(context).moreHijriDate,
+          trailing: _hijriStepper(),
+        ),
+        _settingRow(
           label: L.of(context).moreRamadanMode,
           showDivider: false,
           trailing: _switch(
@@ -504,6 +513,51 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
             },
           ),
         ),
+      ],
+    );
+  }
+
+  /// − today's Hijri date + : shifts every Hijri date in the app by a day
+  /// at a time, to agree with the local moon-sighting committee.
+  Widget _hijriStepper() {
+    final l = L.of(context);
+    final h = HijriDate.of(DateTime.now());
+    Widget step(IconData icon, int delta, String tip) {
+      final next = HijriDate.offset + delta;
+      final enabled =
+          next >= HijriDate.minOffset && next <= HijriDate.maxOffset;
+      return IconButton(
+        key: Key('hijri-offset-${delta > 0 ? 'later' : 'earlier'}'),
+        tooltip: tip,
+        visualDensity: VisualDensity.compact,
+        iconSize: 20,
+        color: PrayerPalette.accent,
+        onPressed: enabled
+            ? () async {
+                await HijriDate.save(next);
+                if (mounted) setState(() {});
+                // The home-screen widget shows the Hijri date too.
+                unawaited(HomeWidgetService().updateWidget());
+              }
+            : null,
+        icon: Icon(icon),
+      );
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        step(Icons.remove_circle_outline_rounded, -1, l.moreHijriEarlier),
+        Text(
+          '${N.of(h.hDay)} ${HijriNames.monthFor(context, h.hMonth)}',
+          key: const Key('hijri-offset-preview'),
+          style: const TextStyle(
+            color: PrayerPalette.accent,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        step(Icons.add_circle_outline_rounded, 1, l.moreHijriLater),
       ],
     );
   }

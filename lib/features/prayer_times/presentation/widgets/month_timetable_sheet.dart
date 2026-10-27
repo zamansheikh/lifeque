@@ -18,6 +18,7 @@ import 'share_art.dart';
 import '../../../../core/utils/local_numbers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../utils/prayer_l10n.dart';
+import '../../../../core/utils/hijri_date.dart';
 
 /// Preview-and-share for a whole month's timetable, as an A4-proportioned
 /// (794×1123) sheet suitable for printing or forwarding to a mosque group.
@@ -251,10 +252,8 @@ class MonthTimetableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
-    final hijriStart = HijriCalendar.fromDate(month);
-    final hijriEnd = HijriCalendar.fromDate(
-      DateTime(month.year, month.month + 1, 0),
-    );
+    final hijriStart = HijriDate.of(month);
+    final hijriEnd = HijriDate.of(DateTime(month.year, month.month + 1, 0));
     final banglaStart = BanglaDate.fromDate(month);
     final banglaEnd = BanglaDate.fromDate(
       DateTime(month.year, month.month + 1, 0),
@@ -576,7 +575,7 @@ class MonthTimetableCard extends StatelessWidget {
       madhab: madhab,
     );
     final times = calc.getPrayerTimesMap();
-    final hijri = HijriCalendar.fromDate(day);
+    final hijri = HijriDate.of(day);
     final bangla = BanglaDate.fromDate(day);
     final isFriday = day.weekday == DateTime.friday;
 

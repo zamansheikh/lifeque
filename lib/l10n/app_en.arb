@@ -1280,6 +1280,10 @@
   "ramadanAfterIftar": "After breaking the fast",
   "ramadanAfterIftarMeaning": "The thirst is gone, the veins are moistened, and the reward is certain, if Allah wills. (Abu Dawud)",
   "ramadanNavSub": "Sehri, iftar, fasting log and duas",
+  "moreHijriDate": "Hijri date",
+  "moreHijriDateHint": "Match your local moon sighting",
+  "moreHijriEarlier": "One day earlier",
+  "moreHijriLater": "One day later",
   "studyMinutesToStart": "{minutes} min to start",
   "@studyMinutesToStart": {
     "placeholders": {

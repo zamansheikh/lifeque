@@ -1,8 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/utils/hijri_date.dart';
 
 /// Translucent floating top bar that sits over the [SkyBackground].
 ///
@@ -28,7 +28,7 @@ class PrayerTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hijri = HijriCalendar.fromDate(date);
+    final hijri = HijriDate.of(date);
     final hijriStr =
         '${hijri.hDay} ${_hijriMonthName(hijri.hMonth)} ${hijri.hYear}';
     final gregStr = DateFormat('EEE, MMM d').format(date);

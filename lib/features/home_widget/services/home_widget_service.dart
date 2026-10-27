@@ -16,7 +16,7 @@ import 'package:lifeque/features/prayer_times/data/services/prayer_settings_serv
 import 'package:lifeque/features/prayer_times/presentation/utils/bangla_date.dart';
 import 'package:lifeque/features/prayer_times/presentation/utils/hijri_names.dart';
 import 'package:intl/intl.dart';
-import 'package:hijri/hijri_calendar.dart';
+import '../../../core/utils/hijri_date.dart';
 
 /// App Group id shared between the Runner app and an iOS WidgetKit extension.
 ///
@@ -405,6 +405,10 @@ class HomeWidgetService {
       'Lat: ${locationData?.latitude}',
     );
     if (locationData == null) return null;
+    await HijriDate.ensureLoaded(
+      latitude: locationData.latitude,
+      longitude: locationData.longitude,
+    );
 
     final method = await settings.getCalculationMethod();
     final madhab = await settings.getMadhab();
@@ -420,7 +424,7 @@ class HomeWidgetService {
 
     final times = calculator.getPrayerTimesMap();
     final endTimes = calculator.getEndTimes(calculator.getStartTimes());
-    final hijri = HijriCalendar.fromDate(date);
+    final hijri = HijriDate.of(date);
     final bangla = BanglaDate.fromDate(date);
 
     // The prayer the widget is about: the running waqt, else the next one.

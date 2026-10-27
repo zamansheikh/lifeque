@@ -35,6 +35,7 @@ import '../../../tasks/domain/repositories/task_repository.dart';
 import '../../../tasks/presentation/bloc/task_bloc.dart';
 import '../../../tasks/presentation/widgets/birthday_wish/birthday_wish_log.dart';
 import '../../../tasks/data/run_todo_migration.dart';
+import '../../../../core/utils/hijri_date.dart';
 
 /// Export and import of a full backup, from the Settings page.
 ///
@@ -226,6 +227,7 @@ class BackupActions {
       await di.sl<DebtCubit>().load();
       await di.sl<HabitCubit>().load();
     });
+    await step('hijri offset', () => HijriDate.ensureLoaded(force: true));
     await step('qaza', QazaStore.instance.load);
     await step('ramadan', RamadanStore.instance.load);
     unawaited(step('home widget', () => HomeWidgetService().updateWidget()));

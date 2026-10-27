@@ -68,9 +68,7 @@ class _NextPrayerCardState extends State<NextPrayerCard> {
       return const SizedBox();
     }
 
-    final nextPrayerTime = widget.calculator.getPrayerTimes().timeForPrayer(
-      _nextPrayer!,
-    );
+    final nextPrayerTime = widget.calculator.timeForPrayer(_nextPrayer!);
 
     return Container(
       width: double.infinity,

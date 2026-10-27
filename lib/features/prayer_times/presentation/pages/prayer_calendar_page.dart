@@ -1,6 +1,5 @@
 import 'package:adhan/adhan.dart';
 import 'package:flutter/material.dart';
-import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/utils/salah_time_calculator.dart';
@@ -13,6 +12,7 @@ import '../widgets/prayer_share_sheet.dart';
 import '../../../../core/utils/local_numbers.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../utils/prayer_l10n.dart';
+import '../../../../core/utils/hijri_date.dart';
 
 /// Month timetable: a week strip, today's five prayers, and a scrollable list
 /// of every day in the visible month.
@@ -186,10 +186,8 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
   // ── Header ──────────────────────────────────────────────────────────────
 
   Widget _header(DateTime now) {
-    final hijriStart = HijriCalendar.fromDate(_month);
-    final hijriEnd = HijriCalendar.fromDate(
-      DateTime(_month.year, _month.month + 1, 0),
-    );
+    final hijriStart = HijriDate.of(_month);
+    final hijriEnd = HijriDate.of(DateTime(_month.year, _month.month + 1, 0));
     final banglaStart = BanglaDate.fromDate(_month);
     final banglaEnd = BanglaDate.fromDate(
       DateTime(_month.year, _month.month + 1, 0),
@@ -316,7 +314,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
   Widget _weekChip(DateTime day, DateTime now) {
     final isToday = _sameDay(day, now);
     final isFriday = day.weekday == DateTime.friday && !isToday;
-    final hijri = HijriCalendar.fromDate(day);
+    final hijri = HijriDate.of(day);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -590,7 +588,7 @@ class _PrayerCalendarPageState extends State<PrayerCalendarPage> {
     final isToday = _sameDay(day, now);
     final isFriday = day.weekday == DateTime.friday;
     final times = _calcFor(day).getPrayerTimesMap();
-    final hijri = HijriCalendar.fromDate(day);
+    final hijri = HijriDate.of(day);
     final bangla = BanglaDate.fromDate(day);
 
     final labelColor = isToday

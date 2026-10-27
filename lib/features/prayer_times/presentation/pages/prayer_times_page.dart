@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:geolocator/geolocator.dart';
-import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:lifeque/core/utils/salah_time_calculator.dart';
 import 'package:lifeque/features/home_widget/presentation/widgets/add_widget_sheet.dart';
@@ -41,6 +40,7 @@ import '../widgets/restricted_times_card.dart';
 import '../widgets/salat_times_card.dart';
 import 'prayer_stats_page.dart';
 import '../../../../core/utils/local_clock.dart';
+import '../../../../core/utils/hijri_date.dart';
 
 /// "Prayer Compass" — the prayer-times screen.
 ///
@@ -175,6 +175,12 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       _selectedMadhab = await _settingsService.getMadhab();
       final savedLocation = await _settingsService.getSavedLocation();
       if (savedLocation != null) {
+        await HijriDate.ensureLoaded(
+          latitude: savedLocation.latitude,
+          longitude: savedLocation.longitude,
+          force: true,
+        );
+        if (!mounted) return;
         setState(() {
           _latitude = savedLocation.latitude;
           _longitude = savedLocation.longitude;
@@ -682,7 +688,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   /// The same date in all three calendars, in carousel order.
   List<String> _dateLines(DateTime date) {
     final dowEn = DateFormat('EEEE').format(date);
-    final hijri = HijriCalendar.fromDate(date);
+    final hijri = HijriDate.of(date);
     return [
       '$dowEn, ${N.of(hijri.hDay)} '
           '${HijriNames.monthFor(context, hijri.hMonth)} ${N.plain(hijri.hYear)}',
@@ -1225,7 +1231,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   Widget _ramadanStrip(Map<String, DateTime> times, DateTime now) {
     final fajr = times['Fajr']!;
     final maghrib = times['Maghrib']!;
-    final hijri = HijriCalendar.fromDate(now);
+    final hijri = HijriDate.of(now);
     final heading = hijri.hMonth == 9
         ? L.of(context).ramadanDay(hijri.hDay)
         : L.of(context).ramadanMode;

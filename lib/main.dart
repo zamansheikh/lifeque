@@ -15,6 +15,8 @@ import 'features/tasks/data/run_todo_migration.dart';
 import 'injection_container.dart' as di;
 import 'features/home_widget/services/home_widget_service.dart';
 import 'core/services/background_service.dart';
+import 'core/utils/hijri_date.dart';
+import 'features/prayer_times/data/services/prayer_settings_service.dart';
 
 /// Top-level background callback for home_widget tap-to-refresh.
 /// This runs in an isolate when the user taps the widget.
@@ -104,6 +106,19 @@ void main() async {
   // Initialize dependency injection
   await di.init();
   debugPrint('💉 Dependency injection initialized');
+
+  // The Hijri day offset is needed before the first date is drawn.
+  try {
+    final settings = PrayerSettingsService.instance;
+    await settings.init();
+    final loc = await settings.getSavedLocation();
+    await HijriDate.ensureLoaded(
+      latitude: loc?.latitude,
+      longitude: loc?.longitude,
+    );
+  } catch (e) {
+    debugPrint('🌙 Could not read the Hijri offset: $e');
+  }
 
   // Initialize notifications (without requesting permissions)
   final notificationService = di.sl<NotificationService>();

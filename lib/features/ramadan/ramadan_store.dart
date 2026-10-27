@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:hijri/hijri_calendar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../qaza/qaza_store.dart';
+import '../../core/utils/hijri_date.dart';
 
 /// How one day of Ramadan went.
 enum FastStatus {
@@ -20,12 +20,12 @@ enum FastStatus {
 /// The Gregorian date of each day of Ramadan in Hijri [year], by the
 /// calculated calendar. 29 or 30 entries.
 List<DateTime> ramadanDays(int year) {
-  final first = HijriCalendar().hijriToGregorian(year, 9, 1);
+  final first = HijriDate.toGregorian(year, 9, 1);
   final start = DateTime(first.year, first.month, first.day);
   final out = <DateTime>[];
   for (var i = 0; i < 30; i++) {
     final d = DateTime(start.year, start.month, start.day + i);
-    final h = HijriCalendar.fromDate(d);
+    final h = HijriDate.of(d);
     if (h.hMonth != 9) break;
     out.add(d);
   }

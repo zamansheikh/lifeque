@@ -3045,6 +3045,18 @@ class LEn extends L {
   String get ramadanNavSub => 'Sehri, iftar, fasting log and duas';
 
   @override
+  String get moreHijriDate => 'Hijri date';
+
+  @override
+  String get moreHijriDateHint => 'Match your local moon sighting';
+
+  @override
+  String get moreHijriEarlier => 'One day earlier';
+
+  @override
+  String get moreHijriLater => 'One day later';
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

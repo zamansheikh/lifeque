@@ -5059,6 +5059,30 @@ abstract class L {
   /// **'Sehri, iftar, fasting log and duas'**
   String get ramadanNavSub;
 
+  /// No description provided for @moreHijriDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Hijri date'**
+  String get moreHijriDate;
+
+  /// No description provided for @moreHijriDateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Match your local moon sighting'**
+  String get moreHijriDateHint;
+
+  /// No description provided for @moreHijriEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'One day earlier'**
+  String get moreHijriEarlier;
+
+  /// No description provided for @moreHijriLater.
+  ///
+  /// In en, this message translates to:
+  /// **'One day later'**
+  String get moreHijriLater;
+
   /// No description provided for @studyMinutesToStart.
   ///
   /// In en, this message translates to:
