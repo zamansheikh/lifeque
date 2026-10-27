@@ -35,6 +35,28 @@ class PrayerCompletionService {
   }
 
   /// Returns the set of prayer names marked complete for [date].
+  /// Fard prayers not ticked on each day from [from] to [to] (inclusive),
+  /// counted only from the first day anything was ticked — before that the
+  /// app wasn't being used, which is not the same as not praying.
+  Future<Map<String, int>> untickedBetween(DateTime from, DateTime to) async {
+    final all = await _readAll();
+    final result = {for (final p in _prayers) p: 0};
+    final tracked = all.keys.toList()..sort();
+    if (tracked.isEmpty) return result;
+    final first = DateTime.parse(tracked.first);
+    var day = DateTime(from.year, from.month, from.day);
+    if (day.isBefore(first)) day = first;
+    final end = DateTime(to.year, to.month, to.day);
+    while (!day.isAfter(end)) {
+      final done = (all[_dateKey(day)] as List?)?.cast<String>() ?? const [];
+      for (final p in _prayers) {
+        if (!done.contains(p)) result[p] = result[p]! + 1;
+      }
+      day = DateTime(day.year, day.month, day.day + 1);
+    }
+    return result;
+  }
+
   Future<Set<String>> getCompletions(DateTime date) async {
     final all = await _readAll();
     final list = (all[_dateKey(date)] as List?)?.cast<String>() ?? const [];

@@ -39,6 +39,15 @@ import '../features/settings/presentation/pages/settings_page.dart';
 import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import 'services/navigation_service.dart';
 import 'widgets/alarm_ring_overlay.dart';
+import '../features/debts/presentation/debts_page.dart';
+import '../features/debts/presentation/edit_debt_page.dart';
+import '../features/habits/presentation/edit_habit_page.dart';
+import '../features/habits/presentation/habit_detail_page.dart';
+import '../features/habits/presentation/habit_ui.dart';
+import '../features/habits/presentation/habits_page.dart';
+import '../features/ramadan/ramadan_page.dart';
+import '../features/search/search_page.dart';
+import '../features/qaza/qaza_page.dart';
 import '../features/subscriptions/presentation/edit_subscription_page.dart';
 import '../features/subscriptions/presentation/subscription_ui.dart';
 import '../features/subscriptions/presentation/subscriptions_page.dart';
@@ -206,6 +215,60 @@ class AppRouter {
               ? AddEditItemPage(taskId: taskId)
               : TaskDetailPage(taskId: taskId);
         },
+      ),
+      GoRoute(
+        path: '/habits',
+        name: 'habits',
+        builder: (context, state) => const HabitsPage(),
+      ),
+      GoRoute(
+        path: '/habits/add',
+        name: 'add-habit',
+        builder: (context, state) =>
+            EditHabitPage(idea: state.extra as HabitIdea?),
+      ),
+      GoRoute(
+        path: '/habits/view/:id',
+        name: 'habit',
+        builder: (context, state) =>
+            HabitDetailPage(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/habits/edit/:id',
+        name: 'edit-habit',
+        builder: (context, state) =>
+            EditHabitPage(id: state.pathParameters['id']),
+      ),
+      GoRoute(
+        path: '/debts',
+        name: 'debts',
+        builder: (context, state) => const DebtsPage(),
+      ),
+      GoRoute(
+        path: '/debts/add',
+        name: 'add-debt',
+        builder: (context, state) => const EditDebtPage(),
+      ),
+      GoRoute(
+        path: '/debts/edit/:id',
+        name: 'edit-debt',
+        builder: (context, state) =>
+            EditDebtPage(id: state.pathParameters['id']),
+      ),
+      GoRoute(
+        path: '/ramadan',
+        name: 'ramadan',
+        builder: (context, state) => const RamadanPage(),
+      ),
+      GoRoute(
+        path: '/search',
+        name: 'search',
+        builder: (context, state) => const SearchPage(),
+      ),
+      GoRoute(
+        path: '/qaza',
+        name: 'qaza',
+        builder: (context, state) => const QazaPage(),
       ),
       GoRoute(
         path: '/subscriptions',

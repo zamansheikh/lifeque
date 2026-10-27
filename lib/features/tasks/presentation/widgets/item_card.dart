@@ -42,15 +42,21 @@ class ItemCard extends StatelessWidget {
           icon: due != null
               ? Icons.event_rounded
               : Icons.notifications_active_rounded,
-          label: _when(context, at),
+          label: itemWhen(context, at),
           color: overdue ? _danger : const Color(0xFF2563EB),
         ),
       // Both a due time and a separate reminder: show the reminder too.
       if (due != null && reminder != null && !_sameMinute(due, reminder))
         _chip(
           icon: Icons.notifications_active_rounded,
-          label: _when(context, reminder),
+          label: itemWhen(context, reminder),
           color: const Color(0xFF7C3AED),
+        ),
+      if (task.repeats)
+        _chip(
+          icon: Icons.repeat_rounded,
+          label: task.repeat.labelFor(context),
+          color: const Color(0xFF0D9488),
         ),
       if (task.priority.stands)
         _chip(
@@ -213,19 +219,19 @@ class ItemCard extends StatelessWidget {
 
   static bool _sameMinute(DateTime a, DateTime b) =>
       a.difference(b).inMinutes.abs() < 1;
+}
 
-  /// "আজ, সন্ধ্যা ৬:০০" / "Tomorrow, 9:00 AM" / "Fri 31 Oct, 6:00 PM".
-  static String _when(BuildContext context, DateTime at) {
-    final l = L.of(context);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final day = DateTime(at.year, at.month, at.day);
-    final label = switch (day.difference(today).inDays) {
-      0 => l.commonToday,
-      1 => l.commonTomorrow,
-      -1 => l.commonYesterday,
-      _ => DateFormat('EEE d MMM').format(at),
-    };
-    return '$label, ${Clock.h12(at)}';
-  }
+/// "আজ, সন্ধ্যা ৬:০০" / "Tomorrow, 9:00 AM" / "Fri 31 Oct, 6:00 PM".
+String itemWhen(BuildContext context, DateTime at) {
+  final l = L.of(context);
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final day = DateTime(at.year, at.month, at.day);
+  final label = switch (day.difference(today).inDays) {
+    0 => l.commonToday,
+    1 => l.commonTomorrow,
+    -1 => l.commonYesterday,
+    _ => DateFormat('EEE d MMM').format(at),
+  };
+  return '$label, ${Clock.h12(at)}';
 }

@@ -25,7 +25,13 @@ class TaskModel extends Task {
     super.category,
     super.hasDueDate,
     super.completedAt,
+    super.repeat,
   });
+
+  static RepeatRule _repeatAt(Object? i) =>
+      i is int && i >= 0 && i < RepeatRule.values.length
+      ? RepeatRule.values[i]
+      : RepeatRule.none;
 
   static TaskPriority _priorityAt(Object? i) =>
       i is int && i >= 0 && i < TaskPriority.values.length
@@ -102,6 +108,7 @@ class TaskModel extends Task {
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'] as String)
           : null,
+      repeat: _repeatAt(json['repeat']),
     );
   }
 
@@ -131,6 +138,7 @@ class TaskModel extends Task {
       'category': category?.index,
       'hasDueDate': hasDueDate,
       'completedAt': completedAt?.toIso8601String(),
+      'repeat': repeat.index,
     };
   }
 
@@ -157,6 +165,7 @@ class TaskModel extends Task {
       category: task.category,
       hasDueDate: task.hasDueDate,
       completedAt: task.completedAt,
+      repeat: task.repeat,
     );
   }
 
@@ -186,6 +195,7 @@ class TaskModel extends Task {
       DatabaseHelper.columnCategory: category?.index,
       DatabaseHelper.columnHasDueDate: hasDueDate ? 1 : 0,
       DatabaseHelper.columnCompletedAt: completedAt?.millisecondsSinceEpoch,
+      DatabaseHelper.columnRepeat: repeat.index,
     };
   }
 
@@ -245,6 +255,7 @@ class TaskModel extends Task {
               map[DatabaseHelper.columnCompletedAt],
             )
           : null,
+      repeat: _repeatAt(map[DatabaseHelper.columnRepeat]),
     );
   }
 
@@ -273,6 +284,7 @@ class TaskModel extends Task {
     bool? hasDueDate,
     DateTime? completedAt,
     bool clearCompletedAt = false,
+    RepeatRule? repeat,
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -301,6 +313,7 @@ class TaskModel extends Task {
       category: clearCategory ? null : (category ?? this.category),
       hasDueDate: hasDueDate ?? this.hasDueDate,
       completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
+      repeat: repeat ?? this.repeat,
     );
   }
 }

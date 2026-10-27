@@ -8,7 +8,8 @@ class DatabaseHelper {
   // 11: priority, category, undated items and completion time, for the
   // single list that tasks, reminders and to-dos became.
   // 12: subscriptions.
-  static const int _databaseVersion = 12;
+  // 13: repeating items; debts; habits.
+  static const int _databaseVersion = 13;
 
   // Public getter for database version
   static int get databaseVersion => _databaseVersion;
@@ -17,6 +18,45 @@ class DatabaseHelper {
   static const String tableMedicine = 'medicines';
   static const String tableMedicineDose = 'medicine_doses';
   static const String tableSubscriptions = 'subscriptions';
+  static const String tableDebts = 'debts';
+  static const String tableHabits = 'habits';
+  static const String tableHabitChecks = 'habit_checks';
+
+  /// Tables added in 13, created the same way for a new install and an
+  /// upgrade.
+  static const List<String> v13Tables = [
+    '''
+    CREATE TABLE IF NOT EXISTS debts (
+      id TEXT PRIMARY KEY,
+      person TEXT NOT NULL,
+      amount REAL NOT NULL,
+      theyOweMe INTEGER NOT NULL DEFAULT 1,
+      date INTEGER NOT NULL,
+      dueDate INTEGER,
+      note TEXT,
+      payments TEXT NOT NULL DEFAULT '[]',
+      settledAt INTEGER,
+      createdAt INTEGER NOT NULL
+    )''',
+    '''
+    CREATE TABLE IF NOT EXISTS habits (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      icon INTEGER NOT NULL DEFAULT 0,
+      color INTEGER NOT NULL DEFAULT 0,
+      days INTEGER NOT NULL DEFAULT 127,
+      reminderMinutes INTEGER,
+      archived INTEGER NOT NULL DEFAULT 0,
+      sortOrder INTEGER NOT NULL DEFAULT 0,
+      createdAt INTEGER NOT NULL
+    )''',
+    '''
+    CREATE TABLE IF NOT EXISTS habit_checks (
+      habitId TEXT NOT NULL,
+      day TEXT NOT NULL,
+      PRIMARY KEY (habitId, day)
+    )''',
+  ];
 
   /// One table, created the same way for a new install and an upgrade.
   static const String _createSubscriptions = '''
@@ -66,6 +106,7 @@ class DatabaseHelper {
   static const String columnCategory = 'category';
   static const String columnHasDueDate = 'hasDueDate';
   static const String columnCompletedAt = 'completedAt';
+  static const String columnRepeat = 'repeatRule';
   static const String columnUpdatedAt = 'updatedAt';
 
   // Medicine table columns
@@ -116,6 +157,9 @@ class DatabaseHelper {
   Future<void> _onCreate(Database db, int version) async {
     try {
       await db.execute(_createSubscriptions);
+      for (final sql in v13Tables) {
+        await db.execute(sql);
+      }
       // Create tasks table
       await db.execute('''
         CREATE TABLE $tableTask (
@@ -140,7 +184,8 @@ class DatabaseHelper {
           $columnPriority INTEGER NOT NULL DEFAULT 1,
           $columnCategory INTEGER,
           $columnHasDueDate INTEGER NOT NULL DEFAULT 1,
-          $columnCompletedAt INTEGER
+          $columnCompletedAt INTEGER,
+          $columnRepeat INTEGER NOT NULL DEFAULT 0
         )
       ''');
 
@@ -365,6 +410,14 @@ class DatabaseHelper {
     }
     if (oldVersion < 12) {
       await db.execute(_createSubscriptions);
+    }
+    if (oldVersion < 13) {
+      await db.execute(
+        'ALTER TABLE $tableTask ADD COLUMN $columnRepeat INTEGER NOT NULL DEFAULT 0',
+      );
+      for (final sql in v13Tables) {
+        await db.execute(sql);
+      }
     }
   }
 

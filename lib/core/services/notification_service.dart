@@ -6,6 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
+import '../../features/debts/data/debt_repository.dart';
+import '../../features/debts/domain/debt.dart';
+import '../../features/habits/data/habit_repository.dart';
+import '../../features/habits/domain/habit.dart';
+import '../../features/habits/presentation/habit_cubit.dart';
 import '../../features/subscriptions/data/subscription_repository.dart';
 import '../../features/subscriptions/domain/subscription.dart';
 import '../../features/subscriptions/presentation/subscription_cubit.dart';
@@ -70,6 +75,21 @@ class NotificationService {
   static const String channelPersistent = 'persistent_tasks';
   static const String channelSubscriptions = 'subscription_renewals_v1';
   static const String subscriptionPayloadPrefix = 'subscription_';
+  static const String channelDebts = 'debt_reminders_v1';
+  static const String debtPayloadPrefix = 'debt_';
+  static const String channelHabits = 'habit_reminders_v1';
+  static const String habitPayloadPrefix = 'habit_';
+
+  /// Payloads that are not task ids. The startup sync treats any other
+  /// payload as a task and cancels it if no such task is open — so every
+  /// kind of notification scheduled outside the task list must be named
+  /// here, or it is silently cancelled on the next app start.
+  static bool _ownedElsewhere(String payload) => [
+    todoPayloadPrefix,
+    subscriptionPayloadPrefix,
+    debtPayloadPrefix,
+    habitPayloadPrefix,
+  ].any(payload.startsWith);
 
   /// Confirmations after a notification action ("Completed", "Snoozed").
   ///
@@ -234,6 +254,24 @@ class NotificationService {
         playSound: true,
         audioAttributesUsage: AudioAttributesUsage.notification,
         showBadge: true,
+      ),
+      AndroidNotificationChannel(
+        channelDebts,
+        'Debt reminders',
+        description: 'A reminder on the day money is due back',
+        importance: Importance.high,
+        enableVibration: true,
+        playSound: true,
+        showBadge: true,
+      ),
+      AndroidNotificationChannel(
+        channelHabits,
+        'Habit reminders',
+        description: 'A daily nudge for the habits you are building',
+        importance: Importance.defaultImportance,
+        enableVibration: true,
+        playSound: true,
+        showBadge: false,
       ),
       AndroidNotificationChannel(
         channelSubscriptions,
@@ -402,6 +440,18 @@ class NotificationService {
       return;
     }
 
+    if (payload.startsWith(debtPayloadPrefix)) {
+      return; // No buttons on these; a tap just opens the app.
+    }
+
+    if (payload.startsWith(habitPayloadPrefix)) {
+      await _handleHabitAction(
+        actionId,
+        payload.substring(habitPayloadPrefix.length),
+      );
+      return;
+    }
+
     if (payload.startsWith(subscriptionPayloadPrefix)) {
       await _handleSubscriptionAction(
         actionId,
@@ -459,11 +509,8 @@ class NotificationService {
           _activeTasks.removeWhere((t) => t.id == taskId);
           debugPrint('🔔 Removed task from active list');
 
-          // Create an updated task with completed status
-          final updatedTask = task.copyWith(
-            isCompleted: true,
-            updatedAt: DateTime.now(),
-          );
+          // Completed — or, for a repeating item, moved to its next date.
+          final updatedTask = task.done(DateTime.now());
 
           // Update the task directly via bloc
           taskBloc.add(UpdateTaskEvent(updatedTask));
@@ -1852,8 +1899,7 @@ class NotificationService {
                       );
                       cancelledCount++;
                     }
-                  } else if (!payload.startsWith(todoPayloadPrefix) &&
-                      !payload.startsWith(subscriptionPayloadPrefix)) {
+                  } else if (!_ownedElsewhere(payload)) {
                     // Assume task ID. Old to-do reminders are cleared by
                     // cancelLegacyTodoNotifications.
                     if (!activeTaskIds.contains(payload)) {
@@ -1897,8 +1943,7 @@ class NotificationService {
                           cancelledCount++;
                         }
                       }
-                    } else if (!payload.startsWith(todoPayloadPrefix) &&
-                        !payload.startsWith(subscriptionPayloadPrefix)) {
+                    } else if (!_ownedElsewhere(payload)) {
                       // Assume task ID — see the note above.
                       if (!activeTaskIds.contains(payload)) {
                         if (notification.id != null) {
@@ -1951,6 +1996,26 @@ class NotificationService {
         }
       } catch (e) {
         debugPrint('🔔 ❌ Could not reschedule subscriptions: $e');
+      }
+      try {
+        final debts = await di.sl<DebtRepository>().all();
+        for (final d in debts.where((d) => !d.isSettled)) {
+          await scheduleDebtReminder(d);
+        }
+      } catch (e) {
+        debugPrint('🔔 ❌ Could not reschedule debts: $e');
+      }
+      try {
+        final habits = await di.sl<HabitRepository>().all();
+        for (final h in habits) {
+          if (h.archived || h.reminderMinutes == null) {
+            await cancelHabitReminders(h.id);
+          } else {
+            await scheduleHabitReminders(h);
+          }
+        }
+      } catch (e) {
+        debugPrint('🔔 ❌ Could not reschedule habits: $e');
       }
       debugPrint('🔔 ✅ Notification synchronization completed');
     } catch (e) {
@@ -2030,6 +2095,143 @@ class NotificationService {
       due,
       s.isTrial ? l.subNotifTrialEndsToday : l.subNotifRenewsToday(amount),
     );
+  }
+
+  /// FNV-1a of [id] into [range], for ids that must be the same every run.
+  static int _stableId(String id, int base, int range) {
+    var h = 0x811c9dc5;
+    for (final c in id.codeUnits) {
+      h = ((h ^ c) * 0x01000193) & 0xffffffff;
+    }
+    return base + h % range;
+  }
+
+  static int debtNotificationId(String id) =>
+      _stableId(id, 1900000000, 100000000);
+
+  /// One reminder, at 9 on the due date, worded for which way the money
+  /// goes.
+  Future<void> scheduleDebtReminder(Debt d) async {
+    await cancelDebtReminder(d.id);
+    final due = d.dueDate;
+    if (d.isSettled || due == null) return;
+    final when = tz.TZDateTime(tz.local, due.year, due.month, due.day, 9);
+    if (!when.isAfter(tz.TZDateTime.now(tz.local))) return;
+    final l = appStrings;
+    final amount = formatMoney(d.remaining, 'BDT');
+    final body = d.theyOweMe
+        ? l.debtNotifReceive(d.person, amount)
+        : l.debtNotifPay(d.person, amount);
+    await _flutterLocalNotificationsPlugin.zonedSchedule(
+      id: debtNotificationId(d.id),
+      title: l.navDebts,
+      body: body,
+      scheduledDate: when,
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          channelDebts,
+          l.debtChannelName,
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          color: const Color(0xFF0F766E),
+          styleInformation: BigTextStyleInformation(body),
+        ),
+        iOS: const DarwinNotificationDetails(),
+      ),
+      payload: '$debtPayloadPrefix${d.id}',
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
+  Future<void> cancelDebtReminder(String id) =>
+      _flutterLocalNotificationsPlugin.cancel(id: debtNotificationId(id));
+
+  // ── Habits ──────────────────────────────────────────────────────────────
+
+  /// Slot 0 is the every-day reminder; slots 1–7 are Monday … Sunday.
+  static int habitNotificationId(String id, int slot) =>
+      2000000000 + _stableId(id, 0, 10000000) * 8 + slot;
+
+  /// A repeating nudge at the habit's time: one notification when it is
+  /// every day, otherwise one per chosen weekday.
+  Future<void> scheduleHabitReminders(Habit h) async {
+    await cancelHabitReminders(h.id);
+    final minutes = h.reminderMinutes;
+    if (h.archived || minutes == null) return;
+    final l = appStrings;
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        channelHabits,
+        l.habitChannelName,
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        icon: '@mipmap/ic_launcher',
+        color: const Color(0xFFEA580C),
+        actions: [_action('habit_done', l.habitNotifDone)],
+      ),
+      iOS: const DarwinNotificationDetails(),
+    );
+    final now = tz.TZDateTime.now(tz.local);
+    var next = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      minutes ~/ 60,
+      minutes % 60,
+    );
+    if (!next.isAfter(now)) next = next.add(const Duration(days: 1));
+
+    Future<void> at(int slot, tz.TZDateTime when, DateTimeComponents m) =>
+        _flutterLocalNotificationsPlugin.zonedSchedule(
+          id: habitNotificationId(h.id, slot),
+          title: h.name,
+          body: l.habitNotifBody,
+          scheduledDate: when,
+          notificationDetails: details,
+          payload: '$habitPayloadPrefix${h.id}',
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          matchDateTimeComponents: m,
+        );
+
+    if (h.days == Habit.everyDay) {
+      await at(0, next, DateTimeComponents.time);
+      return;
+    }
+    for (var weekday = 1; weekday <= 7; weekday++) {
+      if (!h.onWeekday(weekday)) continue;
+      var when = next;
+      while (when.weekday != weekday) {
+        when = when.add(const Duration(days: 1));
+      }
+      await at(weekday, when, DateTimeComponents.dayOfWeekAndTime);
+    }
+  }
+
+  Future<void> cancelHabitReminders(String id) async {
+    for (var slot = 0; slot <= 7; slot++) {
+      await _flutterLocalNotificationsPlugin.cancel(
+        id: habitNotificationId(id, slot),
+      );
+    }
+  }
+
+  /// "Done" on a habit reminder ticks today, unless it already is.
+  Future<void> _handleHabitAction(String actionId, String id) async {
+    if (actionId != 'habit_done') return;
+    try {
+      final cubit = di.sl<HabitCubit>();
+      if (cubit.state.loading) await cubit.load();
+      final h = cubit.state.habits.where((h) => h.id == id).firstOrNull;
+      if (h == null) return;
+      final today = DateTime.now();
+      if (!cubit.state.statsFor(h).doneOn(today)) {
+        await cubit.toggle(h, today);
+      }
+    } catch (e) {
+      debugPrint('🔔 ❌ Could not tick habit $id: $e');
+    }
   }
 
   Future<void> cancelSubscriptionReminders(String id) async {

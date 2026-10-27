@@ -52,6 +52,7 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
   DateTime? _dueDate;
   DateTime? _reminderAt;
   bool _pinned = false;
+  RepeatRule _repeat = RepeatRule.none;
   bool _showNote = false;
   Task? _existing;
 
@@ -81,6 +82,7 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
     _dueDate = task.dueDate;
     _reminderAt = task.reminderAt;
     _pinned = task.isPinnedToNotification;
+    _repeat = task.repeat;
   }
 
   @override
@@ -129,6 +131,8 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
       category: _category,
       hasDueDate: _dueDate != null,
       completedAt: existing?.completedAt,
+      // Only something with a date can come back on one.
+      repeat: _dueDate != null || reminder != null ? _repeat : RepeatRule.none,
       createdAt: existing?.createdAt ?? now,
       updatedAt: existing == null ? null : now,
     );
@@ -206,6 +210,8 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
                 _dueRow(),
                 const SizedBox(height: 12),
                 _reminderRow(),
+                const SizedBox(height: 12),
+                _repeatRow(),
                 if (_hasWhen) ...[const SizedBox(height: 12), _pinRow()],
               ],
             ),
@@ -521,6 +527,54 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
           ]
         : [_inAnHour(), _todayAt(18), _tomorrowAt(9)];
     return presets.any(_reminderMatches);
+  }
+
+  Widget _repeatRow() {
+    final l = L.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.repeat_rounded, size: 17, color: _muted),
+            const SizedBox(width: 8),
+            Text(
+              l.repeatTitle,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: _ink,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final r in RepeatRule.values)
+              _choice(
+                r.labelFor(context),
+                key: 'repeat-${r.name}',
+                selected: _repeat == r,
+                onTap: () => setState(() {
+                  _repeat = r;
+                  // Repeating needs a date to repeat from: today, unless
+                  // one is already set.
+                  if (r != RepeatRule.none && !_hasWhen) {
+                    final now = DateTime.now();
+                    final evening = DateTime(now.year, now.month, now.day, 18);
+                    _dueDate = evening.isAfter(now)
+                        ? evening
+                        : DateTime(now.year, now.month, now.day, 23, 59);
+                  }
+                }),
+              ),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _pinRow() {

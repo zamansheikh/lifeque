@@ -12,6 +12,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../debts/presentation/debt_cubit.dart';
+import '../../../habits/presentation/habit_cubit.dart';
+import '../../../qaza/qaza_store.dart';
+import '../../../ramadan/ramadan_store.dart';
+import '../../../subscriptions/presentation/subscription_cubit.dart';
 import '../../../../core/services/backup_service.dart';
 import '../../../../core/services/language_preference_service.dart';
 import '../../../../core/services/navigation_preferences_service.dart';
@@ -217,7 +222,12 @@ class BackupActions {
       di.sl<TaskBloc>().add(LoadTasks());
       di.sl<ExpenseBloc>().add(LoadSessions());
       await di.sl<MedicineCubit>().loadDashboard();
+      await di.sl<SubscriptionCubit>().load();
+      await di.sl<DebtCubit>().load();
+      await di.sl<HabitCubit>().load();
     });
+    await step('qaza', QazaStore.instance.load);
+    await step('ramadan', RamadanStore.instance.load);
     unawaited(step('home widget', () => HomeWidgetService().updateWidget()));
   }
 }

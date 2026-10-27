@@ -96,6 +96,44 @@ class _AppDrawerState extends State<AppDrawer> {
               ),
             ),
 
+            // ── Search ───────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              child: Material(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(14),
+                child: InkWell(
+                  key: const Key('drawer-search'),
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/search');
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.search_rounded,
+                          color: Color(0xFF64748B),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            L.of(context).searchHint,
+                            style: const TextStyle(color: Color(0xFF64748B)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
             // ── Nav items ────────────────────────────────────────────
             Expanded(
               child: ListView(

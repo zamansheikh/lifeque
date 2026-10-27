@@ -33,6 +33,19 @@ extension TaskPriorityUi on TaskPriority {
   bool get stands => this == TaskPriority.high || this == TaskPriority.urgent;
 }
 
+extension RepeatRuleUi on RepeatRule {
+  String labelFor(BuildContext context) {
+    final l = L.of(context);
+    return switch (this) {
+      RepeatRule.none => l.repeatNever,
+      RepeatRule.daily => l.repeatDaily,
+      RepeatRule.weekly => l.repeatWeekly,
+      RepeatRule.monthly => l.repeatMonthly,
+      RepeatRule.yearly => l.repeatYearly,
+    };
+  }
+}
+
 extension TaskCategoryUi on TaskCategory {
   IconData get icon => switch (this) {
     TaskCategory.personal => Icons.person_rounded,

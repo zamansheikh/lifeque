@@ -66,21 +66,30 @@ void main() {
       await old.close();
 
       final db = await DatabaseHelper().database;
-      expect(await db.getVersion(), 12);
+      expect(await db.getVersion(), 13);
       final tables = {
         for (final r in await db.rawQuery(
           "SELECT name FROM sqlite_master WHERE type = 'table'",
         ))
           r['name'] as String,
       };
-      expect(tables, contains('subscriptions'));
+      expect(
+        tables,
+        containsAll(['subscriptions', 'debts', 'habits', 'habit_checks']),
+      );
       final columns = {
         for (final c in await db.rawQuery('PRAGMA table_info(tasks)'))
           c['name'] as String,
       };
       expect(
         columns,
-        containsAll(['priority', 'category', 'hasDueDate', 'completedAt']),
+        containsAll([
+          'priority',
+          'category',
+          'hasDueDate',
+          'completedAt',
+          'repeatRule',
+        ]),
       );
 
       final task = TaskModel.fromMap((await db.query('tasks')).single);

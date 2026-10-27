@@ -16,6 +16,8 @@ void main() {
       '/birthdays',
       '/expenses',
       '/subscriptions',
+      '/debts',
+      '/habits',
       '/medicines',
       '/study-timer',
     ]);

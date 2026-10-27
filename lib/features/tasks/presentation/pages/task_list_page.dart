@@ -60,8 +60,12 @@ class _TaskListPageState extends State<TaskListPage>
           ),
         ),
         actions: [
-          // Refresh used to sit here too; every list pulls to refresh now, so
-          // the bar is down to the one thing it links to.
+          IconButton(
+            key: const Key('tasks-search'),
+            tooltip: L.of(context).searchTooltip,
+            icon: const Icon(Icons.search_rounded),
+            onPressed: () => context.push('/search'),
+          ),
           IconButton(
             tooltip: L.of(context).tasksMedicinesTooltip,
             icon: Container(
@@ -196,8 +200,22 @@ class _TaskListPageState extends State<TaskListPage>
         key: ValueKey(task.id),
         task: task,
         onTap: () => context.push('/edit-task/${task.id}'),
-        onToggle: () =>
-            context.read<TaskBloc>().add(ToggleTaskCompletion(task.id)),
+        onToggle: () {
+          context.read<TaskBloc>().add(ToggleTaskCompletion(task.id));
+          // A repeating item doesn't leave the list, it moves: say where to.
+          if (task.repeats && !task.isCompleted) {
+            final next = task.rolledForward(DateTime.now()).planDate!;
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(
+                    L.of(context).repeatNext(itemWhen(context, next)),
+                  ),
+                ),
+              );
+          }
+        },
         onDelete: () => _showDeleteConfirmation(context, task.id, task.title),
       );
     }

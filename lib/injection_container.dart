@@ -1,6 +1,12 @@
 import 'package:get_it/get_it.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'features/debts/data/debt_repository.dart';
+import 'features/debts/domain/debt.dart';
+import 'features/debts/presentation/debt_cubit.dart';
+import 'features/habits/data/habit_repository.dart';
+import 'features/habits/domain/habit.dart';
+import 'features/habits/presentation/habit_cubit.dart';
 import 'features/subscriptions/data/subscription_expense.dart';
 import 'features/subscriptions/data/subscription_repository.dart';
 import 'features/subscriptions/domain/subscription.dart';
@@ -66,6 +72,16 @@ Future<void> init() async {
   // Data sources
   sl.registerLazySingleton<TaskLocalDataSource>(
     () => TaskLocalDataSourceImpl(databaseHelper: sl()),
+  );
+
+  //! Features - Debts
+  sl.registerLazySingleton(() => DebtRepository(sl()));
+  sl.registerLazySingleton(() => DebtCubit(sl(), _NotificationDebtReminders()));
+
+  //! Features - Habits
+  sl.registerLazySingleton(() => HabitRepository(sl()));
+  sl.registerLazySingleton(
+    () => HabitCubit(sl(), _NotificationHabitReminders()),
   );
 
   //! Features - Subscriptions
@@ -209,6 +225,28 @@ Future<void> init() async {
   // External
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
+}
+
+/// Debt due-date reminders, through the app's notification service.
+class _NotificationDebtReminders implements DebtReminders {
+  @override
+  Future<void> schedule(Debt d) =>
+      sl<NotificationService>().scheduleDebtReminder(d);
+
+  @override
+  Future<void> cancel(String id) =>
+      sl<NotificationService>().cancelDebtReminder(id);
+}
+
+/// Habit reminders, through the app's notification service.
+class _NotificationHabitReminders implements HabitReminders {
+  @override
+  Future<void> schedule(Habit h) =>
+      sl<NotificationService>().scheduleHabitReminders(h);
+
+  @override
+  Future<void> cancel(String id) =>
+      sl<NotificationService>().cancelHabitReminders(id);
 }
 
 /// Subscription reminders, through the app's notification service.

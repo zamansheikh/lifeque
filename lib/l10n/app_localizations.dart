@@ -4213,6 +4213,852 @@ abstract class L {
   /// **'Subscription renewals'**
   String get subChannelName;
 
+  /// No description provided for @repeatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get repeatTitle;
+
+  /// No description provided for @repeatNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get repeatNever;
+
+  /// No description provided for @repeatDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get repeatDaily;
+
+  /// No description provided for @repeatWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every week'**
+  String get repeatWeekly;
+
+  /// No description provided for @repeatMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every month'**
+  String get repeatMonthly;
+
+  /// No description provided for @repeatYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every year'**
+  String get repeatYearly;
+
+  /// No description provided for @repeatNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Done · next: {when}'**
+  String repeatNext(String when);
+
+  /// No description provided for @qazaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Qaza'**
+  String get qazaTitle;
+
+  /// No description provided for @qazaNavSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayers and fasts to make up'**
+  String get qazaNavSub;
+
+  /// No description provided for @qazaOwedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} prayers to make up'**
+  String qazaOwedTotal(int count);
+
+  /// No description provided for @qazaNoneOwed.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to make up'**
+  String get qazaNoneOwed;
+
+  /// No description provided for @qazaMadeSoFar.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} made up so far'**
+  String qazaMadeSoFar(int count);
+
+  /// No description provided for @qazaToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today: {count}'**
+  String qazaToday(int count);
+
+  /// No description provided for @qazaMakeUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Made up'**
+  String get qazaMakeUp;
+
+  /// No description provided for @qazaMadeOne.
+  ///
+  /// In en, this message translates to:
+  /// **'{what} made up'**
+  String qazaMadeOne(String what);
+
+  /// No description provided for @qazaUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get qazaUndo;
+
+  /// No description provided for @qazaFasts.
+  ///
+  /// In en, this message translates to:
+  /// **'Fasts'**
+  String get qazaFasts;
+
+  /// No description provided for @qazaWitr.
+  ///
+  /// In en, this message translates to:
+  /// **'Witr'**
+  String get qazaWitr;
+
+  /// No description provided for @qazaMadeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} made up'**
+  String qazaMadeCount(int count);
+
+  /// No description provided for @qazaAddBulk.
+  ///
+  /// In en, this message translates to:
+  /// **'Add by time'**
+  String get qazaAddBulk;
+
+  /// No description provided for @qazaAddBulkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How long were prayers missed?'**
+  String get qazaAddBulkTitle;
+
+  /// No description provided for @qazaAddBulkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds that many of each prayer, Witr included.'**
+  String get qazaAddBulkBody;
+
+  /// No description provided for @qazaUnitDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get qazaUnitDays;
+
+  /// No description provided for @qazaUnitMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Months'**
+  String get qazaUnitMonths;
+
+  /// No description provided for @qazaUnitYears.
+  ///
+  /// In en, this message translates to:
+  /// **'Years'**
+  String get qazaUnitYears;
+
+  /// No description provided for @qazaAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get qazaAdd;
+
+  /// No description provided for @qazaFromHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} prayers weren\'t ticked in the last 30 days'**
+  String qazaFromHistory(int count);
+
+  /// No description provided for @qazaFromHistoryAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to qaza'**
+  String get qazaFromHistoryAdd;
+
+  /// No description provided for @qazaHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently made up'**
+  String get qazaHistory;
+
+  /// No description provided for @qazaExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Use + to add what you owe, and “Made up” each time you pray one.'**
+  String get qazaExplain;
+
+  /// No description provided for @navDebts.
+  ///
+  /// In en, this message translates to:
+  /// **'Lent & borrowed'**
+  String get navDebts;
+
+  /// No description provided for @debtToReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'To receive'**
+  String get debtToReceive;
+
+  /// No description provided for @debtToPay.
+  ///
+  /// In en, this message translates to:
+  /// **'To pay'**
+  String get debtToPay;
+
+  /// No description provided for @debtNetReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall you\'ll get back {amount}'**
+  String debtNetReceive(String amount);
+
+  /// No description provided for @debtNetPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall you owe {amount}'**
+  String debtNetPay(String amount);
+
+  /// No description provided for @debtNetEven.
+  ///
+  /// In en, this message translates to:
+  /// **'All square'**
+  String get debtNetEven;
+
+  /// No description provided for @debtTabSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get debtTabSettled;
+
+  /// No description provided for @debtRemainingOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} left of {total}'**
+  String debtRemainingOf(String remaining, String total);
+
+  /// No description provided for @debtDueIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due in {days} days'**
+  String debtDueIn(int days);
+
+  /// No description provided for @debtDueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today'**
+  String get debtDueToday;
+
+  /// No description provided for @debtOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days late'**
+  String debtOverdue(int days);
+
+  /// No description provided for @debtGotBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Got some back'**
+  String get debtGotBack;
+
+  /// No description provided for @debtPaidBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid some back'**
+  String get debtPaidBack;
+
+  /// No description provided for @debtEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep track of money lent and borrowed'**
+  String get debtEmptyTitle;
+
+  /// No description provided for @debtEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Who owes you, whom you owe, and by when — with a reminder on the day.'**
+  String get debtEmptyBody;
+
+  /// No description provided for @debtAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get debtAdd;
+
+  /// No description provided for @debtFormNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New entry'**
+  String get debtFormNew;
+
+  /// No description provided for @debtFormEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get debtFormEdit;
+
+  /// No description provided for @debtFormILent.
+  ///
+  /// In en, this message translates to:
+  /// **'I lent'**
+  String get debtFormILent;
+
+  /// No description provided for @debtFormIBorrowed.
+  ///
+  /// In en, this message translates to:
+  /// **'I borrowed'**
+  String get debtFormIBorrowed;
+
+  /// No description provided for @debtFormLentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'They\'ll pay you back'**
+  String get debtFormLentHint;
+
+  /// No description provided for @debtFormBorrowedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll pay them back'**
+  String get debtFormBorrowedHint;
+
+  /// No description provided for @debtFormPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get debtFormPerson;
+
+  /// No description provided for @debtFormPersonEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Who is it with?'**
+  String get debtFormPersonEmpty;
+
+  /// No description provided for @debtFormDate.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get debtFormDate;
+
+  /// No description provided for @debtFormDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay back by'**
+  String get debtFormDue;
+
+  /// No description provided for @debtDueNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No date'**
+  String get debtDueNone;
+
+  /// No description provided for @debtDueWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'In a week'**
+  String get debtDueWeek;
+
+  /// No description provided for @debtDueMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'In a month'**
+  String get debtDueMonth;
+
+  /// No description provided for @debtFormNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get debtFormNote;
+
+  /// No description provided for @debtHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get debtHistory;
+
+  /// No description provided for @debtSettle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark settled'**
+  String get debtSettle;
+
+  /// No description provided for @debtReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get debtReopen;
+
+  /// No description provided for @debtDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this entry?'**
+  String get debtDeleteTitle;
+
+  /// No description provided for @debtDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The record with {person} will be removed.'**
+  String debtDeleteBody(String person);
+
+  /// No description provided for @debtPayTitleGot.
+  ///
+  /// In en, this message translates to:
+  /// **'Got money back from {person}'**
+  String debtPayTitleGot(String person);
+
+  /// No description provided for @debtPayTitlePaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid {person} back'**
+  String debtPayTitlePaid(String person);
+
+  /// No description provided for @debtPayAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All of it'**
+  String get debtPayAll;
+
+  /// No description provided for @debtNotifReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'{person} is due to pay you back {amount} today'**
+  String debtNotifReceive(String person, String amount);
+
+  /// No description provided for @debtNotifPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {person} back {amount} today'**
+  String debtNotifPay(String person, String amount);
+
+  /// No description provided for @debtChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt reminders'**
+  String get debtChannelName;
+
+  /// No description provided for @navHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits'**
+  String get navHabits;
+
+  /// No description provided for @habitTodayProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done today'**
+  String habitTodayProgress(int done, int total);
+
+  /// No description provided for @habitStreakDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}-day streak'**
+  String habitStreakDays(int days);
+
+  /// No description provided for @habitNotToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Not today'**
+  String get habitNotToday;
+
+  /// No description provided for @habitEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Build a habit, one day at a time'**
+  String get habitEmptyTitle;
+
+  /// No description provided for @habitEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick something small to do regularly. Tick it off each day, and watch the streak grow.'**
+  String get habitEmptyBody;
+
+  /// No description provided for @habitAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'New habit'**
+  String get habitAdd;
+
+  /// No description provided for @habitEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get habitEdit;
+
+  /// No description provided for @habitName.
+  ///
+  /// In en, this message translates to:
+  /// **'What will you do?'**
+  String get habitName;
+
+  /// No description provided for @habitNameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Give it a name'**
+  String get habitNameEmpty;
+
+  /// No description provided for @habitSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Ideas'**
+  String get habitSuggestions;
+
+  /// No description provided for @habitPresetWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Drink 8 glasses of water'**
+  String get habitPresetWater;
+
+  /// No description provided for @habitPresetMorningAdhkar.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning adhkar'**
+  String get habitPresetMorningAdhkar;
+
+  /// No description provided for @habitPresetQuran.
+  ///
+  /// In en, this message translates to:
+  /// **'Read Quran'**
+  String get habitPresetQuran;
+
+  /// No description provided for @habitPresetExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise'**
+  String get habitPresetExercise;
+
+  /// No description provided for @habitPresetRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read a book'**
+  String get habitPresetRead;
+
+  /// No description provided for @habitPresetTahajjud.
+  ///
+  /// In en, this message translates to:
+  /// **'Tahajjud'**
+  String get habitPresetTahajjud;
+
+  /// No description provided for @habitPresetWalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk 30 minutes'**
+  String get habitPresetWalk;
+
+  /// No description provided for @habitPresetSleepAdhkar.
+  ///
+  /// In en, this message translates to:
+  /// **'Adhkar before sleep'**
+  String get habitPresetSleepAdhkar;
+
+  /// No description provided for @habitIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get habitIcon;
+
+  /// No description provided for @habitColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Colour'**
+  String get habitColor;
+
+  /// No description provided for @habitDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Which days'**
+  String get habitDays;
+
+  /// No description provided for @habitEveryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get habitEveryDay;
+
+  /// No description provided for @habitReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder'**
+  String get habitReminder;
+
+  /// No description provided for @habitReminderOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get habitReminderOff;
+
+  /// No description provided for @habitCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current streak'**
+  String get habitCurrent;
+
+  /// No description provided for @habitBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best streak'**
+  String get habitBest;
+
+  /// No description provided for @habitRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get habitRate;
+
+  /// No description provided for @habitTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total done'**
+  String get habitTotal;
+
+  /// No description provided for @habitDaysUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String habitDaysUnit(int days);
+
+  /// No description provided for @habitHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 16 weeks'**
+  String get habitHistory;
+
+  /// No description provided for @habitDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this habit?'**
+  String get habitDeleteTitle;
+
+  /// No description provided for @habitDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its whole history goes with it.'**
+  String get habitDeleteBody;
+
+  /// No description provided for @habitNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Have you done it today?'**
+  String get habitNotifBody;
+
+  /// No description provided for @habitNotifDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get habitNotifDone;
+
+  /// No description provided for @habitChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit reminders'**
+  String get habitChannelName;
+
+  /// No description provided for @searchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchTooltip;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search everything…'**
+  String get searchHint;
+
+  /// No description provided for @searchStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks, birthdays, expenses, medicines, subscriptions, debts, habits — all in one place.'**
+  String get searchStart;
+
+  /// No description provided for @searchNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{query}”'**
+  String searchNothing(String query);
+
+  /// No description provided for @searchPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get searchPages;
+
+  /// No description provided for @searchBirthdayOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday on {date}'**
+  String searchBirthdayOn(String date);
+
+  /// No description provided for @searchInSession.
+  ///
+  /// In en, this message translates to:
+  /// **'In {session}'**
+  String searchInSession(String session);
+
+  /// No description provided for @ramadanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ramadan'**
+  String get ramadanTitle;
+
+  /// No description provided for @ramadanToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Ramadan {year} · day {day}'**
+  String ramadanToday(String year, int day);
+
+  /// No description provided for @ramadanStartsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ramadan {year} begins in about {days} days'**
+  String ramadanStartsIn(String year, int days);
+
+  /// No description provided for @ramadanYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Ramadan {year}'**
+  String ramadanYear(String year);
+
+  /// No description provided for @ramadanFasted.
+  ///
+  /// In en, this message translates to:
+  /// **'Fasted'**
+  String get ramadanFasted;
+
+  /// No description provided for @ramadanMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get ramadanMissed;
+
+  /// No description provided for @ramadanExcused.
+  ///
+  /// In en, this message translates to:
+  /// **'Excused'**
+  String get ramadanExcused;
+
+  /// No description provided for @ramadanExcusedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Illness, travel or menstruation — still to be made up later'**
+  String get ramadanExcusedHint;
+
+  /// No description provided for @ramadanTaraweeh.
+  ///
+  /// In en, this message translates to:
+  /// **'Taraweeh'**
+  String get ramadanTaraweeh;
+
+  /// No description provided for @ramadanTaraweehPrayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayed taraweeh that night'**
+  String get ramadanTaraweehPrayed;
+
+  /// No description provided for @ramadanClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get ramadanClear;
+
+  /// No description provided for @ramadanFastLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Fasting log'**
+  String get ramadanFastLog;
+
+  /// No description provided for @ramadanQazaNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed and excused fasts are added to your Qaza fasts.'**
+  String get ramadanQazaNote;
+
+  /// No description provided for @ramadanDayN.
+  ///
+  /// In en, this message translates to:
+  /// **'Ramadan {day}'**
+  String ramadanDayN(int day);
+
+  /// No description provided for @ramadanUntilIftar.
+  ///
+  /// In en, this message translates to:
+  /// **'Iftar in {time}'**
+  String ramadanUntilIftar(String time);
+
+  /// No description provided for @ramadanUntilSehri.
+  ///
+  /// In en, this message translates to:
+  /// **'Sehri ends in {time}'**
+  String ramadanUntilSehri(String time);
+
+  /// No description provided for @ramadanNoLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your location on the prayer page to see sehri and iftar times.'**
+  String get ramadanNoLocation;
+
+  /// No description provided for @ramadanLastTen.
+  ///
+  /// In en, this message translates to:
+  /// **'Odd nights of the last ten — seek Laylat al-Qadr'**
+  String get ramadanLastTen;
+
+  /// No description provided for @ramadanEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates follow the calculated Hijri calendar and may differ by a day from local moon sighting.'**
+  String get ramadanEstimate;
+
+  /// No description provided for @ramadanDuas.
+  ///
+  /// In en, this message translates to:
+  /// **'Duas'**
+  String get ramadanDuas;
+
+  /// No description provided for @ramadanNiyyah.
+  ///
+  /// In en, this message translates to:
+  /// **'Niyyah for the fast'**
+  String get ramadanNiyyah;
+
+  /// No description provided for @ramadanNiyyahMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'I intend to keep tomorrow\'s fast of the month of Ramadan.'**
+  String get ramadanNiyyahMeaning;
+
+  /// No description provided for @ramadanIftarDua.
+  ///
+  /// In en, this message translates to:
+  /// **'Dua at iftar'**
+  String get ramadanIftarDua;
+
+  /// No description provided for @ramadanIftarMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'O Allah, for You I fasted, in You I believe, on You I rely, and with Your provision I break my fast.'**
+  String get ramadanIftarMeaning;
+
+  /// No description provided for @ramadanAfterIftar.
+  ///
+  /// In en, this message translates to:
+  /// **'After breaking the fast'**
+  String get ramadanAfterIftar;
+
+  /// No description provided for @ramadanAfterIftarMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'The thirst is gone, the veins are moistened, and the reward is certain, if Allah wills. (Abu Dawud)'**
+  String get ramadanAfterIftarMeaning;
+
+  /// No description provided for @ramadanNavSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Sehri, iftar, fasting log and duas'**
+  String get ramadanNavSub;
+
   /// No description provided for @studyMinutesToStart.
   ///
   /// In en, this message translates to:

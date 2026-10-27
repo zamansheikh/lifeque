@@ -8,6 +8,52 @@ enum TaskType {
   birthday, // Birthday reminder with yearly repetition
 }
 
+/// How a simple item comes back after it is done. Stored by index — append
+/// only.
+enum RepeatRule {
+  none,
+  daily,
+  weekly,
+  monthly,
+  yearly;
+
+  /// [from] moved one period on. A month-end date stays in range: the 31st
+  /// becomes the 30th or the 28th rather than spilling into the next month.
+  DateTime step(DateTime from) {
+    DateTime months(int n) {
+      final first = DateTime(from.year, from.month + n);
+      final last = DateTime(first.year, first.month + 1, 0).day;
+      return DateTime(
+        first.year,
+        first.month,
+        from.day > last ? last : from.day,
+        from.hour,
+        from.minute,
+      );
+    }
+
+    return switch (this) {
+      RepeatRule.none => from,
+      RepeatRule.daily => DateTime(
+        from.year,
+        from.month,
+        from.day + 1,
+        from.hour,
+        from.minute,
+      ),
+      RepeatRule.weekly => DateTime(
+        from.year,
+        from.month,
+        from.day + 7,
+        from.hour,
+        from.minute,
+      ),
+      RepeatRule.monthly => months(1),
+      RepeatRule.yearly => months(12),
+    };
+  }
+}
+
 /// How much an item matters. Stored by index — append only.
 enum TaskPriority { low, normal, high, urgent }
 
@@ -146,6 +192,9 @@ class Task extends Equatable {
   final bool hasDueDate;
   final DateTime? completedAt;
 
+  /// Simple items only: done means "move to the next one", not finished.
+  final RepeatRule repeat;
+
   const Task({
     required this.id,
     required this.title,
@@ -168,7 +217,50 @@ class Task extends Equatable {
     this.category,
     this.hasDueDate = true,
     this.completedAt,
+    this.repeat = RepeatRule.none,
   });
+
+  /// A simple item that comes back.
+  bool get repeats => isSimple && repeat != RepeatRule.none;
+
+  /// This item ticked off on a repeat: due date and reminder moved to the
+  /// next occurrence after [now] — by the same number of periods, so a
+  /// reminder set an hour before it is due stays an hour before — and left
+  /// open, with [completedAt] recording the tick.
+  Task rolledForward(DateTime now) {
+    final anchor = planDate;
+    if (!repeats || anchor == null) return this;
+    var steps = 0;
+    var next = anchor;
+    do {
+      next = repeat.step(next);
+      steps++;
+    } while (!next.isAfter(now) && steps < 10000);
+
+    DateTime shift(DateTime d) {
+      for (var i = 0; i < steps; i++) {
+        d = repeat.step(d);
+      }
+      return d;
+    }
+
+    final due = dueDate == null ? null : shift(dueDate!);
+    final reminder = reminderAt == null ? null : shift(reminderAt!);
+    final at = due ?? reminder!;
+    return copyWith(
+      startDate: at,
+      endDate: at,
+      notificationTime: reminder,
+      isCompleted: false,
+      completedAt: now,
+      updatedAt: now,
+    );
+  }
+
+  /// Ticked off: finished, or for a repeating item, moved on.
+  Task done(DateTime now) => repeats
+      ? rolledForward(now)
+      : copyWith(isCompleted: true, completedAt: now, updatedAt: now);
 
   // ── The unified list ──────────────────────────────────────────────────
   // A simple item (stored as [TaskType.reminder]) may have a due date, a
@@ -349,6 +441,7 @@ class Task extends Equatable {
     bool? hasDueDate,
     DateTime? completedAt,
     bool clearCompletedAt = false,
+    RepeatRule? repeat,
   }) {
     return Task(
       id: id ?? this.id,
@@ -377,6 +470,7 @@ class Task extends Equatable {
       category: clearCategory ? null : (category ?? this.category),
       hasDueDate: hasDueDate ?? this.hasDueDate,
       completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
+      repeat: repeat ?? this.repeat,
     );
   }
 
@@ -403,6 +497,7 @@ class Task extends Equatable {
     category,
     hasDueDate,
     completedAt,
+    repeat,
   ];
 
   // Helper method to get the actual notification DateTime based on type

@@ -2470,6 +2470,560 @@ class LBn extends L {
   String get subChannelName => 'সাবস্ক্রিপশন নবায়ন';
 
   @override
+  String get repeatTitle => 'পুনরাবৃত্তি';
+
+  @override
+  String get repeatNever => 'কখনো না';
+
+  @override
+  String get repeatDaily => 'প্রতিদিন';
+
+  @override
+  String get repeatWeekly => 'প্রতি সপ্তাহে';
+
+  @override
+  String get repeatMonthly => 'প্রতি মাসে';
+
+  @override
+  String get repeatYearly => 'প্রতি বছর';
+
+  @override
+  String repeatNext(String when) {
+    return 'হয়েছে · আবার: $when';
+  }
+
+  @override
+  String get qazaTitle => 'কাযা';
+
+  @override
+  String get qazaNavSub => 'বাকি নামাজ ও রোজার হিসাব';
+
+  @override
+  String qazaOwedTotal(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString ওয়াক্ত নামাজ বাকি';
+  }
+
+  @override
+  String get qazaNoneOwed => 'কোনো কাযা বাকি নেই';
+
+  @override
+  String qazaMadeSoFar(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'এ পর্যন্ত $countString ওয়াক্ত আদায়';
+  }
+
+  @override
+  String qazaToday(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'আজ: $countString';
+  }
+
+  @override
+  String get qazaMakeUp => 'আদায় করলাম';
+
+  @override
+  String qazaMadeOne(String what) {
+    return '$what আদায় হলো';
+  }
+
+  @override
+  String get qazaUndo => 'ফিরিয়ে নিন';
+
+  @override
+  String get qazaFasts => 'রোজা';
+
+  @override
+  String get qazaWitr => 'বিতর';
+
+  @override
+  String qazaMadeCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString আদায়';
+  }
+
+  @override
+  String get qazaAddBulk => 'সময় হিসাবে যোগ করুন';
+
+  @override
+  String get qazaAddBulkTitle => 'কত দিন নামাজ বাদ গেছে?';
+
+  @override
+  String get qazaAddBulkBody => 'প্রতিটি ওয়াক্তে (বিতরসহ) এতগুলো যোগ হবে।';
+
+  @override
+  String get qazaUnitDays => 'দিন';
+
+  @override
+  String get qazaUnitMonths => 'মাস';
+
+  @override
+  String get qazaUnitYears => 'বছর';
+
+  @override
+  String get qazaAdd => 'যোগ করুন';
+
+  @override
+  String qazaFromHistory(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'গত ৩০ দিনে $countString ওয়াক্ত টিক দেওয়া হয়নি';
+  }
+
+  @override
+  String get qazaFromHistoryAdd => 'কাযায় যোগ করুন';
+
+  @override
+  String get qazaHistory => 'সম্প্রতি আদায়';
+
+  @override
+  String get qazaExplain =>
+      'বাকি থাকলে + দিয়ে যোগ করুন, আর প্রতিবার আদায় করলে “আদায় করলাম” চাপুন।';
+
+  @override
+  String get navDebts => 'ধার-দেনা';
+
+  @override
+  String get debtToReceive => 'পাবো';
+
+  @override
+  String get debtToPay => 'দেবো';
+
+  @override
+  String debtNetReceive(String amount) {
+    return 'সব মিলিয়ে আপনি পাবেন $amount';
+  }
+
+  @override
+  String debtNetPay(String amount) {
+    return 'সব মিলিয়ে আপনি দেবেন $amount';
+  }
+
+  @override
+  String get debtNetEven => 'হিসাব সমান';
+
+  @override
+  String get debtTabSettled => 'মিটে গেছে';
+
+  @override
+  String debtRemainingOf(String remaining, String total) {
+    return '$total-এর মধ্যে $remaining বাকি';
+  }
+
+  @override
+  String debtDueIn(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString দিন বাকি';
+  }
+
+  @override
+  String get debtDueToday => 'আজকের মধ্যে';
+
+  @override
+  String debtOverdue(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString দিন পেরিয়েছে';
+  }
+
+  @override
+  String get debtGotBack => 'ফেরত পেলাম';
+
+  @override
+  String get debtPaidBack => 'শোধ করলাম';
+
+  @override
+  String get debtEmptyTitle => 'ধার দেওয়া-নেওয়ার হিসাব রাখুন';
+
+  @override
+  String get debtEmptyBody =>
+      'কার কাছে পাবেন, কাকে দেবেন, কবের মধ্যে — নির্দিষ্ট দিনে মনে করিয়ে দেওয়া হবে।';
+
+  @override
+  String get debtAdd => 'যোগ করুন';
+
+  @override
+  String get debtFormNew => 'নতুন হিসাব';
+
+  @override
+  String get debtFormEdit => 'সম্পাদনা';
+
+  @override
+  String get debtFormILent => 'আমি দিয়েছি';
+
+  @override
+  String get debtFormIBorrowed => 'আমি নিয়েছি';
+
+  @override
+  String get debtFormLentHint => 'সে আপনাকে ফেরত দেবে';
+
+  @override
+  String get debtFormBorrowedHint => 'আপনি তাকে ফেরত দেবেন';
+
+  @override
+  String get debtFormPerson => 'কার সাথে';
+
+  @override
+  String get debtFormPersonEmpty => 'নাম লিখুন';
+
+  @override
+  String get debtFormDate => 'কবে';
+
+  @override
+  String get debtFormDue => 'ফেরতের তারিখ';
+
+  @override
+  String get debtDueNone => 'তারিখ নেই';
+
+  @override
+  String get debtDueWeek => 'এক সপ্তাহে';
+
+  @override
+  String get debtDueMonth => 'এক মাসে';
+
+  @override
+  String get debtFormNote => 'নোট';
+
+  @override
+  String get debtHistory => 'লেনদেন';
+
+  @override
+  String get debtSettle => 'হিসাব মিটে গেছে';
+
+  @override
+  String get debtReopen => 'আবার খুলুন';
+
+  @override
+  String get debtDeleteTitle => 'এই হিসাব মুছবেন?';
+
+  @override
+  String debtDeleteBody(String person) {
+    return '$person-এর সাথে এই হিসাব মুছে যাবে।';
+  }
+
+  @override
+  String debtPayTitleGot(String person) {
+    return '$person ফেরত দিয়েছে';
+  }
+
+  @override
+  String debtPayTitlePaid(String person) {
+    return '$person-কে ফেরত দিয়েছি';
+  }
+
+  @override
+  String get debtPayAll => 'পুরোটা';
+
+  @override
+  String debtNotifReceive(String person, String amount) {
+    return 'আজ $person-এর কাছ থেকে $amount পাওয়ার কথা';
+  }
+
+  @override
+  String debtNotifPay(String person, String amount) {
+    return 'আজ $person-কে $amount ফেরত দেওয়ার কথা';
+  }
+
+  @override
+  String get debtChannelName => 'ধার-দেনার রিমাইন্ডার';
+
+  @override
+  String get navHabits => 'অভ্যাস';
+
+  @override
+  String habitTodayProgress(int done, int total) {
+    final intl.NumberFormat doneNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String doneString = doneNumberFormat.format(done);
+    final intl.NumberFormat totalNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String totalString = totalNumberFormat.format(total);
+
+    return 'আজ $totalStringটির মধ্যে $doneStringটি সম্পন্ন';
+  }
+
+  @override
+  String habitStreakDays(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return 'টানা $daysString দিন';
+  }
+
+  @override
+  String get habitNotToday => 'আজ নেই';
+
+  @override
+  String get habitEmptyTitle => 'একটু একটু করে অভ্যাস গড়ুন';
+
+  @override
+  String get habitEmptyBody =>
+      'নিয়মিত করার মতো ছোট কিছু বেছে নিন। প্রতিদিন করলেই টিক দিন — দেখুন কত দিন টানা হলো।';
+
+  @override
+  String get habitAdd => 'নতুন অভ্যাস';
+
+  @override
+  String get habitEdit => 'সম্পাদনা';
+
+  @override
+  String get habitName => 'কী করবেন?';
+
+  @override
+  String get habitNameEmpty => 'একটি নাম দিন';
+
+  @override
+  String get habitSuggestions => 'কিছু ধারণা';
+
+  @override
+  String get habitPresetWater => '৮ গ্লাস পানি পান';
+
+  @override
+  String get habitPresetMorningAdhkar => 'সকালের আজকার';
+
+  @override
+  String get habitPresetQuran => 'কুরআন তেলাওয়াত';
+
+  @override
+  String get habitPresetExercise => 'ব্যায়াম';
+
+  @override
+  String get habitPresetRead => 'বই পড়া';
+
+  @override
+  String get habitPresetTahajjud => 'তাহাজ্জুদ';
+
+  @override
+  String get habitPresetWalk => '৩০ মিনিট হাঁটা';
+
+  @override
+  String get habitPresetSleepAdhkar => 'ঘুমানোর আগে আজকার';
+
+  @override
+  String get habitIcon => 'আইকন';
+
+  @override
+  String get habitColor => 'রং';
+
+  @override
+  String get habitDays => 'কোন দিন';
+
+  @override
+  String get habitEveryDay => 'প্রতিদিন';
+
+  @override
+  String get habitReminder => 'প্রতিদিন মনে করিয়ে দিন';
+
+  @override
+  String get habitReminderOff => 'বন্ধ';
+
+  @override
+  String get habitCurrent => 'চলমান টানা';
+
+  @override
+  String get habitBest => 'সেরা টানা';
+
+  @override
+  String get habitRate => 'গত ৩০ দিন';
+
+  @override
+  String get habitTotal => 'মোট সম্পন্ন';
+
+  @override
+  String habitDaysUnit(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString দিন';
+  }
+
+  @override
+  String get habitHistory => 'গত ১৬ সপ্তাহ';
+
+  @override
+  String get habitDeleteTitle => 'এই অভ্যাস মুছবেন?';
+
+  @override
+  String get habitDeleteBody => 'এর পুরো ইতিহাসও মুছে যাবে।';
+
+  @override
+  String get habitNotifBody => 'আজ করেছেন?';
+
+  @override
+  String get habitNotifDone => 'হয়েছে';
+
+  @override
+  String get habitChannelName => 'অভ্যাসের রিমাইন্ডার';
+
+  @override
+  String get searchTooltip => 'খুঁজুন';
+
+  @override
+  String get searchHint => 'সবকিছুতে খুঁজুন…';
+
+  @override
+  String get searchStart =>
+      'কাজ, জন্মদিন, খরচ, ওষুধ, সাবস্ক্রিপশন, ধার-দেনা, অভ্যাস — সব এক জায়গায়।';
+
+  @override
+  String searchNothing(String query) {
+    return '“$query” এর সাথে কিছু মেলেনি';
+  }
+
+  @override
+  String get searchPages => 'পাতা';
+
+  @override
+  String searchBirthdayOn(String date) {
+    return 'জন্মদিন $date';
+  }
+
+  @override
+  String searchInSession(String session) {
+    return '$session-এ';
+  }
+
+  @override
+  String get ramadanTitle => 'রমজান';
+
+  @override
+  String ramadanToday(String year, int day) {
+    final intl.NumberFormat dayNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String dayString = dayNumberFormat.format(day);
+
+    return 'রমজান $year · $dayStringতম দিন';
+  }
+
+  @override
+  String ramadanStartsIn(String year, int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return 'রমজান $year শুরু হতে প্রায় $daysString দিন বাকি';
+  }
+
+  @override
+  String ramadanYear(String year) {
+    return 'রমজান $year';
+  }
+
+  @override
+  String get ramadanFasted => 'রোজা রেখেছি';
+
+  @override
+  String get ramadanMissed => 'রাখা হয়নি';
+
+  @override
+  String get ramadanExcused => 'ওজরে বাদ';
+
+  @override
+  String get ramadanExcusedHint => 'অসুস্থতা, সফর বা মাসিক — পরে কাযা করতে হবে';
+
+  @override
+  String get ramadanTaraweeh => 'তারাবিহ';
+
+  @override
+  String get ramadanTaraweehPrayed => 'সেই রাতে তারাবিহ পড়েছি';
+
+  @override
+  String get ramadanClear => 'মুছুন';
+
+  @override
+  String get ramadanFastLog => 'রোজার হিসাব';
+
+  @override
+  String get ramadanQazaNote =>
+      'বাদ পড়া রোজা স্বয়ংক্রিয়ভাবে কাযা রোজার হিসাবে যোগ হয়।';
+
+  @override
+  String ramadanDayN(int day) {
+    final intl.NumberFormat dayNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String dayString = dayNumberFormat.format(day);
+
+    return '$dayString রমজান';
+  }
+
+  @override
+  String ramadanUntilIftar(String time) {
+    return 'ইফতারের বাকি $time';
+  }
+
+  @override
+  String ramadanUntilSehri(String time) {
+    return 'সাহরির সময় শেষ হতে বাকি $time';
+  }
+
+  @override
+  String get ramadanNoLocation =>
+      'সাহরি ও ইফতারের সময় দেখতে নামাজের পাতায় আপনার অবস্থান ঠিক করুন।';
+
+  @override
+  String get ramadanLastTen => 'শেষ দশকের বিজোড় রাত — লাইলাতুল কদর তালাশ করুন';
+
+  @override
+  String get ramadanEstimate =>
+      'তারিখগুলো হিসাব করা হিজরি ক্যালেন্ডার অনুযায়ী; স্থানীয় চাঁদ দেখার সাথে এক দিন এদিক-ওদিক হতে পারে।';
+
+  @override
+  String get ramadanDuas => 'দোয়া';
+
+  @override
+  String get ramadanNiyyah => 'রোজার নিয়ত';
+
+  @override
+  String get ramadanNiyyahMeaning =>
+      'আমি আগামীকাল রমজান মাসের রোজা রাখার নিয়ত করছি।';
+
+  @override
+  String get ramadanIftarDua => 'ইফতারের দোয়া';
+
+  @override
+  String get ramadanIftarMeaning =>
+      'হে আল্লাহ, আমি তোমারই জন্য রোজা রেখেছি, তোমার প্রতি ঈমান এনেছি, তোমার ওপর ভরসা করেছি এবং তোমারই দেওয়া রিযিক দিয়ে ইফতার করছি।';
+
+  @override
+  String get ramadanAfterIftar => 'ইফতারের পর';
+
+  @override
+  String get ramadanAfterIftarMeaning =>
+      'পিপাসা দূর হলো, শিরাগুলো সিক্ত হলো, আর আল্লাহ চাইলে প্রতিদান নিশ্চিত হলো। (আবু দাউদ)';
+
+  @override
+  String get ramadanNavSub => 'সাহরি, ইফতার, রোজার হিসাব ও দোয়া';
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

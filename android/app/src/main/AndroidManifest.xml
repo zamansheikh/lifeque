@@ -17,6 +17,12 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- The alarm plugin asks for this to play sounds stored on the phone.
+         Every sound here is bundled with the app, so it is removed: one less
+         permission to explain, and Android 13+ ignores it anyway. -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        tools:node="remove" />
     
     <application
         android:label="LifeQue"

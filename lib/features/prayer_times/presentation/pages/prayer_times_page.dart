@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:adhan/adhan.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:geolocator/geolocator.dart';
@@ -1234,13 +1235,16 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
     return Padding(
       padding: const EdgeInsets.only(top: 10),
-      child: RamadanStripCard(
-        heading: heading,
-        sahriTime: _fmtBare(fajr),
-        sahriMeridiem: _meridiem(fajr),
-        iftarTime: _fmtBare(maghrib),
-        iftarMeridiem: _meridiem(maghrib),
-        untilIftar: _fmtHms(iftarTarget.difference(now)),
+      child: GestureDetector(
+        onTap: () => context.push('/ramadan'),
+        child: RamadanStripCard(
+          heading: heading,
+          sahriTime: _fmtBare(fajr),
+          sahriMeridiem: _meridiem(fajr),
+          iftarTime: _fmtBare(maghrib),
+          iftarMeridiem: _meridiem(maghrib),
+          untilIftar: _fmtHms(iftarTarget.difference(now)),
+        ),
       ),
     );
   }

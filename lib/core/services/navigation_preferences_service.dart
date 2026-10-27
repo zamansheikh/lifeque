@@ -36,6 +36,16 @@ class NavigationPreferencesService {
       iconData: Icons.autorenew_rounded,
     ),
     NavItem(
+      route: '/debts',
+      label: 'Lent & borrowed',
+      iconData: Icons.handshake_rounded,
+    ),
+    NavItem(
+      route: '/habits',
+      label: 'Habits',
+      iconData: Icons.local_fire_department_rounded,
+    ),
+    NavItem(
       route: '/medicines',
       label: 'Medicines',
       iconData: Icons.medication_rounded,
@@ -111,6 +121,8 @@ extension NavItemL10n on NavItem {
       '/birthdays' => l.navBirthdays,
       '/expenses' => l.navExpenses,
       '/subscriptions' => l.navSubscriptions,
+      '/debts' => l.navDebts,
+      '/habits' => l.navHabits,
       '/medicines' => l.navMedicines,
       '/prayer-times' => l.navPrayerTimes,
       '/study-timer' => l.navStudyTimer,

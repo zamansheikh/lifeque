@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:adhan/adhan.dart';
 import 'package:flutter/material.dart';
 
@@ -151,6 +152,20 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
               context,
               MaterialPageRoute(builder: (_) => const PrayerStatsPage()),
             ),
+          ),
+          const SizedBox(height: 8),
+          _navRow(
+            icon: Icons.restore_rounded,
+            title: L.of(context).qazaTitle,
+            subtitle: L.of(context).qazaNavSub,
+            onTap: () => context.push('/qaza'),
+          ),
+          const SizedBox(height: 8),
+          _navRow(
+            icon: Icons.nightlight_round,
+            title: L.of(context).ramadanTitle,
+            subtitle: L.of(context).ramadanNavSub,
+            onTap: () => context.push('/ramadan'),
           ),
           const SizedBox(height: 8),
           _navRow(
