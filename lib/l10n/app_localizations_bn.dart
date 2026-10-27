@@ -2493,6 +2493,62 @@ class LBn extends L {
   }
 
   @override
+  String mosqueEditTitle(String prayer) {
+    return '$prayer জামাতের সময়';
+  }
+
+  @override
+  String get mosqueEditSubtitle => 'আপনার মসজিদের জামাতের সময়';
+
+  @override
+  String get mosqueEditDefaultNotice =>
+      'এটি একটি সাধারণ সময় — আপনার মসজিদের আসল সময় দিন';
+
+  @override
+  String get mosqueEditPickExact => 'নির্দিষ্ট সময় বাছুন';
+
+  @override
+  String get mosqueEditSameAsWaqt => 'ওয়াক্তের সময়ই';
+
+  @override
+  String mosqueEditNudgeHint(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString মিনিট করে বাড়ান-কমান, অথবা নির্দিষ্ট সময় বাছুন';
+  }
+
+  @override
+  String get mosqueEditLockedByRamadan => 'রমজান মোডে নিজে থেকেই ঠিক হয়';
+
+  @override
+  String mosqueEditRamadanBody(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'ফজর ও মাগরিবের জামাত ওয়াক্তের $minutesString মিনিট পরে নিজে থেকে বসে';
+  }
+
+  @override
+  String alarmMinBeforeWaqtEnds(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'ওয়াক্ত শেষের $minutesString মিনিট আগে';
+  }
+
+  @override
+  String alarmAtClockTime(String time) {
+    return '$time-এ';
+  }
+
+  @override
+  String get alarmPickTime => 'সময় বেছে নিন…';
+
+  @override
   String get alarmVibrate => 'ভাইব্রেশন';
 
   @override

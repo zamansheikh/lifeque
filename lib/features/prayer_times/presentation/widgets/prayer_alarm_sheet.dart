@@ -63,8 +63,7 @@ class _SheetState extends State<_Sheet> {
     // Seed sound and duration from whichever alarm already exists, so the
     // sheet opens showing the user's real settings rather than defaults.
     final existing = _service.alarms.firstOrNull;
-    _soundPath =
-        existing?.soundPath ?? AlarmSoundUtils.availableAlarmSounds[0]['path']!;
+    _soundPath = existing?.soundPath ?? AlarmSoundUtils.defaultSoundPath;
     _duration = existing?.alarmDurationMinutes ?? 2;
     _vibrate = existing?.vibrate ?? true;
   }

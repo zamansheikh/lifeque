@@ -39,7 +39,7 @@ class PrayerAlarmConfig {
     this.minutesAfterStart = 5,
     this.fixedTime,
     this.isEnabled = true,
-    this.soundPath = 'assets/audio/alarm_sound_1.mp3', // Use custom sound
+    this.soundPath = AlarmSoundUtils.defaultSoundPath,
     this.alarmDurationMinutes = 2, // Default 2 minutes
     this.vibrate = true,
   });
@@ -103,7 +103,7 @@ class PrayerAlarmConfig {
             )
           : null,
       isEnabled: _asBool(json['isEnabled'], true),
-      soundPath: json['soundPath'] ?? 'assets/audio/alarm_sound_1.mp3',
+      soundPath: json['soundPath'] ?? AlarmSoundUtils.defaultSoundPath,
       alarmDurationMinutes: json['alarmDurationMinutes'] is String
           ? int.parse(json['alarmDurationMinutes'])
           : (json['alarmDurationMinutes'] ?? 2),
@@ -505,6 +505,13 @@ class PrayerAlarmService {
     );
   }
 
+  /// When a "before waqt ends" alarm should ring: [minutesBefore] the waqt
+  /// ends, using the same end times the prayer list
+  /// shows (Fajr → sunrise, Dhuhr → Asr, Asr → Maghrib, Maghrib → Isha,
+  /// Isha → next Fajr). Returns the first such moment still ahead.
+  ///
+  /// The day before is checked too: at 1 am, the Isha waqt that is ending is
+  /// yesterday's, and its end (this morning's Fajr) is the one to warn about.
   Future<DateTime?> _calculateBeforePrayerEndTime(
     String prayerName,
     int minutesBefore, {
@@ -514,49 +521,18 @@ class PrayerAlarmService {
       final now = DateTime.now();
       final date = referenceDate ?? now;
 
-      // Get prayer times for the reference date using user's saved settings.
-      final calculator = await _buildCalculator(date);
-
-      final prayerTimes = calculator.getPrayerTimesMap();
-      final prayerTime = prayerTimes[prayerName];
-
-      if (prayerTime == null) return null;
-
-      // If prayer time has passed, calculate for the next day.
-      DateTime targetPrayerTime = prayerTime;
-
-      if (prayerTime.isBefore(now)) {
-        final tomorrowCalculator = await _buildCalculator(
-          date.add(const Duration(days: 1)),
+      for (var offset = -1; offset <= 1; offset++) {
+        final calculator = await _buildCalculator(
+          date.add(Duration(days: offset)),
         );
-        final tomorrowTimes = tomorrowCalculator.getPrayerTimesMap();
-        targetPrayerTime = tomorrowTimes[prayerName] ?? prayerTime;
+        final end = calculator.getEndTimes(
+          calculator.getStartTimes(),
+        )[prayerName];
+        if (end == null) return null;
+        final at = end.subtract(Duration(minutes: minutesBefore));
+        if (at.isAfter(now)) return at;
       }
-
-      // Calculate prayer duration (approximate)
-      Duration prayerDuration;
-      switch (prayerName) {
-        case 'Fajr':
-          prayerDuration = const Duration(minutes: 15); // Until sunrise
-          break;
-        case 'Dhuhr':
-        case 'Asr':
-        case 'Isha':
-          prayerDuration = const Duration(minutes: 30);
-          break;
-        case 'Maghrib':
-          prayerDuration = const Duration(minutes: 20);
-          break;
-        default:
-          prayerDuration = const Duration(minutes: 20);
-      }
-
-      final prayerEndTime = targetPrayerTime.add(prayerDuration);
-      final alarmTime = prayerEndTime.subtract(
-        Duration(minutes: minutesBefore),
-      );
-
-      return alarmTime;
+      return null;
     } catch (e) {
       developer.log(
         'PrayerAlarmService: Error calculating prayer end time: $e',

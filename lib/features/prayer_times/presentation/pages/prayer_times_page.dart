@@ -20,6 +20,7 @@ import '../../data/services/prayer_completion_service.dart';
 import '../../data/services/jamaat_defaults.dart';
 import '../../data/services/prayer_settings_service.dart';
 import '../utils/bangla_date.dart';
+import '../utils/bell_alarm_preset.dart';
 import '../utils/hijri_names.dart';
 import '../utils/islamic_colors.dart';
 import '../../../../core/utils/local_numbers.dart';
@@ -31,7 +32,6 @@ import '../widgets/nafal_times_card.dart';
 import '../widgets/prayer_alarm_sheet.dart';
 import '../widgets/prayer_snack.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/prayer_focus_card.dart' show QuickAlarmChoice;
 import '../widgets/prayer_progress_card.dart';
 import '../widgets/prayer_sky_header.dart';
 import '../widgets/prohibited_times_card.dart';
@@ -113,7 +113,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
   /// The quick-alarm choice last picked for each prayer, so the chooser can
   /// mark it and a long-press can apply it without asking.
-  final Map<String, QuickAlarmChoice> _quickChoices = {};
+  final Map<String, BellAlarmPreset> _quickChoices = {};
   static const _quickChoicePrefix = 'quick_alarm_choice_';
   StreamSubscription<List<PrayerAlarmConfig>>? _alarmsSub;
 
@@ -232,6 +232,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   void _initAlarmStream() {
     _alarms = _alarmService.alarms;
     _alarmsSub = _alarmService.alarmsStream.listen((list) {
+      _rememberEnabledAlarms(list);
       if (mounted) setState(() => _alarms = list);
     });
   }
@@ -939,9 +940,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   }
 
   /// The bell. Off is one tap. On opens a small chooser beside the bell —
-  /// three timings and a way to the full alarm page — with the timing last
-  /// used for this prayer marked. A silent default was the alternative, and
-  /// a bell that does something you cannot see is found out at 4:25 am.
+  /// timings relative to the waqt, a clock time, and a way to the full alarm
+  /// page — with the timing last used for this prayer marked. A silent
+  /// default was the alternative, and a bell that does something you cannot
+  /// see is found out at 4:25 am.
   Future<void> _toggleQuickAlarm(String prayer, BuildContext anchor) async {
     final existing = _alarms.where((a) => a.prayerName == prayer).firstOrNull;
     if (existing != null && existing.isEnabled) {
@@ -957,21 +959,23 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     await _showQuickAlarmChooser(prayer, anchor);
   }
 
-  /// Long-press on the bell: the remembered timing, no chooser. Falls back
-  /// to "at waqt" for a prayer that has never been set.
+  /// Long-press on the bell: the remembered timing — waqt-relative, end of
+  /// waqt, jamaat or a clock time — with no chooser. Falls back to "at waqt"
+  /// for a prayer that has never been set.
   Future<void> _holdQuickAlarm(String prayer) async {
-    final choice = _quickChoices[prayer] ?? QuickAlarmChoice.atTime;
+    HapticFeedback.mediumImpact();
+    final preset = _quickChoices[prayer] ?? const BellAlarmPreset.fromStart(0);
     final existing = _alarms.where((a) => a.prayerName == prayer).firstOrNull;
-    if (_quickChoiceFromConfig(existing) == choice) {
+    if (BellAlarmPreset.fromConfig(existing) == preset) {
       // Already exactly this: say when it rings rather than switching it off.
       PrayerSnack.show(
         context,
-        _alarmSetMessage(prayer, choice.minutesAfterStart),
+        _alarmSetMessage(prayer, preset),
         kind: PrayerSnackKind.scheduled,
       );
       return;
     }
-    await _applyQuickAlarm(prayer, choice);
+    await _applyQuickAlarm(prayer, preset);
   }
 
   Future<void> _showQuickAlarmChooser(
@@ -990,6 +994,64 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     );
 
     final remembered = _quickChoices[prayer];
+    final rememberedClock = remembered?.type == PrayerAlarmType.fixedTime
+        ? remembered
+        : null;
+    // A timing set from the full alarm page (say 15 min before jamaat) is not
+    // one of the rows below, so it gets a row of its own at the top.
+    final rememberedOther =
+        remembered != null &&
+            rememberedClock == null &&
+            !BellAlarmPreset.choices.contains(remembered)
+        ? remembered
+        : null;
+
+    PopupMenuItem<Object> row(
+      Object value,
+      String label, {
+      required bool marked,
+      IconData? icon,
+    }) {
+      return PopupMenuItem<Object>(
+        value: value,
+        height: 42,
+        child: Row(
+          children: [
+            Icon(
+              marked
+                  ? Icons.check_circle_rounded
+                  : (icon ?? Icons.circle_outlined),
+              size: 18,
+              color: marked ? PrayerPalette.accent : PrayerPalette.inkA(0.25),
+            ),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: marked ? FontWeight.w800 : FontWeight.w600,
+                  color: PrayerPalette.ink,
+                ),
+              ),
+            ),
+            if (marked) ...[
+              const SizedBox(width: 8),
+              Text(
+                l.alarmQuickLastUsed,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: PrayerPalette.accent,
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
     final result = await showMenu<Object>(
       context: context,
       position: position,
@@ -1009,46 +1071,20 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             ),
           ),
         ),
-        for (final choice in QuickAlarmChoice.values)
-          PopupMenuItem<Object>(
-            value: choice,
-            height: 42,
-            child: Row(
-              children: [
-                Icon(
-                  choice == remembered
-                      ? Icons.check_circle_rounded
-                      : Icons.circle_outlined,
-                  size: 18,
-                  color: choice == remembered
-                      ? PrayerPalette.accent
-                      : PrayerPalette.inkA(0.25),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  _quickChoiceLabel(choice),
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: choice == remembered
-                        ? FontWeight.w800
-                        : FontWeight.w600,
-                    color: PrayerPalette.ink,
-                  ),
-                ),
-                if (choice == remembered) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    l.alarmQuickLastUsed,
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      color: PrayerPalette.accent,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+        if (rememberedOther != null)
+          row(rememberedOther, _presetLabel(rememberedOther), marked: true),
+        for (final choice in BellAlarmPreset.choices)
+          row(choice, _presetLabel(choice), marked: choice == remembered),
+        // The clock row: shows the remembered time when there is one, and
+        // always opens the picker so the time can be changed.
+        row(
+          'clock',
+          rememberedClock != null
+              ? _presetLabel(rememberedClock)
+              : l.alarmPickTime,
+          marked: rememberedClock != null,
+          icon: Icons.schedule_rounded,
+        ),
         const PopupMenuDivider(height: 6),
         PopupMenuItem<Object>(
           value: 'more',
@@ -1087,42 +1123,87 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       ],
     );
     if (!mounted || result == null) return;
-    if (result is QuickAlarmChoice) {
+    if (result is BellAlarmPreset) {
       await _rememberQuickChoice(prayer, result);
       await _applyQuickAlarm(prayer, result);
+    } else if (result == 'clock') {
+      final picked = await _pickAlarmClockTime(prayer, rememberedClock?.time);
+      if (!mounted || picked == null) return;
+      final preset = BellAlarmPreset.at(picked);
+      await _rememberQuickChoice(prayer, preset);
+      await _applyQuickAlarm(prayer, preset);
     } else {
       _openAlarmSheet();
     }
   }
 
-  String _quickChoiceLabel(QuickAlarmChoice choice) {
+  /// Opens on the last clock time used for this prayer, else on today's waqt.
+  Future<TimeOfDay?> _pickAlarmClockTime(String prayer, TimeOfDay? last) {
+    final waqt = _calculatorForDate(DateTime.now()).getPrayerTimesMap()[prayer];
+    return showTimePicker(
+      context: context,
+      initialTime:
+          last ??
+          (waqt == null ? TimeOfDay.now() : TimeOfDay.fromDateTime(waqt)),
+    );
+  }
+
+  String _presetLabel(BellAlarmPreset p) {
     final l = L.of(context);
-    return switch (choice) {
-      QuickAlarmChoice.fiveBefore => l.alarmMinBeforeWaqt(5),
-      QuickAlarmChoice.atTime => l.alarmAtWaqt,
-      QuickAlarmChoice.tenAfter => l.alarmMinAfterWaqt(10),
+    final m = p.minutes;
+    return switch (p.type) {
+      PrayerAlarmType.afterPrayerStart =>
+        m == 0
+            ? l.alarmAtWaqt
+            : m < 0
+            ? l.alarmMinBeforeWaqt(-m)
+            : l.alarmMinAfterWaqt(m),
+      PrayerAlarmType.beforePrayerEnd => l.alarmMinBeforeWaqtEnds(m),
+      PrayerAlarmType.afterJamaat =>
+        m == 0
+            ? l.alarmAtJamaat
+            : m < 0
+            ? l.alarmMinBeforeJamaat(-m)
+            : l.alarmMinAfterJamaat(m),
+      PrayerAlarmType.fixedTime => l.alarmAtClockTime(
+        _fmt12(DateTime(2000, 1, 1, p.time!.hour, p.time!.minute)),
+      ),
     };
   }
 
   Future<void> _loadQuickChoices() async {
     final prefs = await SharedPreferences.getInstance();
     for (final prayer in _fardPrayers) {
-      final name = prefs.getString('$_quickChoicePrefix$prayer');
-      final choice = QuickAlarmChoice.values
-          .where((c) => c.name == name)
-          .firstOrNull;
-      if (choice != null) _quickChoices[prayer] = choice;
+      final preset = BellAlarmPreset.decode(
+        prefs.getString('$_quickChoicePrefix$prayer'),
+      );
+      if (preset != null) _quickChoices[prayer] = preset;
     }
+    // An alarm that is on right now is newer than anything stored — it may
+    // have been set from the full alarm page.
+    _rememberEnabledAlarms(_alarms);
     if (mounted) setState(() {});
   }
 
   Future<void> _rememberQuickChoice(
     String prayer,
-    QuickAlarmChoice choice,
+    BellAlarmPreset preset,
   ) async {
-    _quickChoices[prayer] = choice;
+    if (_quickChoices[prayer] == preset) return;
+    _quickChoices[prayer] = preset;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('$_quickChoicePrefix$prayer', choice.name);
+    await prefs.setString('$_quickChoicePrefix$prayer', preset.encode());
+  }
+
+  /// Whatever timing an alarm was last switched on with — from the bell or
+  /// the full alarm page — is what the next long-press uses.
+  void _rememberEnabledAlarms(List<PrayerAlarmConfig> alarms) {
+    for (final a in alarms) {
+      final preset = BellAlarmPreset.fromConfig(a);
+      if (preset != null && _fardPrayers.contains(a.prayerName)) {
+        _rememberQuickChoice(a.prayerName, preset);
+      }
+    }
   }
 
   /// Everything alarm-related lives in this one sheet — timing, adhan sound
@@ -1546,26 +1627,14 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     }
   }
 
-  QuickAlarmChoice? _quickChoiceFromConfig(PrayerAlarmConfig? c) {
-    if (c == null || !c.isEnabled) return null;
-    if (c.type != PrayerAlarmType.afterPrayerStart) return null;
-    for (final choice in QuickAlarmChoice.values) {
-      if (choice.minutesAfterStart == c.minutesAfterStart) return choice;
-    }
-    return null;
-  }
-
   Future<void> _applyQuickAlarm(
     String prayer,
-    QuickAlarmChoice choice, {
+    BellAlarmPreset preset, {
     bool announce = true,
   }) async {
-    final existing = _alarms.where((a) => a.prayerName == prayer).isNotEmpty
-        ? _alarms.firstWhere((a) => a.prayerName == prayer)
-        : null;
-    final sameAsActive = _quickChoiceFromConfig(existing) == choice;
+    final existing = _alarms.where((a) => a.prayerName == prayer).firstOrNull;
 
-    if (sameAsActive) {
+    if (BellAlarmPreset.fromConfig(existing) == preset) {
       await _alarmService.removeAlarm(prayer);
       if (!mounted) return;
       PrayerSnack.show(
@@ -1576,15 +1645,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       return;
     }
 
-    final config = PrayerAlarmConfig(
-      prayerName: prayer,
-      type: PrayerAlarmType.afterPrayerStart,
-      minutesAfterStart: choice.minutesAfterStart,
-      isEnabled: true,
-      soundPath:
-          existing?.soundPath ??
-          AlarmSoundUtils.availableAlarmSounds[0]['path']!,
-      alarmDurationMinutes: existing?.alarmDurationMinutes ?? 2,
+    final config = preset.toConfig(
+      prayer,
+      existing: existing,
+      defaultSound: AlarmSoundUtils.defaultSoundPath,
     );
     if (existing != null) {
       await _alarmService.updateAlarm(config);
@@ -1594,7 +1658,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     if (!announce || !mounted) return;
     PrayerSnack.show(
       context,
-      _alarmSetMessage(prayer, choice.minutesAfterStart),
+      _alarmSetMessage(prayer, preset),
       kind: PrayerSnackKind.scheduled,
     );
   }
@@ -1603,10 +1667,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   ///
   /// The confirmation used to read "Fajr · at waqt", which names the rule and
   /// not the time — leaving you to work out when it would actually go off.
-  String _alarmSetMessage(String prayer, int minutesAfterStart) {
+  String _alarmSetMessage(String prayer, BellAlarmPreset preset) {
     final l = L.of(context);
     final label = prayerLabel(context, prayer);
-    final at = _nextAlarmTime(prayer, minutesAfterStart);
+    final at = _nextAlarmTime(prayer, preset);
     if (at == null) return l.prayerAlarmSet(label);
 
     final day = _isSameDay(at, DateTime.now())
@@ -1615,18 +1679,37 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     return l.prayerAlarmSetFor(label, _fmt12(at), day);
   }
 
-  /// The instant the alarm will next ring: today's waqt if that is still
-  /// ahead, otherwise tomorrow's.
-  DateTime? _nextAlarmTime(String prayer, int minutesAfterStart) {
+  /// The instant the alarm will next ring. Mirrors PrayerAlarmService: the
+  /// day before is checked too, because Isha's waqt runs past midnight.
+  DateTime? _nextAlarmTime(String prayer, BellAlarmPreset preset) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    for (var dayOffset = 0; dayOffset <= 1; dayOffset++) {
+    for (var dayOffset = -1; dayOffset <= 1; dayOffset++) {
       final date = today.add(Duration(days: dayOffset));
-      final start = _calculatorForDate(date).getPrayerTimesMap()[prayer];
-      if (start == null) continue;
-      final at = start.add(Duration(minutes: minutesAfterStart));
-      if (at.isAfter(now)) return at;
+      final DateTime? at;
+      switch (preset.type) {
+        case PrayerAlarmType.fixedTime:
+          final t = preset.time!;
+          at = DateTime(date.year, date.month, date.day, t.hour, t.minute);
+        case PrayerAlarmType.beforePrayerEnd:
+          final calc = _calculatorForDate(date);
+          at = calc
+              .getEndTimes(calc.getStartTimes())[prayer]
+              ?.subtract(Duration(minutes: preset.minutes));
+        case PrayerAlarmType.afterPrayerStart:
+          at = _calculatorForDate(
+            date,
+          ).getPrayerTimesMap()[prayer]?.add(Duration(minutes: preset.minutes));
+        case PrayerAlarmType.afterJamaat:
+          final times = _calculatorForDate(date).getPrayerTimesMap();
+          at = _mosqueTimeFor(
+            prayer,
+            date,
+            times,
+          )?.add(Duration(minutes: preset.minutes));
+      }
+      if (at != null && at.isAfter(now)) return at;
     }
     return null;
   }

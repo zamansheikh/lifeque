@@ -233,6 +233,30 @@ class Task extends Equatable {
     return now.isAfter(startDateTz) && now.isBefore(endDateTz) && !isCompleted;
   }
 
+  /// The next birthday on or after [now]'s date. Birth date is in [endDate].
+  ///
+  /// Takes the date as an argument so callers that reason about a given day
+  /// (the daily nudge, its tests) agree with themselves instead of with the
+  /// wall clock.
+  DateTime nextBirthdayFrom(DateTime now) {
+    final birthdayDate = endDate;
+    final thisYearBirthday = DateTime(
+      now.year,
+      birthdayDate.month,
+      birthdayDate.day,
+    );
+
+    // If this year's birthday has passed, return next year's. Compared by
+    // date, not by instant: thisYearBirthday is midnight, so any time after
+    // midnight on the day itself used to push the answer a full year out —
+    // a birthday today read as "in 365 days".
+    final today = DateTime(now.year, now.month, now.day);
+    if (today.isAfter(thisYearBirthday)) {
+      return DateTime(now.year + 1, birthdayDate.month, birthdayDate.day);
+    }
+    return thisYearBirthday;
+  }
+
   /// Get the next occurrence date for sorting purposes
   /// - For tasks: returns end date (deadline)
   /// - For birthdays: returns next birthday date
@@ -240,28 +264,7 @@ class Task extends Equatable {
   DateTime get nextOccurrence {
     final now = DateTime.now();
 
-    if (taskType == TaskType.birthday) {
-      // Calculate next birthday
-      final birthdayDate = endDate; // Birth date stored in endDate
-      final currentYear = now.year;
-
-      // This year's birthday
-      final thisYearBirthday = DateTime(
-        currentYear,
-        birthdayDate.month,
-        birthdayDate.day,
-      );
-
-      // If this year's birthday has passed, return next year's. Compared by
-      // date, not by instant: thisYearBirthday is midnight, so any time after
-      // midnight on the day itself used to push the answer a full year out —
-      // a birthday today read as "in 365 days".
-      final today = DateTime(now.year, now.month, now.day);
-      if (today.isAfter(thisYearBirthday)) {
-        return DateTime(currentYear + 1, birthdayDate.month, birthdayDate.day);
-      }
-      return thisYearBirthday;
-    }
+    if (taskType == TaskType.birthday) return nextBirthdayFrom(now);
 
     if (taskType == TaskType.reminder) {
       // For reminders, use notification time if available, otherwise end date

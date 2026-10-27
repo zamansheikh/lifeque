@@ -4333,6 +4333,72 @@ abstract class L {
   /// **'{minutes} min after jamaat'**
   String alarmMinAfterJamaat(int minutes);
 
+  /// No description provided for @mosqueEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{prayer} jamaat time'**
+  String mosqueEditTitle(String prayer);
+
+  /// No description provided for @mosqueEditSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your mosque\'s congregation time'**
+  String get mosqueEditSubtitle;
+
+  /// No description provided for @mosqueEditDefaultNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'A common default — set your mosque\'s actual time'**
+  String get mosqueEditDefaultNotice;
+
+  /// No description provided for @mosqueEditPickExact.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick exact time'**
+  String get mosqueEditPickExact;
+
+  /// No description provided for @mosqueEditSameAsWaqt.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as waqt'**
+  String get mosqueEditSameAsWaqt;
+
+  /// No description provided for @mosqueEditNudgeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudge by {minutes} min, or pick an exact time'**
+  String mosqueEditNudgeHint(int minutes);
+
+  /// No description provided for @mosqueEditLockedByRamadan.
+  ///
+  /// In en, this message translates to:
+  /// **'Set automatically by Ramadan mode'**
+  String get mosqueEditLockedByRamadan;
+
+  /// No description provided for @mosqueEditRamadanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-sets Fajr & Maghrib to waqt + {minutes}m'**
+  String mosqueEditRamadanBody(int minutes);
+
+  /// No description provided for @alarmMinBeforeWaqtEnds.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min before waqt ends'**
+  String alarmMinBeforeWaqtEnds(int minutes);
+
+  /// No description provided for @alarmAtClockTime.
+  ///
+  /// In en, this message translates to:
+  /// **'At {time}'**
+  String alarmAtClockTime(String time);
+
+  /// No description provided for @alarmPickTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a time…'**
+  String get alarmPickTime;
+
   /// No description provided for @alarmVibrate.
   ///
   /// In en, this message translates to:

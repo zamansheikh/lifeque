@@ -786,7 +786,7 @@ class _AlarmConfigDialogState extends State<_AlarmConfigDialog> {
     } else {
       _isRelative = true;
       _relativeMinutes = 0; // Default: exact prayer time
-      _selectedSoundPath = AlarmSoundUtils.availableAlarmSounds[0]['path']!;
+      _selectedSoundPath = AlarmSoundUtils.defaultSoundPath;
       _alarmDurationMinutes = 2;
       _fixedTime = const TimeOfDay(hour: 9, minute: 0);
     }

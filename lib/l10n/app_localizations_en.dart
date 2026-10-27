@@ -2501,6 +2501,62 @@ class LEn extends L {
   }
 
   @override
+  String mosqueEditTitle(String prayer) {
+    return '$prayer jamaat time';
+  }
+
+  @override
+  String get mosqueEditSubtitle => 'Your mosque\'s congregation time';
+
+  @override
+  String get mosqueEditDefaultNotice =>
+      'A common default — set your mosque\'s actual time';
+
+  @override
+  String get mosqueEditPickExact => 'Pick exact time';
+
+  @override
+  String get mosqueEditSameAsWaqt => 'Same as waqt';
+
+  @override
+  String mosqueEditNudgeHint(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'Nudge by $minutesString min, or pick an exact time';
+  }
+
+  @override
+  String get mosqueEditLockedByRamadan => 'Set automatically by Ramadan mode';
+
+  @override
+  String mosqueEditRamadanBody(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'Auto-sets Fajr & Maghrib to waqt + ${minutesString}m';
+  }
+
+  @override
+  String alarmMinBeforeWaqtEnds(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString min before waqt ends';
+  }
+
+  @override
+  String alarmAtClockTime(String time) {
+    return 'At $time';
+  }
+
+  @override
+  String get alarmPickTime => 'Pick a time…';
+
+  @override
   String get alarmVibrate => 'Vibrate';
 
   @override

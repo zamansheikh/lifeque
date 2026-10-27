@@ -1207,6 +1207,43 @@
       }
     }
   },
+  "mosqueEditTitle": "{prayer} jamaat time",
+  "@mosqueEditTitle": {"placeholders": {"prayer": {"type": "String"}}},
+  "mosqueEditSubtitle": "Your mosque's congregation time",
+  "mosqueEditDefaultNotice": "A common default — set your mosque's actual time",
+  "mosqueEditPickExact": "Pick exact time",
+  "mosqueEditSameAsWaqt": "Same as waqt",
+  "mosqueEditNudgeHint": "Nudge by {minutes} min, or pick an exact time",
+  "@mosqueEditNudgeHint": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "mosqueEditLockedByRamadan": "Set automatically by Ramadan mode",
+  "mosqueEditRamadanBody": "Auto-sets Fajr & Maghrib to waqt + {minutes}m",
+  "@mosqueEditRamadanBody": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "alarmMinBeforeWaqtEnds": "{minutes} min before waqt ends",
+  "@alarmMinBeforeWaqtEnds": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "alarmAtClockTime": "At {time}",
+  "@alarmAtClockTime": {"placeholders": {"time": {"type": "String"}}},
+  "alarmPickTime": "Pick a time…",
   "alarmVibrate": "Vibrate",
   "alarmVibrateBody": "Buzz while the adhan plays",
   "alarmSoundFailed": "Could not play this sound",

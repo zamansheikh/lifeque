@@ -53,9 +53,9 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
   String _soundDescription(String name) {
     final l = L.of(context);
     return switch (name) {
-      'Alarm Sound 1' => l.soundTraditional,
-      'Alarm Sound 2' => l.soundGentle,
-      'Alarm Sound 3' => l.soundMelodic,
+      'Alarm Sound 1' => l.soundMelodic,
+      'Alarm Sound 2' => l.soundTraditional,
+      'Alarm Sound 3' => l.soundGentle,
       _ => '',
     };
   }

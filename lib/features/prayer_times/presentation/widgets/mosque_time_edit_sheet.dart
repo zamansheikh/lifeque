@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/utils/local_clock.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/services/prayer_settings_service.dart';
+import '../utils/prayer_l10n.dart';
 import '../utils/prayer_palette.dart';
 
 /// Sets one prayer's mosque (jamaat) time — nudge it in 5-minute steps or
@@ -89,10 +92,15 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
   }
 
   /// Ramadan mode sets Fajr and Maghrib jamaat to waqt + 15 minutes.
+  static const _ramadanOffset = 15;
+
+  /// The stepper's increment.
+  static const _step5 = 5;
+
   TimeOfDay get _ramadanDerived {
     final waqt = widget.waqtTime;
     if (waqt == null) return _time;
-    final total = waqt.hour * 60 + waqt.minute + 15;
+    final total = waqt.hour * 60 + waqt.minute + _ramadanOffset;
     return TimeOfDay(hour: (total ~/ 60) % 24, minute: total % 60);
   }
 
@@ -105,20 +113,21 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
     });
   }
 
-  String _fmt(TimeOfDay t) {
-    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
-    return '$h:${t.minute.toString().padLeft(2, '0')} '
-        '${t.hour < 12 ? 'am' : 'pm'}';
-  }
+  /// "3:46 pm", or "দুপুর ৩:৪৬" in Bangla — the same clock as the prayer list.
+  String _fmt(TimeOfDay t) =>
+      Clock.h12Soft(DateTime(2000, 1, 1, t.hour, t.minute));
 
   /// How far the jamaat sits from the waqt.
   String get _delta {
     final waqt = widget.waqtTime;
-    if (waqt == null) return 'Nudge by 5 min, or pick an exact time';
+    final l = L.of(context);
+    if (waqt == null) return l.mosqueEditNudgeHint(_step5);
     final diff =
         (_time.hour * 60 + _time.minute) - (waqt.hour * 60 + waqt.minute);
-    if (diff == 0) return 'Same as waqt';
-    return diff > 0 ? '$diff min after waqt' : '${diff.abs()} min before waqt';
+    if (diff == 0) return l.mosqueEditSameAsWaqt;
+    return diff > 0
+        ? l.alarmMinAfterWaqt(diff)
+        : l.alarmMinBeforeWaqt(diff.abs());
   }
 
   @override
@@ -139,7 +148,9 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
             ),
             const SizedBox(height: 12),
             Text(
-              '${widget.prayer} jamaat time',
+              L
+                  .of(context)
+                  .mosqueEditTitle(prayerLabel(context, widget.prayer)),
               style: const TextStyle(
                 color: PrayerPalette.ink,
                 fontSize: 16,
@@ -148,7 +159,7 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
             ),
             const SizedBox(height: 2),
             Text(
-              "Your mosque's congregation time",
+              L.of(context).mosqueEditSubtitle,
               style: TextStyle(
                 color: PrayerPalette.inkA(0.55),
                 fontSize: 11.5,
@@ -173,7 +184,7 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
             ),
             const SizedBox(height: 6),
             Text(
-              _locked ? 'Set automatically by Ramadan mode' : _delta,
+              _locked ? L.of(context).mosqueEditLockedByRamadan : _delta,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: PrayerPalette.inkA(0.55),
@@ -198,9 +209,12 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
                   widget.onSaved(_time);
                   Navigator.pop(context);
                 },
-                child: const Text(
-                  'Save',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                child: Text(
+                  L.of(context).commonSave,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),
@@ -229,7 +243,7 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'A common default — set your mosque\'s actual time',
+              L.of(context).mosqueEditDefaultNotice,
               style: TextStyle(
                 color: PrayerPalette.inkA(0.75),
                 fontSize: 11,
@@ -258,11 +272,11 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       icon: const Icon(Icons.schedule_rounded, size: 16),
-      label: const FittedBox(
+      label: FittedBox(
         fit: BoxFit.scaleDown,
         child: Text(
-          'Pick exact time',
-          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+          L.of(context).mosqueEditPickExact,
+          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
         ),
       ),
     );
@@ -290,11 +304,11 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       icon: const Icon(Icons.vertical_align_center_rounded, size: 16),
-      label: const FittedBox(
+      label: FittedBox(
         fit: BoxFit.scaleDown,
         child: Text(
-          'Same as waqt',
-          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+          L.of(context).mosqueEditSameAsWaqt,
+          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
         ),
       ),
     );
@@ -304,7 +318,9 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
     final picked = await showTimePicker(
       context: context,
       initialTime: _time,
-      helpText: '${widget.prayer} jamaat time',
+      helpText: L
+          .of(context)
+          .mosqueEditTitle(prayerLabel(context, widget.prayer)),
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: Theme.of(context).colorScheme.copyWith(
@@ -324,7 +340,7 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _stepButton(Icons.remove_rounded, () => _step(-5)),
+        _stepButton(Icons.remove_rounded, () => _step(-_step5)),
         const SizedBox(width: 18),
         SizedBox(
           width: 150,
@@ -340,7 +356,7 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
           ),
         ),
         const SizedBox(width: 18),
-        _stepButton(Icons.add_rounded, () => _step(5)),
+        _stepButton(Icons.add_rounded, () => _step(_step5)),
       ],
     );
   }
@@ -402,16 +418,16 @@ class _MosqueTimeEditSheetState extends State<MosqueTimeEditSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Ramadan mode',
-                  style: TextStyle(
+                Text(
+                  L.of(context).moreRamadanMode,
+                  style: const TextStyle(
                     color: PrayerPalette.ink,
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 Text(
-                  'Auto-sets Fajr & Maghrib to waqt + 15m',
+                  L.of(context).mosqueEditRamadanBody(_ramadanOffset),
                   style: TextStyle(
                     color: PrayerPalette.inkA(0.5),
                     fontSize: 10.5,

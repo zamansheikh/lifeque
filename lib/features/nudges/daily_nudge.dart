@@ -60,7 +60,7 @@ Nudge? pickNudge({
 }) {
   final today = DateTime(now.year, now.month, now.day);
   int daysUntil(Task t) {
-    final n = t.nextOccurrence;
+    final n = t.nextBirthdayFrom(now);
     return DateTime(n.year, n.month, n.day).difference(today).inDays;
   }
 
