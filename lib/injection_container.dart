@@ -16,11 +16,6 @@ import 'features/tasks/domain/usecases/add_task.dart';
 import 'features/tasks/domain/usecases/update_task.dart';
 import 'features/tasks/domain/usecases/delete_task.dart';
 import 'features/tasks/presentation/bloc/task_bloc.dart';
-import 'features/todos/data/datasources/todo_local_data_source.dart';
-import 'features/todos/data/repositories/todo_repository_impl.dart';
-import 'features/todos/domain/repositories/todo_repository.dart';
-import 'features/todos/domain/usecases/todo_usecases.dart';
-import 'features/todos/presentation/bloc/todo_bloc.dart';
 import 'features/notifications/domain/repositories/notification_repository.dart';
 import 'features/notifications/data/repositories/notification_repository_impl.dart';
 import 'features/medicines/data/datasources/medicine_local_data_source.dart';
@@ -67,51 +62,6 @@ Future<void> init() async {
   // Data sources
   sl.registerLazySingleton<TaskLocalDataSource>(
     () => TaskLocalDataSourceImpl(databaseHelper: sl()),
-  );
-
-  //! Features - Todos
-  // Bloc
-  sl.registerLazySingleton(
-    () => TodoBloc(
-      getAllTodos: sl(),
-      addTodo: sl(),
-      updateTodo: sl(),
-      deleteTodo: sl(),
-      completeTodo: sl(),
-      uncompleteTodo: sl(),
-      getTodosByCategory: sl(),
-      searchTodos: sl(),
-      getCompletedTodos: sl(),
-      getPendingTodos: sl(),
-      getOverdueTodos: sl(),
-      getTodosDueToday: sl(),
-      notificationService: sl(),
-      todoRepository: sl(),
-    ),
-  );
-
-  // Use cases
-  sl.registerLazySingleton(() => GetAllTodos(sl()));
-  sl.registerLazySingleton(() => AddTodo(sl()));
-  sl.registerLazySingleton(() => UpdateTodo(sl()));
-  sl.registerLazySingleton(() => DeleteTodo(sl()));
-  sl.registerLazySingleton(() => CompleteTodo(sl()));
-  sl.registerLazySingleton(() => UncompleteTodo(sl()));
-  sl.registerLazySingleton(() => GetTodosByCategory(sl()));
-  sl.registerLazySingleton(() => SearchTodos(sl()));
-  sl.registerLazySingleton(() => GetCompletedTodos(sl()));
-  sl.registerLazySingleton(() => GetPendingTodos(sl()));
-  sl.registerLazySingleton(() => GetOverdueTodos(sl()));
-  sl.registerLazySingleton(() => GetTodosDueToday(sl()));
-
-  // Repository
-  sl.registerLazySingleton<TodoRepository>(
-    () => TodoRepositoryImpl(localDataSource: sl()),
-  );
-
-  // Data sources
-  sl.registerLazySingleton<TodoLocalDataSource>(
-    () => TodoLocalDataSourceImpl(sharedPreferences: sl()),
   );
 
   //! Features - Medicines

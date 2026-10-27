@@ -248,14 +248,14 @@ class LEn extends L {
 
   @override
   String get tasksEmptyBody =>
-      'Add something with a start and an end date, and it will show up here while it is running.';
+      'Anything you need to do goes here — with a date, a reminder, or neither.';
 
   @override
   String get tasksAllDoneTitle => 'Nothing on right now';
 
   @override
   String get tasksAllDoneBody =>
-      'Everything with a deadline is either finished or not started yet. Check All Tasks to see the rest.';
+      'Nothing left to do. Finished items are under Done.';
 
   @override
   String get tasksTapPlus => 'Tap + to add one';
@@ -277,7 +277,7 @@ class LEn extends L {
   String get tasksStartTask => 'Add your first task';
 
   @override
-  String get tasksStartTaskSub => 'Something with a deadline to work towards';
+  String get tasksStartTaskSub => 'With a date, a reminder, or just a name';
 
   @override
   String get tasksStartPrayer => 'Set up prayer times';
@@ -293,10 +293,10 @@ class LEn extends L {
   String get tasksStartBirthdaySub => 'Be reminded a day before, every year';
 
   @override
-  String get tasksStartTodo => 'Start a to-do list';
+  String get tasksStartTodo => 'Set a reminder';
 
   @override
-  String get tasksStartTodoSub => 'The small things, ticked off as you go';
+  String get tasksStartTodoSub => 'One tap, and it rings when you need it';
 
   @override
   String get tasksDeleteTitle => 'Delete task?';
@@ -2180,6 +2180,22 @@ class LEn extends L {
   String remindersDeleteBody(String title) {
     return '“$title” will be removed and won\'t go off. This can\'t be undone.';
   }
+
+  @override
+  String get itemFormRangeTitle => 'Runs over several days?';
+
+  @override
+  String get itemFormRangeBody =>
+      'Add a start and an end to follow its progress';
+
+  @override
+  String get tasksGroupSomeday => 'Any time';
+
+  @override
+  String get itemMarkDone => 'Mark done';
+
+  @override
+  String get itemMarkOpen => 'Mark not done';
 
   @override
   String studyMinutesToStart(int minutes) {

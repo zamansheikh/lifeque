@@ -114,9 +114,13 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
 
       if (taskIndex != -1) {
         final task = tasks[taskIndex];
+        final now = DateTime.now();
+        final done = !task.isCompleted;
         final updatedTask = task.copyWith(
-          isCompleted: !task.isCompleted,
-          updatedAt: DateTime.now(),
+          isCompleted: done,
+          updatedAt: now,
+          completedAt: done ? now : null,
+          clearCompletedAt: !done,
         );
         add(UpdateTaskEvent(updatedTask));
       }

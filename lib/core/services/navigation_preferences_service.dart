@@ -21,11 +21,6 @@ class NavigationPreferencesService {
       iconData: Icons.mosque_rounded,
     ),
     NavItem(
-      route: '/reminders',
-      label: 'Reminders',
-      iconData: Icons.notifications_active_rounded,
-    ),
-    NavItem(
       route: '/birthdays',
       label: 'Birthdays',
       iconData: Icons.cake_rounded,
@@ -41,11 +36,6 @@ class NavigationPreferencesService {
       iconData: Icons.medication_rounded,
     ),
     NavItem(
-      route: '/todos',
-      label: 'To Do List',
-      iconData: Icons.checklist_rounded,
-    ),
-    NavItem(
       route: '/study-timer',
       label: 'Study Timer',
       iconData: Icons.timer_rounded,
@@ -55,12 +45,19 @@ class NavigationPreferencesService {
   final SharedPreferences _prefs;
   NavigationPreferencesService(this._prefs);
 
+  /// Destinations folded into another, by old route.
+  static const _merged = {'/reminders': '/', '/todos': '/'};
+
   /// Returns the ordered list of nav items (user's preferred order).
   List<NavItem> getOrderedItems() {
     final saved = _prefs.getStringList(_keyOrder);
     if (saved == null || saved.isEmpty) return List.of(allItems);
     final result = <NavItem>[];
-    for (final route in saved) {
+    for (final entry in saved) {
+      // Reminders and the to-do list are part of Tasks now; whichever of the
+      // three came first in a saved order keeps that place for Tasks.
+      final route = _merged[entry] ?? entry;
+      if (result.any((r) => r.route == route)) continue;
       final match = allItems.where((i) => i.route == route);
       if (match.isNotEmpty) result.add(match.first);
     }

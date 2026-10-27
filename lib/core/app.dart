@@ -17,14 +17,8 @@ import '../features/tasks/presentation/pages/add_edit_task_page.dart';
 import '../features/tasks/presentation/pages/task_detail_page.dart';
 import '../features/tasks/presentation/pages/birthday_list_page.dart';
 import '../features/tasks/presentation/pages/add_edit_birthday_page.dart';
-import '../features/tasks/presentation/pages/reminder_list_page.dart';
-import '../features/tasks/presentation/pages/add_edit_reminder_page.dart';
+import '../features/tasks/presentation/pages/add_edit_item_page.dart';
 import '../features/tasks/domain/entities/task.dart' show Task, TaskType;
-import '../features/todos/presentation/bloc/todo_bloc.dart';
-import '../features/todos/presentation/pages/todo_list_page.dart';
-import '../features/todos/presentation/pages/add_edit_todo_page.dart';
-import '../features/todos/presentation/pages/todo_detail_page.dart';
-import '../features/todos/domain/entities/todo.dart';
 import '../features/medicines/presentation/bloc/medicine_cubit.dart';
 import '../features/medicines/presentation/pages/medicines_dashboard_page.dart';
 import '../features/medicines/presentation/pages/add_edit_medicine_page.dart';
@@ -118,7 +112,22 @@ class AppRouter {
       GoRoute(
         path: '/add-task',
         name: 'add-task',
-        builder: (context, state) => const AddEditTaskPage(),
+        // One form for anything on the list; work with a start and an end
+        // is reached from inside it (/add-task/range).
+        builder: (context, state) => const AddEditItemPage(),
+      ),
+      GoRoute(
+        path: '/add-task/range',
+        name: 'add-ranged-task',
+        builder: (context, state) {
+          final carried = state.extra is (String, String)
+              ? state.extra as (String, String)
+              : null;
+          return AddEditTaskPage(
+            initialTitle: carried?.$1,
+            initialNote: carried?.$2,
+          );
+        },
       ),
       GoRoute(
         path: '/birthdays',
@@ -136,29 +145,35 @@ class AppRouter {
         builder: (context, state) =>
             AddEditBirthdayPage(taskId: state.pathParameters['id']!),
       ),
-      GoRoute(
-        path: '/reminders',
-        name: 'reminders',
-        builder: (context, state) => const ReminderListPage(),
-      ),
+      // Reminders and the to-do list became part of the task list. The old
+      // paths still lead somewhere sensible: notifications, the home-screen
+      // widget and saved menu orders may hold them.
+      GoRoute(path: '/reminders', redirect: (context, state) => '/'),
+      GoRoute(path: '/todos', redirect: (context, state) => '/'),
       GoRoute(
         path: '/add-reminder',
         name: 'add-reminder',
-        builder: (context, state) => const AddEditReminderPage(),
+        builder: (context, state) =>
+            const AddEditItemPage(startWithReminder: true),
+      ),
+      GoRoute(
+        path: '/todos/add',
+        name: 'add-todo',
+        builder: (context, state) => const AddEditItemPage(),
       ),
       GoRoute(
         path: '/edit-reminder/:id',
         name: 'edit-reminder',
         builder: (context, state) =>
-            AddEditReminderPage(taskId: state.pathParameters['id']!),
+            AddEditItemPage(taskId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/edit-task/:id',
         name: 'edit-task',
         builder: (context, state) {
           final taskId = state.pathParameters['id']!;
-          // Tasks, reminders and birthdays share one store but have three
-          // separate forms. Routing on the stored type here means every
+          // One store, three forms: simple items, work with a start and an
+          // end, and birthdays. Routing on the stored type here means every
           // "edit" entry point — the task detail page included — lands on the
           // right one without each caller having to know.
           final taskState = context.read<TaskBloc>().state;
@@ -168,7 +183,7 @@ class AppRouter {
           final type = match.isEmpty ? TaskType.task : match.first.taskType;
           return switch (type) {
             TaskType.birthday => AddEditBirthdayPage(taskId: taskId),
-            TaskType.reminder => AddEditReminderPage(taskId: taskId),
+            TaskType.reminder => AddEditItemPage(taskId: taskId),
             TaskType.task => AddEditTaskPage(taskId: taskId),
           };
         },
@@ -178,33 +193,15 @@ class AppRouter {
         name: 'task-detail',
         builder: (context, state) {
           final taskId = state.pathParameters['id']!;
-          return TaskDetailPage(taskId: taskId);
-        },
-      ),
-      GoRoute(
-        path: '/todos',
-        name: 'todos',
-        builder: (context, state) => const TodoListPage(),
-      ),
-      GoRoute(
-        path: '/todos/add',
-        name: 'add-todo',
-        builder: (context, state) => const AddEditTodoPage(),
-      ),
-      GoRoute(
-        path: '/todos/edit',
-        name: 'edit-todo',
-        builder: (context, state) {
-          final todo = state.extra as Todo;
-          return AddEditTodoPage(todo: todo);
-        },
-      ),
-      GoRoute(
-        path: '/todos/detail',
-        name: 'todo-detail',
-        builder: (context, state) {
-          final todo = state.extra as Todo;
-          return TodoDetailPage(todo: todo);
+          // A simple item has nothing a detail page would add to its form,
+          // so it opens straight in the form — the same as from the list.
+          final taskState = context.read<TaskBloc>().state;
+          final simple =
+              taskState is TaskLoaded &&
+              taskState.tasks.any((t) => t.id == taskId && t.isSimple);
+          return simple
+              ? AddEditItemPage(taskId: taskId)
+              : TaskDetailPage(taskId: taskId);
         },
       ),
       GoRoute(
@@ -349,7 +346,6 @@ class _MyAppState extends State<MyApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => di.sl<TaskBloc>()..add(LoadTasks())),
-        BlocProvider(create: (_) => di.sl<TodoBloc>()),
         BlocProvider(create: (_) => di.sl<MedicineCubit>()),
         BlocProvider(create: (_) => di.sl<ExpenseBloc>()..add(LoadSessions())),
       ],

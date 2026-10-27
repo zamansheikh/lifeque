@@ -21,7 +21,21 @@ class TaskModel extends Task {
     super.birthdayNotificationSchedule,
     required super.createdAt,
     super.updatedAt,
+    super.priority,
+    super.category,
+    super.hasDueDate,
+    super.completedAt,
   });
+
+  static TaskPriority _priorityAt(Object? i) =>
+      i is int && i >= 0 && i < TaskPriority.values.length
+      ? TaskPriority.values[i]
+      : TaskPriority.normal;
+
+  static TaskCategory? _categoryAt(Object? i) =>
+      i is int && i >= 0 && i < TaskCategory.values.length
+      ? TaskCategory.values[i]
+      : null;
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
@@ -82,6 +96,12 @@ class TaskModel extends Task {
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'] as String)
           : null,
+      priority: _priorityAt(json['priority']),
+      category: _categoryAt(json['category']),
+      hasDueDate: json['hasDueDate'] as bool? ?? true,
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'] as String)
+          : null,
     );
   }
 
@@ -107,6 +127,10 @@ class TaskModel extends Task {
           .toList(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'priority': priority.index,
+      'category': category?.index,
+      'hasDueDate': hasDueDate,
+      'completedAt': completedAt?.toIso8601String(),
     };
   }
 
@@ -129,6 +153,10 @@ class TaskModel extends Task {
       birthdayNotificationSchedule: task.birthdayNotificationSchedule,
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
+      priority: task.priority,
+      category: task.category,
+      hasDueDate: task.hasDueDate,
+      completedAt: task.completedAt,
     );
   }
 
@@ -154,6 +182,10 @@ class TaskModel extends Task {
           birthdayNotificationSchedule.map((e) => e.index).join(','),
       'createdAt': createdAt.millisecondsSinceEpoch,
       'updatedAt': updatedAt?.millisecondsSinceEpoch,
+      DatabaseHelper.columnPriority: priority.index,
+      DatabaseHelper.columnCategory: category?.index,
+      DatabaseHelper.columnHasDueDate: hasDueDate ? 1 : 0,
+      DatabaseHelper.columnCompletedAt: completedAt?.millisecondsSinceEpoch,
     };
   }
 
@@ -205,6 +237,14 @@ class TaskModel extends Task {
       updatedAt: map['updatedAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['updatedAt'])
           : null,
+      priority: _priorityAt(map[DatabaseHelper.columnPriority]),
+      category: _categoryAt(map[DatabaseHelper.columnCategory]),
+      hasDueDate: map[DatabaseHelper.columnHasDueDate] != 0,
+      completedAt: map[DatabaseHelper.columnCompletedAt] != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              map[DatabaseHelper.columnCompletedAt],
+            )
+          : null,
     );
   }
 
@@ -227,6 +267,12 @@ class TaskModel extends Task {
     List<BirthdayNotificationOption>? birthdayNotificationSchedule,
     DateTime? createdAt,
     DateTime? updatedAt,
+    TaskPriority? priority,
+    TaskCategory? category,
+    bool clearCategory = false,
+    bool? hasDueDate,
+    DateTime? completedAt,
+    bool clearCompletedAt = false,
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -251,6 +297,10 @@ class TaskModel extends Task {
           birthdayNotificationSchedule ?? this.birthdayNotificationSchedule,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      priority: priority ?? this.priority,
+      category: clearCategory ? null : (category ?? this.category),
+      hasDueDate: hasDueDate ?? this.hasDueDate,
+      completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
     );
   }
 }

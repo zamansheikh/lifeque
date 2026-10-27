@@ -5,7 +5,9 @@ import '../../../../core/error/exceptions.dart' as app_exceptions;
 class DatabaseHelper {
   static const String _databaseName = 'remind_me.db';
   // Bumped to 10 to clear doses left stranded outside their course.
-  static const int _databaseVersion = 10;
+  // 11: priority, category, undated items and completion time, for the
+  // single list that tasks, reminders and to-dos became.
+  static const int _databaseVersion = 11;
 
   // Public getter for database version
   static int get databaseVersion => _databaseVersion;
@@ -37,6 +39,10 @@ class DatabaseHelper {
   static const String columnBirthdayNotificationSchedule =
       'birthdayNotificationSchedule';
   static const String columnCreatedAt = 'createdAt';
+  static const String columnPriority = 'priority';
+  static const String columnCategory = 'category';
+  static const String columnHasDueDate = 'hasDueDate';
+  static const String columnCompletedAt = 'completedAt';
   static const String columnUpdatedAt = 'updatedAt';
 
   // Medicine table columns
@@ -106,7 +112,11 @@ class DatabaseHelper {
           $columnPinNotificationTiming INTEGER NOT NULL DEFAULT 0,
           $columnBirthdayNotificationSchedule TEXT,
           $columnCreatedAt INTEGER NOT NULL,
-          $columnUpdatedAt INTEGER
+          $columnUpdatedAt INTEGER,
+          $columnPriority INTEGER NOT NULL DEFAULT 1,
+          $columnCategory INTEGER,
+          $columnHasDueDate INTEGER NOT NULL DEFAULT 1,
+          $columnCompletedAt INTEGER
         )
       ''');
 
@@ -315,6 +325,19 @@ class DatabaseHelper {
         DELETE FROM $tableMedicineDose
         WHERE $columnMedicineId NOT IN (SELECT $columnId FROM $tableMedicine)
       ''');
+    }
+    if (oldVersion < 11) {
+      // Tasks, reminders and to-dos became one list. Defaults keep every
+      // existing row reading exactly as before: normal priority, no
+      // category, dated, completion time unknown.
+      for (final column in [
+        '$columnPriority INTEGER NOT NULL DEFAULT 1',
+        '$columnCategory INTEGER',
+        '$columnHasDueDate INTEGER NOT NULL DEFAULT 1',
+        '$columnCompletedAt INTEGER',
+      ]) {
+        await db.execute('ALTER TABLE $tableTask ADD COLUMN $column');
+      }
     }
   }
 

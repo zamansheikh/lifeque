@@ -8,6 +8,23 @@ enum TaskType {
   birthday, // Birthday reminder with yearly repetition
 }
 
+/// How much an item matters. Stored by index — append only.
+enum TaskPriority { low, normal, high, urgent }
+
+/// What an item is about. Stored by index — append only. Same set the to-do
+/// list used, so migrated to-dos keep theirs.
+enum TaskCategory {
+  personal,
+  work,
+  shopping,
+  health,
+  education,
+  finance,
+  travel,
+  home,
+  other,
+}
+
 enum NotificationType {
   specificTime, // At a specific date and time
   daily, // Daily at a specific time
@@ -119,6 +136,16 @@ class Task extends Equatable {
   final DateTime createdAt;
   final DateTime? updatedAt;
 
+  /// Since tasks, reminders and to-dos became one list. Defaults keep every
+  /// item stored before then reading as it did.
+  final TaskPriority priority;
+  final TaskCategory? category;
+
+  /// False for a simple item with no date — "someday". Its [endDate] then
+  /// holds nothing meaningful.
+  final bool hasDueDate;
+  final DateTime? completedAt;
+
   const Task({
     required this.id,
     required this.title,
@@ -137,7 +164,30 @@ class Task extends Equatable {
     this.birthdayNotificationSchedule = const [],
     required this.createdAt,
     this.updatedAt,
+    this.priority = TaskPriority.normal,
+    this.category,
+    this.hasDueDate = true,
+    this.completedAt,
   });
+
+  // ── The unified list ──────────────────────────────────────────────────
+  // A simple item (stored as [TaskType.reminder]) may have a due date, a
+  // reminder time, both, or neither. Ranged tasks and birthdays keep their
+  // own meaning of the dates.
+
+  /// A simple item: not a ranged task, not a birthday.
+  bool get isSimple => taskType == TaskType.reminder;
+
+  /// When the reminder rings, if it has one.
+  DateTime? get reminderAt =>
+      isSimple && isNotificationEnabled ? (notificationTime ?? endDate) : null;
+
+  /// The day it is due, if it has one.
+  DateTime? get dueDate => isSimple ? (hasDueDate ? endDate : null) : endDate;
+
+  /// The moment that places it in the list: due date, else reminder time.
+  /// Null for an undated item.
+  DateTime? get planDate => isSimple ? (dueDate ?? reminderAt) : endDate;
 
   int get daysLeft {
     final now = tz.TZDateTime.now(tz.local);
@@ -293,6 +343,12 @@ class Task extends Equatable {
     List<BirthdayNotificationOption>? birthdayNotificationSchedule,
     DateTime? createdAt,
     DateTime? updatedAt,
+    TaskPriority? priority,
+    TaskCategory? category,
+    bool clearCategory = false,
+    bool? hasDueDate,
+    DateTime? completedAt,
+    bool clearCompletedAt = false,
   }) {
     return Task(
       id: id ?? this.id,
@@ -317,6 +373,10 @@ class Task extends Equatable {
           birthdayNotificationSchedule ?? this.birthdayNotificationSchedule,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      priority: priority ?? this.priority,
+      category: clearCategory ? null : (category ?? this.category),
+      hasDueDate: hasDueDate ?? this.hasDueDate,
+      completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
     );
   }
 
@@ -339,13 +399,19 @@ class Task extends Equatable {
     birthdayNotificationSchedule,
     createdAt,
     updatedAt,
+    priority,
+    category,
+    hasDueDate,
+    completedAt,
   ];
 
   // Helper method to get the actual notification DateTime based on type
   DateTime? getScheduledNotificationTime() {
-    // For reminders, the notification time is the endDate (reminder time)
+    // Simple items ring at their reminder time. Older reminders stored it
+    // only in endDate; newer ones may be due on a different day than they
+    // remind, so notificationTime wins when it is there.
     if (taskType == TaskType.reminder) {
-      return endDate;
+      return isNotificationEnabled ? (notificationTime ?? endDate) : null;
     }
 
     switch (notificationType) {

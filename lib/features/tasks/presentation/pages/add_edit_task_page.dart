@@ -28,7 +28,17 @@ enum _RemindMode { beforeDue, atTime, daily }
 class AddEditTaskPage extends StatefulWidget {
   final String? taskId;
 
-  const AddEditTaskPage({super.key, this.taskId});
+  /// Carried over from the simple editor's "add a start and end" link, so
+  /// switching to this form does not lose what was already typed.
+  final String? initialTitle;
+  final String? initialNote;
+
+  const AddEditTaskPage({
+    super.key,
+    this.taskId,
+    this.initialTitle,
+    this.initialNote,
+  });
 
   @override
   State<AddEditTaskPage> createState() => _AddEditTaskPageState();
@@ -65,7 +75,12 @@ class _AddEditTaskPageState extends State<AddEditTaskPage> {
   @override
   void initState() {
     super.initState();
-    if (_isEditing) _loadExistingTask();
+    if (_isEditing) {
+      _loadExistingTask();
+    } else {
+      _titleController.text = widget.initialTitle ?? '';
+      _descriptionController.text = widget.initialNote ?? '';
+    }
   }
 
   void _loadExistingTask() {

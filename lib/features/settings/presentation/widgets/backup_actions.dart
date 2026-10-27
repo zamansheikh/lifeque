@@ -29,8 +29,7 @@ import '../../../study/services/study_sound_service.dart';
 import '../../../tasks/domain/repositories/task_repository.dart';
 import '../../../tasks/presentation/bloc/task_bloc.dart';
 import '../../../tasks/presentation/widgets/birthday_wish/birthday_wish_log.dart';
-import '../../../todos/domain/repositories/todo_repository.dart';
-import '../../../todos/presentation/bloc/todo_bloc.dart';
+import '../../../tasks/data/run_todo_migration.dart';
 
 /// Export and import of a full backup, from the Settings page.
 ///
@@ -205,17 +204,17 @@ class BackupActions {
     await step('prayer alarms', PrayerAlarmService().reloadFromStorage);
     await step('study sounds', StudySounds.instance.load);
     await step('birthday wishes', BirthdayWishLog.instance.load);
+    // A backup from before the merge still holds a separate to-do list.
+    await step('to-dos', runTodoMigration);
     await step('notifications', () async {
       final ns = di.sl<NotificationService>();
       await ns.syncNotifications(
         di.sl<MedicineRepository>(),
         di.sl<TaskRepository>(),
       );
-      await ns.syncTodoNotifications(di.sl<TodoRepository>());
     });
     await step('screens', () async {
       di.sl<TaskBloc>().add(LoadTasks());
-      di.sl<TodoBloc>().add(LoadTodos());
       di.sl<ExpenseBloc>().add(LoadSessions());
       await di.sl<MedicineCubit>().loadDashboard();
     });

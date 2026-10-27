@@ -550,7 +550,7 @@ abstract class L {
   /// No description provided for @tasksEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Add something with a start and an end date, and it will show up here while it is running.'**
+  /// **'Anything you need to do goes here — with a date, a reminder, or neither.'**
   String get tasksEmptyBody;
 
   /// No description provided for @tasksAllDoneTitle.
@@ -562,7 +562,7 @@ abstract class L {
   /// No description provided for @tasksAllDoneBody.
   ///
   /// In en, this message translates to:
-  /// **'Everything with a deadline is either finished or not started yet. Check All Tasks to see the rest.'**
+  /// **'Nothing left to do. Finished items are under Done.'**
   String get tasksAllDoneBody;
 
   /// No description provided for @tasksTapPlus.
@@ -604,7 +604,7 @@ abstract class L {
   /// No description provided for @tasksStartTaskSub.
   ///
   /// In en, this message translates to:
-  /// **'Something with a deadline to work towards'**
+  /// **'With a date, a reminder, or just a name'**
   String get tasksStartTaskSub;
 
   /// No description provided for @tasksStartPrayer.
@@ -634,13 +634,13 @@ abstract class L {
   /// No description provided for @tasksStartTodo.
   ///
   /// In en, this message translates to:
-  /// **'Start a to-do list'**
+  /// **'Set a reminder'**
   String get tasksStartTodo;
 
   /// No description provided for @tasksStartTodoSub.
   ///
   /// In en, this message translates to:
-  /// **'The small things, ticked off as you go'**
+  /// **'One tap, and it rings when you need it'**
   String get tasksStartTodoSub;
 
   /// No description provided for @tasksDeleteTitle.
@@ -3738,6 +3738,36 @@ abstract class L {
   /// In en, this message translates to:
   /// **'“{title}” will be removed and won\'t go off. This can\'t be undone.'**
   String remindersDeleteBody(String title);
+
+  /// No description provided for @itemFormRangeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs over several days?'**
+  String get itemFormRangeTitle;
+
+  /// No description provided for @itemFormRangeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a start and an end to follow its progress'**
+  String get itemFormRangeBody;
+
+  /// No description provided for @tasksGroupSomeday.
+  ///
+  /// In en, this message translates to:
+  /// **'Any time'**
+  String get tasksGroupSomeday;
+
+  /// No description provided for @itemMarkDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark done'**
+  String get itemMarkDone;
+
+  /// No description provided for @itemMarkOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark not done'**
+  String get itemMarkOpen;
 
   /// No description provided for @studyMinutesToStart.
   ///

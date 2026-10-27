@@ -5,6 +5,8 @@ import '../../../../core/utils/local_numbers.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../bloc/task_bloc.dart';
+import '../utils/task_groups.dart';
+import '../widgets/item_card.dart';
 import '../widgets/task_card_factory.dart';
 import '../../domain/entities/task.dart';
 
@@ -22,7 +24,7 @@ class _TaskListPageState extends State<TaskListPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
   }
 
   @override
@@ -41,9 +43,9 @@ class _TaskListPageState extends State<TaskListPage>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'LifeQue',
-          style: TextStyle(
+        title: Text(
+          L.of(context).navTasks,
+          style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.5,
@@ -88,11 +90,7 @@ class _TaskListPageState extends State<TaskListPage>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: [
-                  _buildActiveTaskList(),
-                  _buildTaskList(),
-                  _buildCompletedTaskList(),
-                ],
+                children: [_buildOpenList(), _buildCompletedTaskList()],
               ),
             ),
           ],
@@ -138,13 +136,12 @@ class _TaskListPageState extends State<TaskListPage>
   Widget _buildTabs(BuildContext context, TaskState state) {
     final colorScheme = Theme.of(context).colorScheme;
     final tasks = state is TaskLoaded
-        ? state.tasks.where((t) => t.taskType == TaskType.task).toList()
+        ? state.tasks.where(onTaskList).toList()
         : <Task>[];
 
     final l = L.of(context);
     final labels = [
-      (l.tasksTabActive, tasks.where((t) => t.isActive).length),
-      (l.tasksTabAll, tasks.length),
+      (l.tasksTabActive, tasks.where((t) => !t.isCompleted).length),
       (l.tasksTabDone, tasks.where((t) => t.isCompleted).length),
     ];
 
@@ -192,6 +189,18 @@ class _TaskListPageState extends State<TaskListPage>
   // ── List plumbing ───────────────────────────────────────────────────────
 
   Widget _card(Task task) {
+    // Simple items get the compact card; work with a start and an end keeps
+    // the card with the progress bar.
+    if (task.isSimple) {
+      return ItemCard(
+        key: ValueKey(task.id),
+        task: task,
+        onTap: () => context.push('/edit-task/${task.id}'),
+        onToggle: () =>
+            context.read<TaskBloc>().add(ToggleTaskCompletion(task.id)),
+        onDelete: () => _showDeleteConfirmation(context, task.id, task.title),
+      );
+    }
     return TaskCardFactory.createCard(
       task: task,
       onTap: () => context.push('/task-detail/${task.id}'),
@@ -264,165 +273,64 @@ class _TaskListPageState extends State<TaskListPage>
     );
   }
 
-  /// Deadline buckets, relative to the end of today.
-  List<(String, List<Task>)> _byDeadline(
-    BuildContext context,
-    List<Task> tasks,
-  ) {
-    final l = L.of(context);
-    final now = DateTime.now();
-    final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
-    final endOfWeek = endOfToday.add(const Duration(days: 7));
-
-    return [
-      (
-        l.tasksGroupDueToday,
-        tasks.where((t) => !t.endDate.isAfter(endOfToday)).toList(),
-      ),
-      (
-        l.tasksGroupNext7Days,
-        tasks
-            .where(
-              (t) =>
-                  t.endDate.isAfter(endOfToday) &&
-                  !t.endDate.isAfter(endOfWeek),
-            )
-            .toList(),
-      ),
-      (
-        l.tasksGroupLater,
-        tasks.where((t) => t.endDate.isAfter(endOfWeek)).toList(),
-      ),
-    ];
-  }
-
-  Widget _buildTaskList() {
+  /// Open items, by when they matter.
+  Widget _buildOpenList() {
     return BlocBuilder<TaskBloc, TaskState>(
       builder: (context, state) {
-        if (state is TaskLoading) {
+        if (state is TaskLoading || state is TaskInitial) {
           return const Center(child: CircularProgressIndicator());
-        } else if (state is TaskLoaded) {
-          if (state.tasks.every((t) => t.taskType != TaskType.task)) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.task_alt_rounded,
-                      size: 48,
-                      color: Colors.blue.shade400,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    L.of(context).tasksEmptyTitle,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade700,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    L.of(context).tasksTapPlus,
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-                  ),
-                ],
-              ),
-            );
-          }
+        }
+        if (state is TaskError) return _buildError(context, state.message);
+        if (state is! TaskLoaded) return const SizedBox.shrink();
 
-          final all = state.tasks
-              .where((task) => task.taskType == TaskType.task)
-              .toList();
-          all.sort((a, b) => a.nextOccurrence.compareTo(b.nextOccurrence));
-
-          final l = L.of(context);
-          return _groupedList([
-            (
-              l.tasksGroupOverdue,
-              all.where((t) => t.isOverdue && !t.isCompleted).toList(),
-            ),
-            (l.tasksGroupInProgress, all.where((t) => t.isActive).toList()),
-            (
-              l.tasksGroupNotStarted,
-              all
-                  .where((t) => !t.isCompleted && !t.isActive && !t.isOverdue)
-                  .toList(),
-            ),
-            (l.tasksGroupCompleted, all.where((t) => t.isCompleted).toList()),
-          ]);
-        } else if (state is TaskError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
-                Text(
-                  state.message,
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<TaskBloc>().add(LoadTasks());
-                  },
-                  child: Text(L.of(context).commonRetry),
-                ),
-              ],
-            ),
+        final groups = groupOpen(state.tasks, DateTime.now());
+        if (groups.values.every((g) => g.isEmpty)) {
+          // Three different situations, and conflating them is what made
+          // the old onboarding wall wrong: it greeted a returning user who
+          // had simply finished everything with instructions for their
+          // first task.
+          //
+          //   nothing at all      → brand new here, offer somewhere to go
+          //   nothing on the list → they use the app for other things
+          //   all of it finished  → they are on top of it
+          if (state.tasks.isEmpty) return _buildFirstRun(context);
+          return _buildEmptyActive(
+            context,
+            hasAnyTask: state.tasks.any(onTaskList),
           );
         }
-        return const SizedBox.shrink();
+
+        final l = L.of(context);
+        return _groupedList([
+          (l.tasksGroupOverdue, groups[TaskGroup.overdue]!),
+          (l.tasksGroupDueToday, groups[TaskGroup.today]!),
+          (l.tasksGroupNext7Days, groups[TaskGroup.week]!),
+          (l.tasksGroupLater, groups[TaskGroup.later]!),
+          (l.tasksGroupSomeday, groups[TaskGroup.someday]!),
+        ]);
       },
     );
   }
 
-  Widget _buildActiveTaskList() {
-    return BlocBuilder<TaskBloc, TaskState>(
-      builder: (context, state) {
-        if (state is TaskLoaded) {
-          // Birthdays and reminders each have their own page in the drawer
-          // now, so this list is tasks and nothing else.
-          final activeTasks = state.tasks
-              .where((task) => task.isActive && task.taskType == TaskType.task)
-              .toList();
-
-          // Sort by next occurrence (most urgent first)
-          activeTasks.sort(
-            (a, b) => a.nextOccurrence.compareTo(b.nextOccurrence),
-          );
-
-          if (activeTasks.isEmpty) {
-            // Three different situations, and conflating them is what made
-            // the old onboarding wall wrong: it greeted a returning user who
-            // had simply finished everything with instructions for their
-            // first task.
-            //
-            //   nothing at all      → brand new here, offer somewhere to go
-            //   no tasks, but data  → they use the app for other things
-            //   tasks, none active  → they are on top of it
-            if (state.tasks.isEmpty) return _buildFirstRun(context);
-
-            final hasAnyTask = state.tasks.any(
-              (t) => t.taskType == TaskType.task,
-            );
-            return _buildEmptyActive(context, hasAnyTask: hasAnyTask);
-          }
-
-          return _groupedList(_byDeadline(context, activeTasks));
-        }
-        return _buildTaskList();
-      },
+  Widget _buildError(BuildContext context, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 64, color: Colors.red),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: const TextStyle(color: Colors.red),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => context.read<TaskBloc>().add(LoadTasks()),
+            child: Text(L.of(context).commonRetry),
+          ),
+        ],
+      ),
     );
   }
 
@@ -496,11 +404,11 @@ class _TaskListPageState extends State<TaskListPage>
           onTap: () => context.push('/add-birthday'),
         ),
         _startHere(
-          icon: Icons.checklist_rounded,
-          color: const Color(0xFF7C3AED),
+          icon: Icons.notifications_active_rounded,
+          color: const Color(0xFFD97706),
           title: l.tasksStartTodo,
           subtitle: l.tasksStartTodoSub,
-          onTap: () => context.push('/todos/add'),
+          onTap: () => context.push('/add-reminder'),
         ),
       ],
     );
@@ -671,11 +579,7 @@ class _TaskListPageState extends State<TaskListPage>
     return BlocBuilder<TaskBloc, TaskState>(
       builder: (context, state) {
         if (state is TaskLoaded) {
-          final completedTasks = state.tasks
-              .where(
-                (task) => task.isCompleted && task.taskType == TaskType.task,
-              )
-              .toList();
+          final completedTasks = doneItems(state.tasks);
 
           if (completedTasks.isEmpty) {
             return Center(
@@ -714,13 +618,12 @@ class _TaskListPageState extends State<TaskListPage>
             );
           }
 
-          // Most recently finished first — the opposite of a deadline sort.
-          completedTasks.sort((a, b) => b.endDate.compareTo(a.endDate));
           return _groupedList([
             (L.of(context).tasksGroupCompleted, completedTasks),
           ]);
         }
-        return _buildTaskList();
+        if (state is TaskError) return _buildError(context, state.message);
+        return const Center(child: CircularProgressIndicator());
       },
     );
   }

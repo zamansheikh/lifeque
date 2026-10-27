@@ -247,14 +247,14 @@ class LBn extends L {
 
   @override
   String get tasksEmptyBody =>
-      'শুরু ও শেষের তারিখ দিয়ে কিছু যোগ করুন — চলাকালীন সেটি এখানে দেখা যাবে।';
+      'যা কিছু করার আছে, এখানে রাখুন — তারিখ দিয়ে, রিমাইন্ডার দিয়ে, বা শুধু নাম লিখে।';
 
   @override
   String get tasksAllDoneTitle => 'এই মুহূর্তে কিছু নেই';
 
   @override
   String get tasksAllDoneBody =>
-      'সময়সীমা আছে এমন সব কাজ হয় শেষ, নয়তো এখনো শুরু হয়নি। বাকিগুলো দেখতে ‘সব’ ট্যাবে যান।';
+      'আর কিছু বাকি নেই। শেষ করা কাজগুলো ‘সম্পন্ন’ ট্যাবে আছে।';
 
   @override
   String get tasksTapPlus => 'যোগ করতে + চাপুন';
@@ -276,7 +276,7 @@ class LBn extends L {
   String get tasksStartTask => 'প্রথম কাজটি যোগ করুন';
 
   @override
-  String get tasksStartTaskSub => 'সময়সীমা আছে এমন কিছু';
+  String get tasksStartTaskSub => 'তারিখ, রিমাইন্ডার, বা শুধু নাম দিয়ে';
 
   @override
   String get tasksStartPrayer => 'নামাজের সময় ঠিক করুন';
@@ -291,10 +291,10 @@ class LBn extends L {
   String get tasksStartBirthdaySub => 'প্রতি বছর একদিন আগে মনে করিয়ে দেবে';
 
   @override
-  String get tasksStartTodo => 'করণীয় তালিকা শুরু করুন';
+  String get tasksStartTodo => 'রিমাইন্ডার দিন';
 
   @override
-  String get tasksStartTodoSub => 'ছোট ছোট কাজ, একে একে টিক দিন';
+  String get tasksStartTodoSub => 'এক ট্যাপে, ঠিক সময়ে বাজবে';
 
   @override
   String get tasksDeleteTitle => 'কাজটি মুছবেন?';
@@ -2168,6 +2168,21 @@ class LBn extends L {
   String remindersDeleteBody(String title) {
     return '“$title” মুছে যাবে এবং আর বাজবে না। এটি ফেরানো যাবে না।';
   }
+
+  @override
+  String get itemFormRangeTitle => 'কয়েক দিন ধরে চলবে?';
+
+  @override
+  String get itemFormRangeBody => 'শুরু ও শেষ সময় দিন, অগ্রগতি দেখা যাবে';
+
+  @override
+  String get tasksGroupSomeday => 'যেকোনো সময়';
+
+  @override
+  String get itemMarkDone => 'সম্পন্ন করুন';
+
+  @override
+  String get itemMarkOpen => 'অসম্পন্ন করুন';
 
   @override
   String studyMinutesToStart(int minutes) {

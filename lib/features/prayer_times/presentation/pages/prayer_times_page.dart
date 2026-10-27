@@ -270,35 +270,42 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     setState(() => _locationName = name);
   }
 
+  /// Keeps a GPS-based location current as the phone moves, quietly.
+  ///
+  /// Three things this used to do differently, each a problem:
+  /// - it ran for a city picked by hand too, and replaced it with GPS as
+  ///   soon as the two were 100 m apart;
+  /// - it could pop a permission request just from opening the page;
+  /// - it asked for a fresh high-accuracy fix on every open. That keeps GPS
+  ///   busy, and on Android the location plugin registers a listener with the
+  ///   system on the main thread while starting one — when the system's
+  ///   location service is slow to answer, the whole app froze ("isn't
+  ///   responding").
+  /// The phone's last known fix is instant, costs nothing, and is as good as
+  /// prayer times need. A fresh fix is still taken when asked for, from the
+  /// refresh button.
   Future<void> _updateLocationInBackground() async {
+    if (!_isLocationFromGps) return;
     try {
       setState(() => _isLocationUpdating = true);
-      if (!await Geolocator.isLocationServiceEnabled()) {
-        setState(() => _isLocationUpdating = false);
-        return;
-      }
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
+      if (!await Geolocator.isLocationServiceEnabled()) return;
+      final permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        setState(() => _isLocationUpdating = false);
         return;
       }
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 15),
-        ),
-      );
+      final position = await Geolocator.getLastKnownPosition();
+      if (position == null) return;
       final distance = Geolocator.distanceBetween(
         _latitude,
         _longitude,
         position.latitude,
         position.longitude,
       );
-      if (distance > 100) {
+      // A kilometre: prayer times barely move within one, and anything
+      // smaller is mostly GPS jitter — each change also costs a network
+      // lookup for the place name.
+      if (distance > 1000) {
         final placeName = await _placeNameFor(
           position.latitude,
           position.longitude,

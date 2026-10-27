@@ -3,8 +3,9 @@ import 'package:lifeque/core/services/navigation_preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  test('default order: tasks, prayer, reminders, birthdays, expenses, '
-      'medicines, todos, timer', () async {
+  // Reminders and the to-do list are part of Tasks now.
+  test('default order: tasks, prayer, birthdays, expenses, medicines, '
+      'timer', () async {
     SharedPreferences.setMockInitialValues({});
     final svc = NavigationPreferencesService(
       await SharedPreferences.getInstance(),
@@ -12,11 +13,9 @@ void main() {
     expect(svc.getOrderedItems().map((i) => i.route), [
       '/',
       '/prayer-times',
-      '/reminders',
       '/birthdays',
       '/expenses',
       '/medicines',
-      '/todos',
       '/study-timer',
     ]);
     expect(svc.getHomeRoute(), '/');
