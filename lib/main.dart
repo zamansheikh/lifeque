@@ -4,6 +4,8 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as timezone;
 import 'package:alarm/alarm.dart';
 import 'core/app.dart';
+import 'features/study/services/study_sound_service.dart';
+import 'features/study/services/study_timer_service.dart';
 import 'core/services/language_preference_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/prayer_alarm_service.dart';
@@ -91,6 +93,10 @@ void main() async {
   try {
     await PrayerAlarmService().initialize();
     debugPrint('🕌 PrayerAlarmService initialized');
+    // Study timer: sound settings for its chimes, and letting each block's
+    // alarm go once its chime has played.
+    await StudySounds.instance.load();
+    StudyTimerService.instance.watchRings();
   } catch (e) {
     debugPrint('🕌 ❌ PrayerAlarmService init failed: $e');
   }

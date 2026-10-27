@@ -154,6 +154,8 @@ void main() {
     expect(next.single.dateTime.isAfter(DateTime.now()), isTrue);
     expect(next.single.allowSameSecondScheduling, isTrue);
     expect(next.single.androidStopAlarmOnTermination, isFalse);
+    // Rings even when a finished study chime still counts as ringing.
+    expect(next.single.allowAlarmOverlap, isTrue);
     // No Android volume panel popping up as the ring starts and ends.
     expect(next.single.volumeSettings.showSystemUI, isFalse);
   });

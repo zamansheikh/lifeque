@@ -1835,6 +1835,147 @@ class LBn extends L {
   }
 
   @override
+  String get studyPause => 'থামান';
+
+  @override
+  String get studyStop => 'বন্ধ';
+
+  @override
+  String get studySkip => 'এড়িয়ে যান';
+
+  @override
+  String get studyStarted => 'শুরু';
+
+  @override
+  String get studyPlanFocus => 'পড়া';
+
+  @override
+  String get studyPlanBreak => 'বিরতি';
+
+  @override
+  String studyMinutes(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString মিনিট';
+  }
+
+  @override
+  String studyHours(String hours) {
+    return '$hours ঘণ্টা';
+  }
+
+  @override
+  String studyBlocksDone(int done, int left) {
+    final intl.NumberFormat doneNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String doneString = doneNumberFormat.format(done);
+    final intl.NumberFormat leftNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String leftString = leftNumberFormat.format(left);
+
+    return '$doneString ধাপ শেষ · লম্বা বিরতির আগে আর $leftString';
+  }
+
+  @override
+  String studyBlocksThenLong(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString ধাপ, তারপর লম্বা বিরতি';
+  }
+
+  @override
+  String get studyNotifFocusDone => 'পড়ার ধাপ শেষ';
+
+  @override
+  String get studyNotifBreakOver => 'বিরতি শেষ';
+
+  @override
+  String get studyNotifLongBreakOver => 'লম্বা বিরতি শেষ';
+
+  @override
+  String studyNotifTakeBreak(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString মিনিট বিশ্রাম নিন। উঠে দাঁড়ান, স্ক্রিন থেকে চোখ সরান।';
+  }
+
+  @override
+  String studyNotifTakeLongBreak(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'এবার একটু লম্বা বিরতি — $minutesString মিনিট।';
+  }
+
+  @override
+  String studyNotifNextFocus(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'এরপর $minutesString মিনিট পড়া।';
+  }
+
+  @override
+  String get studyNotifFinished => 'সেশন শেষ।';
+
+  @override
+  String get studyNotifGotIt => 'ঠিক আছে';
+
+  @override
+  String get studySounds => 'শব্দ';
+
+  @override
+  String get studySoundsBackground => 'পড়ার সময় পেছনের শব্দ';
+
+  @override
+  String get studySoundsBackgroundNote =>
+      'শুধু পড়ার ধাপে বাজে, বিরতিতে থেমে যায়।';
+
+  @override
+  String get studySoundOff => 'বন্ধ';
+
+  @override
+  String get studySoundRain => 'বৃষ্টি';
+
+  @override
+  String get studySoundWhite => 'হোয়াইট নয়েজ';
+
+  @override
+  String get studySoundBrown => 'ব্রাউন নয়েজ';
+
+  @override
+  String get studySoundVolume => 'ভলিউম';
+
+  @override
+  String get studySoundChimes => 'ঘণ্টার শব্দ';
+
+  @override
+  String get studySoundChimesBody =>
+      'শুরু, থামানো ও এড়িয়ে যাওয়ায় — আর পড়া শেষে ও বিরতি শেষে আলাদা সুর';
+
+  @override
+  String get studySoundCountdown => '৩-২-১ গণনা';
+
+  @override
+  String get studySoundCountdownBody => 'শেষ তিন সেকেন্ডে মৃদু টিক টিক';
+
+  @override
+  String get studySoundTicking => 'ঘড়ির টিক টিক';
+
+  @override
+  String get studySoundTickingBody => 'পড়ার সময় মৃদু টিক-টক শব্দ';
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

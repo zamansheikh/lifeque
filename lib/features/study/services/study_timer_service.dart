@@ -2,25 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/utils/alarm_set.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/utils/alarm_sound_utils.dart';
+import '../../../core/utils/app_strings.dart';
+import 'study_sound_service.dart';
 
 enum StudyPhase {
   focus, // A focus block
   shortBreak, // The breather between blocks
   longBreak, // The longer rest after a set of blocks
   stopped,
-}
-
-extension StudyPhaseLabel on StudyPhase {
-  String get label => switch (this) {
-    StudyPhase.focus => 'Focus',
-    StudyPhase.shortBreak => 'Short break',
-    StudyPhase.longBreak => 'Long break',
-    StudyPhase.stopped => 'Not running',
-  };
 }
 
 class StudySession {
@@ -109,7 +103,20 @@ class StudyTimerService {
 
   /// Alarm ids are reserved as a contiguous block so the chain can be
   /// cancelled wholesale without tracking which ones are live.
-  static const int _alarmIdBase = 1000;
+  ///
+  /// 2000, not 1000: prayer alarms are 1000–1004, and sharing the block meant
+  /// starting a session overwrote them and ending one deleted them.
+  static const int alarmIdBase = 2000;
+  static const int _alarmIdBase = alarmIdBase;
+
+  /// Ids earlier builds used for study alarms, minus 1000–1004, which belong
+  /// to the prayer alarms. Swept once so nothing an old build left behind
+  /// rings.
+  static final _legacyAlarmIds = [for (var id = 1005; id < 1020; id++) id];
+
+  /// Whether [id] is one of this service's alarms.
+  static bool ownsAlarm(int id) =>
+      id >= alarmIdBase && id < alarmIdBase + _reservedAlarmSlots;
 
   /// About three hours of pomodoro planned ahead. Every slot costs one
   /// AlarmManager round-trip to arm and another to cancel, so this is a
@@ -501,20 +508,29 @@ class StudyTimerService {
           alarmSettings: AlarmSettings(
             id: _alarmIdBase + i,
             dateTime: slot.end,
-            assetAudioPath: sound,
+            // The calm "into a break" or bright "back to focus" chime, so
+            // the change is clear without looking; the user's alarm sound
+            // when chimes are off.
+            assetAudioPath:
+                StudySounds.instance.phaseEndAlarmSound(slot.phase) ?? sound,
             loopAudio: false,
             vibrate: true,
             warningNotificationOnKill: false,
             androidFullScreenIntent: false,
-            volumeSettings: VolumeSettings.fade(
+            // A fade would swallow most of a two-second chime, and the
+            // volume panel should not pop up at every block.
+            volumeSettings: const VolumeSettings.fixed(
               volume: 0.7,
-              fadeDuration: const Duration(seconds: 2),
+              showSystemUI: false,
             ),
             notificationSettings: NotificationSettings(
               title: _boundaryTitle(slot.phase),
               body: _boundaryBody(slot.phase, next),
-              stopButton: 'Got it',
+              stopButton: appStrings.studyNotifGotIt,
               icon: 'notification_icon',
+              // The ring is let go once the chime has played (see
+              // watchRings); the note of what changed stays.
+              keepNotificationAfterAlarmEnds: true,
             ),
           ),
         );
@@ -533,7 +549,10 @@ class StudyTimerService {
   /// instance has no record of them.
   Future<void> _cancelAlarms({bool all = false}) async {
     final ids = all
-        ? [for (var i = 0; i < _reservedAlarmSlots; i++) _alarmIdBase + i]
+        ? [
+            for (var i = 0; i < _reservedAlarmSlots; i++) _alarmIdBase + i,
+            ..._legacyAlarmIds,
+          ]
         : _liveAlarmIds.toList();
     _liveAlarmIds.clear();
 
@@ -546,23 +565,30 @@ class StudyTimerService {
     }
   }
 
-  String _boundaryTitle(StudyPhase finishing) => switch (finishing) {
-    StudyPhase.focus => 'Focus block done',
-    StudyPhase.shortBreak => 'Break over',
-    StudyPhase.longBreak => 'Long break over',
-    StudyPhase.stopped => 'Study timer',
-  };
+  /// Built when the alarms are armed, in the app's language at that moment.
+  String _boundaryTitle(StudyPhase finishing) {
+    final l = appStrings;
+    return switch (finishing) {
+      StudyPhase.focus => l.studyNotifFocusDone,
+      StudyPhase.shortBreak => l.studyNotifBreakOver,
+      StudyPhase.longBreak => l.studyNotifLongBreakOver,
+      StudyPhase.stopped => l.studyTitle,
+    };
+  }
 
   String _boundaryBody(StudyPhase finishing, StudyPhase? next) {
     final session = _session;
     if (session == null) return '';
+    final l = appStrings;
     return switch (next) {
-      StudyPhase.shortBreak =>
-        'Take ${session.shortBreakDuration} minutes. Stand up, look away from the screen.',
-      StudyPhase.longBreak =>
-        'You\'ve earned a longer one — ${session.longBreakDuration} minutes.',
-      StudyPhase.focus => 'Next up: ${session.focusDuration} minutes of focus.',
-      _ => 'Session finished.',
+      StudyPhase.shortBreak => l.studyNotifTakeBreak(
+        session.shortBreakDuration,
+      ),
+      StudyPhase.longBreak => l.studyNotifTakeLongBreak(
+        session.longBreakDuration,
+      ),
+      StudyPhase.focus => l.studyNotifNextFocus(session.focusDuration),
+      _ => l.studyNotifFinished,
     };
   }
 
@@ -594,10 +620,13 @@ class StudyTimerService {
         return;
       }
 
-      _timeController.add(timeLeft);
+      final left = timeLeft;
+      _timeController.add(left);
+      unawaited(StudySounds.instance.onTimeLeft(left));
       if (phase != lastPhase) {
         lastPhase = phase;
         _phaseController.add(phase);
+        unawaited(StudySounds.instance.follow(phase: phase, running: true));
       }
       final cycles = completedCycles;
       if (cycles != lastCycles) {
@@ -612,6 +641,46 @@ class StudyTimerService {
     _timeController.add(timeLeft);
     _cycleController.add(completedCycles);
     _runningController.add(isRunning);
+    unawaited(
+      StudySounds.instance.follow(phase: currentPhase, running: isRunning),
+    );
+  }
+
+  /// Re-arms the session's alarms, for a setting baked into them (the
+  /// phase-end chime) that has just changed.
+  void refreshAlarms() {
+    if (isRunning) _queueAlarmWork(_armAlarms);
+  }
+
+  // ── Ringing ─────────────────────────────────────────────────────────────
+
+  StreamSubscription<AlarmSet>? _ringSub;
+  final Set<int> _ringing = {};
+
+  /// Lets each boundary alarm go once its chime has played.
+  ///
+  /// A non-looping alarm sound ending does not end the alarm: the plugin
+  /// keeps it "ringing", silently, until something stops it. Left alone, that
+  /// held the alarm service open and could hold back a prayer alarm due
+  /// after it. The notification stays (keepNotificationAfterAlarmEnds).
+  void watchRings() {
+    _ringSub ??= Alarm.ringing.listen((set) {
+      final now = {for (final a in set.alarms) a.id}.where(ownsAlarm).toSet();
+      for (final id in now.difference(_ringing)) {
+        final chimes = StudySounds.instance.settings.value.chimes;
+        // The phase-end chimes are short; the regular alarm sounds run
+        // longer, so give those a little more before letting go.
+        final hold = chimes
+            ? StudySounds.phaseEndChimeLength + const Duration(seconds: 2)
+            : const Duration(seconds: 10);
+        Timer(hold, () async {
+          if (await Alarm.isRinging(id)) await Alarm.stop(id);
+        });
+      }
+      _ringing
+        ..clear()
+        ..addAll(now);
+    });
   }
 
   // ── Storage ─────────────────────────────────────────────────────────────

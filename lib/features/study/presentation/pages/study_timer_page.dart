@@ -1,8 +1,13 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../../../../core/utils/local_clock.dart';
+import '../../../../core/utils/local_numbers.dart';
 import '../../../../core/widgets/app_drawer.dart';
+import '../../services/study_sound_service.dart';
 import '../../services/study_timer_service.dart';
+import '../widgets/study_sound_sheet.dart';
 import '../../../../l10n/app_localizations.dart';
 
 extension StudyPhaseUI on StudyPhase {
@@ -25,14 +30,6 @@ extension StudyPhaseUI on StudyPhase {
     StudyPhase.shortBreak => Icons.local_cafe_rounded,
     StudyPhase.longBreak => Icons.self_improvement_rounded,
     StudyPhase.stopped => Icons.timer_outlined,
-  };
-
-  /// English, for logs and for text built away from a BuildContext.
-  String get displayName => switch (this) {
-    StudyPhase.focus => 'Focus',
-    StudyPhase.shortBreak => 'Short break',
-    StudyPhase.longBreak => 'Long break',
-    StudyPhase.stopped => 'Ready when you are',
   };
 
   String labelFor(BuildContext context) {
@@ -117,11 +114,29 @@ class _StudyTimerPageState extends State<StudyTimerPage>
             leading: Builder(
               builder: (ctx) => IconButton(
                 icon: const Icon(Icons.menu_rounded, color: _muted),
-                tooltip: 'Menu',
+                tooltip: L.of(context).commonMenu,
                 onPressed: () => Scaffold.of(ctx).openDrawer(),
               ),
             ),
             actions: [
+              ValueListenableBuilder<StudySoundSettings>(
+                valueListenable: StudySounds.instance.settings,
+                builder: (context, sound, _) {
+                  final on = sound.ambient != StudyAmbient.off;
+                  return IconButton(
+                    key: const Key('study-sounds-button'),
+                    icon: Icon(
+                      on ? Icons.music_note_rounded : Icons.music_note_outlined,
+                      color: on ? StudyPhase.focus.color : _muted,
+                    ),
+                    tooltip: L.of(context).studySounds,
+                    onPressed: () => StudySoundSheet.show(
+                      context,
+                      onChimesChanged: _service.refreshAlarms,
+                    ),
+                  );
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.tune_rounded, color: _muted),
                 tooltip: L.of(context).studySettings,
@@ -280,9 +295,8 @@ class _StudyTimerPageState extends State<StudyTimerPage>
             const SizedBox(height: 8),
             Text(
               active
-                  ? '$done ${done == 1 ? 'block' : 'blocks'} done · '
-                        '${perSet - inSet} to the long break'
-                  : '$perSet blocks, then a long break',
+                  ? L.of(context).studyBlocksDone(done, perSet - inSet)
+                  : L.of(context).studyBlocksThenLong(perSet),
               style: TextStyle(fontSize: 12.5, color: Colors.grey[600]),
             ),
           ],
@@ -326,7 +340,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
             Expanded(
               child: _secondaryButton(
                 icon: Icons.stop_rounded,
-                label: 'Stop',
+                label: L.of(context).studyStop,
                 color: const Color(0xFFDC2626),
                 onTap: _confirmStop,
               ),
@@ -340,7 +354,11 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                   running ? Icons.pause_rounded : Icons.play_arrow_rounded,
                   size: 22,
                 ),
-                label: Text(running ? 'Pause' : L.of(context).studyResume),
+                label: Text(
+                  running
+                      ? L.of(context).studyPause
+                      : L.of(context).studyResume,
+                ),
                 style: FilledButton.styleFrom(
                   backgroundColor: phase.color,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -358,7 +376,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
             Expanded(
               child: _secondaryButton(
                 icon: Icons.skip_next_rounded,
-                label: 'Skip',
+                label: L.of(context).studySkip,
                 color: _muted,
                 onTap: _skip,
               ),
@@ -427,22 +445,24 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                   _stat(
                     L.of(context).studyFocused,
                     focusMinutes >= 60
-                        ? '${(focusMinutes / 60).toStringAsFixed(1)} h'
-                        : '$focusMinutes min',
+                        ? L
+                              .of(context)
+                              .studyHours(N.of((focusMinutes / 6).round() / 10))
+                        : L.of(context).studyMinutes(focusMinutes),
                     Icons.timelapse_rounded,
                     StudyPhase.focus.color,
                   ),
                   _divider(),
                   _stat(
                     L.of(context).studyBlocks,
-                    '$done',
+                    N.of(done),
                     Icons.done_all_rounded,
                     StudyPhase.shortBreak.color,
                   ),
                   _divider(),
                   _stat(
-                    'Started',
-                    _formatClock(session.startTime),
+                    L.of(context).studyStarted,
+                    Clock.h12Soft(session.startTime),
                     Icons.schedule_rounded,
                     _muted,
                   ),
@@ -524,22 +544,22 @@ class _StudyTimerPageState extends State<StudyTimerPage>
           Row(
             children: [
               _stat(
-                'Focus',
-                '$_focusDuration min',
+                L.of(context).studyPlanFocus,
+                L.of(context).studyMinutes(_focusDuration),
                 StudyPhase.focus.icon,
                 StudyPhase.focus.color,
               ),
               _divider(),
               _stat(
-                'Break',
-                '$_shortBreakDuration min',
+                L.of(context).studyPlanBreak,
+                L.of(context).studyMinutes(_shortBreakDuration),
                 StudyPhase.shortBreak.icon,
                 StudyPhase.shortBreak.color,
               ),
               _divider(),
               _stat(
-                'Long break',
-                '$_longBreakDuration min',
+                L.of(context).studyLongBreak,
+                L.of(context).studyMinutes(_longBreakDuration),
                 StudyPhase.longBreak.icon,
                 StudyPhase.longBreak.color,
               ),
@@ -602,6 +622,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
   // ── Actions ─────────────────────────────────────────────────────────────
 
   Future<void> _start() async {
+    unawaited(StudySounds.instance.cue(StudyCue.start));
     await _service.startStudySession(
       focusDuration: _focusDuration,
       shortBreakDuration: _shortBreakDuration,
@@ -612,16 +633,19 @@ class _StudyTimerPageState extends State<StudyTimerPage>
   }
 
   Future<void> _pause() async {
+    unawaited(StudySounds.instance.cue(StudyCue.pause));
     await _service.pauseSession();
     if (mounted) setState(() {});
   }
 
   Future<void> _resume() async {
+    unawaited(StudySounds.instance.cue(StudyCue.resume));
     await _service.resumeSession();
     if (mounted) setState(() {});
   }
 
   Future<void> _skip() async {
+    unawaited(StudySounds.instance.cue(StudyCue.skip));
     await _service.skipPhase();
     if (mounted) setState(() {});
   }
@@ -658,6 +682,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
     );
 
     if (stop == true) {
+      unawaited(StudySounds.instance.cue(StudyCue.pause));
       await _service.stopSession();
       if (mounted) setState(() {});
     }
@@ -717,34 +742,34 @@ class _StudyTimerPageState extends State<StudyTimerPage>
               ],
               const SizedBox(height: 12),
               _slider(
-                'Focus block',
+                L.of(context).studyFocusBlock,
                 _focusDuration,
                 10,
                 60,
                 5,
                 StudyPhase.focus.color,
                 (v) => setSheetState(() => _focusDuration = v),
-                (v) => '$v min',
+                (v) => L.of(context).studyMinutes(v),
               ),
               _slider(
-                'Short break',
+                L.of(context).studyShortBreak,
                 _shortBreakDuration,
                 3,
                 15,
                 1,
                 StudyPhase.shortBreak.color,
                 (v) => setSheetState(() => _shortBreakDuration = v),
-                (v) => '$v min',
+                (v) => L.of(context).studyMinutes(v),
               ),
               _slider(
-                'Long break',
+                L.of(context).studyLongBreak,
                 _longBreakDuration,
                 10,
                 45,
                 5,
                 StudyPhase.longBreak.color,
                 (v) => setSheetState(() => _longBreakDuration = v),
-                (v) => '$v min',
+                (v) => L.of(context).studyMinutes(v),
               ),
               _slider(
                 L.of(context).studyBlocksBeforeLong,
@@ -754,7 +779,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                 1,
                 _muted,
                 (v) => setSheetState(() => _cyclesBeforeLongBreak = v),
-                (v) => '$v',
+                (v) => N.of(v),
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -768,7 +793,7 @@ class _StudyTimerPageState extends State<StudyTimerPage>
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Done'),
+                  child: Text(L.of(context).commonDone),
                 ),
               ),
             ],
@@ -850,16 +875,10 @@ class _StudyTimerPageState extends State<StudyTimerPage>
 
   // ── Formatting ──────────────────────────────────────────────────────────
 
-  String _formatTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:'
-        '${secs.toString().padLeft(2, '0')}';
-  }
-
-  String _formatClock(DateTime time) =>
-      '${time.hour.toString().padLeft(2, '0')}:'
-      '${time.minute.toString().padLeft(2, '0')}';
+  /// "25:00", or "২৫:০০" in Bangla.
+  String _formatTime(int seconds) =>
+      '${N.padded2(seconds ~/ 60)}:'
+      '${N.padded2(seconds % 60)}';
 }
 
 /// The progress ring: a rounded sweep on a soft track, starting at twelve.

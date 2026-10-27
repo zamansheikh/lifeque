@@ -31,13 +31,22 @@ class AlarmRingOverlay extends StatefulWidget {
   /// Stops one alarm. Defaults to [Alarm.stop].
   final Future<void> Function(int id)? onStop;
 
+  /// Which ringing alarms take over the screen. Prayer alarms by default:
+  /// the study timer's block and break chimes are a nudge, not a wake-up,
+  /// and get a notification instead.
+  final bool Function(AlarmSettings alarm)? covers;
+
   const AlarmRingOverlay({
     super.key,
     required this.child,
     this.backButtonDispatcher,
     this.ringing,
     this.onStop,
+    this.covers,
   });
+
+  static bool isPrayerAlarm(AlarmSettings alarm) =>
+      PrayerAlarmService.prayerForAlarmId(alarm.id) != null;
 
   @override
   State<AlarmRingOverlay> createState() => _AlarmRingOverlayState();
@@ -53,7 +62,8 @@ class _AlarmRingOverlayState extends State<AlarmRingOverlay> {
     super.initState();
     _sub = (widget.ringing ?? Alarm.ringing).listen((set) {
       if (!mounted) return;
-      final list = set.alarms.toList()
+      final covers = widget.covers ?? AlarmRingOverlay.isPrayerAlarm;
+      final list = set.alarms.where(covers).toList()
         ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
       setState(() => _ringing = list);
       _claimBack(list.isNotEmpty);

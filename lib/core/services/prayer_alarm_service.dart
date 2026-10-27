@@ -560,6 +560,12 @@ class PrayerAlarmService {
       // second (Asr "before waqt ends" and Maghrib "at waqt"). The default
       // quietly replaced one with the other.
       allowSameSecondScheduling: true,
+      // Ring even if another alarm counts as ringing. A study-timer chime
+      // that has finished playing still counts until it is stopped, and the
+      // plugin's default is to drop the new alarm in that case. It also
+      // makes a duplicate trigger of this same alarm restart the sound
+      // rather than silence it.
+      allowAlarmOverlap: true,
       // Keep ringing if the app's task goes away mid-ring; the notification's
       // Stop button still works without it.
       androidStopAlarmOnTermination: false,

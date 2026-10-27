@@ -1840,6 +1840,153 @@ class LEn extends L {
   }
 
   @override
+  String get studyPause => 'Pause';
+
+  @override
+  String get studyStop => 'Stop';
+
+  @override
+  String get studySkip => 'Skip';
+
+  @override
+  String get studyStarted => 'Started';
+
+  @override
+  String get studyPlanFocus => 'Focus';
+
+  @override
+  String get studyPlanBreak => 'Break';
+
+  @override
+  String studyMinutes(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString min';
+  }
+
+  @override
+  String studyHours(String hours) {
+    return '$hours h';
+  }
+
+  @override
+  String studyBlocksDone(int done, int left) {
+    final intl.NumberFormat doneNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String doneString = doneNumberFormat.format(done);
+    final intl.NumberFormat leftNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String leftString = leftNumberFormat.format(left);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      done,
+      locale: localeName,
+      other: '$doneString blocks done',
+      one: '1 block done',
+    );
+    return '$_temp0 · $leftString to the long break';
+  }
+
+  @override
+  String studyBlocksThenLong(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString blocks, then a long break';
+  }
+
+  @override
+  String get studyNotifFocusDone => 'Focus block done';
+
+  @override
+  String get studyNotifBreakOver => 'Break over';
+
+  @override
+  String get studyNotifLongBreakOver => 'Long break over';
+
+  @override
+  String studyNotifTakeBreak(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'Take $minutesString minutes. Stand up, look away from the screen.';
+  }
+
+  @override
+  String studyNotifTakeLongBreak(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'You\'ve earned a longer one — $minutesString minutes.';
+  }
+
+  @override
+  String studyNotifNextFocus(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'Next up: $minutesString minutes of focus.';
+  }
+
+  @override
+  String get studyNotifFinished => 'Session finished.';
+
+  @override
+  String get studyNotifGotIt => 'Got it';
+
+  @override
+  String get studySounds => 'Sounds';
+
+  @override
+  String get studySoundsBackground => 'Background while focusing';
+
+  @override
+  String get studySoundsBackgroundNote =>
+      'Plays during focus blocks only, and stops for breaks.';
+
+  @override
+  String get studySoundOff => 'Off';
+
+  @override
+  String get studySoundRain => 'Rain';
+
+  @override
+  String get studySoundWhite => 'White noise';
+
+  @override
+  String get studySoundBrown => 'Brown noise';
+
+  @override
+  String get studySoundVolume => 'Volume';
+
+  @override
+  String get studySoundChimes => 'Chimes';
+
+  @override
+  String get studySoundChimesBody =>
+      'On start, pause and skip — and a different chime when focus ends and when a break ends';
+
+  @override
+  String get studySoundCountdown => '3-2-1 countdown';
+
+  @override
+  String get studySoundCountdownBody => 'Soft ticks in the last three seconds';
+
+  @override
+  String get studySoundTicking => 'Clock ticking';
+
+  @override
+  String get studySoundTickingBody => 'A quiet tick-tock while you focus';
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

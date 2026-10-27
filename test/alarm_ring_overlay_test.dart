@@ -121,14 +121,38 @@ void main() {
     expect(await back.invokeCallback(Future.value(false)), isFalse);
   });
 
-  testWidgets('other alarms show their own title and text', (tester) async {
+  testWidgets('study timer chimes do not take over the screen', (tester) async {
     Intl.defaultLocale = 'en';
     await tester.pumpWidget(app('en'));
+    ringing.add(AlarmSet([_alarm(2003, title: 'Break over', body: 'Focus')]));
+    await show(tester);
+    expect(find.byKey(const Key('alarm-ring-stop')), findsNothing);
+    expect(find.text('home page'), findsOneWidget);
+    expect(PrayerAlarmService.prayerForAlarmId(2003), isNull);
+  });
+
+  testWidgets('a custom rule can cover other alarms with their own text', (
+    tester,
+  ) async {
+    Intl.defaultLocale = 'en';
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        builder: (context, child) => AlarmRingOverlay(
+          ringing: ringing.stream,
+          covers: (_) => true,
+          onStop: (id) async => stopped.add(id),
+          child: child!,
+        ),
+        home: const Scaffold(body: Text('home page')),
+      ),
+    );
     ringing.add(AlarmSet([_alarm(42, title: 'Break over', body: 'Focus')]));
     await show(tester);
     expect(find.text('Alarm'), findsOneWidget);
     expect(find.text('Break over'), findsOneWidget);
     expect(find.text('Focus'), findsOneWidget);
-    expect(PrayerAlarmService.prayerForAlarmId(42), isNull);
   });
 }

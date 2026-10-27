@@ -3289,6 +3289,198 @@ abstract class L {
   /// **'Then {phase}'**
   String studyThenNext(String phase);
 
+  /// No description provided for @studyPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get studyPause;
+
+  /// No description provided for @studyStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get studyStop;
+
+  /// No description provided for @studySkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get studySkip;
+
+  /// No description provided for @studyStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Started'**
+  String get studyStarted;
+
+  /// No description provided for @studyPlanFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get studyPlanFocus;
+
+  /// No description provided for @studyPlanBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Break'**
+  String get studyPlanBreak;
+
+  /// No description provided for @studyMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String studyMinutes(int minutes);
+
+  /// No description provided for @studyHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String studyHours(String hours);
+
+  /// No description provided for @studyBlocksDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{done, plural, =1{1 block done} other{{done} blocks done}} · {left} to the long break'**
+  String studyBlocksDone(int done, int left);
+
+  /// No description provided for @studyBlocksThenLong.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} blocks, then a long break'**
+  String studyBlocksThenLong(int count);
+
+  /// No description provided for @studyNotifFocusDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus block done'**
+  String get studyNotifFocusDone;
+
+  /// No description provided for @studyNotifBreakOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Break over'**
+  String get studyNotifBreakOver;
+
+  /// No description provided for @studyNotifLongBreakOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Long break over'**
+  String get studyNotifLongBreakOver;
+
+  /// No description provided for @studyNotifTakeBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Take {minutes} minutes. Stand up, look away from the screen.'**
+  String studyNotifTakeBreak(int minutes);
+
+  /// No description provided for @studyNotifTakeLongBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve earned a longer one — {minutes} minutes.'**
+  String studyNotifTakeLongBreak(int minutes);
+
+  /// No description provided for @studyNotifNextFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Next up: {minutes} minutes of focus.'**
+  String studyNotifNextFocus(int minutes);
+
+  /// No description provided for @studyNotifFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Session finished.'**
+  String get studyNotifFinished;
+
+  /// No description provided for @studyNotifGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get studyNotifGotIt;
+
+  /// No description provided for @studySounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Sounds'**
+  String get studySounds;
+
+  /// No description provided for @studySoundsBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Background while focusing'**
+  String get studySoundsBackground;
+
+  /// No description provided for @studySoundsBackgroundNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays during focus blocks only, and stops for breaks.'**
+  String get studySoundsBackgroundNote;
+
+  /// No description provided for @studySoundOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get studySoundOff;
+
+  /// No description provided for @studySoundRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain'**
+  String get studySoundRain;
+
+  /// No description provided for @studySoundWhite.
+  ///
+  /// In en, this message translates to:
+  /// **'White noise'**
+  String get studySoundWhite;
+
+  /// No description provided for @studySoundBrown.
+  ///
+  /// In en, this message translates to:
+  /// **'Brown noise'**
+  String get studySoundBrown;
+
+  /// No description provided for @studySoundVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get studySoundVolume;
+
+  /// No description provided for @studySoundChimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Chimes'**
+  String get studySoundChimes;
+
+  /// No description provided for @studySoundChimesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On start, pause and skip — and a different chime when focus ends and when a break ends'**
+  String get studySoundChimesBody;
+
+  /// No description provided for @studySoundCountdown.
+  ///
+  /// In en, this message translates to:
+  /// **'3-2-1 countdown'**
+  String get studySoundCountdown;
+
+  /// No description provided for @studySoundCountdownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft ticks in the last three seconds'**
+  String get studySoundCountdownBody;
+
+  /// No description provided for @studySoundTicking.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock ticking'**
+  String get studySoundTicking;
+
+  /// No description provided for @studySoundTickingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A quiet tick-tock while you focus'**
+  String get studySoundTickingBody;
+
   /// No description provided for @studyMinutesToStart.
   ///
   /// In en, this message translates to:
