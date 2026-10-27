@@ -3769,6 +3769,450 @@ abstract class L {
   /// **'Mark not done'**
   String get itemMarkOpen;
 
+  /// No description provided for @navSubscriptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions'**
+  String get navSubscriptions;
+
+  /// No description provided for @subCatStreaming.
+  ///
+  /// In en, this message translates to:
+  /// **'Streaming'**
+  String get subCatStreaming;
+
+  /// No description provided for @subCatMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get subCatMusic;
+
+  /// No description provided for @subCatCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud storage'**
+  String get subCatCloud;
+
+  /// No description provided for @subCatSoftware.
+  ///
+  /// In en, this message translates to:
+  /// **'Apps & software'**
+  String get subCatSoftware;
+
+  /// No description provided for @subCatInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet & phone'**
+  String get subCatInternet;
+
+  /// No description provided for @subCatEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get subCatEducation;
+
+  /// No description provided for @subCatFitness.
+  ///
+  /// In en, this message translates to:
+  /// **'Fitness'**
+  String get subCatFitness;
+
+  /// No description provided for @subCatNews.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get subCatNews;
+
+  /// No description provided for @subCatGaming.
+  ///
+  /// In en, this message translates to:
+  /// **'Games'**
+  String get subCatGaming;
+
+  /// No description provided for @subCatOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get subCatOther;
+
+  /// No description provided for @subCycleWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get subCycleWeekly;
+
+  /// No description provided for @subCycleMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get subCycleMonthly;
+
+  /// No description provided for @subCycleQuarterly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every 3 months'**
+  String get subCycleQuarterly;
+
+  /// No description provided for @subCycleHalfYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every 6 months'**
+  String get subCycleHalfYearly;
+
+  /// No description provided for @subCycleYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get subCycleYearly;
+
+  /// No description provided for @subPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'/ week'**
+  String get subPerWeek;
+
+  /// No description provided for @subPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'/ month'**
+  String get subPerMonth;
+
+  /// No description provided for @subPer3Months.
+  ///
+  /// In en, this message translates to:
+  /// **'/ 3 months'**
+  String get subPer3Months;
+
+  /// No description provided for @subPer6Months.
+  ///
+  /// In en, this message translates to:
+  /// **'/ 6 months'**
+  String get subPer6Months;
+
+  /// No description provided for @subPerYear.
+  ///
+  /// In en, this message translates to:
+  /// **'/ year'**
+  String get subPerYear;
+
+  /// No description provided for @subMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every month'**
+  String get subMonthly;
+
+  /// No description provided for @subYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} a year'**
+  String subYearly(String amount);
+
+  /// No description provided for @subActiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active'**
+  String subActiveCount(int count);
+
+  /// No description provided for @subNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {name} · {when}'**
+  String subNext(String name, String when);
+
+  /// No description provided for @subAlsoAbroad.
+  ///
+  /// In en, this message translates to:
+  /// **'plus {amounts} in other currencies'**
+  String subAlsoAbroad(String amounts);
+
+  /// No description provided for @subByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Where it goes'**
+  String get subByCategory;
+
+  /// No description provided for @subGroupOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment due'**
+  String get subGroupOverdue;
+
+  /// No description provided for @subGroupWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get subGroupWeek;
+
+  /// No description provided for @subGroupMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get subGroupMonth;
+
+  /// No description provided for @subGroupLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get subGroupLater;
+
+  /// No description provided for @subGroupCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get subGroupCancelled;
+
+  /// No description provided for @subDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days left'**
+  String subDaysLeft(int days);
+
+  /// No description provided for @subToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews today'**
+  String get subToday;
+
+  /// No description provided for @subTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get subTomorrow;
+
+  /// No description provided for @subDaysLate.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days late'**
+  String subDaysLate(int days);
+
+  /// No description provided for @subTrial.
+  ///
+  /// In en, this message translates to:
+  /// **'Free trial'**
+  String get subTrial;
+
+  /// No description provided for @subPaidButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get subPaidButton;
+
+  /// No description provided for @subEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Never miss a renewal'**
+  String get subEmptyTitle;
+
+  /// No description provided for @subEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add what you pay for regularly — Netflix, internet, cloud storage. You\'ll see the monthly total and get a reminder before each renewal.'**
+  String get subEmptyBody;
+
+  /// No description provided for @subAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add subscription'**
+  String get subAdd;
+
+  /// No description provided for @subFormNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New subscription'**
+  String get subFormNew;
+
+  /// No description provided for @subFormEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit subscription'**
+  String get subFormEdit;
+
+  /// No description provided for @subFormPopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get subFormPopular;
+
+  /// No description provided for @subFormName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, e.g. Netflix'**
+  String get subFormName;
+
+  /// No description provided for @subFormNameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Give it a name'**
+  String get subFormNameEmpty;
+
+  /// No description provided for @subFormAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get subFormAmount;
+
+  /// No description provided for @subFormAmountInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount'**
+  String get subFormAmountInvalid;
+
+  /// No description provided for @subFormCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed'**
+  String get subFormCycle;
+
+  /// No description provided for @subFormNextRenewal.
+  ///
+  /// In en, this message translates to:
+  /// **'Next renewal'**
+  String get subFormNextRenewal;
+
+  /// No description provided for @subFormRemind.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me'**
+  String get subFormRemind;
+
+  /// No description provided for @subRemindSameDay.
+  ///
+  /// In en, this message translates to:
+  /// **'On the day'**
+  String get subRemindSameDay;
+
+  /// No description provided for @subRemindDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day before} other{{days} days before}}'**
+  String subRemindDays(int days);
+
+  /// No description provided for @subFormCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get subFormCategory;
+
+  /// No description provided for @subFormTrial.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s a free trial'**
+  String get subFormTrial;
+
+  /// No description provided for @subFormTrialBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me before it starts charging, so I can cancel'**
+  String get subFormTrialBody;
+
+  /// No description provided for @subFormNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note — card, account, how to cancel…'**
+  String get subFormNote;
+
+  /// No description provided for @subFormCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve cancelled it'**
+  String get subFormCancelled;
+
+  /// No description provided for @subFormCancelledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stays in the list, but no reminders and not counted'**
+  String get subFormCancelledBody;
+
+  /// No description provided for @subDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this subscription?'**
+  String get subDeleteTitle;
+
+  /// No description provided for @subDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” and its reminders will be removed.'**
+  String subDeleteBody(String name);
+
+  /// No description provided for @subPayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid {name}?'**
+  String subPayTitle(String name);
+
+  /// No description provided for @subPayAmountLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount in taka'**
+  String get subPayAmountLocal;
+
+  /// No description provided for @subPayForeignHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Billed {amount} — how much did your card show?'**
+  String subPayForeignHint(String amount);
+
+  /// No description provided for @subPayLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to expenses'**
+  String get subPayLog;
+
+  /// No description provided for @subPayNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next renewal: {date}'**
+  String subPayNext(String date);
+
+  /// No description provided for @subPayConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as paid'**
+  String get subPayConfirm;
+
+  /// No description provided for @subPaidDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} paid · next renewal set'**
+  String subPaidDone(String name);
+
+  /// No description provided for @subNotifRenewsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews in {days} days — {amount}'**
+  String subNotifRenewsIn(int days, String amount);
+
+  /// No description provided for @subNotifRenewsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews today — {amount}'**
+  String subNotifRenewsToday(String amount);
+
+  /// No description provided for @subNotifTrialEnds.
+  ///
+  /// In en, this message translates to:
+  /// **'Free trial ends in {days} days — cancel now if you don\'t want it'**
+  String subNotifTrialEnds(int days);
+
+  /// No description provided for @subNotifTrialEndsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Free trial ends today — cancel now if you don\'t want it'**
+  String get subNotifTrialEndsToday;
+
+  /// No description provided for @subExpenseNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription renewal'**
+  String get subExpenseNote;
+
+  /// No description provided for @subChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription renewals'**
+  String get subChannelName;
+
   /// No description provided for @studyMinutesToStart.
   ///
   /// In en, this message translates to:

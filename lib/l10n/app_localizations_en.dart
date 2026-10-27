@@ -2198,6 +2198,297 @@ class LEn extends L {
   String get itemMarkOpen => 'Mark not done';
 
   @override
+  String get navSubscriptions => 'Subscriptions';
+
+  @override
+  String get subCatStreaming => 'Streaming';
+
+  @override
+  String get subCatMusic => 'Music';
+
+  @override
+  String get subCatCloud => 'Cloud storage';
+
+  @override
+  String get subCatSoftware => 'Apps & software';
+
+  @override
+  String get subCatInternet => 'Internet & phone';
+
+  @override
+  String get subCatEducation => 'Learning';
+
+  @override
+  String get subCatFitness => 'Fitness';
+
+  @override
+  String get subCatNews => 'News';
+
+  @override
+  String get subCatGaming => 'Games';
+
+  @override
+  String get subCatOther => 'Other';
+
+  @override
+  String get subCycleWeekly => 'Weekly';
+
+  @override
+  String get subCycleMonthly => 'Monthly';
+
+  @override
+  String get subCycleQuarterly => 'Every 3 months';
+
+  @override
+  String get subCycleHalfYearly => 'Every 6 months';
+
+  @override
+  String get subCycleYearly => 'Yearly';
+
+  @override
+  String get subPerWeek => '/ week';
+
+  @override
+  String get subPerMonth => '/ month';
+
+  @override
+  String get subPer3Months => '/ 3 months';
+
+  @override
+  String get subPer6Months => '/ 6 months';
+
+  @override
+  String get subPerYear => '/ year';
+
+  @override
+  String get subMonthly => 'Every month';
+
+  @override
+  String subYearly(String amount) {
+    return '$amount a year';
+  }
+
+  @override
+  String subActiveCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString active';
+  }
+
+  @override
+  String subNext(String name, String when) {
+    return 'Next: $name · $when';
+  }
+
+  @override
+  String subAlsoAbroad(String amounts) {
+    return 'plus $amounts in other currencies';
+  }
+
+  @override
+  String get subByCategory => 'Where it goes';
+
+  @override
+  String get subGroupOverdue => 'Payment due';
+
+  @override
+  String get subGroupWeek => 'This week';
+
+  @override
+  String get subGroupMonth => 'This month';
+
+  @override
+  String get subGroupLater => 'Later';
+
+  @override
+  String get subGroupCancelled => 'Cancelled';
+
+  @override
+  String subDaysLeft(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString days left';
+  }
+
+  @override
+  String get subToday => 'Renews today';
+
+  @override
+  String get subTomorrow => 'Tomorrow';
+
+  @override
+  String subDaysLate(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString days late';
+  }
+
+  @override
+  String get subTrial => 'Free trial';
+
+  @override
+  String get subPaidButton => 'Paid';
+
+  @override
+  String get subEmptyTitle => 'Never miss a renewal';
+
+  @override
+  String get subEmptyBody =>
+      'Add what you pay for regularly — Netflix, internet, cloud storage. You\'ll see the monthly total and get a reminder before each renewal.';
+
+  @override
+  String get subAdd => 'Add subscription';
+
+  @override
+  String get subFormNew => 'New subscription';
+
+  @override
+  String get subFormEdit => 'Edit subscription';
+
+  @override
+  String get subFormPopular => 'Popular';
+
+  @override
+  String get subFormName => 'Name, e.g. Netflix';
+
+  @override
+  String get subFormNameEmpty => 'Give it a name';
+
+  @override
+  String get subFormAmount => 'Amount';
+
+  @override
+  String get subFormAmountInvalid => 'Enter an amount';
+
+  @override
+  String get subFormCycle => 'Billed';
+
+  @override
+  String get subFormNextRenewal => 'Next renewal';
+
+  @override
+  String get subFormRemind => 'Remind me';
+
+  @override
+  String get subRemindSameDay => 'On the day';
+
+  @override
+  String subRemindDays(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$daysString days before',
+      one: '1 day before',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get subFormCategory => 'Category';
+
+  @override
+  String get subFormTrial => 'It\'s a free trial';
+
+  @override
+  String get subFormTrialBody =>
+      'Remind me before it starts charging, so I can cancel';
+
+  @override
+  String get subFormNote => 'Note — card, account, how to cancel…';
+
+  @override
+  String get subFormCancelled => 'I\'ve cancelled it';
+
+  @override
+  String get subFormCancelledBody =>
+      'Stays in the list, but no reminders and not counted';
+
+  @override
+  String get subDeleteTitle => 'Delete this subscription?';
+
+  @override
+  String subDeleteBody(String name) {
+    return '“$name” and its reminders will be removed.';
+  }
+
+  @override
+  String subPayTitle(String name) {
+    return 'Paid $name?';
+  }
+
+  @override
+  String get subPayAmountLocal => 'Amount in taka';
+
+  @override
+  String subPayForeignHint(String amount) {
+    return 'Billed $amount — how much did your card show?';
+  }
+
+  @override
+  String get subPayLog => 'Add to expenses';
+
+  @override
+  String subPayNext(String date) {
+    return 'Next renewal: $date';
+  }
+
+  @override
+  String get subPayConfirm => 'Mark as paid';
+
+  @override
+  String subPaidDone(String name) {
+    return '$name paid · next renewal set';
+  }
+
+  @override
+  String subNotifRenewsIn(int days, String amount) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return 'Renews in $daysString days — $amount';
+  }
+
+  @override
+  String subNotifRenewsToday(String amount) {
+    return 'Renews today — $amount';
+  }
+
+  @override
+  String subNotifTrialEnds(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return 'Free trial ends in $daysString days — cancel now if you don\'t want it';
+  }
+
+  @override
+  String get subNotifTrialEndsToday =>
+      'Free trial ends today — cancel now if you don\'t want it';
+
+  @override
+  String get subExpenseNote => 'Subscription renewal';
+
+  @override
+  String get subChannelName => 'Subscription renewals';
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

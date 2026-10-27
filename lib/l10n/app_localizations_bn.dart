@@ -2185,6 +2185,291 @@ class LBn extends L {
   String get itemMarkOpen => 'অসম্পন্ন করুন';
 
   @override
+  String get navSubscriptions => 'সাবস্ক্রিপশন';
+
+  @override
+  String get subCatStreaming => 'স্ট্রিমিং';
+
+  @override
+  String get subCatMusic => 'গান';
+
+  @override
+  String get subCatCloud => 'ক্লাউড স্টোরেজ';
+
+  @override
+  String get subCatSoftware => 'অ্যাপ ও সফটওয়্যার';
+
+  @override
+  String get subCatInternet => 'ইন্টারনেট ও ফোন';
+
+  @override
+  String get subCatEducation => 'শিক্ষা';
+
+  @override
+  String get subCatFitness => 'ফিটনেস';
+
+  @override
+  String get subCatNews => 'খবর';
+
+  @override
+  String get subCatGaming => 'গেম';
+
+  @override
+  String get subCatOther => 'অন্যান্য';
+
+  @override
+  String get subCycleWeekly => 'সাপ্তাহিক';
+
+  @override
+  String get subCycleMonthly => 'মাসিক';
+
+  @override
+  String get subCycleQuarterly => '৩ মাস পর পর';
+
+  @override
+  String get subCycleHalfYearly => '৬ মাস পর পর';
+
+  @override
+  String get subCycleYearly => 'বাৎসরিক';
+
+  @override
+  String get subPerWeek => '/ সপ্তাহ';
+
+  @override
+  String get subPerMonth => '/ মাস';
+
+  @override
+  String get subPer3Months => '/ ৩ মাস';
+
+  @override
+  String get subPer6Months => '/ ৬ মাস';
+
+  @override
+  String get subPerYear => '/ বছর';
+
+  @override
+  String get subMonthly => 'প্রতি মাসে';
+
+  @override
+  String subYearly(String amount) {
+    return 'বছরে $amount';
+  }
+
+  @override
+  String subActiveCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countStringটি সক্রিয়';
+  }
+
+  @override
+  String subNext(String name, String when) {
+    return 'পরবর্তী: $name · $when';
+  }
+
+  @override
+  String subAlsoAbroad(String amounts) {
+    return 'এর সাথে বিদেশি মুদ্রায় $amounts';
+  }
+
+  @override
+  String get subByCategory => 'কোথায় খরচ হয়';
+
+  @override
+  String get subGroupOverdue => 'পরিশোধ বাকি';
+
+  @override
+  String get subGroupWeek => 'এই সপ্তাহে';
+
+  @override
+  String get subGroupMonth => 'এই মাসে';
+
+  @override
+  String get subGroupLater => 'পরে';
+
+  @override
+  String get subGroupCancelled => 'বন্ধ করা';
+
+  @override
+  String subDaysLeft(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString দিন বাকি';
+  }
+
+  @override
+  String get subToday => 'আজ নবায়ন';
+
+  @override
+  String get subTomorrow => 'আগামীকাল';
+
+  @override
+  String subDaysLate(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString দিন পেরিয়েছে';
+  }
+
+  @override
+  String get subTrial => 'ফ্রি ট্রায়াল';
+
+  @override
+  String get subPaidButton => 'পরিশোধ করেছি';
+
+  @override
+  String get subEmptyTitle => 'নবায়নের তারিখ আর ভুলবেন না';
+
+  @override
+  String get subEmptyBody =>
+      'নিয়মিত যা পরিশোধ করেন যোগ করুন — নেটফ্লিক্স, ইন্টারনেট, ক্লাউড স্টোরেজ। মাসিক মোট খরচ দেখবেন, আর প্রতিটি নবায়নের আগে রিমাইন্ডার পাবেন।';
+
+  @override
+  String get subAdd => 'সাবস্ক্রিপশন যোগ করুন';
+
+  @override
+  String get subFormNew => 'নতুন সাবস্ক্রিপশন';
+
+  @override
+  String get subFormEdit => 'সম্পাদনা';
+
+  @override
+  String get subFormPopular => 'জনপ্রিয়';
+
+  @override
+  String get subFormName => 'নাম, যেমন Netflix';
+
+  @override
+  String get subFormNameEmpty => 'একটি নাম দিন';
+
+  @override
+  String get subFormAmount => 'পরিমাণ';
+
+  @override
+  String get subFormAmountInvalid => 'পরিমাণ লিখুন';
+
+  @override
+  String get subFormCycle => 'কত দিন পর পর';
+
+  @override
+  String get subFormNextRenewal => 'পরবর্তী নবায়ন';
+
+  @override
+  String get subFormRemind => 'মনে করিয়ে দিন';
+
+  @override
+  String get subRemindSameDay => 'একই দিনে';
+
+  @override
+  String subRemindDays(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString দিন আগে';
+  }
+
+  @override
+  String get subFormCategory => 'ধরন';
+
+  @override
+  String get subFormTrial => 'এটি ফ্রি ট্রায়াল';
+
+  @override
+  String get subFormTrialBody =>
+      'টাকা কাটা শুরুর আগে মনে করিয়ে দিন, যাতে চাইলে বন্ধ করতে পারি';
+
+  @override
+  String get subFormNote => 'নোট — কোন কার্ড, অ্যাকাউন্ট, কীভাবে বন্ধ করবেন…';
+
+  @override
+  String get subFormCancelled => 'বন্ধ করে দিয়েছি';
+
+  @override
+  String get subFormCancelledBody =>
+      'তালিকায় থাকবে, কিন্তু রিমাইন্ডার ও হিসাব থেকে বাদ';
+
+  @override
+  String get subDeleteTitle => 'এই সাবস্ক্রিপশন মুছবেন?';
+
+  @override
+  String subDeleteBody(String name) {
+    return '“$name” ও এর রিমাইন্ডার মুছে যাবে।';
+  }
+
+  @override
+  String subPayTitle(String name) {
+    return '$name পরিশোধ করেছেন?';
+  }
+
+  @override
+  String get subPayAmountLocal => 'টাকায় কত';
+
+  @override
+  String subPayForeignHint(String amount) {
+    return 'বিল $amount — কার্ডে কত টাকা কেটেছে?';
+  }
+
+  @override
+  String get subPayLog => 'খরচের হিসাবে যোগ করুন';
+
+  @override
+  String subPayNext(String date) {
+    return 'পরবর্তী নবায়ন: $date';
+  }
+
+  @override
+  String get subPayConfirm => 'পরিশোধ হয়েছে';
+
+  @override
+  String subPaidDone(String name) {
+    return '$name পরিশোধ হয়েছে · পরের নবায়ন ঠিক হলো';
+  }
+
+  @override
+  String subNotifRenewsIn(int days, String amount) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString দিন পর নবায়ন — $amount';
+  }
+
+  @override
+  String subNotifRenewsToday(String amount) {
+    return 'আজ নবায়ন — $amount';
+  }
+
+  @override
+  String subNotifTrialEnds(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return 'ফ্রি ট্রায়াল $daysString দিন পর শেষ — না চাইলে এখনই বন্ধ করুন';
+  }
+
+  @override
+  String get subNotifTrialEndsToday =>
+      'আজ ফ্রি ট্রায়াল শেষ — না চাইলে এখনই বন্ধ করুন';
+
+  @override
+  String get subExpenseNote => 'সাবস্ক্রিপশন নবায়ন';
+
+  @override
+  String get subChannelName => 'সাবস্ক্রিপশন নবায়ন';
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

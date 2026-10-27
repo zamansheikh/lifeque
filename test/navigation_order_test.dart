@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   // Reminders and the to-do list are part of Tasks now.
-  test('default order: tasks, prayer, birthdays, expenses, medicines, '
-      'timer', () async {
+  test('default order: tasks, prayer, birthdays, expenses, subscriptions, '
+      'medicines, timer', () async {
     SharedPreferences.setMockInitialValues({});
     final svc = NavigationPreferencesService(
       await SharedPreferences.getInstance(),
@@ -15,6 +15,7 @@ void main() {
       '/prayer-times',
       '/birthdays',
       '/expenses',
+      '/subscriptions',
       '/medicines',
       '/study-timer',
     ]);

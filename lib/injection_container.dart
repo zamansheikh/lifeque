@@ -1,6 +1,10 @@
 import 'package:get_it/get_it.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'features/subscriptions/data/subscription_expense.dart';
+import 'features/subscriptions/data/subscription_repository.dart';
+import 'features/subscriptions/domain/subscription.dart';
+import 'features/subscriptions/presentation/subscription_cubit.dart';
 import 'core/utils/database_helper.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/navigation_service.dart';
@@ -62,6 +66,19 @@ Future<void> init() async {
   // Data sources
   sl.registerLazySingleton<TaskLocalDataSource>(
     () => TaskLocalDataSourceImpl(databaseHelper: sl()),
+  );
+
+  //! Features - Subscriptions
+  sl.registerLazySingleton(() => SubscriptionRepository(sl()));
+  sl.registerLazySingleton(
+    () => SubscriptionCubit(sl(), _NotificationReminders(), (
+      s,
+      amount,
+      at,
+    ) async {
+      await sl<ExpenseRepository>().addSession(renewalExpense(s, amount, at));
+      sl<ExpenseBloc>().add(LoadSessions());
+    }),
   );
 
   //! Features - Medicines
@@ -192,4 +209,15 @@ Future<void> init() async {
   // External
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
+}
+
+/// Subscription reminders, through the app's notification service.
+class _NotificationReminders implements SubscriptionReminders {
+  @override
+  Future<void> schedule(Subscription s) =>
+      sl<NotificationService>().scheduleSubscriptionReminders(s);
+
+  @override
+  Future<void> cancel(String id) =>
+      sl<NotificationService>().cancelSubscriptionReminders(id);
 }

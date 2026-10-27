@@ -43,43 +43,53 @@ void main() {
     await databaseFactory.deleteDatabase(path);
   });
 
-  test('upgrading from 10 adds the new columns and keeps every row', () async {
-    final at = DateTime(2026, 10, 30, 10);
-    final old = await databaseFactory.openDatabase(
-      path,
-      options: OpenDatabaseOptions(
-        version: 10,
-        onCreate: (db, _) => db.execute(_v10Tasks),
-      ),
-    );
-    await old.insert('tasks', {
-      'id': 'r1',
-      'title': 'Old reminder',
-      'taskType': TaskType.reminder.index,
-      'startDate': at.millisecondsSinceEpoch,
-      'endDate': at.millisecondsSinceEpoch,
-      'notificationTime': at.millisecondsSinceEpoch,
-      'createdAt': at.millisecondsSinceEpoch,
-    });
-    await old.close();
+  test(
+    'upgrading from 10 adds the new columns, subscriptions, keeps rows',
+    () async {
+      final at = DateTime(2026, 10, 30, 10);
+      final old = await databaseFactory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          version: 10,
+          onCreate: (db, _) => db.execute(_v10Tasks),
+        ),
+      );
+      await old.insert('tasks', {
+        'id': 'r1',
+        'title': 'Old reminder',
+        'taskType': TaskType.reminder.index,
+        'startDate': at.millisecondsSinceEpoch,
+        'endDate': at.millisecondsSinceEpoch,
+        'notificationTime': at.millisecondsSinceEpoch,
+        'createdAt': at.millisecondsSinceEpoch,
+      });
+      await old.close();
 
-    final db = await DatabaseHelper().database;
-    expect(await db.getVersion(), 11);
-    final columns = {
-      for (final c in await db.rawQuery('PRAGMA table_info(tasks)'))
-        c['name'] as String,
-    };
-    expect(
-      columns,
-      containsAll(['priority', 'category', 'hasDueDate', 'completedAt']),
-    );
+      final db = await DatabaseHelper().database;
+      expect(await db.getVersion(), 12);
+      final tables = {
+        for (final r in await db.rawQuery(
+          "SELECT name FROM sqlite_master WHERE type = 'table'",
+        ))
+          r['name'] as String,
+      };
+      expect(tables, contains('subscriptions'));
+      final columns = {
+        for (final c in await db.rawQuery('PRAGMA table_info(tasks)'))
+          c['name'] as String,
+      };
+      expect(
+        columns,
+        containsAll(['priority', 'category', 'hasDueDate', 'completedAt']),
+      );
 
-    final task = TaskModel.fromMap((await db.query('tasks')).single);
-    expect(task.title, 'Old reminder');
-    expect(task.priority, TaskPriority.normal);
-    expect(task.hasDueDate, isTrue);
-    expect(task.planDate, at);
-  });
+      final task = TaskModel.fromMap((await db.query('tasks')).single);
+      expect(task.title, 'Old reminder');
+      expect(task.priority, TaskPriority.normal);
+      expect(task.hasDueDate, isTrue);
+      expect(task.planDate, at);
+    },
+  );
 
   test('a fresh install creates them too, and they round-trip', () async {
     final db = await DatabaseHelper().database;

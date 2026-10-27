@@ -39,6 +39,9 @@ import '../features/settings/presentation/pages/settings_page.dart';
 import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import 'services/navigation_service.dart';
 import 'widgets/alarm_ring_overlay.dart';
+import '../features/subscriptions/presentation/edit_subscription_page.dart';
+import '../features/subscriptions/presentation/subscription_ui.dart';
+import '../features/subscriptions/presentation/subscriptions_page.dart';
 import 'services/navigation_preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../injection_container.dart' as di;
@@ -203,6 +206,26 @@ class AppRouter {
               ? AddEditItemPage(taskId: taskId)
               : TaskDetailPage(taskId: taskId);
         },
+      ),
+      GoRoute(
+        path: '/subscriptions',
+        name: 'subscriptions',
+        builder: (context, state) => const SubscriptionsPage(),
+      ),
+      GoRoute(
+        path: '/subscriptions/add',
+        name: 'add-subscription',
+        builder: (context, state) => EditSubscriptionPage(
+          preset: state.extra is SubscriptionPreset
+              ? state.extra as SubscriptionPreset
+              : null,
+        ),
+      ),
+      GoRoute(
+        path: '/subscriptions/edit/:id',
+        name: 'edit-subscription',
+        builder: (context, state) =>
+            EditSubscriptionPage(id: state.pathParameters['id']),
       ),
       GoRoute(
         path: '/expenses',

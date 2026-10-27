@@ -31,6 +31,11 @@ class NavigationPreferencesService {
       iconData: Icons.account_balance_wallet_rounded,
     ),
     NavItem(
+      route: '/subscriptions',
+      label: 'Subscriptions',
+      iconData: Icons.autorenew_rounded,
+    ),
+    NavItem(
       route: '/medicines',
       label: 'Medicines',
       iconData: Icons.medication_rounded,
@@ -105,6 +110,7 @@ extension NavItemL10n on NavItem {
       '/reminders' => l.navReminders,
       '/birthdays' => l.navBirthdays,
       '/expenses' => l.navExpenses,
+      '/subscriptions' => l.navSubscriptions,
       '/medicines' => l.navMedicines,
       '/prayer-times' => l.navPrayerTimes,
       '/study-timer' => l.navStudyTimer,

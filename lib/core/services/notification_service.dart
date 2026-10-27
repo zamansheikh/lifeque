@@ -6,6 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
+import '../../features/subscriptions/data/subscription_repository.dart';
+import '../../features/subscriptions/domain/subscription.dart';
+import '../../features/subscriptions/presentation/subscription_cubit.dart';
+import '../../features/subscriptions/presentation/subscription_ui.dart';
 import '../../features/tasks/domain/entities/task.dart';
 import '../../features/tasks/presentation/bloc/task_bloc.dart';
 import '../../features/medicines/presentation/bloc/medicine_cubit.dart';
@@ -64,6 +68,8 @@ class NotificationService {
   static const String channelMedicines = 'medicine_reminders_v3';
   static const String channelTodos = 'todo_reminders_v3';
   static const String channelPersistent = 'persistent_tasks';
+  static const String channelSubscriptions = 'subscription_renewals_v1';
+  static const String subscriptionPayloadPrefix = 'subscription_';
 
   /// Confirmations after a notification action ("Completed", "Snoozed").
   ///
@@ -230,6 +236,15 @@ class NotificationService {
         showBadge: true,
       ),
       AndroidNotificationChannel(
+        channelSubscriptions,
+        'Subscription renewals',
+        description: 'A reminder before each subscription renews',
+        importance: Importance.high,
+        enableVibration: true,
+        playSound: true,
+        showBadge: true,
+      ),
+      AndroidNotificationChannel(
         channelFeedback,
         'Action Confirmations',
         description: 'Brief confirmations after a notification action',
@@ -384,6 +399,14 @@ class NotificationService {
         actionId,
         payload.substring(9),
       ); // Remove 'medicine_' prefix
+      return;
+    }
+
+    if (payload.startsWith(subscriptionPayloadPrefix)) {
+      await _handleSubscriptionAction(
+        actionId,
+        payload.substring(subscriptionPayloadPrefix.length),
+      );
       return;
     }
 
@@ -1829,7 +1852,8 @@ class NotificationService {
                       );
                       cancelledCount++;
                     }
-                  } else if (!payload.startsWith(todoPayloadPrefix)) {
+                  } else if (!payload.startsWith(todoPayloadPrefix) &&
+                      !payload.startsWith(subscriptionPayloadPrefix)) {
                     // Assume task ID. Old to-do reminders are cleared by
                     // cancelLegacyTodoNotifications.
                     if (!activeTaskIds.contains(payload)) {
@@ -1873,7 +1897,8 @@ class NotificationService {
                           cancelledCount++;
                         }
                       }
-                    } else if (!payload.startsWith(todoPayloadPrefix)) {
+                    } else if (!payload.startsWith(todoPayloadPrefix) &&
+                        !payload.startsWith(subscriptionPayloadPrefix)) {
                       // Assume task ID — see the note above.
                       if (!activeTaskIds.contains(payload)) {
                         if (notification.id != null) {
@@ -1917,9 +1942,120 @@ class NotificationService {
         },
       );
 
+      // Subscriptions: the reboot path, where Android has dropped every
+      // alarm. Each is rescheduled from the store.
+      try {
+        final subs = await di.sl<SubscriptionRepository>().all();
+        for (final sub in subs.where((s) => s.isActive)) {
+          await scheduleSubscriptionReminders(sub);
+        }
+      } catch (e) {
+        debugPrint('🔔 ❌ Could not reschedule subscriptions: $e');
+      }
       debugPrint('🔔 ✅ Notification synchronization completed');
     } catch (e) {
       debugPrint('🔔 ❌ Error during notification synchronization: $e');
+    }
+  }
+
+  // ── Subscriptions ───────────────────────────────────────────────────────
+
+  /// Stable notification id for one of a subscription's two reminders.
+  ///
+  /// FNV-1a over the id, so the same subscription gets the same ids on every
+  /// run and can be cancelled; a block of its own, clear of tasks (hash
+  /// codes), medicines and to-dos.
+  static int subscriptionNotificationId(String id, int slot) {
+    var h = 0x811c9dc5;
+    for (final c in id.codeUnits) {
+      h = ((h ^ c) * 0x01000193) & 0xffffffff;
+    }
+    return 1800000000 + (h % 10000000) * 2 + slot;
+  }
+
+  /// A reminder [Subscription.remindDaysBefore] days ahead and one on the
+  /// day, both at 9 in the morning. "Paid" is offered for taka subscriptions;
+  /// one billed in another currency needs the charged amount, so it opens
+  /// the app instead.
+  Future<void> scheduleSubscriptionReminders(Subscription s) async {
+    await cancelSubscriptionReminders(s.id);
+    if (!s.isActive) return;
+    final l = appStrings;
+    final amount = formatMoney(s.amount, s.currency);
+    final due = s.nextRenewal;
+    final now = tz.TZDateTime.now(tz.local);
+
+    Future<void> at(int slot, DateTime day, String body) async {
+      final when = tz.TZDateTime(tz.local, day.year, day.month, day.day, 9);
+      if (!when.isAfter(now)) return;
+      await _flutterLocalNotificationsPlugin.zonedSchedule(
+        id: subscriptionNotificationId(s.id, slot),
+        title: s.name,
+        body: body,
+        scheduledDate: when,
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            channelSubscriptions,
+            l.subChannelName,
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+            color: s.isTrial
+                ? const Color(0xFFD97706)
+                : const Color(0xFF2563EB),
+            styleInformation: BigTextStyleInformation(body),
+            actions: s.isLocalCurrency && !s.isTrial
+                ? [_action('sub_paid', l.subPaidButton)]
+                : null,
+          ),
+          iOS: const DarwinNotificationDetails(),
+        ),
+        payload: '$subscriptionPayloadPrefix${s.id}',
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+    }
+
+    final before = s.remindDaysBefore;
+    if (before > 0) {
+      await at(
+        0,
+        DateTime(due.year, due.month, due.day - before),
+        s.isTrial
+            ? l.subNotifTrialEnds(before)
+            : l.subNotifRenewsIn(before, amount),
+      );
+    }
+    await at(
+      1,
+      due,
+      s.isTrial ? l.subNotifTrialEndsToday : l.subNotifRenewsToday(amount),
+    );
+  }
+
+  Future<void> cancelSubscriptionReminders(String id) async {
+    for (final slot in [0, 1]) {
+      await _flutterLocalNotificationsPlugin.cancel(
+        id: subscriptionNotificationId(id, slot),
+      );
+    }
+  }
+
+  Future<void> _handleSubscriptionAction(String actionId, String id) async {
+    if (actionId != 'sub_paid') return;
+    try {
+      final sub = await di.sl<SubscriptionRepository>().byId(id);
+      if (sub == null) return;
+      await di.sl<SubscriptionCubit>().markPaid(
+        sub,
+        amountLocal: sub.isLocalCurrency ? sub.amount : null,
+      );
+      await _showActionFeedbackNotification(
+        sub.name,
+        appStrings.subPaidDone(sub.name),
+        const Color(0xFF059669),
+      );
+    } catch (e) {
+      debugPrint('🔔 ❌ Could not mark subscription $id paid: $e');
     }
   }
 

@@ -7,7 +7,8 @@ class DatabaseHelper {
   // Bumped to 10 to clear doses left stranded outside their course.
   // 11: priority, category, undated items and completion time, for the
   // single list that tasks, reminders and to-dos became.
-  static const int _databaseVersion = 11;
+  // 12: subscriptions.
+  static const int _databaseVersion = 12;
 
   // Public getter for database version
   static int get databaseVersion => _databaseVersion;
@@ -15,6 +16,28 @@ class DatabaseHelper {
   static const String tableTask = 'tasks';
   static const String tableMedicine = 'medicines';
   static const String tableMedicineDose = 'medicine_doses';
+  static const String tableSubscriptions = 'subscriptions';
+
+  /// One table, created the same way for a new install and an upgrade.
+  static const String _createSubscriptions = '''
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      amount REAL NOT NULL,
+      currency TEXT NOT NULL DEFAULT 'BDT',
+      cycle INTEGER NOT NULL DEFAULT 1,
+      nextRenewal INTEGER NOT NULL,
+      billingDay INTEGER NOT NULL DEFAULT 0,
+      remindDaysBefore INTEGER NOT NULL DEFAULT 3,
+      category INTEGER NOT NULL DEFAULT 9,
+      isTrial INTEGER NOT NULL DEFAULT 0,
+      isActive INTEGER NOT NULL DEFAULT 1,
+      note TEXT,
+      lastPaidAt INTEGER,
+      lastPaidLocal REAL,
+      createdAt INTEGER NOT NULL
+    )
+  ''';
 
   /// Who a course of medicine is for. Null means it predates the field, or
   /// the user has not said — both read as "unassigned".
@@ -92,6 +115,7 @@ class DatabaseHelper {
 
   Future<void> _onCreate(Database db, int version) async {
     try {
+      await db.execute(_createSubscriptions);
       // Create tasks table
       await db.execute('''
         CREATE TABLE $tableTask (
@@ -338,6 +362,9 @@ class DatabaseHelper {
       ]) {
         await db.execute('ALTER TABLE $tableTask ADD COLUMN $column');
       }
+    }
+    if (oldVersion < 12) {
+      await db.execute(_createSubscriptions);
     }
   }
 
