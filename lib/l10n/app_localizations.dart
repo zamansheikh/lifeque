@@ -3481,6 +3481,144 @@ abstract class L {
   /// **'A quiet tick-tock while you focus'**
   String get studySoundTickingBody;
 
+  /// No description provided for @settingsSectionBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & restore'**
+  String get settingsSectionBackup;
+
+  /// No description provided for @backupExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export backup'**
+  String get backupExport;
+
+  /// No description provided for @backupExportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all your data and settings to one file'**
+  String get backupExportSubtitle;
+
+  /// No description provided for @backupImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import backup'**
+  String get backupImport;
+
+  /// No description provided for @backupImportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring everything back from a backup file'**
+  String get backupImportSubtitle;
+
+  /// No description provided for @backupSaveToPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to phone'**
+  String get backupSaveToPhone;
+
+  /// No description provided for @backupSaveToPhoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a folder, like Downloads'**
+  String get backupSaveToPhoneBody;
+
+  /// No description provided for @backupShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get backupShare;
+
+  /// No description provided for @backupShareBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to Google Drive, WhatsApp, email…'**
+  String get backupShareBody;
+
+  /// No description provided for @backupPrivateNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The file holds your personal data — keep it somewhere private.'**
+  String get backupPrivateNote;
+
+  /// No description provided for @backupSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved'**
+  String get backupSaved;
+
+  /// No description provided for @backupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create the backup'**
+  String get backupFailed;
+
+  /// No description provided for @backupRestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this backup?'**
+  String get backupRestoreTitle;
+
+  /// No description provided for @backupMadeOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Made on {date}'**
+  String backupMadeOn(String date);
+
+  /// No description provided for @backupTasksCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tasks, birthdays & reminders'**
+  String backupTasksCount(int count);
+
+  /// No description provided for @backupMedicinesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} medicines'**
+  String backupMedicinesCount(int count);
+
+  /// No description provided for @backupRestoreWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in the app now will be replaced by this backup.'**
+  String get backupRestoreWarning;
+
+  /// No description provided for @backupRestoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get backupRestoreAction;
+
+  /// No description provided for @backupRestoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring…'**
+  String get backupRestoring;
+
+  /// No description provided for @backupRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored'**
+  String get backupRestored;
+
+  /// No description provided for @backupNotABackup.
+  ///
+  /// In en, this message translates to:
+  /// **'This file isn\'t a LifeQue backup'**
+  String get backupNotABackup;
+
+  /// No description provided for @backupTooNew.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is from a newer version — update the app first'**
+  String get backupTooNew;
+
+  /// No description provided for @backupRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t restore — nothing was changed'**
+  String get backupRestoreFailed;
+
   /// No description provided for @studyMinutesToStart.
   ///
   /// In en, this message translates to:

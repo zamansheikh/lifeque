@@ -10,6 +10,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/navigation_preferences_service.dart';
 import '../../../whats_new/presentation/whats_new_sheet.dart';
 import '../../../../injection_container.dart' as di;
+import '../widgets/backup_actions.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -763,6 +764,34 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: l.settingsLanguage,
                 subtitle: _language.nativeLabel,
                 onTap: _showLanguageSheet,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          // ── Backup section ──────────────────────────────────────
+          _SectionHeader(
+            label: l.settingsSectionBackup,
+            color: colorScheme.primary,
+          ),
+          _SettingsGroup(
+            children: [
+              _SettingsTile(
+                icon: Icons.cloud_upload_outlined,
+                iconColor: Colors.green.shade700,
+                iconBgColor: Colors.green.withValues(alpha: 0.1),
+                title: l.backupExport,
+                subtitle: l.backupExportSubtitle,
+                onTap: () => BackupActions.export(context),
+              ),
+              _SettingsTile(
+                icon: Icons.settings_backup_restore_rounded,
+                iconColor: Colors.blue.shade700,
+                iconBgColor: Colors.blue.withValues(alpha: 0.1),
+                title: l.backupImport,
+                subtitle: l.backupImportSubtitle,
+                onTap: () => BackupActions.import(context),
               ),
             ],
           ),

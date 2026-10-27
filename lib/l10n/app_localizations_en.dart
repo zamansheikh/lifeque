@@ -1987,6 +1987,93 @@ class LEn extends L {
   String get studySoundTickingBody => 'A quiet tick-tock while you focus';
 
   @override
+  String get settingsSectionBackup => 'Backup & restore';
+
+  @override
+  String get backupExport => 'Export backup';
+
+  @override
+  String get backupExportSubtitle =>
+      'Save all your data and settings to one file';
+
+  @override
+  String get backupImport => 'Import backup';
+
+  @override
+  String get backupImportSubtitle => 'Bring everything back from a backup file';
+
+  @override
+  String get backupSaveToPhone => 'Save to phone';
+
+  @override
+  String get backupSaveToPhoneBody => 'Pick a folder, like Downloads';
+
+  @override
+  String get backupShare => 'Share';
+
+  @override
+  String get backupShareBody => 'Send to Google Drive, WhatsApp, email…';
+
+  @override
+  String get backupPrivateNote =>
+      'The file holds your personal data — keep it somewhere private.';
+
+  @override
+  String get backupSaved => 'Backup saved';
+
+  @override
+  String get backupFailed => 'Couldn\'t create the backup';
+
+  @override
+  String get backupRestoreTitle => 'Restore this backup?';
+
+  @override
+  String backupMadeOn(String date) {
+    return 'Made on $date';
+  }
+
+  @override
+  String backupTasksCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString tasks, birthdays & reminders';
+  }
+
+  @override
+  String backupMedicinesCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString medicines';
+  }
+
+  @override
+  String get backupRestoreWarning =>
+      'Everything in the app now will be replaced by this backup.';
+
+  @override
+  String get backupRestoreAction => 'Restore';
+
+  @override
+  String get backupRestoring => 'Restoring…';
+
+  @override
+  String get backupRestored => 'Backup restored';
+
+  @override
+  String get backupNotABackup => 'This file isn\'t a LifeQue backup';
+
+  @override
+  String get backupTooNew =>
+      'This backup is from a newer version — update the app first';
+
+  @override
+  String get backupRestoreFailed => 'Couldn\'t restore — nothing was changed';
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

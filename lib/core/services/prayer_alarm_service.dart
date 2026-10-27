@@ -846,6 +846,15 @@ class PrayerAlarmService {
     await _scheduleAllAlarms();
   }
 
+  /// Drops what is armed and starts over from storage — after a backup is
+  /// restored, the saved alarms are not the ones this service last saw.
+  Future<void> reloadFromStorage() async {
+    await _cancelAllAlarms();
+    await _loadSettings();
+    await _loadAlarms();
+    if (_isEnabled) await _scheduleAllAlarms();
+  }
+
   Future<void> _cancelAllAlarms() async {
     for (final prayerName in _prayerAlarmIds.keys) {
       await _cancelAlarm(prayerName);

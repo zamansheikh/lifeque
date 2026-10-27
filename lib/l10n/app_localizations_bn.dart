@@ -1976,6 +1976,92 @@ class LBn extends L {
   String get studySoundTickingBody => 'পড়ার সময় মৃদু টিক-টক শব্দ';
 
   @override
+  String get settingsSectionBackup => 'ব্যাকআপ ও রিস্টোর';
+
+  @override
+  String get backupExport => 'ব্যাকআপ নিন';
+
+  @override
+  String get backupExportSubtitle => 'আপনার সব তথ্য ও সেটিংস একটি ফাইলে রাখুন';
+
+  @override
+  String get backupImport => 'ব্যাকআপ থেকে ফিরিয়ে আনুন';
+
+  @override
+  String get backupImportSubtitle =>
+      'ব্যাকআপ ফাইল থেকে সব আগের মতো ফিরিয়ে আনুন';
+
+  @override
+  String get backupSaveToPhone => 'ফোনে সংরক্ষণ করুন';
+
+  @override
+  String get backupSaveToPhoneBody => 'একটি ফোল্ডার বাছুন, যেমন Downloads';
+
+  @override
+  String get backupShare => 'শেয়ার করুন';
+
+  @override
+  String get backupShareBody => 'গুগল ড্রাইভ, হোয়াটসঅ্যাপ, ইমেইলে পাঠান…';
+
+  @override
+  String get backupPrivateNote =>
+      'এই ফাইলে আপনার ব্যক্তিগত তথ্য আছে — নিরাপদ জায়গায় রাখুন।';
+
+  @override
+  String get backupSaved => 'ব্যাকআপ সংরক্ষিত হয়েছে';
+
+  @override
+  String get backupFailed => 'ব্যাকআপ তৈরি করা যায়নি';
+
+  @override
+  String get backupRestoreTitle => 'এই ব্যাকআপ ফিরিয়ে আনবেন?';
+
+  @override
+  String backupMadeOn(String date) {
+    return '$date তারিখে তৈরি';
+  }
+
+  @override
+  String backupTasksCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countStringটি কাজ, জন্মদিন ও রিমাইন্ডার';
+  }
+
+  @override
+  String backupMedicinesCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countStringটি ওষুধ';
+  }
+
+  @override
+  String get backupRestoreWarning =>
+      'অ্যাপে এখন যা আছে, সব এই ব্যাকআপ দিয়ে বদলে যাবে।';
+
+  @override
+  String get backupRestoreAction => 'ফিরিয়ে আনুন';
+
+  @override
+  String get backupRestoring => 'ফিরিয়ে আনা হচ্ছে…';
+
+  @override
+  String get backupRestored => 'ব্যাকআপ ফিরিয়ে আনা হয়েছে';
+
+  @override
+  String get backupNotABackup => 'এটি LifeQue-এর ব্যাকআপ ফাইল নয়';
+
+  @override
+  String get backupTooNew => 'এই ব্যাকআপ নতুন সংস্করণের — আগে অ্যাপ আপডেট করুন';
+
+  @override
+  String get backupRestoreFailed => 'ফিরিয়ে আনা যায়নি — কিছুই বদলায়নি';
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);
