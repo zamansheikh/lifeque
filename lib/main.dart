@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -17,6 +19,7 @@ import 'features/home_widget/services/home_widget_service.dart';
 import 'core/services/background_service.dart';
 import 'core/utils/hijri_date.dart';
 import 'features/prayer_times/data/services/prayer_settings_service.dart';
+import 'features/ifa/ifa_ramadan.dart';
 
 /// Top-level background callback for home_widget tap-to-refresh.
 /// This runs in an isolate when the user taps the widget.
@@ -67,6 +70,19 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('🚀 App starting...');
 
+  // Credit for the district outlines behind the Islamic Foundation option.
+  LicenseRegistry.addLicense(
+    () => Stream.value(
+      const LicenseEntryWithLineBreaks(
+        ['geoBoundaries (Bangladesh districts)'],
+        'District boundaries: geoBoundaries gbOpen BGD ADM2, from the '
+        'Bangladesh Bureau of Statistics and OCHA ROAP. Licensed under '
+        'Creative Commons Attribution 3.0 IGO (CC BY 3.0 IGO). Simplified.\n\n'
+        'Ramadan timetables: Islamic Foundation Bangladesh.',
+      ),
+    ),
+  );
+
   // Initialize timezone DB and resolve the device's actual zone. We avoid
   // adding a flutter_timezone dependency by first trying DateTime.timeZoneName
   // (works on Android — returns IANA names) and falling back to Asia/Dhaka if
@@ -116,6 +132,12 @@ void main() async {
       latitude: loc?.latitude,
       longitude: loc?.longitude,
     );
+    await IfaRamadan.ensureLoaded(
+      latitude: loc?.latitude,
+      longitude: loc?.longitude,
+    );
+    // The year's Islamic Foundation table, once it is published.
+    if (IfaRamadan.enabled) unawaited(IfaRamadan.refresh());
   } catch (e) {
     debugPrint('🌙 Could not read the Hijri offset: $e');
   }

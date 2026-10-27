@@ -68,13 +68,17 @@ class _RamadanPageState extends State<RamadanPage> {
       if (loc == null) return;
       final method = await settings.getCalculationMethod();
       final madhab = await settings.getMadhab();
-      Map<String, DateTime> on(DateTime d) => SalahTimeCalculator(
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        date: d,
-        method: method,
-        madhab: madhab,
-      ).getPrayerTimesMap();
+      Map<String, DateTime> on(DateTime d) {
+        final c = SalahTimeCalculator(
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          date: d,
+          method: method,
+          madhab: madhab,
+        );
+        return {...c.getPrayerTimesMap(), 'Sahri': c.getSahriEnd()};
+      }
+
       final now = _now();
       final today = on(now);
       final tomorrow = on(DateTime(now.year, now.month, now.day + 1));
@@ -241,14 +245,14 @@ class _Header extends StatelessWidget {
     final t = today;
     String? countdown;
     if (t != null) {
-      final fajr = t['Fajr']!, maghrib = t['Maghrib']!;
+      final fajr = t['Sahri']!, maghrib = t['Maghrib']!;
       if (now.isBefore(fajr)) {
         countdown = l.ramadanUntilSehri(_hms(fajr.difference(now)));
       } else if (now.isBefore(maghrib)) {
         countdown = l.ramadanUntilIftar(_hms(maghrib.difference(now)));
       } else if (tomorrow != null) {
         countdown = l.ramadanUntilSehri(
-          _hms(tomorrow!['Fajr']!.difference(now)),
+          _hms(tomorrow!['Sahri']!.difference(now)),
         );
       }
     }
@@ -337,7 +341,7 @@ class _Header extends StatelessWidget {
           else ...[
             Row(
               children: [
-                time(l.ramadanSahriEnds, t['Fajr'], Icons.dark_mode_rounded),
+                time(l.ramadanSahriEnds, t['Sahri'], Icons.dark_mode_rounded),
                 const SizedBox(width: 10),
                 time(l.ramadanIftar, t['Maghrib'], Icons.wb_twilight_rounded),
               ],

@@ -3036,6 +3036,75 @@ class LBn extends L {
   String get moreHijriLater => 'এক দিন পরে';
 
   @override
+  String get ifaTitle => 'ইসলামিক ফাউন্ডেশনের রমজান ক্যালেন্ডার';
+
+  @override
+  String get ifaRowOff => 'বন্ধ';
+
+  @override
+  String ifaRowOn(String district) {
+    return 'চালু · $district';
+  }
+
+  @override
+  String get ifaAbout =>
+      'চালু করলে শুধু রমজান মাসে সাহরি, ফজর ও ইফতারের সময় ইসলামিক ফাউন্ডেশন বাংলাদেশের জেলাভিত্তিক সময়সূচি অনুযায়ী দেখাবে। বছরের বাকি সময় কিছু বদলাবে না।';
+
+  @override
+  String get ifaUse => 'ইসলামিক ফাউন্ডেশনের সময়সূচি ব্যবহার করুন';
+
+  @override
+  String get ifaRule =>
+      'প্রতিটি জেলার জন্য একটি সময়সূচি, যা পুরো জেলায় খাটে: সাহরি শেষ হয় জেলার পূর্ব প্রান্তের সুবহে সাদিকে, আর ফজরের আযান ও ইফতার পশ্চিম প্রান্ত অনুযায়ী।';
+
+  @override
+  String get ifaDistrict => 'জেলা';
+
+  @override
+  String ifaFromLocation(String district) {
+    return '$district (আপনার অবস্থান থেকে)';
+  }
+
+  @override
+  String get ifaNoDistrict => 'আপনার জেলা বেছে নিন';
+
+  @override
+  String get ifaAuto => 'আমার অবস্থান অনুযায়ী';
+
+  @override
+  String get ifaSearch => 'জেলা খুঁজুন';
+
+  @override
+  String ifaOfficial(String year) {
+    return 'রমজান $year: ইসলামিক ফাউন্ডেশনের প্রকাশিত সময়সূচি';
+  }
+
+  @override
+  String ifaComputed(String year) {
+    return 'রমজান $year: সময়সূচি এখনও প্রকাশিত হয়নি। প্রকাশ না হওয়া পর্যন্ত ইসলামিক ফাউন্ডেশনের নিয়মে হিসাব করা সময় দেখানো হবে।';
+  }
+
+  @override
+  String get ifaCheck => 'সময়সূচি খুঁজুন';
+
+  @override
+  String get ifaChecking => 'খোঁজা হচ্ছে…';
+
+  @override
+  String get ifaNotYet => 'এখনও প্রকাশিত হয়নি';
+
+  @override
+  String get ifaGot => 'সময়সূচি ডাউনলোড হয়েছে';
+
+  @override
+  String ifaFirstDay(String date) {
+    return 'প্রথম রোজা · $date';
+  }
+
+  @override
+  String get ifaFajrAzan => 'ফজরের আযান';
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

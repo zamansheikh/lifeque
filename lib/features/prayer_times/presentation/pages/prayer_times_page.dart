@@ -41,6 +41,7 @@ import '../widgets/salat_times_card.dart';
 import 'prayer_stats_page.dart';
 import '../../../../core/utils/local_clock.dart';
 import '../../../../core/utils/hijri_date.dart';
+import '../../../ifa/ifa_ramadan.dart';
 
 /// "Prayer Compass" — the prayer-times screen.
 ///
@@ -179,6 +180,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           latitude: savedLocation.latitude,
           longitude: savedLocation.longitude,
           force: true,
+        );
+        await IfaRamadan.ensureLoaded(
+          latitude: savedLocation.latitude,
+          longitude: savedLocation.longitude,
         );
         if (!mounted) return;
         setState(() {
@@ -603,7 +608,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           if (_ramadanMode)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-              child: _ramadanStrip(times, now),
+              child: _ramadanStrip(times, calc.getSahriEnd(), now),
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
@@ -1228,8 +1233,12 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
   // ── Ramadan strip ───────────────────────────────────────────────────────
 
-  Widget _ramadanStrip(Map<String, DateTime> times, DateTime now) {
-    final fajr = times['Fajr']!;
+  Widget _ramadanStrip(
+    Map<String, DateTime> times,
+    DateTime sahri,
+    DateTime now,
+  ) {
+    final fajr = sahri;
     final maghrib = times['Maghrib']!;
     final hijri = HijriDate.of(now);
     final heading = hijri.hMonth == 9

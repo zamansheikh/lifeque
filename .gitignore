@@ -53,3 +53,7 @@ app.*.map.json
 docs/IN_APP_UPDATES.md
 docs/Notification DOCS.md
 docs/prayer_alarm_system.md
+
+# Python bytecode from tool/ scripts
+__pycache__/
+*.pyc

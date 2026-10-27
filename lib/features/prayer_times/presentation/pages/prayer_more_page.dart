@@ -16,6 +16,8 @@ import '../../../../core/utils/local_numbers.dart';
 import '../utils/hijri_names.dart';
 import 'dart:async';
 import '../../../home_widget/services/home_widget_service.dart';
+import '../../../ifa/ifa_ramadan.dart';
+import '../../../ifa/ifa_sheet.dart';
 
 /// "More" tab: shortcuts into stats/resources/duas, the adhan voice picker,
 /// and the prayer settings block (method, madhab, location, Ramadan mode).
@@ -466,10 +468,12 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
         _settingRow(
           label: L.of(context).moreMadhabAsr,
           trailing: Container(
-            decoration: BoxDecoration(
+            // The border goes on top: the white chip would cover it.
+            foregroundDecoration: BoxDecoration(
               borderRadius: BorderRadius.circular(11),
               border: Border.all(color: PrayerPalette.accentA(0.35)),
             ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(11)),
             clipBehavior: Clip.antiAlias,
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -482,7 +486,10 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
         ),
         _settingRow(
           label: L.of(context).moreLocation,
-          trailing: Flexible(
+          // Capped rather than flexible, so it sits flush right like the
+          // other controls and a long place name still ellipsizes.
+          trailing: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 180),
             child: Text(
               '${(_locationName ?? L.of(context).moreNotSet).split(',').first}'
               '${_fromGps ? ' · GPS ✓' : ''}',
@@ -500,6 +507,41 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
         _settingRow(
           label: L.of(context).moreHijriDate,
           trailing: _hijriStepper(),
+        ),
+        _settingRow(
+          label: L.of(context).ifaTitle,
+          trailing: InkWell(
+            key: const Key('ifa-row'),
+            onTap: () async {
+              await IfaSheet.show(context);
+              if (mounted) setState(() {});
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  IfaRamadan.enabled && IfaRamadan.district != null
+                      ? L
+                            .of(context)
+                            .ifaRowOn(
+                              ifaDistrictName(context, IfaRamadan.district!),
+                            )
+                      : L.of(context).ifaRowOff,
+                  style: const TextStyle(
+                    color: PrayerPalette.accent,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: PrayerPalette.accent,
+                ),
+              ],
+            ),
+          ),
         ),
         _settingRow(
           label: L.of(context).moreRamadanMode,
@@ -530,6 +572,8 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
         key: Key('hijri-offset-${delta > 0 ? 'later' : 'earlier'}'),
         tooltip: tip,
         visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
         iconSize: 20,
         color: PrayerPalette.accent,
         onPressed: enabled
@@ -548,6 +592,7 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
       mainAxisSize: MainAxisSize.min,
       children: [
         step(Icons.remove_circle_outline_rounded, -1, l.moreHijriEarlier),
+        const SizedBox(width: 4),
         Text(
           '${N.of(h.hDay)} ${HijriNames.monthFor(context, h.hMonth)}',
           key: const Key('hijri-offset-preview'),
@@ -557,6 +602,7 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
             fontWeight: FontWeight.w700,
           ),
         ),
+        const SizedBox(width: 4),
         step(Icons.add_circle_outline_rounded, 1, l.moreHijriLater),
       ],
     );
@@ -578,16 +624,19 @@ class _PrayerMorePageState extends State<PrayerMorePage> {
           : null,
       child: Row(
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: PrayerPalette.inkA(0.7),
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
+          // The label takes whatever the control leaves, so every control
+          // sits flush right and a long label wraps instead of overflowing.
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: PrayerPalette.inkA(0.7),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          const Spacer(),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           trailing,
         ],
       ),

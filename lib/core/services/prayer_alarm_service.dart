@@ -12,6 +12,8 @@ import '../utils/salah_time_calculator.dart';
 import '../utils/alarm_sound_utils.dart';
 import '../../features/prayer_times/data/services/jamaat_defaults.dart';
 import '../../features/prayer_times/data/services/prayer_settings_service.dart';
+import '../../features/ifa/ifa_ramadan.dart';
+import '../utils/hijri_date.dart';
 
 /// What an alarm's offset is measured from.
 ///
@@ -628,6 +630,15 @@ class PrayerAlarmService {
     final location = await settings.getSavedLocation();
     final method = await settings.getCalculationMethod();
     final madhab = await settings.getMadhab();
+    // This can run in a background isolate that has loaded nothing yet.
+    await HijriDate.ensureLoaded(
+      latitude: location?.latitude,
+      longitude: location?.longitude,
+    );
+    await IfaRamadan.ensureLoaded(
+      latitude: location?.latitude,
+      longitude: location?.longitude,
+    );
 
     return SalahTimeCalculator(
       latitude: location?.latitude ?? 23.8103,

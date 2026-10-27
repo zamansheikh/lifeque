@@ -5083,6 +5083,120 @@ abstract class L {
   /// **'One day later'**
   String get moreHijriLater;
 
+  /// No description provided for @ifaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Islamic Foundation Ramadan calendar'**
+  String get ifaTitle;
+
+  /// No description provided for @ifaRowOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get ifaRowOff;
+
+  /// No description provided for @ifaRowOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On · {district}'**
+  String ifaRowOn(String district);
+
+  /// No description provided for @ifaAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'When on, during Ramadan only, sahri, Fajr and iftar follow Islamic Foundation Bangladesh\'s timetable for your district. Nothing changes the rest of the year.'**
+  String get ifaAbout;
+
+  /// No description provided for @ifaUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Islamic Foundation\'s timetable'**
+  String get ifaUse;
+
+  /// No description provided for @ifaRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Each district gets one timetable that holds across all of it: sahri ends at dawn on its eastern edge, while the Fajr azan and iftar follow its western edge.'**
+  String get ifaRule;
+
+  /// No description provided for @ifaDistrict.
+  ///
+  /// In en, this message translates to:
+  /// **'District'**
+  String get ifaDistrict;
+
+  /// No description provided for @ifaFromLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'{district} (from your location)'**
+  String ifaFromLocation(String district);
+
+  /// No description provided for @ifaNoDistrict.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your district'**
+  String get ifaNoDistrict;
+
+  /// No description provided for @ifaAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow my location'**
+  String get ifaAuto;
+
+  /// No description provided for @ifaSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search districts'**
+  String get ifaSearch;
+
+  /// No description provided for @ifaOfficial.
+  ///
+  /// In en, this message translates to:
+  /// **'Ramadan {year}: Islamic Foundation\'s published timetable'**
+  String ifaOfficial(String year);
+
+  /// No description provided for @ifaComputed.
+  ///
+  /// In en, this message translates to:
+  /// **'Ramadan {year}: not published yet. Until it is, the times are worked out by Islamic Foundation\'s own rule.'**
+  String ifaComputed(String year);
+
+  /// No description provided for @ifaCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for the timetable'**
+  String get ifaCheck;
+
+  /// No description provided for @ifaChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get ifaChecking;
+
+  /// No description provided for @ifaNotYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not published yet'**
+  String get ifaNotYet;
+
+  /// No description provided for @ifaGot.
+  ///
+  /// In en, this message translates to:
+  /// **'Timetable downloaded'**
+  String get ifaGot;
+
+  /// No description provided for @ifaFirstDay.
+  ///
+  /// In en, this message translates to:
+  /// **'First fast · {date}'**
+  String ifaFirstDay(String date);
+
+  /// No description provided for @ifaFajrAzan.
+  ///
+  /// In en, this message translates to:
+  /// **'Fajr azan'**
+  String get ifaFajrAzan;
+
   /// No description provided for @studyMinutesToStart.
   ///
   /// In en, this message translates to:

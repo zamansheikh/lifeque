@@ -1,5 +1,6 @@
 import 'package:adhan/adhan.dart';
 import '../../core/utils/local_clock.dart';
+import '../../features/ifa/ifa_ramadan.dart';
 import 'sun_clock.dart';
 
 /// Prayer times for one place and one day.
@@ -126,14 +127,26 @@ class SalahTimeCalculator {
   }
 
   /// The day's times as shown: starts rounded up, Fajr and sunrise down.
+  /// Islamic Foundation's sahri, Fajr azan and iftar, on a Ramadan day
+  /// when the user has chosen to follow its district calendar.
+  late final IfaDay? _ifa = IfaRamadan.dayFor(date);
+
+  /// Whether today's Fajr and Maghrib come from Islamic Foundation's
+  /// district calendar rather than the sun.
+  bool get followsIfa => _ifa != null;
+
   late final Map<String, DateTime> _times = {
-    'Fajr': SafeMinute.down(_raw['Fajr']!),
+    'Fajr': _ifa?.fajr ?? SafeMinute.down(_raw['Fajr']!),
     'Sunrise': SafeMinute.down(_raw['Sunrise']!),
     'Dhuhr': SafeMinute.up(_raw['Dhuhr']!),
     'Asr': SafeMinute.up(_raw['Asr']!),
-    'Maghrib': SafeMinute.up(_raw['Maghrib']!),
+    'Maghrib': _ifa?.iftar ?? SafeMinute.up(_raw['Maghrib']!),
     'Isha': SafeMinute.up(_raw['Isha']!),
   };
+
+  /// When sahri ends: Fajr, or Islamic Foundation's sahri time — set a few
+  /// minutes before its Fajr azan so it holds across the whole district.
+  DateTime getSahriEnd() => _ifa?.sahri ?? _times['Fajr']!;
 
   // Get prayer times with proper formatting
   Map<String, DateTime> getPrayerTimesMap() => Map.of(_times);
@@ -228,7 +241,7 @@ class SalahTimeCalculator {
       'Dhuhr': before(t['Asr']!),
       'Asr': before(t['Maghrib']!),
       'Maghrib': before(t['Isha']!),
-      'Isha': _tomorrow._times['Fajr']!,
+      'Isha': _tomorrow.getSahriEnd(),
     };
   }
 
@@ -252,9 +265,11 @@ class SalahTimeCalculator {
     final zawalStart = SafeMinute.down(
       peak.isBefore(sixBefore) ? peak : sixBefore,
     );
-    final sunsetStart = SafeMinute.up(
-      _raw['Sunset']!.subtract(const Duration(minutes: 15)),
-    );
+    // Following Islamic Foundation, the window runs up to its iftar.
+    final ifa = _ifa;
+    final sunsetStart = ifa != null
+        ? ifa.iftar.subtract(const Duration(minutes: 16))
+        : SafeMinute.up(_raw['Sunset']!.subtract(const Duration(minutes: 15)));
 
     return {
       // 1. Sunrise Time: From when sun begins to rise until fully risen (~15 minutes)

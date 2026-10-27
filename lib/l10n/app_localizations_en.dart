@@ -3057,6 +3057,75 @@ class LEn extends L {
   String get moreHijriLater => 'One day later';
 
   @override
+  String get ifaTitle => 'Islamic Foundation Ramadan calendar';
+
+  @override
+  String get ifaRowOff => 'Off';
+
+  @override
+  String ifaRowOn(String district) {
+    return 'On · $district';
+  }
+
+  @override
+  String get ifaAbout =>
+      'When on, during Ramadan only, sahri, Fajr and iftar follow Islamic Foundation Bangladesh\'s timetable for your district. Nothing changes the rest of the year.';
+
+  @override
+  String get ifaUse => 'Use Islamic Foundation\'s timetable';
+
+  @override
+  String get ifaRule =>
+      'Each district gets one timetable that holds across all of it: sahri ends at dawn on its eastern edge, while the Fajr azan and iftar follow its western edge.';
+
+  @override
+  String get ifaDistrict => 'District';
+
+  @override
+  String ifaFromLocation(String district) {
+    return '$district (from your location)';
+  }
+
+  @override
+  String get ifaNoDistrict => 'Choose your district';
+
+  @override
+  String get ifaAuto => 'Follow my location';
+
+  @override
+  String get ifaSearch => 'Search districts';
+
+  @override
+  String ifaOfficial(String year) {
+    return 'Ramadan $year: Islamic Foundation\'s published timetable';
+  }
+
+  @override
+  String ifaComputed(String year) {
+    return 'Ramadan $year: not published yet. Until it is, the times are worked out by Islamic Foundation\'s own rule.';
+  }
+
+  @override
+  String get ifaCheck => 'Check for the timetable';
+
+  @override
+  String get ifaChecking => 'Checking…';
+
+  @override
+  String get ifaNotYet => 'Not published yet';
+
+  @override
+  String get ifaGot => 'Timetable downloaded';
+
+  @override
+  String ifaFirstDay(String date) {
+    return 'First fast · $date';
+  }
+
+  @override
+  String get ifaFajrAzan => 'Fajr azan';
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

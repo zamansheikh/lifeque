@@ -17,6 +17,7 @@ import 'package:lifeque/features/prayer_times/presentation/utils/bangla_date.dar
 import 'package:lifeque/features/prayer_times/presentation/utils/hijri_names.dart';
 import 'package:intl/intl.dart';
 import '../../../core/utils/hijri_date.dart';
+import '../../ifa/ifa_ramadan.dart';
 
 /// App Group id shared between the Runner app and an iOS WidgetKit extension.
 ///
@@ -409,6 +410,10 @@ class HomeWidgetService {
       latitude: locationData.latitude,
       longitude: locationData.longitude,
     );
+    await IfaRamadan.ensureLoaded(
+      latitude: locationData.latitude,
+      longitude: locationData.longitude,
+    );
 
     final method = await settings.getCalculationMethod();
     final madhab = await settings.getMadhab();
@@ -484,7 +489,7 @@ class HomeWidgetService {
 
     final sunriseStr = _t12(times['Sunrise']!).toUpperCase();
     final sunsetStr = _t12(times['Maghrib']!).toUpperCase();
-    final sahriStr = _t12(times['Fajr']!).toUpperCase();
+    final sahriStr = _t12(calculator.getSahriEnd()).toUpperCase();
     final iftarStr = _t12(times['Maghrib']!).toUpperCase();
     final updatedAt = _t12(date).toUpperCase();
 
