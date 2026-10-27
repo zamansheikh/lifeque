@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'base_task_card.dart';
 import '../../../../core/utils/local_clock.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../core/utils/local_numbers.dart';
 
 class ReminderTaskCard extends BaseTaskCard {
   const ReminderTaskCard({
@@ -77,28 +79,28 @@ class _ReminderTaskCardState extends BaseTaskCardState<ReminderTaskCard> {
     IconData timeIcon;
 
     if (widget.task.isCompleted) {
-      timeText = 'Completed';
+      timeText = L.of(context).reminderCardCompleted;
       timeColor = Colors.green;
       timeIcon = Icons.check_circle_rounded;
     } else if (isPast) {
       final difference = now.difference(reminderTime);
       if (difference.inMinutes < 60) {
-        timeText = '${difference.inMinutes}m ago';
+        timeText = L.of(context).reminderAgoMinutes(difference.inMinutes);
       } else if (difference.inHours < 24) {
-        timeText = '${difference.inHours}h ago';
+        timeText = L.of(context).reminderAgoHours(difference.inHours);
       } else {
-        timeText = '${difference.inDays}d ago';
+        timeText = L.of(context).reminderAgoDays(difference.inDays);
       }
       timeColor = Colors.red;
       timeIcon = Icons.schedule_rounded;
     } else {
       final difference = reminderTime.difference(now);
       if (difference.inMinutes < 60) {
-        timeText = 'in ${difference.inMinutes}m';
+        timeText = L.of(context).reminderInMinutes(difference.inMinutes);
       } else if (difference.inHours < 24) {
-        timeText = 'in ${difference.inHours}h';
+        timeText = L.of(context).reminderInHours(difference.inHours);
       } else if (difference.inDays < 7) {
-        timeText = 'in ${difference.inDays}d';
+        timeText = L.of(context).reminderInDays(difference.inDays);
       } else {
         timeText = DateFormat('MMM d').format(reminderTime);
       }
@@ -175,11 +177,11 @@ class _ReminderTaskCardState extends BaseTaskCardState<ReminderTaskCard> {
   @override
   String getStatusText() {
     if (widget.task.isCompleted) {
-      return 'Completed';
+      return L.of(context).reminderCardCompleted;
     } else if (widget.task.startDate.isBefore(DateTime.now())) {
-      return 'Missed';
+      return L.of(context).reminderCardMissed;
     } else {
-      return 'Upcoming';
+      return L.of(context).reminderCardUpcoming;
     }
   }
 
@@ -204,17 +206,17 @@ class _ReminderTaskCardState extends BaseTaskCardState<ReminderTaskCard> {
             color: Colors.orange.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(6),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
+              const Icon(
                 Icons.notifications_active_rounded,
                 size: 10,
                 color: Colors.orange,
               ),
               SizedBox(width: 3),
               Text(
-                'REMINDER',
+                L.of(context).reminderCardLabel,
                 style: TextStyle(
                   fontSize: 9,
                   color: Colors.orange,
@@ -332,7 +334,7 @@ class _ReminderTaskCardState extends BaseTaskCardState<ReminderTaskCard> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Time Remaining',
+                L.of(context).reminderCardTimeRemaining,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -366,14 +368,44 @@ class _ReminderTaskCardState extends BaseTaskCardState<ReminderTaskCard> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               if (daysUntil > 0) ...[
-                _buildTimeUnit(daysUntil, 'Days', countdownColor, isUrgent),
-                _buildTimeUnit(hoursUntil, 'Hours', countdownColor, isUrgent),
+                _buildTimeUnit(
+                  daysUntil,
+                  L.of(context).reminderUnitDays,
+                  countdownColor,
+                  isUrgent,
+                ),
+                _buildTimeUnit(
+                  hoursUntil,
+                  L.of(context).reminderUnitHours,
+                  countdownColor,
+                  isUrgent,
+                ),
               ] else if (hoursUntil > 0) ...[
-                _buildTimeUnit(hoursUntil, 'Hours', countdownColor, isUrgent),
-                _buildTimeUnit(minutesUntil, 'Mins', countdownColor, isUrgent),
+                _buildTimeUnit(
+                  hoursUntil,
+                  L.of(context).reminderUnitHours,
+                  countdownColor,
+                  isUrgent,
+                ),
+                _buildTimeUnit(
+                  minutesUntil,
+                  L.of(context).reminderUnitMins,
+                  countdownColor,
+                  isUrgent,
+                ),
               ] else ...[
-                _buildTimeUnit(minutesUntil, 'Mins', countdownColor, isUrgent),
-                _buildTimeUnit(secondsUntil, 'Secs', countdownColor, isUrgent),
+                _buildTimeUnit(
+                  minutesUntil,
+                  L.of(context).reminderUnitMins,
+                  countdownColor,
+                  isUrgent,
+                ),
+                _buildTimeUnit(
+                  secondsUntil,
+                  L.of(context).reminderUnitSecs,
+                  countdownColor,
+                  isUrgent,
+                ),
               ],
             ],
           ),
@@ -405,7 +437,7 @@ class _ReminderTaskCardState extends BaseTaskCardState<ReminderTaskCard> {
             child: Column(
               children: [
                 Text(
-                  value.toString().padLeft(2, '0'),
+                  N.padded2(value),
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,

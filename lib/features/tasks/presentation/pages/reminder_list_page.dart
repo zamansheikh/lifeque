@@ -648,8 +648,7 @@ class _ReminderListPageState extends State<ReminderListPage> {
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          '“${task.title}” will be removed and won\'t go off. '
-          'This can\'t be undone.',
+          L.of(context).remindersDeleteBody(task.title),
           style: TextStyle(height: 1.4),
         ),
         actions: [
@@ -688,10 +687,11 @@ class _ReminderListPageState extends State<ReminderListPage> {
 
   String _relative(DateTime dateTime) {
     final diff = dateTime.difference(DateTime.now());
-    if (diff.isNegative) return 'overdue';
-    if (diff.inMinutes < 60) return 'in ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'in ${diff.inHours} h';
-    return 'in ${diff.inDays} d';
+    final l = L.of(context);
+    if (diff.isNegative) return l.reminderOverdue;
+    if (diff.inMinutes < 60) return l.reminderInMinutes(diff.inMinutes);
+    if (diff.inHours < 24) return l.reminderInHours(diff.inHours);
+    return l.reminderInDays(diff.inDays);
   }
 }
 

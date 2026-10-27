@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/todo.dart';
 import '../utils/todo_l10n.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../core/utils/local_clock.dart';
 
 /// A single to-do row.
 ///
@@ -159,7 +161,7 @@ class TodoCard extends StatelessWidget {
               if (showDue)
                 _chip(
                   icon: Icons.event_rounded,
-                  label: _formatDueDate(todo.dueDate!),
+                  label: _formatDueDate(context, todo.dueDate!),
                   color: overdue
                       ? const Color(0xFFDC2626)
                       : todo.isDueToday
@@ -169,7 +171,9 @@ class TodoCard extends StatelessWidget {
               if (showReminder)
                 _chip(
                   icon: Icons.notifications_active_rounded,
-                  label: DateFormat('d MMM, HH:mm').format(todo.reminderTime!),
+                  label:
+                      '${DateFormat('d MMM').format(todo.reminderTime!)}, '
+                      '${Clock.h12(todo.reminderTime!)}',
                   color: const Color(0xFF2563EB),
                 ),
             ],
@@ -219,19 +223,19 @@ class TodoCard extends StatelessWidget {
       },
       itemBuilder: (context) => [
         if (onEdit != null)
-          const PopupMenuItem<String>(
+          PopupMenuItem<String>(
             value: 'edit',
             height: 40,
             child: Row(
               children: [
                 Icon(Icons.edit_rounded, size: 16, color: Color(0xFF2563EB)),
                 SizedBox(width: 10),
-                Text('Edit', style: TextStyle(fontSize: 13)),
+                Text(L.of(context).commonEdit, style: TextStyle(fontSize: 13)),
               ],
             ),
           ),
         if (onDelete != null)
-          const PopupMenuItem<String>(
+          PopupMenuItem<String>(
             value: 'delete',
             height: 40,
             child: Row(
@@ -239,7 +243,7 @@ class TodoCard extends StatelessWidget {
                 Icon(Icons.delete_rounded, size: 16, color: Color(0xFFDC2626)),
                 SizedBox(width: 10),
                 Text(
-                  'Delete',
+                  L.of(context).commonDelete,
                   style: TextStyle(fontSize: 13, color: Color(0xFFDC2626)),
                 ),
               ],
@@ -249,16 +253,17 @@ class TodoCard extends StatelessWidget {
     );
   }
 
-  String _formatDueDate(DateTime dueDate) {
+  String _formatDueDate(BuildContext context, DateTime dueDate) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final due = DateTime(dueDate.year, dueDate.month, dueDate.day);
     final days = due.difference(today).inDays;
 
-    if (days == 0) return 'Today';
-    if (days == 1) return 'Tomorrow';
-    if (days == -1) return 'Yesterday';
-    if (days < 0) return '${days.abs()} days late';
+    final l = L.of(context);
+    if (days == 0) return l.commonToday;
+    if (days == 1) return l.commonTomorrow;
+    if (days == -1) return l.commonYesterday;
+    if (days < 0) return l.todoDaysLate(days.abs());
     if (days < 7) return DateFormat('EEEE').format(dueDate);
     return DateFormat('d MMM').format(dueDate);
   }

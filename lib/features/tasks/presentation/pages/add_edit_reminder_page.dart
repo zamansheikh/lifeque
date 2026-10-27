@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/task.dart';
 import '../bloc/task_bloc.dart';
+import '../../../../core/utils/local_clock.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Add or edit a reminder.
@@ -457,7 +458,7 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
               ),
               const SizedBox(height: 2),
               Text(
-                'An ongoing notification you can\'t swipe away until it\'s done',
+                L.of(context).reminderFormKeepShadeBody,
                 style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
@@ -556,19 +557,21 @@ class _AddEditReminderPageState extends State<AddEditReminderPage> {
     final diff = day.difference(today).inDays;
 
     final label = switch (diff) {
-      0 => 'Today',
+      0 => L.of(context).commonToday,
       1 => L.of(context).commonTomorrow,
       -1 => L.of(context).commonYesterday,
       _ => DateFormat('EEE d MMM').format(dateTime),
     };
-    return '$label, ${DateFormat('HH:mm').format(dateTime)}';
+    // The app's 12-hour clock: "Today, 3:45 PM" / "আজ, বিকাল ৩:৪৫".
+    return '$label, ${Clock.h12(dateTime)}';
   }
 
   String _relative(DateTime dateTime) {
     final diff = dateTime.difference(DateTime.now());
-    if (diff.isNegative) return 'in the past';
-    if (diff.inMinutes < 60) return 'in ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'in ${diff.inHours} h';
-    return 'in ${diff.inDays} d';
+    final l = L.of(context);
+    if (diff.isNegative) return l.reminderInPast;
+    if (diff.inMinutes < 60) return l.reminderInMinutes(diff.inMinutes);
+    if (diff.inHours < 24) return l.reminderInHours(diff.inHours);
+    return l.reminderInDays(diff.inDays);
   }
 }

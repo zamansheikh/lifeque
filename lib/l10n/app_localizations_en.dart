@@ -2074,6 +2074,114 @@ class LEn extends L {
   String get backupRestoreFailed => 'Couldn\'t restore — nothing was changed';
 
   @override
+  String get reminderFormKeepShadeBody =>
+      'An ongoing notification you can\'t swipe away until it\'s done';
+
+  @override
+  String get reminderInPast => 'in the past';
+
+  @override
+  String reminderInMinutes(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'in $minutesString min';
+  }
+
+  @override
+  String reminderInHours(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return 'in $hoursString h';
+  }
+
+  @override
+  String reminderInDays(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return 'in $daysString d';
+  }
+
+  @override
+  String get reminderOverdue => 'overdue';
+
+  @override
+  String reminderAgoMinutes(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString min ago';
+  }
+
+  @override
+  String reminderAgoHours(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString h ago';
+  }
+
+  @override
+  String reminderAgoDays(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString d ago';
+  }
+
+  @override
+  String get reminderCardCompleted => 'Completed';
+
+  @override
+  String get reminderCardMissed => 'Missed';
+
+  @override
+  String get reminderCardUpcoming => 'Upcoming';
+
+  @override
+  String get reminderCardLabel => 'REMINDER';
+
+  @override
+  String get reminderCardTimeRemaining => 'Time remaining';
+
+  @override
+  String get reminderUnitDays => 'Days';
+
+  @override
+  String get reminderUnitHours => 'Hours';
+
+  @override
+  String get reminderUnitMins => 'Mins';
+
+  @override
+  String get reminderUnitSecs => 'Secs';
+
+  @override
+  String todoDaysLate(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString days late';
+  }
+
+  @override
+  String remindersDeleteBody(String title) {
+    return '“$title” will be removed and won\'t go off. This can\'t be undone.';
+  }
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

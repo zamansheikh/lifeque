@@ -2062,6 +2062,114 @@ class LBn extends L {
   String get backupRestoreFailed => 'ফিরিয়ে আনা যায়নি — কিছুই বদলায়নি';
 
   @override
+  String get reminderFormKeepShadeBody =>
+      'কাজ শেষ না হওয়া পর্যন্ত নোটিফিকেশনটি সরানো যাবে না';
+
+  @override
+  String get reminderInPast => 'সময় পেরিয়ে গেছে';
+
+  @override
+  String reminderInMinutes(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString মিনিট পরে';
+  }
+
+  @override
+  String reminderInHours(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString ঘণ্টা পরে';
+  }
+
+  @override
+  String reminderInDays(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString দিন পরে';
+  }
+
+  @override
+  String get reminderOverdue => 'সময় পেরিয়েছে';
+
+  @override
+  String reminderAgoMinutes(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString মিনিট আগে';
+  }
+
+  @override
+  String reminderAgoHours(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString ঘণ্টা আগে';
+  }
+
+  @override
+  String reminderAgoDays(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString দিন আগে';
+  }
+
+  @override
+  String get reminderCardCompleted => 'সম্পন্ন';
+
+  @override
+  String get reminderCardMissed => 'মিস হয়েছে';
+
+  @override
+  String get reminderCardUpcoming => 'আসছে';
+
+  @override
+  String get reminderCardLabel => 'রিমাইন্ডার';
+
+  @override
+  String get reminderCardTimeRemaining => 'বাকি সময়';
+
+  @override
+  String get reminderUnitDays => 'দিন';
+
+  @override
+  String get reminderUnitHours => 'ঘণ্টা';
+
+  @override
+  String get reminderUnitMins => 'মিনিট';
+
+  @override
+  String get reminderUnitSecs => 'সেকেন্ড';
+
+  @override
+  String todoDaysLate(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString দিন দেরি';
+  }
+
+  @override
+  String remindersDeleteBody(String title) {
+    return '“$title” মুছে যাবে এবং আর বাজবে না। এটি ফেরানো যাবে না।';
+  }
+
+  @override
   String studyMinutesToStart(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

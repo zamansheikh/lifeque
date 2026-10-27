@@ -3619,6 +3619,126 @@ abstract class L {
   /// **'Couldn\'t restore — nothing was changed'**
   String get backupRestoreFailed;
 
+  /// No description provided for @reminderFormKeepShadeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An ongoing notification you can\'t swipe away until it\'s done'**
+  String get reminderFormKeepShadeBody;
+
+  /// No description provided for @reminderInPast.
+  ///
+  /// In en, this message translates to:
+  /// **'in the past'**
+  String get reminderInPast;
+
+  /// No description provided for @reminderInMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'in {minutes} min'**
+  String reminderInMinutes(int minutes);
+
+  /// No description provided for @reminderInHours.
+  ///
+  /// In en, this message translates to:
+  /// **'in {hours} h'**
+  String reminderInHours(int hours);
+
+  /// No description provided for @reminderInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'in {days} d'**
+  String reminderInDays(int days);
+
+  /// No description provided for @reminderOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'overdue'**
+  String get reminderOverdue;
+
+  /// No description provided for @reminderAgoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min ago'**
+  String reminderAgoMinutes(int minutes);
+
+  /// No description provided for @reminderAgoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h ago'**
+  String reminderAgoHours(int hours);
+
+  /// No description provided for @reminderAgoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d ago'**
+  String reminderAgoDays(int days);
+
+  /// No description provided for @reminderCardCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get reminderCardCompleted;
+
+  /// No description provided for @reminderCardMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get reminderCardMissed;
+
+  /// No description provided for @reminderCardUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get reminderCardUpcoming;
+
+  /// No description provided for @reminderCardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'REMINDER'**
+  String get reminderCardLabel;
+
+  /// No description provided for @reminderCardTimeRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Time remaining'**
+  String get reminderCardTimeRemaining;
+
+  /// No description provided for @reminderUnitDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get reminderUnitDays;
+
+  /// No description provided for @reminderUnitHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get reminderUnitHours;
+
+  /// No description provided for @reminderUnitMins.
+  ///
+  /// In en, this message translates to:
+  /// **'Mins'**
+  String get reminderUnitMins;
+
+  /// No description provided for @reminderUnitSecs.
+  ///
+  /// In en, this message translates to:
+  /// **'Secs'**
+  String get reminderUnitSecs;
+
+  /// No description provided for @todoDaysLate.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days late'**
+  String todoDaysLate(int days);
+
+  /// No description provided for @remindersDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” will be removed and won\'t go off. This can\'t be undone.'**
+  String remindersDeleteBody(String title);
+
   /// No description provided for @studyMinutesToStart.
   ///
   /// In en, this message translates to:
