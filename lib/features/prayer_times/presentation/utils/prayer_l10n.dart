@@ -8,8 +8,12 @@ import '../../../../l10n/app_localizations.dart';
 /// callbacks (`onTogglePrayed('Fajr')`), and they are what the alarm service
 /// and the stored completions use — so they stay English in the data and get
 /// translated only on the way to the screen.
-String prayerLabel(BuildContext context, String key) {
-  final l = L.of(context);
+String prayerLabel(BuildContext context, String key) =>
+    prayerLabelFor(L.of(context), key);
+
+/// [prayerLabel] for code with no [BuildContext] — alarm notifications are
+/// built in the alarm service, sometimes in a background isolate.
+String prayerLabelFor(L l, String key) {
   return switch (key) {
     'Fajr' => l.prayerFajr,
     'Dhuhr' => l.prayerDhuhr,

@@ -4381,6 +4381,78 @@ abstract class L {
   /// **'Auto-sets Fajr & Maghrib to waqt + {minutes}m'**
   String mosqueEditRamadanBody(int minutes);
 
+  /// No description provided for @alarmRingStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get alarmRingStop;
+
+  /// No description provided for @alarmRingHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer alarm'**
+  String get alarmRingHeader;
+
+  /// No description provided for @alarmRingGenericHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm'**
+  String get alarmRingGenericHeader;
+
+  /// No description provided for @alarmRingAutoStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stops on its own in {minutes} min'**
+  String alarmRingAutoStop(int minutes);
+
+  /// No description provided for @alarmRingAtWaqt.
+  ///
+  /// In en, this message translates to:
+  /// **'{prayer} has begun'**
+  String alarmRingAtWaqt(String prayer);
+
+  /// No description provided for @alarmRingBeforeWaqt.
+  ///
+  /// In en, this message translates to:
+  /// **'{prayer} begins in {minutes} min'**
+  String alarmRingBeforeWaqt(String prayer, int minutes);
+
+  /// No description provided for @alarmRingAfterWaqt.
+  ///
+  /// In en, this message translates to:
+  /// **'{prayer} began {minutes} min ago'**
+  String alarmRingAfterWaqt(String prayer, int minutes);
+
+  /// No description provided for @alarmRingBeforeEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min left in {prayer} waqt'**
+  String alarmRingBeforeEnd(String prayer, int minutes);
+
+  /// No description provided for @alarmRingAtJamaat.
+  ///
+  /// In en, this message translates to:
+  /// **'{prayer} jamaat is starting'**
+  String alarmRingAtJamaat(String prayer);
+
+  /// No description provided for @alarmRingBeforeJamaat.
+  ///
+  /// In en, this message translates to:
+  /// **'{prayer} jamaat in {minutes} min'**
+  String alarmRingBeforeJamaat(String prayer, int minutes);
+
+  /// No description provided for @alarmRingAfterJamaat.
+  ///
+  /// In en, this message translates to:
+  /// **'{prayer} jamaat began {minutes} min ago'**
+  String alarmRingAfterJamaat(String prayer, int minutes);
+
+  /// No description provided for @alarmRingReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to pray {prayer}'**
+  String alarmRingReminder(String prayer);
+
   /// No description provided for @alarmMinBeforeWaqtEnds.
   ///
   /// In en, this message translates to:

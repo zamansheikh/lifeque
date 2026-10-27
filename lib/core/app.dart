@@ -44,6 +44,7 @@ import 'package:lifeque/features/nudges/launch_prompts.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
 import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import 'services/navigation_service.dart';
+import 'widgets/alarm_ring_overlay.dart';
 import 'services/navigation_preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../injection_container.dart' as di;
@@ -413,7 +414,13 @@ class _MyAppState extends State<MyApp> {
                     systemNavigationBarColor: Colors.white,
                     systemNavigationBarIconBrightness: Brightness.dark,
                   ),
-                  child: child ?? const SizedBox(),
+                  // Above the router, so a ringing alarm is on screen from
+                  // the first frame — including when the ring itself
+                  // launched the app.
+                  child: AlarmRingOverlay(
+                    backButtonDispatcher: AppRouter.router.backButtonDispatcher,
+                    child: child ?? const SizedBox(),
+                  ),
                 ),
               );
             },

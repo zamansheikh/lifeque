@@ -76,6 +76,11 @@ void main() async {
     '🕐 Current local time: ${timezone.TZDateTime.now(timezone.local)}',
   );
 
+  // Language before anything that writes user-facing text: startup
+  // re-queues the prayer alarms, and their notification text and Stop
+  // button are fixed at that moment. Loading it later left them in English.
+  await LanguagePreferenceService.prepareIsolate();
+
   // Initialize alarm service
   await Alarm.init();
   debugPrint('⏰ Alarm service initialized');
@@ -141,11 +146,8 @@ void main() async {
   _updateHomeWidget();
 
   debugPrint('🎯 Running app...');
-  // Before the first frame, so the app opens in the chosen language rather
-  // than flashing English.
-  await LanguagePreferenceService.prepareIsolate();
-  // DateFormat needs each locale's month and weekday names loaded before it
-  // can render them; without this a Bangla date throws at build time.
+  // The language was loaded at the top of main, before the first frame, so
+  // the app opens in the chosen language rather than flashing English.
 
   runApp(const MyApp());
 }

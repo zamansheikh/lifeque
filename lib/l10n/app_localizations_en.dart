@@ -2540,6 +2540,84 @@ class LEn extends L {
   }
 
   @override
+  String get alarmRingStop => 'Stop';
+
+  @override
+  String get alarmRingHeader => 'Prayer alarm';
+
+  @override
+  String get alarmRingGenericHeader => 'Alarm';
+
+  @override
+  String alarmRingAutoStop(int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return 'Stops on its own in $minutesString min';
+  }
+
+  @override
+  String alarmRingAtWaqt(String prayer) {
+    return '$prayer has begun';
+  }
+
+  @override
+  String alarmRingBeforeWaqt(String prayer, int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$prayer begins in $minutesString min';
+  }
+
+  @override
+  String alarmRingAfterWaqt(String prayer, int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$prayer began $minutesString min ago';
+  }
+
+  @override
+  String alarmRingBeforeEnd(String prayer, int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$minutesString min left in $prayer waqt';
+  }
+
+  @override
+  String alarmRingAtJamaat(String prayer) {
+    return '$prayer jamaat is starting';
+  }
+
+  @override
+  String alarmRingBeforeJamaat(String prayer, int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$prayer jamaat in $minutesString min';
+  }
+
+  @override
+  String alarmRingAfterJamaat(String prayer, int minutes) {
+    final intl.NumberFormat minutesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String minutesString = minutesNumberFormat.format(minutes);
+
+    return '$prayer jamaat began $minutesString min ago';
+  }
+
+  @override
+  String alarmRingReminder(String prayer) {
+    return 'Time to pray $prayer';
+  }
+
+  @override
   String alarmMinBeforeWaqtEnds(int minutes) {
     final intl.NumberFormat minutesNumberFormat =
         intl.NumberFormat.decimalPattern(localeName);

@@ -3,7 +3,11 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_set.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../features/prayer_times/presentation/utils/prayer_l10n.dart';
+import '../../l10n/app_localizations.dart';
+import '../utils/app_strings.dart';
 import '../utils/salah_time_calculator.dart';
 import '../utils/alarm_sound_utils.dart';
 import '../../features/prayer_times/data/services/jamaat_defaults.dart';
@@ -123,6 +127,38 @@ class PrayerAlarmConfig {
   }
 }
 
+/// The calls the service makes into the alarm plugin, behind one seam so
+/// tests can see what gets scheduled and stopped without a device.
+abstract class AlarmBackend {
+  Stream<AlarmSet> get ringing;
+  Future<bool> set(AlarmSettings settings);
+  Future<bool> stop(int id);
+  Future<bool> isRinging(int id);
+
+  /// What is currently armed under [id], if anything.
+  Future<AlarmSettings?> scheduled(int id);
+}
+
+class PluginAlarmBackend implements AlarmBackend {
+  const PluginAlarmBackend();
+
+  @override
+  Stream<AlarmSet> get ringing => Alarm.ringing;
+
+  @override
+  Future<bool> set(AlarmSettings settings) =>
+      Alarm.set(alarmSettings: settings);
+
+  @override
+  Future<bool> stop(int id) => Alarm.stop(id);
+
+  @override
+  Future<bool> isRinging(int id) => Alarm.isRinging(id);
+
+  @override
+  Future<AlarmSettings?> scheduled(int id) => Alarm.getAlarm(id);
+}
+
 class PrayerAlarmService {
   static final PrayerAlarmService _instance = PrayerAlarmService._internal();
   factory PrayerAlarmService() => _instance;
@@ -141,6 +177,49 @@ class PrayerAlarmService {
   Timer? _refreshTimer;
   StreamSubscription<AlarmSet>? _ringSubscription;
   Set<int> _currentlyRingingIds = {};
+
+  /// Stops each ringing alarm after its "rings for" length. Started when the
+  /// ring starts — it used to start when the alarm was *scheduled*, so an
+  /// alarm queued a minute before its time was cut off a minute into ringing.
+  final Map<int, Timer> _autoStopTimers = {};
+
+  AlarmBackend _backend = const PluginAlarmBackend();
+
+  @visibleForTesting
+  set backend(AlarmBackend value) => _backend = value;
+
+  /// Back to a fresh singleton, for tests.
+  @visibleForTesting
+  void resetForTesting() {
+    _ringSubscription?.cancel();
+    _ringSubscription = null;
+    _refreshTimer?.cancel();
+    for (final t in _autoStopTimers.values) {
+      t.cancel();
+    }
+    _autoStopTimers.clear();
+    _currentlyRingingIds = {};
+    _alarms = [];
+    _isEnabled = true;
+    _backend = const PluginAlarmBackend();
+  }
+
+  /// The prayer an alarm id belongs to, or null for other alarms (the study
+  /// timer's, say).
+  static String? prayerForAlarmId(int id) {
+    for (final entry in _prayerAlarmIds.entries) {
+      if (entry.value == id) return entry.key;
+    }
+    return null;
+  }
+
+  /// The saved alarm for [prayer], if any.
+  PrayerAlarmConfig? configFor(String prayer) {
+    for (final a in _alarms) {
+      if (a.prayerName == prayer) return a;
+    }
+    return null;
+  }
 
   // Base alarm IDs for prayers (to avoid conflicts with study timer)
   static const Map<String, int> _prayerAlarmIds = {
@@ -167,17 +246,9 @@ class PrayerAlarmService {
     await _loadAlarms();
     _startRefreshTimer();
 
-    // Listen for alarm fires and automatically reschedule for the next day.
-    // This ensures alarms repeat daily even if the midnight timer was missed.
-    _ringSubscription ??= Alarm.ringing.listen((AlarmSet alarmSet) {
-      final currentIds = alarmSet.alarms.map((a) => a.id).toSet();
-      for (final alarm in alarmSet.alarms) {
-        if (!_currentlyRingingIds.contains(alarm.id)) {
-          _onAlarmRang(alarm);
-        }
-      }
-      _currentlyRingingIds = currentIds;
-    });
+    // Watch rings start and stop. The next day's alarm is queued when a ring
+    // *stops*, never while it rings: Alarm.set on a ringing id stops it.
+    _ringSubscription ??= _backend.ringing.listen(_onRingingChanged);
 
     // Reschedule all alarms on startup so that any alarms missed while the
     // app was closed (e.g. after a device restart) are correctly re-queued.
@@ -190,37 +261,56 @@ class PrayerAlarmService {
     );
   }
 
-  /// Called whenever an alarm starts ringing. Reschedules the prayer alarm
-  /// for tomorrow so it fires again on the next calendar day.
-  Future<void> _onAlarmRang(AlarmSettings settings) async {
+  void _onRingingChanged(AlarmSet alarmSet) {
+    final now = alarmSet.alarms.map((a) => a.id).toSet();
+    final before = _currentlyRingingIds;
+    _currentlyRingingIds = now;
+    for (final alarm in alarmSet.alarms) {
+      if (!before.contains(alarm.id)) _onAlarmRang(alarm);
+    }
+    for (final id in before.difference(now)) {
+      _onAlarmStopped(id);
+    }
+  }
+
+  /// A prayer alarm started ringing: arm its auto-stop. Nothing is
+  /// rescheduled here — doing that used to silence the alarm the instant it
+  /// began, because re-setting an id stops whatever is ringing under it.
+  void _onAlarmRang(AlarmSettings settings) {
     developer.log('PrayerAlarmService: Alarm rang id=${settings.id}');
+    final prayer = prayerForAlarmId(settings.id);
+    if (prayer == null) return;
+    final config = configFor(prayer);
+    final minutes = config?.alarmDurationMinutes ?? 2;
 
-    // Find which prayer this alarm belongs to.
-    String? prayerName;
-    for (final entry in _prayerAlarmIds.entries) {
-      if (entry.value == settings.id) {
-        prayerName = entry.key;
-        break;
+    // Measured from when it was due, not from now: if the app was started
+    // by the ring (or opened during it), the ring has already been going.
+    final ringsUntil = settings.dateTime.add(Duration(minutes: minutes));
+    var left = ringsUntil.difference(DateTime.now());
+    if (left.isNegative) left = Duration.zero;
+
+    _autoStopTimers.remove(settings.id)?.cancel();
+    _autoStopTimers[settings.id] = Timer(left, () async {
+      _autoStopTimers.remove(settings.id);
+      if (await _backend.isRinging(settings.id)) {
+        await _backend.stop(settings.id);
+        developer.log(
+          'PrayerAlarmService: Auto-stopped $prayer after $minutes min',
+        );
       }
-    }
-    if (prayerName == null) return;
+    });
+  }
 
-    // Find the stored config.
-    PrayerAlarmConfig? config;
-    try {
-      config = _alarms.firstWhere((a) => a.prayerName == prayerName);
-    } catch (_) {
-      return; // No config saved – nothing to reschedule.
-    }
-
-    if (!config.isEnabled || !_isEnabled) return;
-
-    // Schedule for tomorrow's prayer time.
-    final tomorrow = DateTime.now().add(const Duration(days: 1));
-    developer.log(
-      'PrayerAlarmService: Rescheduling ${config.prayerName} for tomorrow',
-    );
-    await _scheduleAlarmForDate(config, tomorrow);
+  /// A ring ended — the user stopped it, or it timed out. Now it is safe to
+  /// queue the next occurrence.
+  Future<void> _onAlarmStopped(int id) async {
+    _autoStopTimers.remove(id)?.cancel();
+    final prayer = prayerForAlarmId(id);
+    if (prayer == null) return;
+    final config = configFor(prayer);
+    if (config == null || !config.isEnabled || !_isEnabled) return;
+    developer.log('PrayerAlarmService: $prayer stopped — queueing next');
+    await _scheduleAlarm(config);
   }
 
   Future<void> _loadSettings() async {
@@ -390,6 +480,19 @@ class PrayerAlarmService {
     final alarmId = _prayerAlarmIds[config.prayerName];
     if (alarmId == null) return;
 
+    // Never re-set an alarm while it rings: Alarm.set stops the ringing one
+    // first. Startup (which the ring itself triggers, by opening the app),
+    // the midnight refresh and the background top-up all come through here,
+    // and each was silencing alarms a moment after they began. The next
+    // occurrence is queued when the ring stops — see _onAlarmStopped.
+    if (_currentlyRingingIds.contains(alarmId) ||
+        await _backend.isRinging(alarmId)) {
+      developer.log(
+        'PrayerAlarmService: ${config.prayerName} is ringing — not rescheduling',
+      );
+      return;
+    }
+
     DateTime? alarmTime;
 
     if (config.type == PrayerAlarmType.fixedTime && config.fixedTime != null) {
@@ -444,6 +547,7 @@ class PrayerAlarmService {
       alarmSoundPath = await AlarmSoundUtils.getPrayerAlarmSound();
     }
 
+    final l = appStrings;
     final alarmSettings = AlarmSettings(
       id: alarmId,
       dateTime: alarmTime,
@@ -452,36 +556,59 @@ class PrayerAlarmService {
       vibrate: config.vibrate,
       warningNotificationOnKill: true,
       androidFullScreenIntent: true,
+      // Prayer alarms have their own ids, and two can fall in the same
+      // second (Asr "before waqt ends" and Maghrib "at waqt"). The default
+      // quietly replaced one with the other.
+      allowSameSecondScheduling: true,
+      // Keep ringing if the app's task goes away mid-ring; the notification's
+      // Stop button still works without it.
+      androidStopAlarmOnTermination: false,
+      payload: config.prayerName,
       volumeSettings: VolumeSettings.fade(
         volume: 1.0, // Max volume to ensure audibility through main speaker
         fadeDuration: const Duration(seconds: 2),
         volumeEnforced:
             true, // Force volume setting to override system settings
+        // The plugin raises the volume to ring and restores it after; by
+        // default each change pops Android's volume panel over the screen.
+        showSystemUI: false,
       ),
       notificationSettings: NotificationSettings(
-        title: '🕌 Prayer Time',
-        body: _getAlarmMessage(config),
-        stopButton: 'Stop',
+        title: '🕌 ${prayerLabelFor(l, config.prayerName)}',
+        body: ringMessage(l, config),
+        stopButton: l.alarmRingStop,
         icon: 'notification_icon',
       ),
     );
 
+    // Already armed for this moment: leave it alone. Re-setting is not
+    // harmless. For an alarm due within five seconds the plugin arms an
+    // in-process timer that cannot be cancelled, so a re-set just before the
+    // alarm makes it fire twice — and the second start silences the first
+    // ("An alarm is already ringing. Ignoring new alarm"). Startup, the
+    // midnight refresh and the 15-minute background top-up all come through
+    // here, so this was a ring cut off in milliseconds, now and then.
+    final armed = await _backend.scheduled(alarmId);
+    if (armed != null &&
+        armed.dateTime.millisecondsSinceEpoch ~/ 1000 ==
+            alarmTime.millisecondsSinceEpoch ~/ 1000) {
+      final unchanged = armed.copyWith(dateTime: alarmTime) == alarmSettings;
+      final dueSoon =
+          alarmTime.difference(DateTime.now()) < const Duration(seconds: 30);
+      if (unchanged || dueSoon) {
+        developer.log(
+          'PrayerAlarmService: ${config.prayerName} already armed for '
+          '$alarmTime — leaving it',
+        );
+        return;
+      }
+    }
+
     try {
-      await Alarm.set(alarmSettings: alarmSettings);
+      await _backend.set(alarmSettings);
       developer.log(
         'PrayerAlarmService: Scheduled alarm for ${config.prayerName} at $alarmTime',
       );
-
-      // Auto-stop alarm after configured duration if not manually stopped
-      Timer(Duration(minutes: config.alarmDurationMinutes), () async {
-        final isRinging = await Alarm.isRinging(alarmId);
-        if (isRinging) {
-          await Alarm.stop(alarmId);
-          developer.log(
-            'PrayerAlarmService: Auto-stopped alarm for ${config.prayerName} after ${config.alarmDurationMinutes} minutes',
-          );
-        }
-      });
     } catch (e) {
       developer.log('PrayerAlarmService: Error scheduling alarm: $e');
     }
@@ -649,34 +776,38 @@ class PrayerAlarmService {
     }
   }
 
-  String _getAlarmMessage(PrayerAlarmConfig config) {
-    if (config.type == PrayerAlarmType.fixedTime) {
-      return '${config.prayerName} prayer time reminder';
-    } else if (config.type == PrayerAlarmType.beforePrayerEnd) {
-      return '${config.minutesBeforeEnd} minutes left for ${config.prayerName}';
-    } else if (config.type == PrayerAlarmType.afterJamaat) {
-      final m = config.minutesAfterStart;
-      if (m == 0) return '${config.prayerName} jamaat is starting';
-      return m < 0
-          ? '${config.prayerName} jamaat in ${m.abs()} minutes'
-          : '$m minutes after ${config.prayerName} jamaat';
-    } else if (config.type == PrayerAlarmType.afterPrayerStart) {
-      final mins = config.minutesAfterStart;
-      if (mins == 0) {
-        return 'Time for ${config.prayerName} prayer';
-      } else if (mins < 0) {
-        return '${mins.abs()} minutes until ${config.prayerName} prayer';
-      } else {
-        return '${config.prayerName} prayer started $mins minutes ago';
-      }
-    }
-    return '${config.prayerName} prayer time reminder';
+  /// What the alarm is for, in the app's language: "Asr begins in 10 min",
+  /// "Dhuhr jamaat is starting". Shared by the notification and the ring
+  /// screen.
+  static String ringMessage(L l, PrayerAlarmConfig config) {
+    final p = prayerLabelFor(l, config.prayerName);
+    final m = config.minutesAfterStart;
+    return switch (config.type) {
+      PrayerAlarmType.fixedTime => l.alarmRingReminder(p),
+      PrayerAlarmType.beforePrayerEnd => l.alarmRingBeforeEnd(
+        p,
+        config.minutesBeforeEnd,
+      ),
+      PrayerAlarmType.afterJamaat =>
+        m == 0
+            ? l.alarmRingAtJamaat(p)
+            : m < 0
+            ? l.alarmRingBeforeJamaat(p, -m)
+            : l.alarmRingAfterJamaat(p, m),
+      PrayerAlarmType.afterPrayerStart =>
+        m == 0
+            ? l.alarmRingAtWaqt(p)
+            : m < 0
+            ? l.alarmRingBeforeWaqt(p, -m)
+            : l.alarmRingAfterWaqt(p, m),
+    };
   }
 
   Future<void> _cancelAlarm(String prayerName) async {
     final alarmId = _prayerAlarmIds[prayerName];
     if (alarmId != null) {
-      await Alarm.stop(alarmId);
+      _autoStopTimers.remove(alarmId)?.cancel();
+      await _backend.stop(alarmId);
       developer.log('PrayerAlarmService: Cancelled alarm for $prayerName');
     }
   }
@@ -730,6 +861,9 @@ class PrayerAlarmService {
 
   void dispose() {
     _refreshTimer?.cancel();
+    for (final t in _autoStopTimers.values) {
+      t.cancel();
+    }
     _ringSubscription?.cancel();
     _alarmsController.close();
     _enabledController.close();

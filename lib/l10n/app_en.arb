@@ -1232,6 +1232,27 @@
       }
     }
   },
+  "alarmRingStop": "Stop",
+  "alarmRingHeader": "Prayer alarm",
+  "alarmRingGenericHeader": "Alarm",
+  "alarmRingAutoStop": "Stops on its own in {minutes} min",
+  "@alarmRingAutoStop": {"placeholders": {"minutes": {"type": "int", "format": "decimalPattern"}}},
+  "alarmRingAtWaqt": "{prayer} has begun",
+  "@alarmRingAtWaqt": {"placeholders": {"prayer": {"type": "String"}}},
+  "alarmRingBeforeWaqt": "{prayer} begins in {minutes} min",
+  "@alarmRingBeforeWaqt": {"placeholders": {"prayer": {"type": "String"}, "minutes": {"type": "int", "format": "decimalPattern"}}},
+  "alarmRingAfterWaqt": "{prayer} began {minutes} min ago",
+  "@alarmRingAfterWaqt": {"placeholders": {"prayer": {"type": "String"}, "minutes": {"type": "int", "format": "decimalPattern"}}},
+  "alarmRingBeforeEnd": "{minutes} min left in {prayer} waqt",
+  "@alarmRingBeforeEnd": {"placeholders": {"prayer": {"type": "String"}, "minutes": {"type": "int", "format": "decimalPattern"}}},
+  "alarmRingAtJamaat": "{prayer} jamaat is starting",
+  "@alarmRingAtJamaat": {"placeholders": {"prayer": {"type": "String"}}},
+  "alarmRingBeforeJamaat": "{prayer} jamaat in {minutes} min",
+  "@alarmRingBeforeJamaat": {"placeholders": {"prayer": {"type": "String"}, "minutes": {"type": "int", "format": "decimalPattern"}}},
+  "alarmRingAfterJamaat": "{prayer} jamaat began {minutes} min ago",
+  "@alarmRingAfterJamaat": {"placeholders": {"prayer": {"type": "String"}, "minutes": {"type": "int", "format": "decimalPattern"}}},
+  "alarmRingReminder": "Time to pray {prayer}",
+  "@alarmRingReminder": {"placeholders": {"prayer": {"type": "String"}}},
   "alarmMinBeforeWaqtEnds": "{minutes} min before waqt ends",
   "@alarmMinBeforeWaqtEnds": {
     "placeholders": {
