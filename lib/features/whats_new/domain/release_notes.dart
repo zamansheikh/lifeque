@@ -40,6 +40,59 @@ class ReleaseNote {
 /// anything without an entry simply shows nothing.
 const List<ReleaseNote> kReleaseNotes = [
   ReleaseNote(
+    version: '2.3.0',
+    headlineEn: 'Exact prayer times, and a lot more',
+    headlineBn: 'নিখুঁত নামাজের সময়, আরও অনেক কিছু',
+    lines: [
+      ReleaseLine(
+        Icons.mosque_rounded,
+        'Prayer times worked out afresh: Dhuhr waits until zawal has passed, '
+            'every time is rounded the safe way, and the Hijri and Bangla '
+            'dates follow Bangladesh.',
+        'নামাজের সময় নতুন করে হিসাব: যোহর শুরু হয় জাওয়াল পেরোলে, প্রতিটি '
+            'সময় নিরাপদ দিকে গোল করা, আর হিজরি ও বাংলা তারিখ বাংলাদেশ অনুযায়ী।',
+      ),
+      ReleaseLine(
+        Icons.nightlight_round,
+        'Ramadan: sehri and iftar countdown, a fasting and taraweeh log, '
+            'duas — and Islamic Foundation\'s district timetable if you '
+            'want it.',
+        'রমজান: সাহরি-ইফতারের কাউন্টডাউন, রোজা ও তারাবিহর হিসাব, দোয়া — আর চাইলে '
+            'ইসলামিক ফাউন্ডেশনের জেলাভিত্তিক সময়সূচি।',
+      ),
+      ReleaseLine(
+        Icons.restore_rounded,
+        'Qaza: keep count of missed prayers and fasts, and make them up one '
+            'tap at a time.',
+        'কাযা: বাকি নামাজ ও রোজার হিসাব রাখুন, এক ট্যাপে আদায় করুন।',
+      ),
+      ReleaseLine(
+        Icons.local_fire_department_rounded,
+        'Habits with streaks, a 16-week history and daily reminders.',
+        'অভ্যাস: টানা কতদিন, ১৬ সপ্তাহের ইতিহাস আর প্রতিদিনের রিমাইন্ডার।',
+      ),
+      ReleaseLine(
+        Icons.handshake_rounded,
+        'Lent & borrowed, and subscriptions that remind you before they '
+            'renew.',
+        'ধার-দেনার হিসাব, আর নবায়নের আগে মনে করিয়ে দেওয়া সাবস্ক্রিপশন।',
+      ),
+      ReleaseLine(
+        Icons.task_alt_rounded,
+        'Tasks, reminders and to-dos are one list now, and can repeat '
+            'daily, weekly, monthly or yearly.',
+        'কাজ, রিমাইন্ডার ও টু-ডু এখন এক তালিকায়, আর প্রতিদিন, সপ্তাহ, মাস বা '
+            'বছরে পুনরাবৃত্তি করা যায়।',
+      ),
+      ReleaseLine(
+        Icons.search_rounded,
+        'One search for everything, a full backup you can restore, and '
+            'study-timer sounds.',
+        'সবকিছুতে এক খোঁজ, পুরো ব্যাকআপ ও রিস্টোর, আর পড়ার টাইমারে শব্দ।',
+      ),
+    ],
+  ),
+  ReleaseNote(
     version: '2.2.4',
     headlineEn: 'Wish cards, and widgets that behave',
     headlineBn: 'শুভেচ্ছা কার্ড, আর ঠিকঠাক উইজেট',
